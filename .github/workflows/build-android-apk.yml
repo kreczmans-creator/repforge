@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'RepForge-Android-Project.zip'
+      - 'RepForge-v0.3.0-Android-source.zip'
       - '.github/workflows/build-android-apk.yml'
 
 permissions:
@@ -20,14 +20,14 @@ jobs:
 
       - name: Check source archive exists
         run: |
-          if [ ! -f RepForge-Android-Project.zip ]; then
+          if [ ! -f RepForge-v0.3.0-Android-source.zip ]; then
             echo "::error::Upload the RepForge Android project ZIP as RepForge-Android-Project.zip in the repository root."
             exit 1
           fi
 
       - name: Extract Android project
         run: |
-          unzip -q RepForge-Android-Project.zip
+          unzip -q RepForge-v0.3.0-Android-source.zip
           test -f repforge-android/settings.gradle.kts
           test -f repforge-android/app/build.gradle.kts
 
