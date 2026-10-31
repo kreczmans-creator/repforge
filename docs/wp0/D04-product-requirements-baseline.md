@@ -1,0 +1,281 @@
+# D04 — Product Requirements Baseline
+
+| Field | Value |
+|---|---|
+| Status | Draft |
+| Date | 2026-10-31 |
+| Source | Owner product vision (owner brief, 2026-10-31) |
+| Purpose | Requirements catalogue for WP 1 onwards |
+
+This catalogue describes the target product. It is NOT evidence that any feature currently exists. Nothing in this document should be read as a statement that a capability has been built, tested or released.
+
+> Review note (architect, 2026-10-31): drafted by a delegated agent from the owner's product vision and reviewed against it. Priority counts are P1 Must 111, P2 Should 20, P3 Could 3. That P1 set is larger than a first usable release can carry; it should be read as "must exist before RepForge is called complete". The practical release scope is set by the roadmap in D06 (R0 after WP 6, R1 after WP 10). The owner should triage P1 items into those release points before WP 5 starts. All 18 open questions need owner answers; the ones gating WP 3–5 are OQ-01, OQ-02, OQ-07, OQ-14, OQ-17 and OQ-18.
+
+## 2. Conventions
+
+### 2.1 ID scheme
+
+Each requirement has an ID of the form `PREFIX-NNN` (three digits, zero-padded, unique within the prefix, never reused once retired).
+
+| Prefix | Domain |
+|---|---|
+| GEN | Non-functional and cross-cutting |
+| NUT | Nutrition logging and food database |
+| RCP | Recipes and meal planning |
+| TRN | Strength training |
+| BCM | Body composition and measurements |
+| GOL | Goals and analytics |
+| UXD | UX and design system |
+| PLT | Platform integrations |
+| DAT | Data, backup, sync and accounts |
+
+### 2.2 Priority scale
+
+| Priority | Meaning |
+|---|---|
+| P1 Must | Required for the first usable release |
+| P2 Should | Expected soon after the first usable release; omission needs owner agreement |
+| P3 Could / later | Desirable; scheduled only if capacity allows or deferred to a later release |
+
+### 2.3 Status values
+
+| Status | Meaning |
+|---|---|
+| Proposed | Written in this baseline; not yet agreed by the owner |
+| Approved | Agreed by the owner as in scope |
+| Implemented | Built and merged; not yet independently verified |
+| Verified | Acceptance criteria demonstrated by recorded automated or manual verification |
+
+All requirements in this baseline are **Proposed**. The Status column is therefore omitted from the tables below and will be added when requirements are first approved.
+
+### 2.4 Mapping and verification rule
+
+- Every requirement must map to at least one work package (WP). The default mapping is given by prefix in section 5; per-requirement mapping is to be refined when each WP is planned.
+- Every requirement must have at least one automated or manual verification recorded before its status can become Verified. The acceptance criteria in this document are the basis for those verifications.
+- Numeric targets described as "proposed target" are working figures for discussion. They are not agreed commitments until the owner approves them.
+- Units are metric unless stated otherwise (kg, g, mg, kcal, cm, m, km, ml, l).
+
+## 3. Non-functional and cross-cutting requirements (GEN)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| GEN-001 | The app shall target Android and iOS from a single shared codebase. | (1) One repository produces both an Android build and an iOS build. (2) Platform-specific code is confined to platform adapter modules (see PLT); no feature module imports a platform API directly. | P1 Must | Framework choice is a WP1 decision, not set here. |
+| GEN-002 | Routine food logging and workout recording shall work with no network connection. | (1) With the device in flight mode, a user can search the local food database, log a food, and complete and save a full workout. (2) No screen in these flows shows a blocking network error. | P1 Must | Offline-first is a vision constraint. |
+| GEN-003 | Metric units shall be the default for mass, length and volume. | (1) On first run, weights display in kg or g, lengths in cm, volumes in ml. (2) No imperial unit is shown unless the user selects it. | P1 Must | Imperial support is an open question (OQ-02). |
+| GEN-004 | The app shall convert between supported units using defined, tested rules, and shall store all quantities in canonical metric units independent of display unit. | (1) Conversion factors are held in one documented table. (2) 1 kg converts to 1000 g and 1 l to 1000 ml exactly. (3) Round-trip conversion of a stored value returns the original value to within 0.001 of the stored unit. (4) Changing the display unit does not alter any stored value; a weight entered as 100 lb (if imperial is supported) is stored as 45.359237 kg, not rounded to display precision. | P1 Must | Applies to nutrition, training and body measurements. |
+| GEN-005 | Every nutritional value shall carry a data provenance label: verified, user-entered or estimated. | (1) No stored nutrient value exists without a provenance label. (2) The label is visible wherever the value is displayed or can be reached in one tap. | P1 Must | See NUT-018 to NUT-020. |
+| GEN-006 | The app shall never fabricate nutritional, exercise or measurement data. | (1) When a value is unknown, it is stored as null and displayed as "not available". (2) No code path substitutes a default numeric value (such as 0) for a missing nutrient without marking it as estimated or missing. | P1 Must | Vision rule: do not invent nutritional information. |
+| GEN-007 | The local database schema shall be changed only through versioned, ordered migrations, and a failed migration shall not destroy user data. | (1) Each schema change is a numbered migration with a stored version number. (2) Migrating from every released schema version to the current one succeeds in an automated test that checks row counts and sample values. (3) A backup copy is taken before a migration runs; if the migration fails, the app restores that copy, shows an error, and the original data is readable. | P1 Must | Links to DAT-007. |
+| GEN-008 | The user shall be able to back up and export their data at any time. | (1) A backup and a JSON export can be started from settings in no more than 3 taps. (2) Both complete without network access. | P1 Must | Detail in DAT-003 to DAT-006. |
+| GEN-009 | The app shall minimise collection and transmission of personal fitness data. | (1) With sync disabled, a network capture of a 10-minute scripted session shows no personal data leaving the device. (2) No third-party analytics or advertising SDK is included in the first release. | P1 Must | Telemetry policy is an open question (OQ-10). |
+| GEN-010 | Secrets shall never be committed to the repository or bundled in the app. | (1) An automated secret scan runs on every commit and fails the build on a detected secret. (2) API keys are supplied at build time from the environment, not from source files. | P1 Must | Vision section 8. |
+| GEN-011 | The app shall meet WCAG 2.2 level AA where applicable to native mobile. | (1) Text contrast is at least 4.5:1 for body text and 3:1 for large text and UI boundaries in both themes. (2) All core flows (log food, record workout, add measurement) can be completed using TalkBack on Android and VoiceOver on iOS. | P1 Must | Detail in UXD-004 and UXD-005. |
+| GEN-012 | The app shall support light and dark themes. | (1) The app follows the system theme by default and offers a manual override. (2) Every screen renders without clipped, unreadable or invisible content in both themes. | P1 Must | See UXD-001. |
+| GEN-013 | Food log entry shall be fast. Proposed target: a user can log a previously used food in under 10 seconds. | (1) In a timed manual test, logging a food from history or a saved meal takes under 10 seconds from opening the app, median of 10 attempts. (2) The flow takes no more than 4 taps from the home screen. | P1 Must | Proposed target. |
+| GEN-014 | App cold start shall be fast on mid-range devices. Proposed target: under 2 seconds to an interactive home screen. | (1) On the agreed reference mid-range Android and iOS devices, median cold start over 10 launches is under 2 seconds. (2) The measurement method is documented. | P1 Must | Proposed target; reference devices to be chosen (OQ-11). |
+| GEN-015 | The app shall not lose data when it is closed or killed unexpectedly. | (1) A food entry or set saved on screen is persisted before the confirmation is shown. (2) Force-stopping the app during an active workout and reopening it restores all sets already confirmed. | P1 Must | |
+| GEN-016 | User-facing text shall be externalised so that further languages can be added. | (1) No user-visible string is hard-coded in UI code. (2) Dates, numbers and units format according to the device locale. | P2 Should | Languages in v1 are an open question (OQ-03). |
+
+## 4. Functional requirements
+
+Recipe management, recipe nutrition calculation, portion scaling, recipe favourites, meal planning and meal preparation (vision 5.1 and 5.2) are specified in RCP. NUT specifies how recipe and meal data enter the daily log.
+
+### 4.1 Nutrition logging and food database (NUT)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| NUT-001 | The app shall track daily energy intake in kcal. | (1) Given foods logged on one day with energy of 200, 350 and 125 kcal, the day total shows 675 kcal. (2) Foods logged on different calendar days (device local time) are not summed together. | P1 Must | Day boundary rule: local midnight, with a user-adjustable day start as P3. |
+| NUT-002 | The app shall track protein, carbohydrate and fat in grams per logged food and per day. | (1) Given a food with 20 g protein per 100 g, logging 150 g records 30 g protein. (2) Day totals for each macronutrient equal the sum of the logged entries to 0.1 g. | P1 Must | |
+| NUT-003 | The app shall track dietary fibre in grams per logged food and per day. | (1) Given a food with 6 g fibre per 100 g, logging 50 g records 3 g fibre. (2) Fibre is shown on the daily summary and is not silently included in or excluded from carbohydrate without a documented rule. | P1 Must | Carbohydrate convention (total vs available) is recorded in NUT-017 and an open question (OQ-14). |
+| NUT-004 | Each food record shall hold nutrient values per a stated reference quantity (per 100 g or per 100 ml) and a list of serving sizes. | (1) A food cannot be saved without a reference basis of 100 g or 100 ml. (2) Nutrients for any logged quantity are computed as value per 100 units multiplied by quantity divided by 100. | P1 Must | Per-serving-only data from sources is converted on import, with provenance preserved. |
+| NUT-005 | The app shall provide a local, searchable food database available offline. | (1) With network disabled, searching "banana" returns matching foods from the local database. (2) Each result shows name, energy per 100 g or 100 ml, and a provenance label. (3) Search ignores case and diacritics and matches partial words: "chick" returns "Chicken breast" and "creme" returns "Crème fraîche". | P1 Must | Source and licence unresolved (OQ-01). |
+| NUT-006 | The user shall be able to find a food by scanning its barcode. | (1) Scanning a barcode present in the local database opens that food's log screen. (2) Scanning a barcode not found shows a "not found" state with options to search manually or create a custom food with the barcode pre-filled. | P1 Must | Camera and scanner abstraction in PLT-001 and PLT-002. Online lookup is an open question (OQ-07). |
+| NUT-007 | The user shall be able to create a custom food. | (1) A custom food requires a name and energy per 100 g or 100 ml; protein, carbohydrate, fat and fibre are optional. (2) Saved fields left blank are stored as null, not 0. (3) The food appears in search immediately, offline. | P1 Must | Provenance is user-entered (NUT-018). |
+| NUT-008 | The user shall be able to edit and delete a custom food without altering past log entries. | (1) After editing a custom food's protein from 10 g to 12 g per 100 g, entries logged before the edit still show the original values. (2) After deleting the food, past entries remain visible with the food's name. | P1 Must | Log entries hold a snapshot of nutrient values at time of logging. |
+| NUT-009 | The user shall be able to define custom serving sizes for any food. | (1) A serving has a name (such as "1 slice"), and a gram or ml equivalent greater than 0. (2) Given a serving of 1 slice = 30 g and a food with 8 g protein per 100 g, logging 2 slices records 60 g food and 4.8 g protein. | P1 Must | |
+| NUT-010 | The user shall be able to log a food by weight, volume, or serving count. | (1) Entering 150 g, 150 ml (for liquids) or 1.5 servings each produces the correct quantity in the stored canonical unit. (2) Volume entry is only offered for foods that have a density or ml-based reference. | P1 Must | |
+| NUT-011 | The user shall be able to log foods to named meals (default: breakfast, lunch, dinner, snacks) and to rename or reorder those meals. | (1) A logged entry is shown under its chosen meal. (2) Renaming "Snacks" to "Pre-workout" changes the label on existing and new entries. | P1 Must | |
+| NUT-012 | The user shall be able to edit the quantity of, move, copy and delete a logged entry. | (1) Changing 150 g to 200 g updates the day totals immediately. (2) Copying an entry to another date adds an identical entry to that date and leaves the original unchanged. | P1 Must | |
+| NUT-013 | The user shall be able to save a set of logged foods as a saved meal and re-log it in one action. | (1) A saved meal with 3 foods, logged once, adds 3 entries with the saved quantities. (2) Editing the saved meal later does not alter entries already logged. | P1 Must | |
+| NUT-014 | The app shall keep a food history and offer recent and frequent foods when logging. | (1) The log screen lists the 20 most recently logged distinct foods and the 20 most frequently logged in the last 90 days. (2) Selecting a history item pre-fills the last used quantity. | P1 Must | Supports the GEN-013 target. |
+| NUT-015 | The app shall show a daily nutrition summary: energy, protein, carbohydrate, fat and fibre against targets where set. | (1) The summary shows each total with its target and remaining amount. (2) With no target set, totals are shown without a progress bar or remaining value. | P1 Must | Links to GOL-001 and GOL-002. |
+| NUT-016 | The app shall show a weekly nutrition summary: daily average and per-day values for the same five measures. | (1) Over a 7-day period with entries on 5 days, the average is calculated over days with entries and the app states how many days were logged. (2) Days with no entries are shown as "not logged", not as 0. | P1 Must | Averaging basis is configurable as P3. |
+| NUT-017 | Nutrition calculations shall follow a single, documented calculation specification. | (1) The specification defines the reference basis, rounding, carbohydrate convention, null handling and energy handling. (2) An automated test suite of at least 30 worked examples derived from the specification passes. | P1 Must | Specification to be written in WP5. |
+| NUT-018 | Every food and every nutrient value shall display one of three provenance labels: verified, user-entered or estimated. Data entered or edited by the user shall never be labelled verified. | (1) A food from a vetted source shows "verified"; a custom food shows "user-entered"; a value derived by approximation shows "estimated". (2) Each label has a text form, not colour alone. (3) Editing any nutrient of a verified food creates a copy labelled user-entered and leaves the original unchanged; no user action sets a label to verified. | P1 Must | Definitions in GEN-005. |
+| NUT-019 | Calculated totals shall carry the weakest provenance of their inputs. | (1) A day total built from verified and estimated entries is shown as containing estimated data. (2) The order of strength is verified, then user-entered, then estimated. | P1 Must | |
+| NUT-020 | Estimated values shall only be created by a documented, user-visible action and shall be marked estimated. | (1) Estimation (such as "quick add calories only") requires the user to enter at least one value themselves. (2) The app never fills a missing nutrient from a guess without marking it estimated and showing how it was derived. | P1 Must | Supports "do not invent nutrition data". |
+| NUT-021 | The app shall not invent nutrition data. | (1) A food with null fibre is displayed as "fibre: not available" and contributes nothing to the fibre total. (2) A day containing foods with missing nutrients displays a "some data missing" indicator on the affected totals. | P1 Must | Vision rule. |
+| NUT-022 | The app shall convert between g, kg, mg, ml, l and (if supported) imperial units following the GEN-004 table, and allow the display unit to be set per food type. | (1) Entering 0.25 kg is stored and shown as 250 g in the food log. (2) Volume to mass conversion is only applied where the food has a stated density; otherwise the app asks for grams. | P1 Must | Imperial scope: OQ-02. |
+| NUT-023 | Food records imported from external sources shall record their source and import date. | (1) Each imported food stores source name, source identifier and import date. (2) The source is visible in the food detail screen. | P1 Must | Needed for licence compliance. |
+
+### 4.2 Recipes and meal planning (RCP)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| RCP-001 | The user shall be able to create a recipe with a name, ingredients, number of portions and instructions. | (1) A recipe cannot be saved without a name, at least one ingredient and a portion count of 1 or more. (2) A saved recipe is available offline and appears in the recipe list. | P1 Must | |
+| RCP-002 | Each ingredient shall reference a food from the food database (or a custom food) and a quantity in g, ml or a defined serving. | (1) Adding "chicken breast, 400 g" stores a reference to the food and the quantity 400 g. (2) An ingredient without a quantity is rejected. | P1 Must | |
+| RCP-003 | Recipes shall support ordered preparation instructions and ordered cooking instructions as separate sections. | (1) The user can add, edit, reorder and delete steps in each section. (2) Both sections display in the recipe view, and an empty section is omitted. | P1 Must | |
+| RCP-004 | Recipes shall store preparation time and cooking time in minutes. | (1) Both are optional integers from 0 to 1440. (2) The view shows total time as their sum. | P1 Must | |
+| RCP-005 | Recipes shall store storage instructions, freezing suitability and reheating instructions. | (1) Storage and reheating are free text; freezing suitability is one of yes, no, unknown. (2) New recipes default to unknown for freezing suitability, not yes or no. | P2 Should | Do not imply a safety claim; see OQ-13. |
+| RCP-006 | The app shall calculate recipe nutrition per portion from its ingredients. | (1) Given a recipe of 400 g chicken (20 g protein per 100 g) and 4 portions, protein per portion is 20 g. (2) Changing an ingredient quantity updates per-portion values immediately. | P1 Must | Uses the NUT-017 specification. |
+| RCP-007 | Recipe nutrition shall state its provenance and flag missing data. | (1) A recipe containing one estimated ingredient is labelled as containing estimated data. (2) An ingredient with null fibre causes the recipe fibre value to show "incomplete", not a total presented as complete. | P1 Must | Follows NUT-019 and NUT-021. |
+| RCP-008 | The number of portions and the size of one portion shall be editable. | (1) Changing portions from 4 to 5 changes per-portion nutrition to the total divided by 5. (2) The user may instead define a portion as a weight in g, and the portion count is derived. | P1 Must | |
+| RCP-009 | The user shall be able to scale a recipe to a target number of portions or a target total weight. | (1) Scaling a recipe from 4 to 6 portions multiplies each ingredient quantity by 1.5 in the scaled view. (2) Scaling does not alter the saved recipe unless the user chooses "save as new" or "overwrite". | P1 Must | |
+| RCP-010 | The user shall be able to record ingredient substitutions. | (1) An ingredient can have one or more alternative foods with quantities. (2) Selecting a substitution recalculates nutrition for that view and shows the difference in kcal per portion against the original. | P2 Should | |
+| RCP-011 | The user shall be able to mark recipes as favourites and filter by favourites. | (1) Toggling favourite takes one tap on the recipe card. (2) The favourites filter lists only favourited recipes and survives app restart. | P1 Must | |
+| RCP-012 | The user shall be able to log a recipe to the daily food log by portions or by weight. | (1) Logging 1.5 portions of a recipe with 400 kcal per portion adds 600 kcal. (2) The entry shows the recipe name and portion count, and the nutrient snapshot is stored with the entry. | P1 Must | |
+| RCP-013 | Editing a recipe shall not alter past log entries. | (1) After a recipe's energy changes from 400 to 450 kcal per portion, entries logged earlier still show 400 kcal. (2) Entries retain a link to the recipe for navigation. | P1 Must | |
+| RCP-014 | The user shall be able to create a meal plan assigning recipes, foods and saved meals to meals on dates. | (1) A planned item can be added to any meal on any date in the next 28 days. (2) The plan day shows planned energy and macros using the same calculations as the log. (3) Marking a planned item as eaten creates a log entry with the planned quantity, which the user can change before confirming. | P2 Should | |
+| RCP-015 | The app shall support meal preparation: planning a batch of a recipe, recording the number of portions made, and tracking the portions remaining. | (1) Recording a batch of 6 portions creates a prep record with 6 portions remaining. (2) Logging a prepared portion reduces portions remaining by 1, and the count cannot go below 0. | P2 Should | Freezer and expiry tracking not included. |
+
+### 4.3 Strength training (TRN)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| TRN-001 | The data model shall support six exercise types: weighted, bodyweight, assisted, timed, distance-based and cardio. | (1) Each exercise has exactly one type. (2) A set of each type can be saved with only the fields relevant to that type, and no type requires both weight and reps. | P1 Must | Vision: do not assume weight × reps. |
+| TRN-002 | A weighted set shall record weight in kg and repetitions. | (1) A set of 80 kg × 5 is stored as 80 kg, 5 reps. (2) Weight accepts increments of 0.25 kg and rejects negative values. | P1 Must | |
+| TRN-003 | A bodyweight set shall record repetitions and optionally added load in kg. | (1) A set of 12 reps with no added load is valid. (2) A set of 8 reps with 10 kg added is stored with load 10 kg. | P1 Must | Body weight at the time may be linked from BCM for later analysis. |
+| TRN-004 | An assisted set shall record repetitions and assistance in kg. | (1) A set of 6 reps with 20 kg assistance is stored as assistance 20 kg. (2) The assistance value is labelled as assistance, never shown as lifted load. | P1 Must | |
+| TRN-005 | A timed set shall record duration in seconds, with optional added load in kg. | (1) A plank of 90 seconds is stored as 90 s. (2) Duration entry accepts mm:ss and stores seconds. | P1 Must | |
+| TRN-006 | A distance-based set shall record distance in metres or kilometres, with optional duration. | (1) A 400 m entry is stored as 400 m. (2) Display switches to km at or above 1000 m and the stored value is unchanged. | P1 Must | |
+| TRN-007 | A cardio entry shall record duration and optionally distance, average heart rate and energy expended. | (1) A 30-minute entry with no distance is valid. (2) Energy expended, if entered, is labelled user-entered or estimated and is not added to the nutrition energy balance automatically. | P2 Should | Health platform import is under PLT-005 and PLT-006. |
+| TRN-008 | The app shall include an exercise library available offline. | (1) With network disabled, the library lists exercises with name, type, category, primary muscle group and equipment. (2) Library exercises are marked as supplied, and user changes create a custom copy. (3) Search matches name and aliases, ignoring case and diacritics. | P1 Must | Content source and licence: OQ-09. |
+| TRN-009 | Exercises shall be classified by category (such as push, pull, legs, core, cardio, mobility). | (1) Each exercise has one category from a controlled list. (2) The library can be filtered by category. | P1 Must | Category list to be agreed. |
+| TRN-010 | Exercises shall be classified by primary muscle group and optional secondary muscle groups. | (1) Each exercise has exactly one primary group from a controlled list. (2) Filtering by "quadriceps" returns exercises with it as primary or secondary, with primary listed first. | P1 Must | |
+| TRN-011 | Exercises shall record required equipment. | (1) An exercise lists zero or more equipment items from a controlled list (bodyweight only is zero items). (2) The library can be filtered by available equipment. | P1 Must | |
+| TRN-012 | The user shall be able to create, edit and archive custom exercises. | (1) A custom exercise requires a name, type, category and primary muscle group. (2) Archiving hides it from pickers but retains it in history. | P1 Must | |
+| TRN-013 | The user shall be able to create a workout plan as an ordered list of exercises with target sets, repetition range (or duration or distance), and rest period. | (1) A plan exercise with 3 sets of 8 to 10 reps and 120 s rest is stored with those values. (2) Exercises can be reordered by drag or by move-up and move-down controls. | P1 Must | |
+| TRN-014 | The user shall be able to define a training split as a set of named workouts arranged over a repeating cycle. | (1) A split named "Upper/Lower" with workouts Upper A, Lower A, Upper B, Lower B can be saved. (2) A cycle of 1 to 14 days can include rest days. | P2 Should | Templates are optional and, if offered, are editable. |
+| TRN-015 | The user shall be able to schedule workouts on calendar dates, by weekday pattern or by split cycle. | (1) Scheduling "Upper A" on Mondays and Thursdays places it on each such date for the next 8 weeks. (2) A scheduled workout can be moved or skipped without altering the plan. | P2 Should | Reminders depend on PLT-007. |
+| TRN-016 | The user shall be able to start a workout session from a plan, from a past session, or empty. | (1) Starting from a plan pre-fills exercises, targets, and the previous session's weights and reps for each exercise. (2) An empty session allows exercises to be added during the workout. | P1 Must | |
+| TRN-017 | During a session the user shall be able to add, remove, replace and reorder exercises. | (1) Replacing an exercise keeps already-recorded sets with the original exercise. (2) Reordering changes the stored exercise order of the session. | P1 Must | |
+| TRN-018 | The user shall be able to record sets with minimal interaction. | (1) A set is confirmed with no more than 2 taps when the pre-filled values are correct. (2) The numeric keyboard opens automatically on the weight field. | P1 Must | Links to UXD-008. |
+| TRN-019 | The user shall be able to mark a set as warm-up, working or failure. | (1) Set type is stored per set. (2) Warm-up sets are excluded from volume and from personal records by default. | P2 Should | |
+| TRN-020 | The user shall be able to record perceived exertion per set using RPE (1 to 10, steps of 0.5) or RIR (0 to 5, whole numbers). | (1) The user chooses RPE or RIR in settings, and the choice applies to new entries. (2) Values outside range are rejected, and existing entries keep the scale they were recorded in. | P1 Must | The scale is stored with the value to avoid mixing. Default scale: OQ-12. |
+| TRN-021 | The app shall support rest periods per exercise and a rest timer. | (1) Confirming a set starts a countdown from the planned rest value (default 90 s, user-configurable). (2) The timer can be paused, extended by 15 s steps, and skipped. | P1 Must | |
+| TRN-022 | The rest timer shall alert the user when it ends, including with the screen locked, where the platform allows. | (1) With the app in the foreground, a haptic or sound alert fires at 0 s. (2) With the app backgrounded, a local notification fires within 2 s of the end time on supported devices. | P2 Should | Depends on PLT-007, PLT-008 and OQ-05. If unsupported, the app shows the elapsed time on return. |
+| TRN-023 | The user shall be able to add notes to a session and to each exercise within a session. | (1) Notes accept at least 2000 characters. (2) Notes appear in the session history and in the exercise history. | P1 Must | |
+| TRN-024 | The user shall be able to edit and delete past sessions, exercises and sets. | (1) Editing a set recalculates volume and personal records that depend on it. (2) Deleting a session requires confirmation and can be undone for at least 10 seconds. | P1 Must | |
+| TRN-025 | The app shall show exercise history: every recorded set for an exercise, grouped by session date. | (1) History for an exercise lists sets with date, weight, reps (or relevant fields) and exertion. (2) The history loads the most recent 20 sessions first and further sessions on scroll. | P1 Must | |
+| TRN-026 | The app shall detect and record personal records (PRs) per exercise using type-appropriate definitions. | (1) For weighted exercises, a PR is recorded for the heaviest weight at each repetition count from 1 to 12. (2) For timed, distance-based and bodyweight exercises, the PR is respectively the longest duration, longest distance, and most repetitions. (3) Confirming a set of 82.5 kg × 5 where the previous best at 5 reps was 80 kg shows a PR indicator, and editing or deleting that set removes the PR if it is no longer the best. | P1 Must | Warm-up sets excluded (TRN-019). |
+| TRN-027 | The app shall calculate training volume as the sum of weight × repetitions in kg for weighted working sets, and report it per exercise, per session, per muscle group and per week. | (1) Sets of 80 kg × 5 and 80 kg × 4 give a volume of 720 kg. (2) Bodyweight, assisted, timed and distance sets are excluded from kg volume and reported by their own measures (repetitions, seconds, metres). (3) Weekly volume per muscle group counts primary muscle volume in full and shows secondary attribution separately; weeks run Monday to Sunday unless the user changes the first day of the week. | P1 Must | Definition is a proposal; it is documented in the app help. |
+| TRN-028 | The app shall provide progressive overload tracking per exercise. | (1) For a chosen exercise, a chart shows top-set weight, estimated 1RM (if applicable), and session volume over time. (2) The app states when a measure has increased, stayed level or decreased compared with the previous session of that exercise, without giving an instruction to the user. | P2 Should | Descriptive only; no coaching (GOL-011). |
+
+### 4.4 Body composition and measurements (BCM)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| BCM-001 | The user shall be able to record body weight in kg. | (1) Entry accepts values from 20.0 to 500.0 kg in steps of 0.1 kg and rejects values outside the range. (2) Each entry stores date, time and value; more than one entry per day is permitted. | P1 Must | |
+| BCM-002 | The user shall be able to record neck, chest, waist and hip circumference in cm. | (1) Each accepts values from 10.0 to 300.0 cm in steps of 0.1 cm. (2) The user can record any subset of measurements in one entry, and omitted ones are stored as absent. | P1 Must | Measurement site definitions (such as waist at navel) shown as help text. |
+| BCM-003 | Right and left thigh, calf, bicep and forearm circumferences shall be stored as separate values. | (1) Each of the eight limb measurements has its own field and its own history. (2) Entering right thigh only does not create or alter a left thigh value. | P1 Must | Stored individually even when charted together. |
+| BCM-004 | Every measurement shall be dated, and the user shall be able to back-date, edit and delete entries. | (1) The date defaults to today and cannot be in the future. (2) Editing or deleting an entry updates charts and summaries immediately. (3) Each measurement type has a history list, newest first, available offline. | P1 Must | |
+| BCM-005 | The app shall show trend charts per measurement over a selectable period (4 weeks, 12 weeks, 1 year, all). | (1) Right and left series for the same site can be shown on one chart as two distinct, labelled series. (2) Dates without data are shown as gaps; the app does not interpolate or invent values. | P1 Must | Chart rules in UXD-009. |
+| BCM-006 | The app shall show a weight trend line as a moving average alongside the raw entries. Proposed method: 7-day moving average over days with entries. | (1) Raw entries remain visible as individual points. (2) With fewer than 3 entries in the window, no trend value is drawn for that window. | P1 Must | Smoothing method is a proposal. |
+| BCM-007 | The user shall be able to compare measurements between two selected dates or periods. | (1) Given waist 90.0 cm on 2026-11-01 and 87.5 cm on 2026-12-01, the comparison shows -2.5 cm and -2.8 %. (2) If either date has no entry, the app offers the nearest entry on either side and states its date. | P1 Must | |
+| BCM-008 | The app shall show a progress summary over a chosen period covering weight change and change in each measured site. | (1) The summary lists first value, latest value and difference for each type with at least two entries in the period. (2) Types with fewer than two entries are listed as "not enough data". | P1 Must | |
+| BCM-009 | The user shall be able to export body weight and measurement data. | (1) Export produces CSV with one row per entry and columns for date, type, value and unit. (2) Export is also included in the full JSON export (DAT-005). | P1 Must | |
+
+### 4.5 Goals and analytics (GOL)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| GOL-001 | The user shall be able to set a daily calorie target in kcal. | (1) Target accepts whole numbers from 800 to 10,000 kcal. (2) The daily summary shows consumed, target and remaining kcal. | P1 Must | The target is entered by the user. Calculating a suggested target is not part of this requirement (OQ-13). |
+| GOL-002 | The user shall be able to set macronutrient targets in grams for protein, carbohydrate, fat and fibre. | (1) Each target is optional, in g, from 0 to 1000. (2) The app shows the energy implied by protein, carbohydrate and fat targets (4, 4 and 9 kcal per g) and warns, without blocking, if it differs from the calorie target by more than 10 %. | P1 Must | |
+| GOL-003 | The user shall be able to set a body weight goal with a target weight, direction and optional date. | (1) A goal of 80.0 kg from 85.0 kg shows 5.0 kg to go. (2) The app shows the latest weight and the trend value, and the goal progress uses the trend value. | P1 Must | |
+| GOL-004 | The user shall be able to set goals for any body measurement. | (1) A waist goal of 85.0 cm is tracked against the latest waist entry. (2) Left and right limb goals can be set separately. | P2 Should | |
+| GOL-005 | The user shall be able to set training goals: sessions per week, and a target for a chosen exercise (weight × reps, duration or distance). | (1) A goal of 3 sessions per week shows 2 of 3 after two completed sessions in the current week. (2) An exercise goal of 100 kg × 5 shows the best set so far against it. | P2 Should | |
+| GOL-006 | The app shall record the date on which each target or goal was set or changed. | (1) Changing the calorie target on 2026-11-10 leaves earlier days' summaries evaluated against the earlier target. (2) The target history is viewable. | P1 Must | Prevents past analytics being rewritten. |
+| GOL-007 | The app shall produce a weekly summary combining nutrition, training and body measurements. | (1) The summary shows days logged, average energy and protein, sessions completed against goal, total training volume, and weight change over the week. (2) Items without sufficient data are marked "not enough data" and not shown as zero. | P1 Must | Descriptive only. |
+| GOL-008 | The app shall show progress indicators for each goal, with the basis of the figure visible. | (1) Each indicator shows current value, target value and percentage, with the date range used. (2) Indicators tap through to the underlying entries. | P1 Must | |
+| GOL-009 | The app shall support historical comparisons between periods. | (1) The user can compare this week with last week, and this month with last month, for energy, protein, volume and weight. (2) A period with no data shows as not available. | P2 Should | |
+| GOL-010 | The app shall provide a recomposition view showing body weight trend, waist trend and strength trend for chosen exercises on a shared time axis. | (1) The three series align to the same date axis. (2) The view states the number of data points behind each series. | P2 Should | Body recomposition is the primary objective. |
+| GOL-011 | No automated coaching or AI-generated recommendations shall be shipped until the data-quality criteria in GOL-012 are met and the owner has approved release. | (1) The first release contains no feature that tells the user what to eat, lift or change in target. (2) A release checklist item confirms GOL-012 status before any recommendation feature is enabled. | P1 Must | Vision constraint. |
+| GOL-012 | Data-quality criteria for enabling recommendations shall be defined and measurable. Proposed criteria: at least 28 days of data with food logged on at least 80 % of days; at least 90 % of logged energy from verified or user-entered values; weight entries on at least 3 days per week. | (1) The criteria are written, approved by the owner and implemented as a computed check. (2) The check returns a pass or fail with the reason for each criterion. | P2 Should | Figures are proposals; the owner must set them (OQ-15). |
+
+### 4.6 UX and design system (UXD)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| UXD-001 | Design tokens shall be defined before UI expansion: colour palette, typography, spacing, radius and elevation, each with light and dark values. | (1) Tokens are held in one source file used by all screens. (2) No screen uses a hard-coded colour, font size or spacing value outside the tokens (checked by lint). | P1 Must | Scheduled in WP2. |
+| UXD-002 | A component library shall provide documented base components: buttons, inputs, lists, cards and panels, dialogs, chips, tabs and charts. | (1) Each component has documented variants, states and usage rules. (2) Each component renders in both themes in a reviewable catalogue. | P1 Must | Component hierarchy documented. |
+| UXD-003 | Every data-driven screen shall define empty, loading and error states. | (1) Each state appears in the component catalogue for the screen. (2) An empty state offers the primary action (such as "Log your first meal"); an error state offers retry and does not show raw technical messages. | P1 Must | |
+| UXD-004 | Interactive elements shall have touch targets of at least 48 × 48 dp on Android and 44 × 44 pt on iOS. | (1) An automated layout check finds no tappable element below the minimum. (2) Adjacent targets are separated by at least 8 dp or pt, or have non-overlapping hit areas. | P1 Must | |
+| UXD-005 | All interactive and informative elements shall have screen-reader labels, and text shall scale with system font size. | (1) Every control has an accessibility label, role and state, verified by a TalkBack and a VoiceOver walkthrough of core flows. (2) At 200 % system font scale, core screens show no truncated primary content and no overlapping controls. | P1 Must | |
+| UXD-006 | Navigation shall follow platform conventions with a consistent structure. Proposed: bottom navigation with up to 5 top-level destinations (for example Today, Nutrition, Train, Body, Progress). | (1) Every screen is reachable in 3 taps or fewer from the top level. (2) The system back gesture and button behave consistently and never exit the app from a nested screen. | P1 Must | Destination list to be agreed in WP2. |
+| UXD-007 | Input conventions shall be consistent: numeric keypad for numbers, units shown beside values, and sensible defaults. | (1) Numeric fields open the numeric keypad and show the unit label. (2) Validation messages appear beside the field and state the accepted range. | P1 Must | |
+| UXD-008 | Fast-logging flows shall be designed for minimal interaction: logging a repeated food, a saved meal, a set, and a body weight. | (1) A repeated food is logged in 4 taps or fewer from the home screen. (2) A set with pre-filled values is confirmed in 2 taps or fewer. (3) Body weight can be logged in 3 taps or fewer. | P1 Must | Supports GEN-013. |
+| UXD-009 | Charts shall be readable and accessible. | (1) Series are distinguished by more than colour (shape, pattern or direct label). (2) Each chart offers a text summary or data table readable by a screen reader. (3) Axes show units, and charts remain legible at 320 dp width. | P1 Must | |
+
+### 4.7 Platform integrations (PLT)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| PLT-001 | Camera access shall be provided through a platform abstraction. | (1) Feature code calls only the abstraction interface. (2) A test double allows the dependent flows to be tested without a camera. | P1 Must | |
+| PLT-002 | Barcode scanning shall be provided through a platform abstraction and shall read EAN-13, EAN-8, UPC-A and UPC-E. | (1) A printed EAN-13 code is recognised in under 3 seconds in normal indoor light on the reference devices. (2) The user can enter a barcode manually if scanning fails. | P1 Must | Success-rate target to be set (OQ-11). |
+| PLT-003 | The app shall detect device capabilities at runtime: camera, barcode scanning, Health Connect or HealthKit availability, notification permission, background execution and secure storage. | (1) A single capability service reports each capability as available, unavailable or permission denied. (2) The result is available to any feature without calling platform APIs directly. | P1 Must | |
+| PLT-004 | The app shall degrade gracefully when a capability is absent or permission is denied. | (1) With camera permission denied, barcode entry offers manual code entry and explains how to enable the permission. (2) With any single capability disabled in a test build, all other core flows remain usable. | P1 Must | |
+| PLT-005 | The app shall integrate with Health Connect on Android, only with user permission per data type. | (1) Permissions are requested individually for each data type (such as weight, or exercise sessions) at the point of use. (2) If Health Connect is not installed, the integration is hidden or shows an install-or-unavailable state and nothing else is affected. | P3 Could / later | Read and write scope: OQ-16. |
+| PLT-006 | The app shall integrate with HealthKit on iOS, only with user permission per data type. | (1) Permission is requested per data type at the point of use. (2) Revoking permission in system settings stops further reads and writes without error dialogs. | P3 Could / later | Same scope question as PLT-005. |
+| PLT-007 | The app shall support local notifications for workout reminders and rest timer completion, off by default until the user opts in. | (1) Notification permission is requested only when the user enables a reminder. (2) Disabling a reminder cancels all scheduled notifications of that type. | P2 Should | OQ-05. |
+| PLT-008 | The app shall use background tasks within platform limits for the rest timer, scheduled backup and (when enabled) sync. | (1) A scheduled backup runs at most once per day and reports failure in the app on next open. (2) The app does not rely on a background task for correctness; missed tasks are completed on next foreground. | P2 Should | |
+| PLT-009 | Secrets and tokens shall be stored in platform secure storage (Android Keystore, iOS Keychain). | (1) Authentication tokens are never written to the app database, logs or plain files. (2) Removing the account deletes the stored tokens. | P1 Must | Relevant only once sync exists, but the abstraction is built first. |
+
+### 4.8 Data, backup, sync and accounts (DAT)
+
+| ID | Requirement | Acceptance criteria | Priority | Notes |
+|---|---|---|---|---|
+| DAT-001 | A local database on the device shall be the source of truth for all user data. | (1) All features read and write the local database only. (2) Uninstalling any cloud feature does not remove local data. | P1 Must | |
+| DAT-002 | The data layer shall validate all input before persistence. | (1) Values outside defined ranges (for example negative weight, protein over 100 g per 100 g) are rejected with a message. (2) Foreign key and uniqueness constraints are enforced by the database, tested by attempting invalid writes. | P1 Must | |
+| DAT-003 | The user shall be able to create a full backup file from within the app. | (1) The backup contains all user data and a format version. (2) The file can be saved to device storage or shared through the system share sheet, with no network required. | P1 Must | |
+| DAT-004 | The user shall be able to restore from a backup file. | (1) Before applying, the app shows record counts and the backup date and asks for confirmation. (2) A corrupt or incompatible file is rejected without changing existing data. (3) After restoring a backup of a test dataset, row counts and checksums match the source. | P1 Must | Replace versus merge behaviour to be decided in WP3. |
+| DAT-005 | The user shall be able to export all data as JSON. | (1) The export contains every domain with units and provenance labels. (2) The JSON validates against a published schema included in the repository. | P1 Must | |
+| DAT-006 | The user shall be able to export data as CSV per domain (food log, recipes, workouts, body measurements). | (1) Each CSV has a header row, ISO 8601 dates and metric units in column names. (2) Opening the files in a spreadsheet shows no corrupted characters for names with diacritics (UTF-8). | P1 Must | |
+| DAT-007 | The app shall handle database versions safely on upgrade and downgrade. | (1) Upgrading from each released schema version completes with data intact. (2) If the database is newer than the app supports, the app refuses to open it, preserves it and advises updating. | P1 Must | Supplements GEN-007. |
+| DAT-008 | The app shall offer scheduled automatic local backups, off by default, retaining the most recent 5 copies. | (1) When enabled, a backup is created at the chosen interval. (2) The sixth backup replaces the oldest. | P2 Should | Storage location and retention: OQ-06. |
+| DAT-009 | Authentication shall be required only when the user enables cloud sync. | (1) No sign-in screen is shown unless the user selects sync. (2) Signing out or disabling sync leaves all local data intact and usable. | P1 Must | Applies from the point sync exists. Sign-in methods: OQ-08. |
+| DAT-010 | Cloud sync shall be optional, off by default, and transmit only the data the user has chosen to sync. | (1) With sync off, no sync requests are made. (2) Data in transit uses TLS 1.2 or later. (3) The settings screen lists exactly what is synced. | P3 Could / later | Provider and architecture: OQ-08. |
+| DAT-011 | Sync shall resolve conflicts deterministically and without silent loss. | (1) Given the same record edited on two devices while offline, the result is the same on both devices after sync. (2) Where fields conflict, the later edit wins per field and the other value is retained in a recoverable conflict log. | P3 Could / later | Strategy (last-write-wins per field versus merge) to be confirmed. |
+| DAT-012 | The user shall be able to delete all local data. | (1) A confirmation requires typing a word or holding a button. (2) After deletion, the app returns to first-run state and the database contains no user records. | P1 Must | |
+| DAT-013 | When sync exists, the user shall be able to delete their account and all cloud-held data. | (1) Deletion is requested from within the app. (2) Cloud data is removed within a stated period (proposed: 30 days) and the app confirms completion. Local data remains unless the user also chooses to delete it. | P3 Could / later | Retention policy: OQ-06. |
+
+## 5. Traceability stub
+
+Prefix-level mapping of requirements to proposed work packages. Per-requirement mapping and verification references will be added when each work package is planned. Work package names and scope are proposals and are defined in the project plan, not here.
+
+| Prefix | Domain | Proposed work packages | Requirements in baseline |
+|---|---|---|---|
+| GEN | Non-functional and cross-cutting | WP1 to WP3 | 16 |
+| NUT | Nutrition logging and food database | WP5, WP6 | 23 |
+| RCP | Recipes and meal planning | WP7 | 15 |
+| TRN | Strength training | WP8, WP9 | 28 |
+| BCM | Body composition and measurements | WP10 | 9 |
+| GOL | Goals and analytics | WP11 | 12 |
+| UXD | UX and design system | WP2 | 9 |
+| PLT | Platform integrations | WP6, WP13 | 9 |
+| DAT | Data, backup, sync and accounts | WP3, WP12 | 13 |
+| | **Total** | | **134** |
+
+## 6. Open questions
+
+These questions need an owner decision. Until answered, the linked requirements stay Proposed.
+
+| ID | Question | Why it matters | Affects |
+|---|---|---|---|
+| OQ-01 | Which food database will be used, and under what licence (open dataset, commercial licence, or user-built only)? Is redistribution inside the app permitted? | Determines coverage, whether data can be labelled verified, attribution duties and offline bundling size. | NUT-005, NUT-024, GEN-005 |
+| OQ-02 | Is imperial unit support (lb, oz, in, fl oz) required in v1, or only metric? | Adds conversion, display and test scope across nutrition, training and body data. | GEN-004, NUT-022 |
+| OQ-03 | Which markets and languages are in scope for v1 (for example UK English only)? | Affects food database choice, label conventions (such as energy in kJ), number formats and translation effort. | GEN-016, NUT-005 |
+| OQ-04 | Do recipes need photos? If yes, are they stored only on the device and included in backup? | Affects storage size, backup size, camera and gallery permissions and sync cost. | RCP-001, DAT-003 |
+| OQ-05 | Must the rest timer alert the user when the app is in the background or the screen is locked? | Requires notification permission and background handling that differ between Android and iOS. | TRN-022, PLT-007, PLT-008 |
+| OQ-06 | What is the retention policy for local backups, cloud data after account deletion, and deleted records (immediate purge or recoverable for a period)? | Drives privacy commitments, storage use and the deletion wording. | DAT-008, DAT-012, DAT-013 |
+| OQ-07 | When a scanned barcode is not in the local database, may the app query an online source? If so, which, and is the barcode sent off the device? | Conflicts with offline-first and privacy minimisation unless handled as an explicit opt-in. | NUT-006, GEN-009 |
+| OQ-08 | Is cloud sync intended at all, and if so which provider, which sign-in methods and which data is in scope? | Determines whether the sync, authentication and secure storage work packages are needed. | DAT-009 to DAT-011, PLT-009 |
+| OQ-09 | What is the source and licence of the exercise library (own content, licensed dataset, or open source)? Are demonstration images or videos required? | Affects content creation effort, app size and licence compliance. | TRN-008 |
+| OQ-10 | Is any crash reporting or usage analytics acceptable, and if so is it opt-in and which data may it contain? | Conflicts with data minimisation unless defined; affects the ability to find defects in the field. | GEN-009 |
+| OQ-11 | Which devices and operating system versions are the reference for performance targets and minimum support (for example the oldest supported Android API level and iOS version)? What barcode scan success rate is acceptable? | The proposed performance targets cannot be verified without reference devices. | GEN-013, GEN-014, PLT-002 |
+| OQ-12 | Should the default exertion scale be RPE or RIR, and may users switch? | Affects defaults, training copy and the meaning of stored values. | TRN-020 |
+| OQ-13 | What health and safety positioning is required: disclaimers, minimum age, lower limits for calorie targets, and whether the app may suggest a calorie target or only accept the user's own? | Has legal and user-safety implications; also affects storage advice such as freezing and reheating guidance. | GOL-001, RCP-005 |
+| OQ-14 | Which carbohydrate convention applies: total carbohydrate with fibre included, or available carbohydrate with fibre separate? How is energy from fibre treated? | Changes how every carbohydrate and energy figure is calculated and compared with product labels. | NUT-003, NUT-017 |
+| OQ-15 | What data-quality thresholds must be met before any recommendation feature is considered, and who signs off? | The proposed figures (28 days, 80 % of days logged) are placeholders. | GOL-011, GOL-012 |
+| OQ-16 | Should Health Connect and HealthKit integrations be read-only, or also write workouts, weight and nutrition back? | Write access widens the permission scope and the privacy review. | PLT-005, PLT-006 |
+| OQ-17 | On restore, should the default be replace-all or merge? How are duplicates handled? | Affects data-loss risk and the complexity of the restore flow. | DAT-004 |
+| OQ-18 | What are the day boundary and week start rules (local midnight, Monday start)? Should users be able to change them? | Affects every daily and weekly total and the consistency of comparisons. | NUT-001, NUT-016, TRN-028 |
