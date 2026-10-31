@@ -26,7 +26,7 @@ The existing Android prototype is **not migrated to the new stack**. It is a 1,5
 
 ## 3. Recovery steps for the legacy prototype (optional)
 
-If the owner wants the Kotlin prototype buildable as a historical artefact, the minimum change set is documented in D01 §5 (three edits). This is optional and must not consume effort that belongs to WP 1. It is recommended only if a working Android build is needed as a stop-gap for personal use before the Flutter app reaches parity (estimated at WP 6).
+If the owner wants the Kotlin prototype buildable as a historical artefact, the minimum change set is documented in D01 §5 (two edits: the DAO declaration and the barcode import). This is optional and must not consume effort that belongs to WP 1. It is recommended only if a working Android build is needed as a stop-gap for personal use before the Flutter app reaches parity (estimated at WP 6).
 
 ## 4. Rules during transition
 

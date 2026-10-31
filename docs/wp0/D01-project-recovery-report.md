@@ -89,10 +89,10 @@ The three previously reported issues were checked independently against the arch
 | # | Reported issue | Verification | Verdict |
 |---|---|---|---|
 | 1 | `abstract fun dao(): RepForgeDao()` | `legacy/android/app/src/main/java/com/tempest/repforge/data/RepForgeDatabase.kt:127` reads exactly that. Kotlin parses `RepForgeDao()` as a call expression, hence "Expecting member declaration" at 127:36. Matches CI run 9. The older archive (line 91) has the correct form, so this was introduced in v0.3.0. | **Confirmed, blocking** |
-| 2 | `collectAsStateWithLifecycle` without `lifecycle-runtime-compose` | `MainActivity.kt:30` imports `androidx.lifecycle.compose.collectAsStateWithLifecycle`; it is used at lines 67–71. `app/build.gradle.kts` declares `lifecycle-runtime-ktx` and `lifecycle-viewmodel-compose` but not `lifecycle-runtime-compose`, which is the artifact that contains `androidx.lifecycle.compose`. Not yet reported by CI because the parser stops at defect 1. | **Confirmed by inspection; CI evidence in §5** |
+| 2 | `collectAsStateWithLifecycle` without `lifecycle-runtime-compose` | `MainActivity.kt:30` imports `androidx.lifecycle.compose.collectAsStateWithLifecycle`. `app/build.gradle.kts` does not declare `lifecycle-runtime-compose`, but the local build shows `androidx.lifecycle:lifecycle-runtime-compose-android:2.8.7` arriving transitively (via the declared lifecycle 2.8.7 artifacts), and an ablation build with only defects 1 and 3 fixed succeeds. Declaring it explicitly is good practice, not a blocker. | **Not a defect; report corrected** |
 | 3 | Barcode import package | `MainActivity.kt:8` imports `com.google.android.gms.mlkit.codescanner.GmsBarcodeScanning`. The `play-services-code-scanner` artifact exposes `com.google.mlkit.vision.codescanner.GmsBarcodeScanning`. Not yet reported by CI for the same reason. | **Confirmed by inspection; CI evidence in §5** |
 
-No other syntax errors were found by reading the three source files. Semantic errors beyond these three can only be excluded by a compile, which is what §5 provides.
+No other syntax errors were found by reading the three source files. §5 shows by compilation that defects 1 and 3 are the complete set of blockers.
 
 ## 4. Existing functionality inventory
 
@@ -124,7 +124,7 @@ Because the application has never compiled, **no feature is "Implemented and ver
 
 Performed during WP 0 in an isolated scratch directory (not in the repository), to (a) reproduce the CI failure and (b) establish whether the three confirmed defects are the only compile blockers.
 
-Environment: Linux x64, Gradle 8.11.1 (downloaded distribution, same as CI), Android SDK command-line tools with `platforms;android-35` and `build-tools;35.0.0`, AGP 8.7.3, Kotlin 2.0.21, KSP 2.0.21-1.0.28 (all from the archive's build scripts). Dependency resolution succeeded.
+Environment: Linux x64, OpenJDK 21.0.12 (CI uses Temurin 17; no JDK-related difference was observed), Gradle 8.11.1 (downloaded distribution, same as CI), Android SDK command-line tools with `platforms;android-35` and `build-tools;35.0.0`, AGP 8.7.3, Kotlin 2.0.21, KSP 2.0.21-1.0.28 (all from the archive's build scripts). Dependency resolution succeeded.
 
 ### 5.1 Baseline (archive unmodified)
 
@@ -136,7 +136,7 @@ BUILD FAILED in 6m 46s
 ```
 Identical to CI run 9. The CI failure is therefore a property of the source, not of the runner.
 
-### 5.2 Patched copy (exactly three edits, nothing else)
+### 5.2 Patched copy (the three reported edits, nothing else)
 
 ```diff
 --- app/build.gradle.kts
@@ -157,8 +157,20 @@ app/build/outputs/apk/debug/app-debug.apk   17,703,569 bytes (226 entries)
 ```
 Zero compiler errors. Four deprecation warnings remain (`Icons.Filled.MenuBook`, `Icons.Filled.ShowChart`, two uses of `Modifier.menuAnchor()`), none blocking.
 
+Ablation, to find the minimum fix:
+
+| Edits applied | Result |
+|---|---|
+| DAO fix only | FAILED in `compileDebugKotlin`: `Unresolved reference 'mlkit'` (MainActivity.kt:8), `Unresolved reference 'GmsBarcodeScanning'` (116), `Unresolved reference 'rawValue'` (118), two argument type mismatches (121, 122) |
+| DAO fix + import fix | BUILD SUCCESSFUL in 40 s, same four warnings |
+| All three | BUILD SUCCESSFUL in 1 m 16 s |
+
+So the minimum fix is two edits. The explicit `lifecycle-runtime-compose` dependency is optional.
+
+On the patched tree: `gradle test` succeeds with `NO-SOURCE` (there are no tests); `gradle lint` reports 0 errors and 8 warnings (7 `GradleDependency` newer-version notices, 1 `MissingApplicationIcon`). `aapt2 dump badging` on the APK: package `com.tempest.repforge`, versionCode 3, versionName 0.3.0, minSdk 26, targetSdk 35.
+
 ### 5.3 What this does and does not prove
-- Proves: defects 1–3 are the complete set of compile blockers in v0.3.0; with them fixed the archive produces a debug APK with the CI toolchain.
+- Proves: defects 1 and 3 are the complete set of compile blockers in v0.3.0; with them fixed the archive produces a debug APK with the CI toolchain.
 - Does not prove: that the app launches, that Room migration 1→2 runs, that barcode scanning or food lookup work, or anything about behaviour. No device or emulator was used and no tests exist. Every feature in §4 remains "unverified".
 - These edits were **not** applied to the repository; see D08 §3 for the conditions under which that would be worthwhile.
 

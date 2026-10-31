@@ -22,10 +22,10 @@ Commit SHAs: 3625e78 (deliverables, legacy extraction) and the follow-up commit 
 
 ## Build results
 - CI: 9 of 9 runs failed; latest run 41243131372 fails in `:app:kspDebugKotlin`.
-- Local reproduction (scratch directory, Gradle 8.11.1, SDK 35): unmodified archive fails identically to CI; with the three documented edits it builds `app-debug.apk` (17.7 MB) with 0 errors and 4 deprecation warnings. Edits not applied to the repository.
+- Local reproduction (scratch directory, Gradle 8.11.1, SDK 35): unmodified archive fails identically to CI; with two edits (DAO declaration, barcode import) it builds `app-debug.apk` (17.7 MB) with 0 errors and 4 deprecation warnings; the explicit lifecycle dependency was shown unnecessary by ablation. `gradle test`: NO-SOURCE. `gradle lint`: 0 errors, 8 warnings. Edits not applied to the repository.
 
 ## Outstanding defects
-- TD-03, TD-04, TD-05 (compile blockers in the legacy archive) left unfixed by design; D08 §3 describes the optional fix.
+- TD-03 and TD-05 (compile blockers in the legacy archive) left unfixed by design; D08 §3 describes the optional fix. TD-04 downgraded to hygiene after build verification.
 
 ## Known limitations of this investigation
 - Camera, barcode and Google Play Services behaviour could not be exercised; no device.
