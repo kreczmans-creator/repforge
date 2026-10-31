@@ -122,7 +122,45 @@ Because the application has never compiled, **no feature is "Implemented and ver
 
 ## 5. Local build verification
 
-See §5.1 below (filled from the reproduction performed during WP 0).
+Performed during WP 0 in an isolated scratch directory (not in the repository), to (a) reproduce the CI failure and (b) establish whether the three confirmed defects are the only compile blockers.
+
+Environment: Linux x64, Gradle 8.11.1 (downloaded distribution, same as CI), Android SDK command-line tools with `platforms;android-35` and `build-tools;35.0.0`, AGP 8.7.3, Kotlin 2.0.21, KSP 2.0.21-1.0.28 (all from the archive's build scripts). Dependency resolution succeeded.
+
+### 5.1 Baseline (archive unmodified)
+
+```
+e: …/RepForgeDatabase.kt:127:36 Expecting member declaration
+e: …/RepForgeDatabase.kt:127:37 Expecting member declaration
+> Task :app:kspDebugKotlin FAILED
+BUILD FAILED in 6m 46s
+```
+Identical to CI run 9. The CI failure is therefore a property of the source, not of the runner.
+
+### 5.2 Patched copy (exactly three edits, nothing else)
+
+```diff
+--- app/build.gradle.kts
++    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+--- app/src/main/java/com/tempest/repforge/MainActivity.kt
+-import com.google.android.gms.mlkit.codescanner.GmsBarcodeScanning
++import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+--- app/src/main/java/com/tempest/repforge/data/RepForgeDatabase.kt
+-    abstract fun dao(): RepForgeDao()
++    abstract fun dao(): RepForgeDao
+```
+
+Result:
+
+```
+BUILD SUCCESSFUL in 1m 16s
+app/build/outputs/apk/debug/app-debug.apk   17,703,569 bytes (226 entries)
+```
+Zero compiler errors. Four deprecation warnings remain (`Icons.Filled.MenuBook`, `Icons.Filled.ShowChart`, two uses of `Modifier.menuAnchor()`), none blocking.
+
+### 5.3 What this does and does not prove
+- Proves: defects 1–3 are the complete set of compile blockers in v0.3.0; with them fixed the archive produces a debug APK with the CI toolchain.
+- Does not prove: that the app launches, that Room migration 1→2 runs, that barcode scanning or food lookup work, or anything about behaviour. No device or emulator was used and no tests exist. Every feature in §4 remains "unverified".
+- These edits were **not** applied to the repository; see D08 §3 for the conditions under which that would be worthwhile.
 
 ## 6. Source-control issues
 1. Application code is tracked only as ZIP blobs (TD-01). No diff, review, blame or partial change is possible.

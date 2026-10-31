@@ -2,7 +2,7 @@
 
 Date: 2026-10-31
 Branch: `ccr-ac6db77c-jcnexo` (feature branch; `main` untouched)
-Commit SHA: (filled at commit time, see git log for this file)
+Commit SHAs: 3625e78 (deliverables, legacy extraction) and the follow-up commit that adds build evidence (see `git log -- docs/delivery-record/WP0.md`).
 
 ## Files changed
 - Added `docs/README.md`, `docs/engineering-standards.md`
@@ -22,7 +22,7 @@ Commit SHA: (filled at commit time, see git log for this file)
 
 ## Build results
 - CI: 9 of 9 runs failed; latest run 41243131372 fails in `:app:kspDebugKotlin`.
-- Local reproduction: see D01 §5.
+- Local reproduction (scratch directory, Gradle 8.11.1, SDK 35): unmodified archive fails identically to CI; with the three documented edits it builds `app-debug.apk` (17.7 MB) with 0 errors and 4 deprecation warnings. Edits not applied to the repository.
 
 ## Outstanding defects
 - TD-03, TD-04, TD-05 (compile blockers in the legacy archive) left unfixed by design; D08 §3 describes the optional fix.
