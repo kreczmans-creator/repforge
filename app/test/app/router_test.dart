@@ -29,5 +29,10 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
     expect(find.text('Your cockpit'), findsOneWidget);
+
+    // Unmount inside the body so drift's stream-cleanup timer fires in the
+    // test zone (see weight_screen_test.dart).
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 1));
   });
 }
