@@ -44,13 +44,13 @@ All runs on branch `ccr-ac6db77c-jcnexo`. Run URLs: `https://github.com/kreczman
 | 8d56021 | Android build | 41289696741 | success | `✓ Built build/app/outputs/flutter-apk/app-debug.apk` |
 | 8d56021 | iOS build | 41289696824 | success | `✓ Built build/ios/iphonesimulator/Runner.app` |
 | 8d56021 | Integration tests | 41289696609 | success | `00:03 +1: All tests passed!` on emulator-5554 (job 124798170092, 5 m 15 s) |
-| 86bb061 | CI | 41290172208 | see §3a | 29 tests |
-| 86bb061 | Android build | 41290172339 | see §3a | |
-| 86bb061 | iOS build | 41290172490 | see §3a | |
-| 86bb061 | Integration tests | 41290172418 | see §3a | |
+| 86bb061 | CI | 41290172208 | success | `No issues found!`, `00:10 +29: All tests passed!` |
+| 86bb061 | Android build | 41290172339 | success | artifact `repforge-android-debug-apk` id 13076862066 (89,375,669 bytes zipped; APK 172,643,037 bytes), expires 2026-12-01 |
+| 86bb061 | iOS build | 41290172490 | success | artifact `repforge-ios-simulator-app` id 13077036527 (61,670,789 bytes), expires 2026-12-01 |
+| 86bb061 | Integration tests | 41290172418 | success | `00:06 +1: All tests passed!` on API 34 emulator |
 
 ### 3a. Final-commit runs
-The four runs for 86bb061 were in progress when this record was first committed; their conclusions are recorded in the follow-up commit that updates this section.
+All four runs for 86bb061 completed successfully between 09:45 and 09:52 UTC on 2026-11-01 (table above). Download the APK from run 41290172339 → Artifacts → `repforge-android-debug-apk`; the simulator app from run 41290172490 → `repforge-ios-simulator-app`.
 
 Local run at 86bb061 (Linux, Flutter 3.47.9): `flutter analyze --fatal-infos` → `No issues found!`; `flutter test --coverage` → `+29: All tests passed!`; line coverage 63.4 % overall (457/721) including generated code; hand-written domain, data and application files are at or near 100 % (`drift_weight_repository.dart` 40/40, `record_body_weight.dart` 17/17, `kilograms.dart` 19/25, `weight_screen.dart` 75/81).
 
