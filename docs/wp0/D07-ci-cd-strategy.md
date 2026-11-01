@@ -30,8 +30,8 @@ Verdict: the workflow infrastructure is now adequate for a Gradle build, but it 
 | `android.yml` | push to main, PR, manual | ubuntu-latest | ci steps → `flutter build apk --debug` → (main only) `flutter build appbundle --release` with signing from secrets | `app-debug.apk`, `app-release.aab` |
 | `ios.yml` | push to main, manual | macos-latest | ci steps → `flutter build ios --simulator --no-codesign` → (when signing configured) `flutter build ipa` with Fastlane match or App Store Connect API key from secrets | simulator `.app`, `.ipa` |
 | `integration.yml` | nightly + manual | ubuntu-latest (Android emulator via `reactivecircus/android-emulator-runner`), macos-latest (iOS simulator) | `flutter test integration_test` | screenshots, logs |
-| `deps.yml` | weekly | ubuntu-latest | `dart pub outdated`, `osv-scanner` | report |
-| `release.yml` | tag `v*` | ubuntu + macos | build signed artefacts → create GitHub Release with changelog | APK/AAB/IPA |
+| `deps.yml` | weekly | ubuntu-latest | `dart pub outdated`, `osv-scanner` | report (not yet added; WP 14) |
+| `release.yml` | tag `v*` | ubuntu + macos | build signed artefacts → create GitHub Release with changelog | APK/AAB/IPA (not yet added; WP 14) |
 
 ### 2.2 Required checks for merge to main
 `format`, `analyze`, `test`, `android-debug`. iOS build required once a macOS runner budget is confirmed (see limitations).
@@ -52,5 +52,5 @@ Verdict: the workflow infrastructure is now adequate for a Gradle build, but it 
 - iOS simulator builds prove compilation and layout, not signing or App Store compliance.
 
 ## 4. Transition plan
-1. WP 1 adds `ci.yml` and `android.yml` for the new Flutter app and marks the old workflow as `legacy-android-zip.yml` with `workflow_dispatch` only (no automatic runs), pending ADR-0003.
-2. When the Flutter debug APK is produced in CI and installs on a device, the legacy workflow is removed in the same work package that removes the ZIPs (requires owner approval under ADR-0003).
+1. **Done in WP 1:** `ci.yml`, `android.yml`, `ios.yml` and `integration.yml` exist and pass (`docs/delivery-record/WP1.md`). The old workflow `build-android-apk.yml` is renamed in its `name:` to "Legacy ZIP build (manual only)" and runs only on `workflow_dispatch`.
+2. The Flutter debug APK is produced by CI (WP 1). Removal of the ZIPs and the legacy workflow is now unblocked under ADR-0003 (accepted) and is scheduled as the first task of WP 2, after the owner confirms the APK installs on a device.

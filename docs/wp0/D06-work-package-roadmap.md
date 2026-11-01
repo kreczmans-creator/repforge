@@ -33,6 +33,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: this set.
 
 ### WP 1 — Cross-platform framework and architecture foundation
+- Status: **Delivered for acceptance on 2026-11-01**; evidence in `docs/delivery-record/WP1.md`.
 - Objective: a Flutter application skeleton that builds for Android and iOS in CI with all quality gates, proving every architectural choice with a vertical slice.
 - Scope: `flutter create` with pinned SDK; directory layout per D03 §5; Riverpod, drift, go_router, freezed wired; one `settings` table and one screen; `ci.yml` and `android.yml`; `ios.yml` simulator build; lint config; pre-commit hooks; root README; ADR-0002/0003/0004 accepted; legacy workflow set to manual.
 - Dependencies: WP 0 accepted (2026-11-01); ADR-0002, ADR-0003, ADR-0004 accepted (2026-11-01).
