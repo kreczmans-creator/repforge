@@ -48,17 +48,3 @@ abstract final class RfRadius {
 
 /// Minimum touch target per UXD requirements (48 dp Android, 44 pt iOS).
 const double rfMinTouchTarget = 48;
-
-/// Theme-dependent surface colours resolved from the current [ThemeData].
-extension RfSurfaces on ColorScheme {
-  Color get panel =>
-      brightness == Brightness.dark ? RfColors.darkPanel : RfColors.lightPanel;
-  Color get panel2 => brightness == Brightness.dark
-      ? RfColors.darkPanel2
-      : RfColors.lightPanel2;
-  Color get border => brightness == Brightness.dark
-      ? RfColors.darkBorder
-      : RfColors.lightBorder;
-  Color get muted =>
-      brightness == Brightness.dark ? RfColors.darkMuted : RfColors.lightMuted;
-}

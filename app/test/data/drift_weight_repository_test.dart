@@ -5,8 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_weight_repository.dart';
+import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/measurements/weight_entry.dart';
 import 'package:repforge/domain/units/kilograms.dart';
+
+final _clock = FixedClock(DateTime.utc(2026, 11, 3, 12));
 
 WeightEntry _entry(String id, double kg, DateTime at, {String? note}) =>
     WeightEntry(
@@ -25,7 +28,7 @@ void main() {
 
     setUp(() {
       db = AppDatabase.inMemory();
-      repo = DriftWeightRepository(db);
+      repo = DriftWeightRepository(db, clock: _clock);
     });
     tearDown(() => db.close());
 
@@ -52,6 +55,37 @@ void main() {
       expect(raw.single.deletedAt, isNotNull);
     });
 
+    test('delete stamps deletedAt from the clock and is idempotent', () async {
+      final t = DateTime.utc(2026, 11, 1, 8);
+      await repo.insert(_entry('a', 80, t));
+      await repo.delete('a');
+      final first = (await db.select(db.weightEntries).get()).single;
+      expect(first.deletedAt, _clock.now());
+
+      await repo.delete('a'); // second delete must not re-stamp
+      final second = (await db.select(db.weightEntries).get()).single;
+      expect(second.updatedAt, first.updatedAt);
+    });
+
+    test('skips a row whose stored weight is out of range', () async {
+      final t = DateTime.utc(2026, 11, 1, 8);
+      await repo.insert(_entry('ok', 80, t));
+      await db
+          .into(db.weightEntries)
+          .insert(
+            WeightEntriesCompanion.insert(
+              id: 'bad',
+              recordedAt: t.add(const Duration(days: 1)),
+              weightKg: 5, // below Kilograms.min
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      final visible = await repo.watchAll().first;
+      expect(visible.map((e) => e.id), ['ok']);
+      expect((await repo.latest())?.id, 'ok');
+    });
+
     test('latest returns null when empty', () async {
       expect(await repo.latest(), isNull);
     });
@@ -71,12 +105,15 @@ void main() {
 
       final t = DateTime.utc(2026, 11, 1, 8);
       final db1 = AppDatabase(NativeDatabase(file));
-      await DriftWeightRepository(db1).insert(_entry('a', 81.2, t));
+      await DriftWeightRepository(
+        db1,
+        clock: _clock,
+      ).insert(_entry('a', 81.2, t));
       await db1.close();
 
       final db2 = AppDatabase(NativeDatabase(file));
       addTearDown(db2.close);
-      final latest = await DriftWeightRepository(db2).latest();
+      final latest = await DriftWeightRepository(db2, clock: _clock).latest();
       expect(latest?.id, 'a');
       expect(latest?.weight.value, 81.2);
     });

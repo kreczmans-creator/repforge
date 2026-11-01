@@ -29,7 +29,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.inMemory();
-    repo = DriftWeightRepository(db);
+    repo = DriftWeightRepository(db, clock: FixedClock(fixedNow));
     var counter = 0;
     useCase = RecordBodyWeight(
       repository: repo,

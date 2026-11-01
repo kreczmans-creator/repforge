@@ -7,14 +7,7 @@ import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/features/measurements/presentation/weight_screen.dart';
 import 'package:repforge/ui/theme.dart';
 
-/// Unmounts the tree so Riverpod disposes providers and drift's stream
-/// cleanup timer (Duration.zero) fires inside the test zone. flutter_test
-/// disposes the tree before `addTearDown` callbacks run, so each test calls
-/// this as its last step; otherwise a pending timer fails the test.
-Future<void> _unmount(WidgetTester tester) async {
-  await tester.pumpWidget(const SizedBox.shrink());
-  await tester.pump(const Duration(milliseconds: 1));
-}
+import '../helpers/pump.dart';
 
 Widget _harness(AppDatabase db) => ProviderScope(
   overrides: [
@@ -38,7 +31,7 @@ void main() {
 
     expect(find.byKey(const Key('weight-empty')), findsOneWidget);
     expect(find.text('Save weight'), findsOneWidget);
-    await _unmount(tester);
+    await unmount(tester);
   });
 
   testWidgets('saving a valid weight adds it to the history', (tester) async {
@@ -60,7 +53,7 @@ void main() {
       ) as TextField).controller!.text,
       isEmpty,
     );
-    await _unmount(tester);
+    await unmount(tester);
   });
 
   testWidgets('an out-of-range weight shows a validation message', (
@@ -78,7 +71,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('weight-empty')), findsOneWidget);
-    await _unmount(tester);
+    await unmount(tester);
   });
 
   testWidgets('deleting an entry removes it from the list', (tester) async {
@@ -94,6 +87,6 @@ void main() {
 
     expect(find.text('80.0 kg'), findsNothing);
     expect(find.byKey(const Key('weight-empty')), findsOneWidget);
-    await _unmount(tester);
+    await unmount(tester);
   });
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show immutable;
+import 'package:meta/meta.dart';
 import 'package:repforge/domain/core/result.dart';
 
 /// A body mass in kilograms, stored to one decimal place.

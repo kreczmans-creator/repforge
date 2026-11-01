@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:repforge/app/providers.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
@@ -18,7 +19,8 @@ class HomeScreen extends ConsumerWidget {
     final latest = ref.watch(latestWeightProvider);
     final entries = ref.watch(weightEntriesProvider);
     final theme = Theme.of(context);
-    final today = DateFormat('EEEE, d MMMM').format(DateTime.now());
+    final today = DateFormat('EEEE, d MMMM')
+        .format(ref.watch(clockProvider).now().toLocal());
 
     return Scaffold(
       body: SafeArea(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/measurements/weight_entry.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -29,6 +30,9 @@ class _WeightScreenState extends ConsumerState<WeightScreen> {
   }
 
   Future<void> _submit() async {
+    if (ref.read(weightFormControllerProvider) is WeightFormSubmitting) {
+      return;
+    }
     await ref
         .read(weightFormControllerProvider.notifier)
         .submit(weightText: _weight.text, note: _note.text);
@@ -163,9 +167,17 @@ class _History extends ConsumerWidget {
               trailing: IconButton(
                 tooltip: 'Delete entry',
                 icon: const Icon(Icons.delete_outline),
-                onPressed: () => ref
-                    .read(weightFormControllerProvider.notifier)
-                    .delete(e.id),
+                onPressed: () async {
+                  final result = await ref
+                      .read(weightFormControllerProvider.notifier)
+                      .delete(e.id);
+                  if (!context.mounted) return;
+                  if (result case Err(:final error)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(userMessageFor(error))),
+                    );
+                  }
+                },
               ),
             ),
         ],

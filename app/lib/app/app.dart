@@ -18,6 +18,14 @@ class _RepForgeAppState extends State<RepForgeApp> {
   late final GoRouter _router = widget.router ?? createRouter();
 
   @override
+  void dispose() {
+    // Only dispose a router this state created; an injected one belongs to
+    // the caller.
+    if (widget.router == null) _router.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => MaterialApp.router(
     title: 'RepForge',
     debugShowCheckedModeBanner: false,

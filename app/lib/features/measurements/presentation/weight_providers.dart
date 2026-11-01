@@ -44,7 +44,10 @@ class WeightFormController extends Notifier<WeightFormState> {
   @override
   WeightFormState build() => const WeightFormIdle();
 
+  /// Validates and saves. Ignored while a previous submit is in flight so a
+  /// double tap or a second keyboard action cannot insert twice.
   Future<void> submit({required String weightText, String? note}) async {
+    if (state is WeightFormSubmitting) return;
     state = const WeightFormSubmitting();
     final result = await ref.read(recordBodyWeightProvider)(
       weightText: weightText,
@@ -53,12 +56,10 @@ class WeightFormController extends Notifier<WeightFormState> {
     state = result.fold(WeightFormSaved.new, WeightFormFailed.new);
   }
 
-  Future<void> delete(String id) async {
-    final result = await ref.read(deleteWeightEntryProvider)(id);
-    if (result case Err(:final error)) {
-      state = WeightFormFailed(error);
-    }
-  }
+  /// Deletes an entry. Independent of the form state: a delete failure is
+  /// reported to the caller (shown as a snackbar), never as a form error.
+  Future<Result<void>> delete(String id) =>
+      ref.read(deleteWeightEntryProvider)(id);
 
   void reset() => state = const WeightFormIdle();
 }

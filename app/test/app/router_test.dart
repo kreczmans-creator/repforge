@@ -6,6 +6,8 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
 
+import '../helpers/pump.dart';
+
 void main() {
   late AppDatabase db;
   setUp(() => db = AppDatabase.inMemory());
@@ -29,10 +31,6 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
     expect(find.text('Your cockpit'), findsOneWidget);
-
-    // Unmount inside the body so drift's stream-cleanup timer fires in the
-    // test zone (see weight_screen_test.dart).
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump(const Duration(milliseconds: 1));
+    await unmount(tester);
   });
 }

@@ -24,7 +24,10 @@ final idGeneratorProvider = Provider<IdGenerator>((_) {
 });
 
 final weightRepositoryProvider = Provider<WeightRepository>(
-  (ref) => DriftWeightRepository(ref.watch(databaseProvider)),
+  (ref) => DriftWeightRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
 
 final recordBodyWeightProvider = Provider<RecordBodyWeight>(
