@@ -1,0 +1,64 @@
+name: iOS build
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["app/**", ".github/workflows/ios.yml"]
+  pull_request:
+    paths: ["app/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.47.9"
+
+jobs:
+  simulator-build:
+    # Unsigned simulator build. Device/App Store signing needs an Apple
+    # Developer account and secrets; see docs/wp0/D07-ci-cd-strategy.md.
+    name: Simulator build (unsigned)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Toolchain report
+        run: |
+          xcodebuild -version
+          flutter doctor -v
+
+      - name: Resolve dependencies (pinned)
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build for iOS simulator
+        run: flutter build ios --simulator --no-codesign
+
+      - name: Package Runner.app
+        run: |
+          ls -la build/ios/iphonesimulator/
+          cd build/ios/iphonesimulator && zip -qr ../../Runner-simulator.zip Runner.app
+          ls -l ../../Runner-simulator.zip
+
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: repforge-ios-simulator-app
+          path: app/build/Runner-simulator.zip
+          if-no-files-found: error
+          retention-days: 30
