@@ -1,6 +1,6 @@
 # D03 — Target Architecture Document
 
-Status: Proposed (depends on ADR-0002 acceptance)
+Status: Accepted in principle on 2026-11-01 with ADR-0002/0003/0004; package versions pinned in WP 1 (see delivery record WP1)
 Date: 2026-10-31
 Applies from: WP 1
 

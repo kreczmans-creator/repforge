@@ -14,7 +14,7 @@ Commit SHAs: 3625e78 (deliverables, legacy extraction) and the follow-up commit 
 
 ## Architectural decisions
 - ADR-0001 Accepted (record decisions).
-- ADR-0002, ADR-0003, ADR-0004 Proposed; owner decision required before WP 1.
+- ADR-0002, ADR-0003, ADR-0004 accepted by the owner on 2026-11-01. WP 0 closed.
 
 ## Tests executed
 - No automated tests exist in the project. None could be run.

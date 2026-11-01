@@ -35,7 +35,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 ### WP 1 — Cross-platform framework and architecture foundation
 - Objective: a Flutter application skeleton that builds for Android and iOS in CI with all quality gates, proving every architectural choice with a vertical slice.
 - Scope: `flutter create` with pinned SDK; directory layout per D03 §5; Riverpod, drift, go_router, freezed wired; one `settings` table and one screen; `ci.yml` and `android.yml`; `ios.yml` simulator build; lint config; pre-commit hooks; root README; ADR-0002/0003/0004 accepted; legacy workflow set to manual.
-- Dependencies: WP 0 accepted; ADR-0002 accepted.
+- Dependencies: WP 0 accepted (2026-11-01); ADR-0002, ADR-0003, ADR-0004 accepted (2026-11-01).
 - Deliverables: `/app` compiling on both platforms; CI green; one unit, one widget, one integration test.
 - Acceptance: debug APK downloaded from CI installs and launches on an Android device; iOS simulator build succeeds on macOS runner; `format`, `analyze`, `test` pass; delivery record written.
 - Verification: CI run IDs recorded; device install screenshot in delivery record.
@@ -51,7 +51,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 
 ### WP 3 — Domain models and local persistence
 - Objective: the data foundation for all features, fully tested, with backup.
-- Scope: domain entities and value objects (units, nutrient profile, portion, provenance, exercise types, set records, measurement sites, goals); drift schema v1 for foods, food log, recipes, ingredients, exercises, workouts, sessions, sets, measurements, goals, settings; repositories; migration test harness; JSON backup export/import round trip; ADR on encryption-at-rest.
+- Scope: domain entities and value objects (units, nutrient profile, portion, provenance, exercise types, set records, measurement sites, goals); drift schema for foods, food log, recipes, ingredients, exercises, workouts, sessions, sets, measurements, goals, settings; repositories; migration test harness; JSON backup export/import round trip; an explicit assessment and ADR on encryption at rest and the privacy implications of locally stored fitness and body-composition data (owner direction, 2026-11-01).
 - Dependencies: WP 1.
 - Acceptance: every calculation rule has example-based tests (portion scaling, unit conversion, volume, PR detection); export → wipe → import yields identical data; schema snapshot committed.
 - Verification: unit tests on Linux CI; coverage threshold set and enforced.

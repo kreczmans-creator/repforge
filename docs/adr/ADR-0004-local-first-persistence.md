@@ -1,7 +1,7 @@
 # ADR-0004: Local-first persistence with SQLite via drift; cloud sync deferred
 
-- Status: Proposed
-- Date: 2026-10-31
+- Status: Accepted (owner approval recorded 2026-11-01)
+- Date: 2026-10-31 (proposed); accepted 2026-11-01
 
 ## Context
 The product must record food, training and measurements without an internet connection (owner brief §4.2). Personal body data is sensitive. No backend exists.
@@ -21,3 +21,6 @@ Relational data (recipes → ingredients → foods; sessions → sets → exerci
 - Migration tests are mandatory for every schema version.
 - Encryption at rest is a separate decision in WP 3.
 - Sync conflict resolution is designed, not implemented, until WP 12.
+
+## Approval
+Owner direction at acceptance: cloud synchronisation and user accounts remain deferred to WP 12; JSON backup and restore must precede any cloud functionality; WP 3 must explicitly assess encryption at rest and the privacy implications of locally stored fitness and body-composition data.

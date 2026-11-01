@@ -1,7 +1,7 @@
 # ADR-0002: Adopt Flutter as the cross-platform framework
 
-- Status: Proposed (owner decision required)
-- Date: 2026-10-31
+- Status: Accepted (owner approval recorded 2026-11-01)
+- Date: 2026-10-31 (proposed); accepted 2026-11-01
 
 ## Context
 RepForge must ship on Android and iOS from a shared codebase (owner brief §1.2). The existing implementation is an Android-only Kotlin/Compose prototype that has never compiled and has no tests (D01). The team is a solo owner with AI assistance and no iOS specialist.
@@ -23,3 +23,6 @@ Highest weighted score (251 vs 209 and 192) driven by the criteria the owner mar
 - Existing Kotlin code is retained read-only for reference (D08).
 - iOS builds require a macOS runner and, for distribution, an Apple Developer account (D07).
 - If the owner has Kotlin and Swift capacity, this ADR should be revisited in favour of KMP (D02 §6).
+
+## Approval
+Owner direction at acceptance: Android and iOS are equally important targets; iOS is not a future enhancement. All framework and plugin dependencies are pinned to exact versions and verified on both platforms.

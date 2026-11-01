@@ -1,6 +1,6 @@
 # D02 — Framework Selection Report
 
-Status: Proposed (awaiting owner decision, see ADR-0002)
+Status: Accepted by owner on 2026-11-01 (ADR-0002)
 Date: 2026-10-31
 Scope: choice of cross-platform technology for RepForge on Android and iOS.
 

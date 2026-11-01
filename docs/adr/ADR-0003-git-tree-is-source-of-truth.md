@@ -1,7 +1,7 @@
 # ADR-0003: Git tree, not ZIP archives, is the source of truth
 
-- Status: Proposed (owner decision required)
-- Date: 2026-10-31
+- Status: Accepted (owner approval recorded 2026-11-01)
+- Date: 2026-10-31 (proposed); accepted 2026-11-01
 
 ## Context
 The repository contains two ZIP archives of the Android project and a workflow that unzips one of them at build time. No application source is tracked as files. Changes inside the archive cannot be diffed, reviewed or blamed, and the two archives differ (D01 §2).
@@ -21,3 +21,6 @@ Version control only has value when it tracks the source. Removal is deferred un
 - The legacy source is extracted verbatim, unfixed, so the record matches the upload.
 - The legacy workflow is switched to manual trigger in WP 1 and deleted with the ZIPs.
 - Future changes to any source arrive as commits and pull requests, never as uploaded archives.
+
+## Approval
+Owner direction at acceptance: retain the Kotlin implementation under `legacy/android` as read-only reference; retire ZIP-based development and CI only after the replacement pipeline is verified. Preserve useful legacy recipe data, product knowledge, assets and domain concepts where technically appropriate; do not migrate the old architecture merely to preserve code.
