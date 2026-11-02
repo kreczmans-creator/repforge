@@ -40,27 +40,31 @@ TAN = math.tan(math.radians(SLANT_DEG))
 
 R_OUT = 6.0   # convex outer corners
 R_IN = 3.0    # concave corners
-R_BOWL = 30.0 # bowl shoulder radius
-R_CTR = 10.0  # counter radius
+R_BOWL = 26.0 # bowl shoulder radius
+R_CTR = 9.0   # counter radius
 
-# Leg edges (upright): left edge (34,60)->(58,128); right edge (64,60)->(88,128)
-def leg_x(x0, y):
-    return x0 + 24.0 * (y - 60.0) / 68.0
+# Leg: upper edge passes through the counter's bottom-right corner (58,46), slope 0.55 (29 deg upright).
+LEG_M = 0.68
+def leg_top(x):
+    return 46.0 + LEG_M * (x - 58.0)
+def leg_bot(x):
+    return 77.4 + LEG_M * (x - 58.0)   # perpendicular thickness ~26
+LEG_END = 133.0
+BOWL_R = 84.0
 
 # R silhouette, clockwise on screen. (x, y, corner radius)
 R_OUTLINE = [
-    (0, 0, R_OUT), (92, 0, R_BOWL), (92, 74, R_BOWL),
-    (leg_x(64, 74), 74, R_IN), (88, 128, R_OUT), (58, 128, R_OUT),
-    (leg_x(34, 74), 74, R_IN), (26, 74, R_IN), (26, 128, R_OUT), (0, 128, R_OUT),
+    (0, 0, R_OUT), (BOWL_R, 0, R_BOWL), (BOWL_R, leg_top(BOWL_R), R_IN),
+    (LEG_END, leg_top(LEG_END), R_OUT), (LEG_END, 128, R_OUT),
+    (58 + (70 - 77.4) / LEG_M, 70, R_OUT), (26, 70, R_IN), (26, 128, R_OUT), (0, 128, R_OUT),
 ]
 # Counter, counter-clockwise (hole under nonzero fill)
-R_COUNTER = [(26, 26, R_IN), (26, 48, R_IN), (66, 48, R_CTR), (66, 26, R_CTR)]
+R_COUNTER = [(26, 24, R_IN), (26, 46, R_IN), (58, 46, R_CTR), (58, 24, R_CTR)]
 
-# F silhouette, clockwise. Left parts sit behind the R and only show through the shoulders.
+# F silhouette, clockwise, drawn behind the R. Stem 100..126 sits on the leg; bars share the R's lines.
 F_OUTLINE = [
-    (44, 0, R_OUT), (158, 0, R_OUT), (158, 26, R_OUT), (114, 26, R_IN), (114, 48, R_IN),
-    (142, 48, R_OUT), (142, 74, R_OUT), (114, 74, R_IN), (114, 128, R_OUT), (88, 128, R_OUT),
-    (88, 74, R_IN), (44, 74, R_OUT), (44, 48, R_OUT), (66, 48, R_IN), (66, 26, R_IN), (44, 26, R_OUT),
+    (98, 0, R_OUT), (178, 0, R_OUT), (178, 24, R_OUT), (124, 24, R_IN), (124, 46, R_IN),
+    (152, 46, R_OUT), (152, 70, R_OUT), (124, 70, R_IN), (124, 95, 0), (98, 95, 0),
 ]
 
 
@@ -111,7 +115,7 @@ def rounded_path(pts):
 R_PATH = rounded_path(shear(R_OUTLINE)) + rounded_path(shear(R_COUNTER))
 F_PATH = rounded_path(shear(F_OUTLINE))
 
-MONO_W = 158.0 + H * TAN  # right edge of F top bar after shear
+MONO_W = 178.0 + H * TAN  # right edge of F top bar after shear
 MONO_H = H
 MONO_W = round(MONO_W, 2)
 
@@ -151,7 +155,7 @@ def instanced(path, wght):
     return font
 
 
-def shape_text(font_path, wght, text, size, tracking_em=0.0):
+def shape_text(font_path, wght, text, size, tracking_em=0.0, oblique=False):
     """Return (glyph path strings positioned at size px, advance width, cap height, metrics)."""
     font = instanced(font_path, wght)
     tmp = pathlib.Path("/tmp/_rf_inst.ttf")
@@ -174,7 +178,7 @@ def shape_text(font_path, wght, text, size, tracking_em=0.0):
     for info, pos in zip(buf.glyph_infos, buf.glyph_positions):
         name = order[info.codepoint]
         pen = SVGPathPen(glyph_set)
-        tp = TransformPen(pen, (k, 0, 0, -k, x + pos.x_offset * k, -pos.y_offset * k))
+        tp = TransformPen(pen, (k, 0, k * TAN if oblique else 0, -k, x + pos.x_offset * k, -pos.y_offset * k))
         glyph_set[name].draw(tp)
         paths.append((info.cluster, pen.getCommands()))
         x += pos.x_advance * k + tracking
@@ -185,7 +189,7 @@ def shape_text(font_path, wght, text, size, tracking_em=0.0):
 
 
 def wordmark_paths(size, rep_fill, forge_fill, tracking=-0.015):
-    paths, width, cap = shape_text(FONT_DIR / "Sora[wght].ttf", 700, "RepForge", size, tracking)
+    paths, width, cap = shape_text(FONT_DIR / "Sora[wght].ttf", 700, "RepForge", size, tracking, oblique=True)
     out = []
     for cluster, d in paths:
         fill = rep_fill if cluster < 3 else forge_fill
@@ -214,6 +218,20 @@ for name, (rf, ff, bg, title) in variants.items():
     body = monogram_group(rf, ff, PAD, PAD)
     write(LOGO_DIR / name, svg(MONO_W + 2 * PAD, MONO_H + 2 * PAD, body, title, bg))
 
+# Gradient variants for hero and marketing use (flat versions remain the UI masters)
+GRAD_DEFS = ('<defs><linearGradient id="rfAmber" x1="0" y1="0" x2="1" y2="1">'
+             '<stop offset="0" stop-color="#FFB13B"/><stop offset="0.55" stop-color="#FF8A00"/><stop offset="1" stop-color="#E96B00"/></linearGradient>'
+             '<linearGradient id="rfSilver" x1="0" y1="0" x2="1" y2="1">'
+             '<stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BBC4CF"/></linearGradient>'
+             '<linearGradient id="rfSlate" x1="0" y1="0" x2="1" y2="1">'
+             '<stop offset="0" stop-color="#3B4A5A"/><stop offset="1" stop-color="#1F2A3A"/></linearGradient></defs>')
+write(LOGO_DIR / "rf-monogram-gradient.svg",
+      svg(MONO_W + 2 * PAD, MONO_H + 2 * PAD, GRAD_DEFS + monogram_group("url(#rfSilver)", "url(#rfAmber)", PAD, PAD),
+          "RepForge RF monogram, gradient, for dark backgrounds"))
+write(LOGO_DIR / "rf-monogram-gradient-on-light.svg",
+      svg(MONO_W + 2 * PAD, MONO_H + 2 * PAD, GRAD_DEFS + monogram_group("url(#rfSlate)", "url(#rfAmber)", PAD, PAD),
+          "RepForge RF monogram, gradient, for light backgrounds"))
+
 # Amber-on-slate: all-amber monogram on a slate rounded panel
 panel_w, panel_h = MONO_W + 64, MONO_H + 64
 body = (f'<rect width="{panel_w:.2f}" height="{panel_h:.2f}" rx="24" fill="{SLATE}"/>'
@@ -225,7 +243,7 @@ write(LOGO_DIR / "rf-monogram-amber-on-slate.svg", svg(panel_w, panel_h, body, "
 # ----------------------------------------------------------------------------------------
 WM_SIZE = 125.0  # font size so that cap height ~ 0.70 * monogram height
 _, _, cap_probe = wordmark_paths(WM_SIZE, SLATE, AMBER)
-WM_SIZE = WM_SIZE * (0.70 * MONO_H) / cap_probe
+WM_SIZE = WM_SIZE * (0.74 * MONO_H) / cap_probe
 wm_body, wm_w, wm_cap = wordmark_paths(WM_SIZE, SLATE, AMBER)
 DESC = 0.26 * WM_SIZE  # room for p / g descenders
 
@@ -239,14 +257,14 @@ for name, rep, forge, bg, title in [
     body = f'<g transform="translate({PAD:.2f} {PAD + cap:.2f})">{paths}</g>'
     write(LOGO_DIR / name, svg(w + 2 * PAD, cap + DESC + PAD, body, title, bg))
 
-GAP = 0.34 * MONO_H
+GAP = 0.30 * MONO_H
 
 
-def lockup(r_fill, f_fill, rep_fill, forge_fill, tagline_fill=None, bg=None, title=""):
+def lockup(r_fill, f_fill, rep_fill, forge_fill, tagline_fill=None, bg=None, title="", defs=""):
     paths, w, cap = wordmark_paths(WM_SIZE, rep_fill, forge_fill)
     total_w = MONO_W + GAP + w + 2 * PAD
     base_y = PAD + MONO_H
-    body = monogram_group(r_fill, f_fill, PAD, PAD)
+    body = defs + monogram_group(r_fill, f_fill, PAD, PAD)
     body += f'<g transform="translate({PAD + MONO_W + GAP:.2f} {base_y:.2f})">{paths}</g>'
     total_h = base_y + DESC
     if tagline_fill:
@@ -268,6 +286,10 @@ write(LOGO_DIR / "repforge-lockup-horizontal-mono-dark.svg",
       lockup(SLATE, SLATE, SLATE, SLATE, title="RepForge horizontal lockup, monochrome slate"))
 write(LOGO_DIR / "repforge-lockup-horizontal-mono-light.svg",
       lockup(LIGHT, LIGHT, LIGHT, LIGHT, title="RepForge horizontal lockup, monochrome light"))
+write(LOGO_DIR / "repforge-lockup-horizontal-gradient.svg",
+      lockup("url(#rfSlate)", "url(#rfAmber)", SLATE, "url(#rfAmber)", title="RepForge horizontal lockup, gradient", defs=GRAD_DEFS))
+write(LOGO_DIR / "repforge-lockup-horizontal-gradient-reversed.svg",
+      lockup("url(#rfSilver)", "url(#rfAmber)", LIGHT, "url(#rfAmber)", title="RepForge horizontal lockup, gradient, reversed", defs=GRAD_DEFS))
 write(LOGO_DIR / "repforge-lockup-tagline.svg",
       lockup(SLATE, AMBER, SLATE, AMBER, tagline_fill="#6B7B8C", title="RepForge lockup with tagline"))
 write(LOGO_DIR / "repforge-lockup-tagline-reversed.svg",
@@ -291,7 +313,7 @@ write(LOGO_DIR / "repforge-lockup-stacked-reversed.svg", stacked(LIGHT, AMBER, L
 # ----------------------------------------------------------------------------------------
 # App icons
 # ----------------------------------------------------------------------------------------
-def icon_512(bg_fill, r_fill, f_fill, title, radius=112, content_w=320, gradient=None):
+def icon_512(bg_fill, r_fill, f_fill, title, radius=112, content_w=340, gradient=None):
     size = 512.0
     scale = content_w / MONO_W
     mw, mh = MONO_W * scale, MONO_H * scale
@@ -312,13 +334,13 @@ write(ICON_DIR / "app-icon-dark.svg", icon_512(SLATE, LIGHT, AMBER, "RepForge ap
 write(ICON_DIR / "app-icon-amber.svg", icon_512(AMBER, LIGHT, SLATE, "RepForge app icon, amber"))
 write(ICON_DIR / "app-icon-light.svg", icon_512("#F4F1EC", SLATE, AMBER, "RepForge app icon, light"))
 # PWA maskable: content inside the 80% safe circle (diameter 410) -> width 328
-write(ICON_DIR / "pwa-icon-maskable-512.svg", icon_512(SLATE, LIGHT, AMBER, "RepForge PWA maskable icon", radius=0, content_w=300, gradient=("#26344A", "#182331")))
+write(ICON_DIR / "pwa-icon-maskable-512.svg", icon_512(SLATE, LIGHT, AMBER, "RepForge PWA maskable icon", radius=0, content_w=310, gradient=("#26344A", "#182331")))
 write(ICON_DIR / "pwa-icon-any-512.svg", icon_512(SLATE, LIGHT, AMBER, "RepForge PWA icon", gradient=("#26344A", "#182331")))
 
 # Android adaptive icon layers (108dp canvas; safe zone = 66dp circle)
 def adaptive_fg():
     size = 108.0
-    content_w = 50.0  # fits inside the 66dp safe circle (aspect 1.33)
+    content_w = 56.0  # fits inside the 66dp safe circle (aspect 1.63 -> diagonal 65.7)
     scale = content_w / MONO_W
     mw, mh = MONO_W * scale, MONO_H * scale
     body = monogram_group(LIGHT, AMBER, (size - mw) / 2 - 0.02 * size, (size - mh) / 2, scale)
@@ -331,7 +353,7 @@ write(ICON_DIR / "android-adaptive-background.svg",
           '<stop offset="0" stop-color="#26344A"/><stop offset="1" stop-color="#182331"/></linearGradient></defs>'
           '<rect width="108" height="108" fill="url(#bg)"/>', "RepForge adaptive icon background"))
 write(ICON_DIR / "android-adaptive-monochrome.svg",
-      svg(108, 108, monogram_group(LIGHT, LIGHT, (108 - MONO_W * 50 / MONO_W) / 2 - 2.16, (108 - MONO_H * 50 / MONO_W) / 2, 50 / MONO_W),
+      svg(108, 108, monogram_group(LIGHT, LIGHT, (108 - 56) / 2 - 2.16, (108 - MONO_H * 56 / MONO_W) / 2, 56 / MONO_W),
           "RepForge adaptive icon monochrome layer"))
 
 # ----------------------------------------------------------------------------------------
@@ -341,7 +363,7 @@ geom = {
     "grid": {"height": H, "width": MONO_W, "stroke": STROKE, "slantDeg": SLANT_DEG,
              "radii": {"outer": R_OUT, "inner": R_IN, "bowlShoulder": R_BOWL, "counter": R_CTR}},
     "paths": {"R": R_PATH, "F": F_PATH},
-    "wordmark": {"font": "Sora", "weight": 700, "tracking": -0.015, "capHeightRatio": 0.70, "gapRatio": 0.34},
+    "wordmark": {"font": "Sora", "weight": 700, "tracking": -0.015, "capHeightRatio": 0.74, "gapRatio": 0.30, "oblique": SLANT_DEG},
 }
 write(LOGO_DIR / "geometry.json", json.dumps(geom, indent=2) + "\n")
 print("monogram box", MONO_W, MONO_H)

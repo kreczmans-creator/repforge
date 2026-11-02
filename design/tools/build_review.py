@@ -111,16 +111,16 @@ def construction_svg():
     for y in range(-16, 145, 8):
         g.append(f'<line x1="0" y1="{y}" x2="160" y2="{y}" class="grid"/>')
     # key horizontals: cap, bar, counter, mid bar, baseline
-    for y, lab in [(0, "cap"), (26, "bar 26"), (48, "counter"), (74, "mid bar"), (128, "baseline")]:
+    for y, lab in [(0, "cap"), (24, "bar"), (46, "counter"), (70, "mid bar"), (128, "baseline")]:
         g.append(f'<line x1="-8" y1="{y}" x2="168" y2="{y}" class="guide"/>')
     g.append('</g>')
     g.append(f'<path fill="#FF8A00" opacity="0.55" d="{geom["paths"]["F"]}"/>')
     g.append(f'<path fill="currentColor" opacity="0.55" d="{geom["paths"]["R"]}"/>')
     # labels (unsheared text)
-    labels = [(-14, 0, "0"), (-14, 26, "26"), (-14, 48, "48"), (-14, 74, "74"), (-14, 128, "128")]
+    labels = [(-14, 0, "0"), (-14, 24, "24"), (-14, 46, "46"), (-14, 70, "70"), (-14, 128, "128")]
     for x, y, t in labels:
         g.append(f'<text x="{x}" y="{y + 3}" class="lbl" text-anchor="end">{t}</text>')
-    g.append(f'<text x="{W / 2:.1f}" y="148" class="lbl" text-anchor="middle" style="font-size:4.6px">stroke 26 · slant 12° · shoulder R30 · counter R10 · corners R6 / R3 · grid 8</text>')
+    g.append(f'<text x="{W / 2:.1f}" y="148" class="lbl" text-anchor="middle" style="font-size:4.6px">stroke 26 / 24 · slant 12° · leg 34° · shoulder R26 · counter R9 · corners R6 / R3 · grid 8</text>')
     g.append('</svg>')
     return "".join(g)
 
@@ -129,12 +129,15 @@ def construction_svg():
 mono_small = mark("26px")
 dash_dark = dash.replace('<span class="rf-mark" aria-hidden="true"></span>',
                          f'<span class="rf-mark" aria-hidden="true">{mono_small}</span>')
+dash_dark = dash_dark.replace('<span class="rf-wordmark">Rep<b>Forge</b></span>', '__WM__')
 dash_dark = dash_dark.replace(".rf-phone .rf-mark { display: inline-block; width: 34px; height: 26px; }",
                               ".rf-phone .rf-mark { display: inline-flex; width: auto; height: 26px; }")
-style_block, markup = dash_dark.split("</style>", 1)
+style_block, markup_tpl = dash_dark.split("</style>", 1)
+wm_dark = svg_inline(LOGO / "repforge-wordmark-reversed.svg", height="19px").replace("<svg ", '<svg style="height:19px;width:auto;display:block" ', 1)
+wm_light = svg_inline(LOGO / "repforge-wordmark.svg", height="19px").replace("<svg ", '<svg style="height:19px;width:auto;display:block" ', 1)
+markup = markup_tpl.replace("__WM__", wm_dark)
 style_block += "</style>"
-markup_light = markup.replace('data-theme="dark"', 'data-theme="light"', 1).replace(
-    '</svg></span>', '</svg></span>', 1)
+markup_light = markup_tpl.replace("__WM__", wm_light).replace('data-theme="dark"', 'data-theme="light"', 1)
 # light phone: slate R in the app-bar mark
 markup_light = markup_light.replace(f'<path fill="#F5F7FA" d="{geom["paths"]["R"]}"/>',
                                     f'<path fill="#1F2A3A" d="{geom["paths"]["R"]}"/>', 1)
@@ -255,7 +258,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
     <h1>Brand reconstruction for review</h1>
     <p class="lead" style="color:#BBC4CF;margin-top:12px">The approved RF monogram direction, Forge Amber / Slate palette and Sora · Manrope · IBM Plex Mono typography, rebuilt as true vector geometry and shown on a working dark-mode dashboard. Nothing below is final until you approve it.</p>
   </div>
-  <div class="meta"><span><b>Status</b> Awaiting approval</span><span><b>Source</b> Commission brief + branding board</span><span><b>Assets</b> 18 SVG masters, 8 icon layers, tokens draft</span></div>
+  <div class="meta"><span><b>Status</b> Awaiting approval</span><span><b>Source</b> Commission brief + branding board</span><span><b>Assets</b> 24 SVG masters, 8 icon layers, tokens draft</span></div>
 </div>
 
 <section>
@@ -264,9 +267,12 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
   <p class="lead">Green items reproduce the established direction. Amber items are refinements that preserve the concept but need your sign-off. Blue items are additions the brief leaves open.</p>
   <div class="tscroll" style="margin-top:16px"><table>
     <tr><th>Element</th><th>Decision</th><th>Detail</th></tr>
-    <tr><td>RF monogram concept</td><td><span class="chip keep">Reproduced</span></td><td>Light/slate R in front, amber F emerging from behind the R. Italic slant, heavy weight, rounded corners, shared top line.</td></tr>
-    <tr><td>Monogram geometry</td><td><span class="chip refine">Refined</span></td><td>Rebuilt on a 128-unit grid: stroke 26, 12° slant, R30 shoulders, R6 / R3 corners. The F's bars sit on the R's bowl lines so the pair reads as one symbol.</td></tr>
-    <tr><td>Wordmark</td><td><span class="chip keep">Reproduced</span></td><td>Sora Bold, "Rep" in slate/light and "Forge" in amber. Outlined to paths, −1.5% tracking.</td></tr>
+    <tr><td>RF monogram concept</td><td><span class="chip keep">Reproduced</span></td><td>Light/slate R in front, long leg sweeping under the amber F, F resting on the leg. Italic slant, heavy weight, rounded corners, shared cap line.</td></tr>
+    <tr><td>Monogram geometry</td><td><span class="chip refine">Refined</span></td><td>Rebuilt on a 128-unit grid from the board: stroke 26, 12° slant, R26 shoulders, R6 / R3 corners, leg sweeping under the F at 34°, F sitting on the leg with a 14-unit gap from the bowl.</td></tr>
+    <tr><td>Wordmark oblique</td><td><span class="chip refine">Refined</span></td><td>The board wordmark is italic. Sora has no italic, so the wordmark is Sora Bold with a 12° synthetic oblique, matching the monogram slant.</td></tr>
+    <tr><td>Gradient logo variants</td><td><span class="chip new">Added</span></td><td>Board shows amber and silver gradients on the mark. Flat masters are the UI default; gradient variants (#FFB13B → #FF8A00 → #E96B00, white → Mist) are supplied for hero and marketing use only.</td></tr>
+    <tr><td>Iconography</td><td><span class="chip new">Open</span></td><td>No icon set is approved yet. The icon library is designed in Stage 2 to the brief's rounded geometric spec.</td></tr>
+    <tr><td>Wordmark</td><td><span class="chip keep">Reproduced</span></td><td>Oblique Sora Bold, "Rep" in slate/light and "Forge" in amber. Outlined to paths, −1.5% tracking.</td></tr>
     <tr><td>Tagline</td><td><span class="chip keep">Reproduced</span></td><td>TRAIN · FUEL · TRACK · TRANSFORM in Manrope SemiBold, +22% tracking, Stone grey.</td></tr>
     <tr><td>Palette</td><td><span class="chip keep">Reproduced</span></td><td>Forge Slate #1F2A3A, Forge Amber #FF8A00, Steel, Stone, Mist, Sand and the four semantic colours, unchanged.</td></tr>
     <tr><td>Light muted text</td><td><span class="chip refine">Refined</span></td><td>Stone #6B7B8C on white is 4.3:1. Light-mode muted text uses #5E6E7F (5.2:1); Stone stays for borders, icons and large text.</td></tr>
@@ -282,7 +288,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
 <section>
   <div class="eyebrow">1 · Logo</div>
   <h2>RF monogram</h2>
-  <p class="lead">The R is the structure. The F shares the R's top line and bowl line and emerges from behind the R's shoulder, so the amber reads as part of the same object rather than a second letter placed beside it. The leg of the R and the stem of the F share one base.</p>
+  <p class="lead">The R is the structure. Its leg sweeps down and right under the F, and the amber F rests on that leg, its stem cut by the leg's upper edge. The F's bars sit on the R's cap and bowl lines, so the pair reads as one object.</p>
   <div class="grid g2" style="margin-top:20px">
     <div><div class="slab dark">{svg_inline(LOGO / "rf-monogram.svg", height="150px")}</div><span class="cap"><b>Primary monogram</b> · light R, amber F, for dark surfaces</span></div>
     <div><div class="slab light">{svg_inline(LOGO / "rf-monogram-on-light.svg", height="150px")}</div><span class="cap"><b>Monogram on light</b> · slate R, amber F</span></div>
@@ -293,24 +299,28 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
     <div><div class="slab deep" style="padding:0">{svg_inline(LOGO / "rf-monogram-amber-on-slate.svg", height="160px")}</div><span class="cap"><b>Amber on slate</b></span></div>
     <div><div class="slab amber">{svg_inline(LOGO / "rf-monogram-mono-dark.svg", height="84px")}</div><span class="cap"><b>Slate on amber</b> · for amber brand panels</span></div>
   </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div><div class="slab dark">{svg_inline(LOGO / "rf-monogram-gradient.svg", height="120px")}</div><span class="cap"><b>Gradient variant</b> · hero, splash and marketing only</span></div>
+    <div><div class="slab dark">{svg_inline(LOGO / "repforge-lockup-horizontal-gradient-reversed.svg", height="72px")}</div><span class="cap"><b>Gradient lockup, reversed</b> · as on the board</span></div>
+  </div>
 
   <h3 style="margin-top:36px">Construction</h3>
-  <p class="sub" style="margin-top:6px">Upright geometry on a 128-unit grid, sheared 12°, then every corner rounded with true arcs. Horizontal lines at 0, 26, 48, 74 and 128 are shared by both letters. Vector masters are generated from this definition, not traced from the board.</p>
+  <p class="sub" style="margin-top:6px">Upright geometry on a 128-unit grid, sheared 12°, then every corner rounded with true arcs. Horizontal lines at 0, 24, 46, 70 and 128 are shared by both letters. Vector masters are generated from this definition, not traced from the board.</p>
   <div class="card" style="margin-top:14px;display:flex;justify-content:center">{construction_svg()}</div>
   <div class="grid g3" style="margin-top:16px">
     <div class="card"><h3>Proportions</h3><ul class="sub">
-      <li>Stroke 26 (20% of cap height) for both letters.</li>
-      <li>Bowl 0–74, counter 26–48 × 26–66, leg 60→128 at 31° after slant.</li>
-      <li>Monogram box 185 × 128 (aspect 1.45:1).</li>
-      <li>F top bar extends 44 past its stem, mid bar 28, so the F stays an F at small sizes.</li>
+      <li>Verticals 26, horizontals 24 (20% / 19% of cap height) for both letters.</li>
+      <li>Bowl 0–70, counter 24–46 × 26–58, leg from the bowl junction to x 133 at 34° after slant.</li>
+      <li>Monogram box 205 × 128 (aspect 1.6:1). F stem 98–124, 14 units clear of the bowl.</li>
+      <li>F top bar extends 54 past its stem, mid bar 28, so the F stays an F at small sizes.</li>
     </ul></div>
     <div class="card"><h3>Corners and mass</h3><ul class="sub">
-      <li>Outer corners R6, inner corners R3, counter R10, bowl shoulder R30.</li>
+      <li>Outer corners R6, inner corners R3, counter R9, bowl shoulder R26.</li>
       <li>Only two colours, no outlines, no gradients on the mark itself.</li>
-      <li>The F is drawn behind the R. Monochrome versions are the union.</li>
+      <li>The F is drawn behind the R; the leg cuts the F stem. Monochrome versions are the union.</li>
     </ul></div>
     <div class="card"><h3>Clear space and minimum size</h3><ul class="sub">
-      <li>Clear space on all sides = one bar height (26 units, 20% of mark height).</li>
+      <li>Clear space on all sides = one stem width (26 units, 20% of mark height).</li>
       <li>Minimum: monogram 20 px tall on screen, 6 mm in print. Lockup 28 px tall.</li>
       <li>Below 20 px use the app icon, never the lockup.</li>
     </ul></div>
@@ -324,7 +334,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
 <section>
   <div class="eyebrow">2 · Wordmark and lockups</div>
   <h2>Wordmark and lockups</h2>
-  <p class="lead">Sora Bold set as outlines, Rep in the neutral and Forge in amber. The wordmark cap height is 70% of the monogram height and sits on the monogram baseline, with a gap of 34% of the mark height.</p>
+  <p class="lead">Sora Bold at a 12° oblique, set as outlines, Rep in the neutral and Forge in amber. The wordmark cap height is 74% of the monogram height and sits on the monogram baseline, with a gap of 30% of the mark height.</p>
   <div class="grid g2" style="margin-top:20px">
     <div><div class="slab light">{svg_inline(LOGO / "repforge-lockup-horizontal.svg", height="72px")}</div><span class="cap"><b>Primary horizontal lockup</b></span></div>
     <div><div class="slab dark">{svg_inline(LOGO / "repforge-lockup-horizontal-reversed.svg", height="72px")}</div><span class="cap"><b>Reversed horizontal lockup</b></span></div>
@@ -461,12 +471,14 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
   <div class="eyebrow">7 · Approval</div>
   <h2>Decisions needed before Stage 2</h2>
   <div class="q" style="margin-top:16px">
-    <div class="card"><div class="n">1</div><div><b>Monogram geometry.</b> Approve the slant (12°), weight (stroke 20% of height) and the F-behind-R construction, or request a heavier / lighter / more upright variant.</div></div>
+    <div class="card"><div class="n">1</div><div><b>Monogram geometry.</b> Approve the rebuilt mark (12° slant, stroke 20% of height, leg at 34°, F resting on the leg), or request changes to the leg angle, bowl size or F position.</div></div>
+    <div class="card"><div class="n">1b</div><div><b>Flat or gradient.</b> Flat masters for the app and icons, gradient variants only for hero, splash and marketing (as shown). Confirm, or make gradient the primary treatment.</div></div>
     <div class="card"><div class="n">2</div><div><b>Slate labels on amber buttons.</b> Approve dark labels on primary buttons (AA) in place of the board's white labels.</div></div>
     <div class="card"><div class="n">3</div><div><b>Amber Ink #B45F00</b> for amber text and links on light surfaces, with #FF8A00 kept for fills and icons.</div></div>
     <div class="card"><div class="n">4</div><div><b>Muted text #8E9DAE</b> in dark mode, replacing the brief's #8291A2.</div></div>
     <div class="card"><div class="n">5</div><div><b>App icon background</b>: subtle slate gradient (shown) or flat Forge Slate.</div></div>
     <div class="card"><div class="n">6</div><div><b>Bottom navigation labels</b>: Home · Train · Fuel · Track · Goals (pillar-based, shown) or the board's Home · Plan · Log · Progress · You.</div></div>
+    <div class="card"><div class="n">7</div><div><b>Iconography.</b> The uploaded icon set is withdrawn. Confirm the brief's rounded geometric stroke icons (as in the dashboard mock) as the Stage 2 direction.</div></div>
   </div>
   <p class="sub" style="margin-top:20px">After approval, Stage 2 delivers the full token set (JSON + CSS + Compose), the complete type scale, spacing, radius and elevation, and the icon library. Stage 3 the component library, Stage 4 the remaining screens, Stage 5 the developer handover.</p>
 </section>

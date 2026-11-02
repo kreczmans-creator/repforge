@@ -17,7 +17,7 @@ Independent of TempestOS. Dark mode first, light mode fully supported.
 
 | Path | Contents |
 |---|---|
-| `brand/logo/` | SVG masters: RF monogram (5 colour variants + amber-on-slate), wordmark (4), horizontal lockups (4), tagline lockups (2), stacked lockups (2). `geometry.json` holds the monogram path data and grid. |
+| `brand/logo/` | SVG masters: RF monogram (5 flat colour variants, amber-on-slate, 2 gradient), oblique wordmark (4), horizontal lockups (4 flat + 2 gradient), tagline lockups (2), stacked lockups (2). `geometry.json` holds the monogram path data and grid. |
 | `brand/icon/` | App icons (dark, amber, light, 512), PWA icons (any + maskable), Android adaptive layers (foreground, background, monochrome, 108 dp). |
 | `brand/png/` | PNG previews rendered from the SVG masters. |
 | `tokens/repforge.tokens.css` | Draft CSS design tokens (brand primitives, dark and light themes, spacing, radius, motion). JSON and Compose views follow in Stage 2. |

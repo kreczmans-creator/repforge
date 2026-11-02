@@ -22,6 +22,8 @@ const jobs = [
   ['brand/logo/repforge-lockup-tagline.svg', 'repforge-lockup-tagline.png', '#FFFFFF', 1600],
   ['brand/logo/repforge-lockup-tagline-reversed.svg', 'repforge-lockup-tagline-reversed.png', '#111923', 1600],
   ['brand/logo/repforge-lockup-stacked-reversed.svg', 'repforge-lockup-stacked-reversed.png', '#111923', 900],
+  ['brand/logo/rf-monogram-gradient.svg', 'rf-monogram-gradient.png', '#111923', 680],
+  ['brand/logo/repforge-lockup-horizontal-gradient-reversed.svg', 'repforge-lockup-horizontal-gradient-reversed.png', '#111923', 1600],
   ['brand/icon/app-icon-dark.svg', 'app-icon-dark-512.png', null, 512],
   ['brand/icon/app-icon-amber.svg', 'app-icon-amber-512.png', null, 512],
   ['brand/icon/app-icon-light.svg', 'app-icon-light-512.png', null, 512],
