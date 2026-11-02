@@ -1,0 +1,283 @@
+<style>
+/* RepForge dashboard phone mock-up (390x844). Scoped under .rf-phone. Tokens only. */
+.rf-phone, .rf-phone *, .rf-phone *::before, .rf-phone *::after { box-sizing: border-box; }
+.rf-phone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 390px;
+  height: 844px;
+  border-radius: 44px;
+  overflow: hidden;
+  background: var(--rf-bg);
+  color: var(--rf-text-primary);
+  font-family: var(--rf-font-ui);
+  box-shadow: 0 0 0 10px #0B1119, 0 0 0 12px #2A3646, 0 30px 60px rgba(0,0,0,.5);
+  -webkit-font-smoothing: antialiased;
+}
+.rf-phone svg { display: block; flex: none; }
+.rf-phone .rf-ico { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Status bar */
+.rf-phone .rf-status { flex: none; height: 44px; padding: 0 var(--rf-space-6); display: flex; align-items: center; justify-content: space-between; color: var(--rf-text-secondary); font: 600 13px/1 var(--rf-font-ui); }
+.rf-phone .rf-status-glyphs { display: flex; align-items: center; gap: 6px; }
+
+/* App bar */
+.rf-phone .rf-appbar { flex: none; height: 56px; padding: 0 var(--rf-space-5); display: flex; align-items: center; justify-content: space-between; }
+.rf-phone .rf-brand { display: flex; align-items: center; gap: 10px; }
+.rf-phone .rf-mark { display: inline-block; width: 34px; height: 26px; }
+.rf-phone .rf-wordmark { font: 700 18px/1 var(--rf-font-brand); letter-spacing: -0.01em; color: var(--rf-text-primary); }
+.rf-phone .rf-wordmark b { font-weight: 700; color: var(--rf-accent); }
+.rf-phone .rf-bell { position: relative; width: 24px; height: 24px; color: var(--rf-text-secondary); }
+.rf-phone .rf-bell-dot { position: absolute; top: 1px; right: 2px; width: 8px; height: 8px; border-radius: var(--rf-radius-full); background: var(--rf-accent); box-shadow: 0 0 0 2px var(--rf-bg); }
+
+/* Scroll area */
+.rf-phone .rf-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: var(--rf-space-1) var(--rf-space-5) var(--rf-space-6); display: flex; flex-direction: column; gap: var(--rf-space-4); background: var(--rf-bg); }
+.rf-phone .rf-content::-webkit-scrollbar { display: none; }
+.rf-phone .rf-content > * { flex: none; }
+
+.rf-phone .rf-greet h1 { margin: 0; font: 700 26px/32px var(--rf-font-brand); color: var(--rf-text-primary); }
+.rf-phone .rf-greet p { margin: 2px 0 0; font: 500 14px/20px var(--rf-font-ui); color: var(--rf-text-muted); }
+
+/* Cards */
+.rf-phone .rf-card { background: var(--rf-surface-1); border: 1px solid var(--rf-border); border-radius: var(--rf-radius-lg); padding: var(--rf-space-4); box-shadow: var(--rf-shadow-card); }
+.rf-phone .rf-label { margin: 0; font: 600 11px/14px var(--rf-font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--rf-text-muted); }
+.rf-phone .rf-title { margin: 0; font-family: var(--rf-font-brand); color: var(--rf-text-primary); }
+.rf-phone .rf-mono { font-family: var(--rf-font-data); }
+
+/* Progress bar */
+.rf-phone .rf-bar { height: 6px; border-radius: var(--rf-radius-full); background: var(--rf-track); overflow: hidden; }
+.rf-phone .rf-bar > span { display: block; height: 100%; width: var(--w, 0%); border-radius: var(--rf-radius-full); background: var(--rf-accent); }
+.rf-phone .rf-bar > span.rf-neutral { background: var(--rf-text-secondary); opacity: .7; }
+
+/* This week */
+.rf-phone .rf-week { display: flex; align-items: center; gap: var(--rf-space-4); background: linear-gradient(135deg, var(--rf-surface-2) 0%, var(--rf-surface-1) 60%); box-shadow: inset 2px 0 0 0 var(--rf-accent), var(--rf-shadow-card); }
+.rf-phone .rf-ring { position: relative; width: 72px; height: 72px; flex: none; }
+.rf-phone .rf-ring svg { width: 72px; height: 72px; transform: rotate(-90deg); }
+.rf-phone .rf-ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 600 20px/1 var(--rf-font-data); color: var(--rf-text-primary); }
+.rf-phone .rf-week-body { flex: 1; min-width: 0; }
+.rf-phone .rf-week-body .rf-title { margin-top: 4px; font-size: 17px; font-weight: 600; line-height: 22px; }
+.rf-phone .rf-days { margin-top: 10px; display: flex; justify-content: space-between; }
+.rf-phone .rf-day { width: 26px; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 600 11px/14px var(--rf-font-ui); color: var(--rf-text-muted); }
+.rf-phone .rf-dot { width: 10px; height: 10px; border-radius: var(--rf-radius-full); background: var(--rf-surface-3); }
+.rf-phone .rf-dot.is-done { background: var(--rf-accent); }
+.rf-phone .rf-dot.is-today { background: transparent; box-shadow: inset 0 0 0 2px var(--rf-accent); }
+
+/* Stat cards */
+.rf-phone .rf-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--rf-space-3); }
+.rf-phone .rf-stat { padding: 14px var(--rf-space-4); }
+.rf-phone .rf-stat-val { margin-top: 6px; display: flex; align-items: baseline; gap: 5px; }
+.rf-phone .rf-stat-val strong { font: 600 28px/34px var(--rf-font-data); color: var(--rf-text-primary); }
+.rf-phone .rf-stat-val span { font: 500 13px/16px var(--rf-font-ui); color: var(--rf-text-muted); }
+.rf-phone .rf-stat .rf-bar { margin-top: 6px; }
+.rf-phone .rf-stat-sub { margin: 8px 0 0; font: 400 12px/16px var(--rf-font-data); color: var(--rf-text-muted); }
+
+/* Today's workout */
+.rf-phone .rf-workout .rf-title { margin-top: 4px; font-size: 18px; font-weight: 600; line-height: 24px; }
+.rf-phone .rf-meta { margin: 2px 0 0; font: 500 13px/18px var(--rf-font-ui); color: var(--rf-text-muted); }
+.rf-phone .rf-chips { margin-top: 10px; display: flex; gap: var(--rf-space-2); }
+.rf-phone .rf-chip { padding: 6px 10px; border-radius: var(--rf-radius-xs); background: var(--rf-surface-3); font: 600 12px/16px var(--rf-font-ui); color: var(--rf-text-secondary); }
+.rf-phone .rf-btn { margin-top: 14px; width: 100%; height: 48px; border: 0; border-radius: var(--rf-radius-md); background: var(--rf-accent); color: var(--rf-text-on-accent); font: 700 15px/1 var(--rf-font-ui); display: flex; align-items: center; justify-content: center; gap: var(--rf-space-2); cursor: pointer; }
+.rf-phone .rf-btn .rf-ico { width: 18px; height: 18px; fill: currentColor; }
+
+/* Nutrition */
+.rf-phone .rf-head { display: flex; align-items: center; justify-content: space-between; }
+.rf-phone .rf-head .rf-title { font-size: 16px; font-weight: 600; line-height: 22px; }
+.rf-phone .rf-link { font: 600 13px/18px var(--rf-font-ui); color: var(--rf-accent-text); text-decoration: none; }
+.rf-phone .rf-macros { margin-top: var(--rf-space-3); display: flex; flex-direction: column; gap: 10px; }
+.rf-phone .rf-macro-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.rf-phone .rf-macro-name { font: 600 13px/18px var(--rf-font-ui); color: var(--rf-text-secondary); }
+.rf-phone .rf-macro-val { font: 500 13px/18px var(--rf-font-data); color: var(--rf-text-primary); }
+
+/* Goal */
+.rf-phone .rf-goal-row { margin-top: 6px; display: flex; align-items: center; justify-content: space-between; }
+.rf-phone .rf-goal-val { display: flex; align-items: baseline; gap: 6px; }
+.rf-phone .rf-goal-val strong { font: 600 28px/34px var(--rf-font-data); color: var(--rf-text-primary); }
+.rf-phone .rf-goal-val span { font: 500 13px/16px var(--rf-font-ui); color: var(--rf-text-muted); }
+.rf-phone .rf-pill { padding: 5px 10px; border-radius: var(--rf-radius-full); background: color-mix(in srgb, var(--rf-semantic-success) 14%, transparent); color: var(--rf-semantic-success); font: 700 12px/16px var(--rf-font-ui); }
+.rf-phone .rf-goal .rf-bar { margin-top: 6px; }
+
+/* Recent activity */
+.rf-phone .rf-list { margin-top: var(--rf-space-2); }
+.rf-phone .rf-item { display: flex; align-items: center; gap: var(--rf-space-3); padding: var(--rf-space-3) 0; border-top: 1px solid var(--rf-border); }
+.rf-phone .rf-item:first-child { border-top: 0; }
+.rf-phone .rf-item:last-child { padding-bottom: 0; }
+.rf-phone .rf-tile { width: 36px; height: 36px; flex: none; border-radius: var(--rf-radius-sm); background: var(--rf-accent-subtle); color: var(--rf-accent); display: flex; align-items: center; justify-content: center; }
+.rf-phone .rf-tile .rf-ico { width: 18px; height: 18px; }
+.rf-phone .rf-item-text { flex: 1; min-width: 0; }
+.rf-phone .rf-item-title { font: 600 14px/20px var(--rf-font-ui); color: var(--rf-text-primary); }
+.rf-phone .rf-item-sub { font: 500 12px/16px var(--rf-font-ui); color: var(--rf-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rf-phone .rf-chev { width: 20px; height: 20px; color: var(--rf-text-muted); }
+
+/* Bottom nav */
+.rf-phone .rf-nav { flex: none; height: 88px; background: var(--rf-nav-bg); border-top: 1px solid var(--rf-border); display: flex; flex-direction: column; }
+.rf-phone .rf-nav-items { height: 72px; display: grid; grid-template-columns: repeat(5, 1fr); }
+.rf-phone .rf-nav-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding-top: 6px; color: var(--rf-text-muted); font: 600 11px/14px var(--rf-font-ui); }
+.rf-phone .rf-nav-item.is-active { color: var(--rf-accent); }
+.rf-phone .rf-nav-item.is-active::before { content: ""; position: absolute; top: 6px; left: 50%; width: 28px; height: 3px; margin-left: -14px; border-radius: var(--rf-radius-full); background: var(--rf-accent); }
+.rf-phone .rf-home-ind { flex: 1; display: flex; align-items: center; justify-content: center; }
+.rf-phone .rf-home-ind i { display: block; width: 134px; height: 5px; border-radius: var(--rf-radius-full); background: var(--rf-border-strong); }
+</style>
+
+<div class="rf-phone" data-theme="dark">
+
+  <!-- Status bar -->
+  <div class="rf-status">
+    <span>9:41</span>
+    <span class="rf-status-glyphs" aria-hidden="true">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.3" y="5.5" width="3" height="6.5" rx="1"/><rect x="8.6" y="3" width="3" height="9" rx="1"/><rect x="12.9" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4.2a10.5 10.5 0 0 1 14 0"/><path d="M3.5 6.9a7 7 0 0 1 9 0"/><path d="M6 9.4a3.4 3.4 0 0 1 4 0"/></svg>
+      <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.75" y="0.75" width="21.5" height="10.5" rx="3" stroke="currentColor" stroke-width="1.5" opacity=".7"/><rect x="2.75" y="2.75" width="14" height="6.5" rx="1.6" fill="currentColor"/><rect x="23.5" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".7"/></svg>
+    </span>
+  </div>
+
+  <!-- App bar -->
+  <header class="rf-appbar">
+    <div class="rf-brand">
+      <span class="rf-mark" aria-hidden="true"></span>
+      <span class="rf-wordmark">Rep<b>Forge</b></span>
+    </div>
+    <div class="rf-bell" aria-label="Notifications">
+      <svg class="rf-ico" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+      <span class="rf-bell-dot"></span>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="rf-content">
+
+    <section class="rf-greet">
+      <h1>Good morning, Steven</h1>
+      <p>Thursday 2 Nov · Week 6 of 12</p>
+    </section>
+
+    <section class="rf-card rf-week">
+      <div class="rf-ring">
+        <svg viewBox="0 0 72 72" aria-hidden="true">
+          <circle cx="36" cy="36" r="32" fill="none" stroke="var(--rf-track)" stroke-width="8"/>
+          <circle cx="36" cy="36" r="32" fill="none" stroke="var(--rf-accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="150.8 201.06"/>
+        </svg>
+        <div class="rf-ring-val">3/4</div>
+      </div>
+      <div class="rf-week-body">
+        <p class="rf-label">Workouts this week</p>
+        <h2 class="rf-title">Push day left</h2>
+        <div class="rf-days">
+          <div class="rf-day"><i class="rf-dot is-done"></i>M</div>
+          <div class="rf-day"><i class="rf-dot is-done"></i>T</div>
+          <div class="rf-day"><i class="rf-dot"></i>W</div>
+          <div class="rf-day"><i class="rf-dot is-done"></i>T</div>
+          <div class="rf-day"><i class="rf-dot is-today"></i>F</div>
+          <div class="rf-day"><i class="rf-dot"></i>S</div>
+          <div class="rf-day"><i class="rf-dot"></i>S</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rf-stats">
+      <div class="rf-card rf-stat">
+        <p class="rf-label">Calories left</p>
+        <div class="rf-stat-val"><strong>1,180</strong><span>kcal</span></div>
+        <div class="rf-bar"><span style="--w:55%"></span></div>
+        <p class="rf-stat-sub">1,420 of 2,600</p>
+      </div>
+      <div class="rf-card rf-stat">
+        <p class="rf-label">Protein</p>
+        <div class="rf-stat-val"><strong>142</strong><span>g</span></div>
+        <div class="rf-bar"><span style="--w:71%"></span></div>
+        <p class="rf-stat-sub">of 200 g</p>
+      </div>
+    </section>
+
+    <section class="rf-card rf-workout">
+      <p class="rf-label">Today's workout</p>
+      <h2 class="rf-title">Upper Body Strength</h2>
+      <p class="rf-meta">Day 2 · 6 exercises · ~45 min</p>
+      <div class="rf-chips">
+        <span class="rf-chip">Bench Press</span>
+        <span class="rf-chip">Row</span>
+        <span class="rf-chip">OHP</span>
+      </div>
+      <button class="rf-btn" type="button">
+        <svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+        Start workout
+      </button>
+    </section>
+
+    <section class="rf-card rf-nutrition">
+      <div class="rf-head">
+        <h2 class="rf-title">Nutrition</h2>
+        <a class="rf-link" href="#">Log food</a>
+      </div>
+      <div class="rf-macros">
+        <div>
+          <div class="rf-macro-row"><span class="rf-macro-name">Protein</span><span class="rf-macro-val">142 / 200 g</span></div>
+          <div class="rf-bar"><span style="--w:71%"></span></div>
+        </div>
+        <div>
+          <div class="rf-macro-row"><span class="rf-macro-name">Carbs</span><span class="rf-macro-val">188 / 280 g</span></div>
+          <div class="rf-bar"><span class="rf-neutral" style="--w:67%"></span></div>
+        </div>
+        <div>
+          <div class="rf-macro-row"><span class="rf-macro-name">Fat</span><span class="rf-macro-val">54 / 80 g</span></div>
+          <div class="rf-bar"><span class="rf-neutral" style="--w:68%"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rf-card rf-goal">
+      <p class="rf-label">Bodyweight goal</p>
+      <div class="rf-goal-row">
+        <div class="rf-goal-val"><strong>86.8</strong><span>kg</span></div>
+        <span class="rf-pill">−6.4 kg</span>
+      </div>
+      <div class="rf-bar"><span style="--w:62%"></span></div>
+      <p class="rf-stat-sub">Target 84.0 kg · 2.8 kg to go</p>
+    </section>
+
+    <section class="rf-card rf-recent">
+      <h2 class="rf-title" style="font-size:16px;line-height:22px">Recent activity</h2>
+      <div class="rf-list">
+        <div class="rf-item">
+          <span class="rf-tile"><svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg></span>
+          <div class="rf-item-text"><div class="rf-item-title">Lower Body Strength</div><div class="rf-item-sub">Yesterday · 52 min · 12,400 kg volume</div></div>
+          <svg class="rf-ico rf-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+        <div class="rf-item">
+          <span class="rf-tile"><svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v6a3 3 0 0 0 3 3v9M8 3v6M11 3v6a3 3 0 0 1-3 3M18 21V3c-2.5 1.5-3 5-3 8h3"/></svg></span>
+          <div class="rf-item-text"><div class="rf-item-title">Logged lunch</div><div class="rf-item-sub">Today · 642 kcal</div></div>
+          <svg class="rf-ico rf-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+        <div class="rf-item">
+          <span class="rf-tile"><svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 10a5 5 0 0 1 7 0M12 12.5l1.5-2"/></svg></span>
+          <div class="rf-item-text"><div class="rf-item-title">Weigh-in</div><div class="rf-item-sub">Today · 86.8 kg</div></div>
+          <svg class="rf-ico rf-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom navigation -->
+  <nav class="rf-nav" aria-label="Primary">
+    <div class="rf-nav-items">
+      <div class="rf-nav-item is-active">
+        <svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-6h4v6"/></svg>Home
+      </div>
+      <div class="rf-nav-item">
+        <svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Train
+      </div>
+      <div class="rf-nav-item">
+        <svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v6a3 3 0 0 0 3 3v9M8 3v6M11 3v6a3 3 0 0 1-3 3M18 21V3c-2.5 1.5-3 5-3 8h3"/></svg>Fuel
+      </div>
+      <div class="rf-nav-item">
+        <svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Track
+      </div>
+      <div class="rf-nav-item">
+        <svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Goals
+      </div>
+    </div>
+    <div class="rf-home-ind"><i></i></div>
+  </nav>
+
+</div>

@@ -1,0 +1,93 @@
+/* RepForge Design System v1.0 — CSS design tokens (Stage 1 draft)
+   Source of truth: design/tokens/repforge.tokens.json (generated views: this file, Compose colours).
+   Naming: --rf-<group>-<role>[-<state>]. Semantic tokens reference brand primitives. */
+
+:root {
+  /* ---- Brand primitives (theme-independent) ---- */
+  --rf-brand-slate: #1F2A3A;
+  --rf-brand-amber: #FF8A00;
+  --rf-brand-amber-hover: #FFA033;
+  --rf-brand-amber-pressed: #E67C00;
+  --rf-brand-amber-ink: #B45F00;      /* amber for text/links on light surfaces (AA) */
+  --rf-brand-steel: #3B4A5A;
+  --rf-brand-stone: #6B7B8C;
+  --rf-brand-mist: #BBC4CF;
+  --rf-brand-sand: #F2E8DC;
+
+  --rf-semantic-success: #22C55E;
+  --rf-semantic-info: #3B82F6;
+  --rf-semantic-alert: #EF4444;
+  --rf-semantic-focus: #8B5CF6;
+
+  /* ---- Typography ---- */
+  --rf-font-brand: "Sora", system-ui, sans-serif;
+  --rf-font-ui: "Manrope", system-ui, sans-serif;
+  --rf-font-data: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* ---- Spacing (4px base) ---- */
+  --rf-space-1: 4px;  --rf-space-2: 8px;  --rf-space-3: 12px; --rf-space-4: 16px;
+  --rf-space-5: 20px; --rf-space-6: 24px; --rf-space-8: 32px; --rf-space-10: 40px;
+  --rf-space-12: 48px;
+
+  /* ---- Radius ---- */
+  --rf-radius-xs: 6px;    /* chips, checkboxes, small controls */
+  --rf-radius-sm: 10px;   /* inputs, secondary buttons */
+  --rf-radius-md: 14px;   /* primary buttons, list rows */
+  --rf-radius-lg: 18px;   /* cards */
+  --rf-radius-xl: 24px;   /* bottom sheets, dialogs */
+  --rf-radius-full: 999px;
+
+  /* ---- Motion ---- */
+  --rf-motion-fast: 120ms;
+  --rf-motion-base: 200ms;
+  --rf-motion-slow: 320ms;
+  --rf-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---- Dark theme (primary) ---- */
+:root, [data-theme="dark"] {
+  --rf-bg: #111923;
+  --rf-surface-1: #182331;
+  --rf-surface-2: #1F2A3A;
+  --rf-surface-3: #263648;
+  --rf-surface-elevated: #304357;
+  --rf-text-primary: #F5F7FA;
+  --rf-text-secondary: #BBC4CF;
+  --rf-text-muted: #8E9DAE;          /* lifted from #8291A2 for 4.5:1 on Surface 2 */
+  --rf-text-on-accent: #1F2A3A;      /* slate on amber (AA); white on amber fails */
+  --rf-accent: #FF8A00;
+  --rf-accent-hover: #FFA033;
+  --rf-accent-pressed: #E67C00;
+  --rf-accent-text: #FF8A00;         /* amber text passes AA on all dark surfaces */
+  --rf-accent-subtle: rgba(255, 138, 0, 0.14);
+  --rf-border: #354557;
+  --rf-border-strong: #46586D;
+  --rf-track: #263648;               /* progress track */
+  --rf-nav-bg: #182331;
+  --rf-shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.28);
+  --rf-logo-r: #F5F7FA;              /* monogram R on dark */
+}
+
+/* ---- Light theme ---- */
+[data-theme="light"] {
+  --rf-bg: #FBF9F6;
+  --rf-surface-1: #FFFFFF;
+  --rf-surface-2: #F5F1EB;
+  --rf-surface-3: #ECE6DE;
+  --rf-surface-elevated: #FFFFFF;
+  --rf-text-primary: #1F2A3A;
+  --rf-text-secondary: #3B4A5A;
+  --rf-text-muted: #5E6E7F;          /* Stone #6B7B8C is 4.3:1 on white; this passes 4.5:1 */
+  --rf-text-on-accent: #1F2A3A;
+  --rf-accent: #FF8A00;
+  --rf-accent-hover: #FF9A24;
+  --rf-accent-pressed: #E67C00;
+  --rf-accent-text: #B45F00;         /* "Amber Ink" for text/links on light */
+  --rf-accent-subtle: rgba(255, 138, 0, 0.12);
+  --rf-border: #E4DED6;
+  --rf-border-strong: #CFC7BD;
+  --rf-track: #ECE6DE;
+  --rf-nav-bg: #FFFFFF;
+  --rf-shadow-card: 0 1px 2px rgba(31,42,58,0.06), 0 6px 20px rgba(31,42,58,0.08);
+  --rf-logo-r: #1F2A3A;
+}
