@@ -125,13 +125,43 @@ def construction_svg():
     return "".join(g)
 
 
+# ---------------------------------------------------------------- icon library
+import base64
+ICONS_DIR = ROOT / "brand" / "icons"
+icons = json.loads((ICONS_DIR / "icons.json").read_text())["icons"]
+
+
+def glyph(name, cls="rf-ico", size=None):
+    parts = "".join(f'<path d="{p["d"]}"/>' if p["kind"] == "s" else f'<path fill="currentColor" stroke="none" d="{p["d"]}"/>'
+                    for p in icons[name]["parts"])
+    style = f' style="width:{size}px;height:{size}px"' if size else ""
+    return (f'<svg class="{cls}" viewBox="0 0 24 24"{style} fill="none" stroke="currentColor" stroke-width="2" '
+            f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{parts}</svg>')
+
+
+def tile(name):
+    return svg_inline(ICONS_DIR / "tile" / f"{name}.svg", height="104px")
+
+
+ICON_ORDER = ["training", "nutrition", "progress", "plan", "goals", "body", "achievements", "streaks",
+              "profile", "settings", "sync", "import-export", "home"]
+ref_jpg = pathlib.Path("/tmp/claude-0/-home-user-repforge/1b8a8727-79ce-5fc7-801e-d6879ba23024/scratchpad/icon-ref.jpg")
+REF_IMG = "data:image/jpeg;base64," + base64.b64encode(ref_jpg.read_bytes()).decode() if ref_jpg.exists() else ""
+
 # ---------------------------------------------------------------- dashboard partial
 mono_small = mark("26px")
 dash_dark = dash.replace('<span class="rf-mark" aria-hidden="true"></span>',
                          f'<span class="rf-mark" aria-hidden="true">{mono_small}</span>')
 dash_dark = dash_dark.replace('<span class="rf-wordmark">Rep<b>Forge</b></span>', '__WM__')
+_nav_order = [None, "training", "nutrition", "body", "home", "training", "nutrition", "progress", "goals"]  # play button, 3 tiles, 5 nav
+_matches = list(re.finditer(r'<svg class="rf-ico" viewBox="0 0 24 24" aria-hidden="true">.*?</svg>', dash_dark, flags=re.S))
+assert len(_matches) == len(_nav_order), len(_matches)
+for m, name in reversed(list(zip(_matches, _nav_order))):
+    if name:
+        dash_dark = dash_dark[:m.start()] + glyph(name) + dash_dark[m.end():]
 dash_dark = dash_dark.replace(".rf-phone .rf-mark { display: inline-block; width: 34px; height: 26px; }",
                               ".rf-phone .rf-mark { display: inline-flex; width: auto; height: 26px; }")
+dash_dark = dash_dark.replace("stroke-width: 1.75;", "stroke-width: 2;")
 style_block, markup_tpl = dash_dark.split("</style>", 1)
 wm_dark = svg_inline(LOGO / "repforge-wordmark-reversed.svg", height="19px").replace("<svg ", '<svg style="height:19px;width:auto;display:block" ', 1)
 wm_light = svg_inline(LOGO / "repforge-wordmark.svg", height="19px").replace("<svg ", '<svg style="height:19px;width:auto;display:block" ', 1)
@@ -258,7 +288,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
     <h1>Brand reconstruction for review</h1>
     <p class="lead" style="color:#BBC4CF;margin-top:12px">The approved RF monogram direction, Forge Amber / Slate palette and Sora · Manrope · IBM Plex Mono typography, rebuilt as true vector geometry and shown on a working dark-mode dashboard. Nothing below is final until you approve it.</p>
   </div>
-  <div class="meta"><span><b>Status</b> Awaiting approval</span><span><b>Source</b> Commission brief + branding board</span><span><b>Assets</b> 24 SVG masters, 8 icon layers, tokens draft</span></div>
+  <div class="meta"><span><b>Status</b> Awaiting approval</span><span><b>Source</b> Commission brief + branding board</span><span><b>Assets</b> 24 SVG masters, 8 icon layers, 13-icon library, tokens draft</span></div>
 </div>
 
 <section>
@@ -271,7 +301,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
     <tr><td>Monogram geometry</td><td><span class="chip refine">Refined</span></td><td>Rebuilt on a 128-unit grid from the board: stroke 26, 12° slant, R26 shoulders, R6 / R3 corners, leg sweeping under the F at 34°, F sitting on the leg with a 14-unit gap from the bowl.</td></tr>
     <tr><td>Wordmark oblique</td><td><span class="chip refine">Refined</span></td><td>The board wordmark is italic. Sora has no italic, so the wordmark is Sora Bold with a 12° synthetic oblique, matching the monogram slant.</td></tr>
     <tr><td>Gradient logo variants</td><td><span class="chip new">Added</span></td><td>Board shows amber and silver gradients on the mark. Flat masters are the UI default; gradient variants (#FFB13B → #FF8A00 → #E96B00, white → Mist) are supplied for hero and marketing use only.</td></tr>
-    <tr><td>Iconography</td><td><span class="chip new">Open</span></td><td>No icon set is approved yet. The icon library is designed in Stage 2 to the brief's rounded geometric spec.</td></tr>
+    <tr><td>Iconography</td><td><span class="chip keep">Reproduced</span></td><td>The approved reference sheet (12 icons) rebuilt as a vector library: 24 grid, stroke 2, round caps. Home added for navigation.</td></tr>
     <tr><td>Wordmark</td><td><span class="chip keep">Reproduced</span></td><td>Oblique Sora Bold, "Rep" in slate/light and "Forge" in amber. Outlined to paths, −1.5% tracking.</td></tr>
     <tr><td>Tagline</td><td><span class="chip keep">Reproduced</span></td><td>TRAIN · FUEL · TRACK · TRANSFORM in Manrope SemiBold, +22% tracking, Stone grey.</td></tr>
     <tr><td>Palette</td><td><span class="chip keep">Reproduced</span></td><td>Forge Slate #1F2A3A, Forge Amber #FF8A00, Steel, Stone, Mist, Sand and the four semantic colours, unchanged.</td></tr>
@@ -457,9 +487,32 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
 </section>
 
 <section>
-  <div class="eyebrow">6 · Dashboard</div>
+  <div class="eyebrow">6 · Iconography</div>
+  <h2>Icon library</h2>
+  <p class="lead">Rebuilt as vectors from the approved reference sheet: 24-unit grid, 2-unit stroke, round caps and joins, solid details only where the reference uses them (calendar dots, target centre, flame core, dumbbell plates). One glyph file per icon in currentColor for UI use, plus a slate tile version for feature cards and marketing.</p>
+  <div class="grid g2" style="margin-top:20px;align-items:start">
+    <div><div class="slab light" style="padding:12px"><img src="{REF_IMG}" alt="Approved icon direction reference sheet" style="width:100%;height:auto;border-radius:10px"></div><span class="cap"><b>Approved reference</b> · raster, supplied for direction</span></div>
+    <div><div class="slab dark" style="padding:18px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%">{"".join(f'<div style="text-align:center;font:600 12px Manrope,sans-serif;color:#BBC4CF">{tile(n)}<div style="margin-top:4px">{icons[n]["label"]}</div></div>' for n in ICON_ORDER[:12])}</div></div><span class="cap"><b>Vector reconstruction</b> · tile versions, generated from <code>tools/build_icons.py</code></span></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>UI glyphs at 20 / 24 / 32 px, dark</h3>
+      <div class="slab dark" style="margin-top:12px;min-height:0;padding:18px;justify-content:flex-start;flex-wrap:wrap;gap:14px 22px;color:#FF8A00">{"".join(f'<span style="display:inline-flex;align-items:flex-end;gap:8px">{glyph(n, "", 20)}{glyph(n, "", 24)}{glyph(n, "", 32)}</span>' for n in ICON_ORDER)}</div>
+      <p class="sub" style="margin-top:10px">Amber on dark surfaces for emphasis; the same glyphs in Mist or Primary Text for neutral use.</p></div>
+    <div class="card"><h3>UI glyphs at 20 / 24 / 32 px, light</h3>
+      <div class="slab light" style="margin-top:12px;min-height:0;padding:18px;justify-content:flex-start;flex-wrap:wrap;gap:14px 22px;color:#1F2A3A">{"".join(f'<span style="display:inline-flex;align-items:flex-end;gap:8px">{glyph(n, "", 20)}{glyph(n, "", 24)}{glyph(n, "", 32)}</span>' for n in ICON_ORDER)}</div>
+      <p class="sub" style="margin-top:10px">Slate on light surfaces. Amber Ink #B45F00 when an icon carries meaning on its own; #FF8A00 only inside tiles or next to a label.</p></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Rules</h3><ul class="sub">
+    <li>Grid 24, live area 22, stroke 2, round caps and joins. Never scale strokes; use the 20 / 24 / 32 px exports.</li>
+    <li>Solid fills only for small internal details (dots, cores, plates). No gradients on glyphs; the tile carries the gradient.</li>
+    <li>Home is an addition in the same language for the bottom navigation. Remaining brief icons (set, rep, timer, rest, PR, macros, water, barcode, measurements, photos, trends, history, milestone, search, notifications) are drawn in Stage 2 to these rules.</li>
+  </ul></div>
+</section>
+
+<section>
+  <div class="eyebrow">7 · Dashboard</div>
   <h2>Representative dashboard, dark theme</h2>
-  <p class="lead">Built with the draft tokens only. Amber appears on progress fills, the primary action, the active tab and small icon tiles. Everything else is slate surface hierarchy and type. The screen scrolls, so the second phone shows the lower half. The third phone switches the same markup to the light tokens to check that both themes feel like one product.</p>
+  <p class="lead">Built with the draft tokens and the icon library. Amber appears on progress fills, the primary action, the active tab and small icon tiles. Everything else is slate surface hierarchy and type. The screen scrolls, so the second phone shows the lower half. The third phone switches the same markup to the light tokens to check that both themes feel like one product.</p>
   <div class="phones">
     <div><div class="phone-scale">{markup}</div><div class="phone-cap">Dark · top of screen</div></div>
     <div><div class="phone-scale scrolled">{markup}</div><div class="phone-cap">Dark · scrolled</div></div>
@@ -468,7 +521,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
 </section>
 
 <section>
-  <div class="eyebrow">7 · Approval</div>
+  <div class="eyebrow">8 · Approval</div>
   <h2>Decisions needed before Stage 2</h2>
   <div class="q" style="margin-top:16px">
     <div class="card"><div class="n">1</div><div><b>Monogram geometry.</b> Approve the rebuilt mark (12° slant, stroke 20% of height, leg at 34°, F resting on the leg), or request changes to the leg angle, bowl size or F position.</div></div>
@@ -478,7 +531,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
     <div class="card"><div class="n">4</div><div><b>Muted text #8E9DAE</b> in dark mode, replacing the brief's #8291A2.</div></div>
     <div class="card"><div class="n">5</div><div><b>App icon background</b>: subtle slate gradient (shown) or flat Forge Slate.</div></div>
     <div class="card"><div class="n">6</div><div><b>Bottom navigation labels</b>: Home · Train · Fuel · Track · Goals (pillar-based, shown) or the board's Home · Plan · Log · Progress · You.</div></div>
-    <div class="card"><div class="n">7</div><div><b>Iconography.</b> The uploaded icon set is withdrawn. Confirm the brief's rounded geometric stroke icons (as in the dashboard mock) as the Stage 2 direction.</div></div>
+    <div class="card"><div class="n">7</div><div><b>Iconography.</b> Approve the vector reconstruction of the reference sheet as the icon language. Stage 2 extends it to the full brief list.</div></div>
   </div>
   <p class="sub" style="margin-top:20px">After approval, Stage 2 delivers the full token set (JSON + CSS + Compose), the complete type scale, spacing, radius and elevation, and the icon library. Stage 3 the component library, Stage 4 the remaining screens, Stage 5 the developer handover.</p>
 </section>
