@@ -34,38 +34,33 @@ SAND = "#F2E8DC"
 # Monogram geometry (upright, 128 grid). S = stroke 26, slant 12 degrees.
 # ----------------------------------------------------------------------------------------
 H = 128.0
-STROKE = 26.0
-SLANT_DEG = 12.0
+STROKE = 33.0          # vertical strokes (horizontal width, upright); ~30 perpendicular after the slant
+STEM = 36.0            # R stem is slightly heavier, as in the approved artwork
+BAR = 30.0             # horizontal strokes
+SLANT_DEG = 25.0       # measured from the approved artwork
 TAN = math.tan(math.radians(SLANT_DEG))
 
-R_OUT = 6.0   # convex outer corners
+R_OUT = 5.0   # convex outer corners
 R_IN = 3.0    # concave corners
-R_BOWL = 26.0 # bowl shoulder radius
-R_CTR = 9.0   # counter radius
+R_BOWL = 30.0 # bowl shoulder radius
+R_CTR = 10.0  # counter (inner bowl) radius
 
-# Leg: upper edge passes through the counter's bottom-right corner (58,46), slope 0.55 (29 deg upright).
-LEG_M = 0.68
-def leg_top(x):
-    return 46.0 + LEG_M * (x - 58.0)
-def leg_bot(x):
-    return 77.4 + LEG_M * (x - 58.0)   # perpendicular thickness ~26
+BOWL_R = 108.0           # bowl outer right edge (upright)
+CTR_R = BOWL_R - 32.0    # inner edge of the bowl's right stroke
+# Leg (upright): left edge (47,82)->(96,128); right edge (83,82)->(133,128). ~49 deg upright, 35 deg after slant.
 LEG_END = 133.0
-BOWL_R = 84.0
 
-# R silhouette, clockwise on screen. (x, y, corner radius)
+# R silhouette, clockwise on screen. Open counter: the stem starts at the bowl's lower band, not at the top bar.
 R_OUTLINE = [
-    (0, 0, R_OUT), (BOWL_R, 0, R_BOWL), (BOWL_R, leg_top(BOWL_R), R_IN),
-    (LEG_END, leg_top(LEG_END), R_OUT), (LEG_END, 128, R_OUT),
-    (58 + (70 - 77.4) / LEG_M, 70, R_OUT), (26, 70, R_IN), (26, 128, R_OUT), (0, 128, R_OUT),
+    (0, 0, R_OUT), (BOWL_R, 0, R_BOWL), (BOWL_R, 64, 4.0), (100, 82, 4.0), (83, 82, R_IN),
+    (LEG_END, 128, R_OUT), (96, 128, R_OUT), (47, 82, R_IN), (STEM, 82, R_IN), (STEM, 128, R_OUT), (0, 128, R_OUT),
+    (0, 53, R_IN), (CTR_R, 53, R_CTR), (CTR_R, BAR, R_CTR), (0, BAR, R_OUT),
 ]
-# Counter, counter-clockwise (hole under nonzero fill)
-R_COUNTER = [(26, 24, R_IN), (26, 46, R_IN), (58, 46, R_CTR), (58, 24, R_CTR)]
+R_COUNTER = []  # open counter: no hole
 
-# F silhouette, clockwise, drawn behind the R. Stem 100..126 sits on the leg; bars share the R's lines.
-F_OUTLINE = [
-    (98, 0, R_OUT), (178, 0, R_OUT), (178, 24, R_OUT), (124, 24, R_IN), (124, 46, R_IN),
-    (152, 46, R_OUT), (152, 70, R_OUT), (124, 70, R_IN), (124, 95, 0), (98, 95, 0),
-]
+# F, two pieces drawn behind the R: a floating top bar, and the mid bar with the lower stem leaning on the R leg.
+F_TOP = [(112, 0, R_OUT), (196, 0, R_OUT), (196, BAR, R_OUT), (112, BAR, R_OUT)]
+F_LOW = [(120, 53, R_OUT), (196, 53, R_OUT), (196, 82, R_OUT), (153, 82, R_IN), (153, 128, R_OUT), (120, 128, R_OUT)]
 
 
 def shear(pts):
@@ -112,10 +107,10 @@ def rounded_path(pts):
     return "".join(d)
 
 
-R_PATH = rounded_path(shear(R_OUTLINE)) + rounded_path(shear(R_COUNTER))
-F_PATH = rounded_path(shear(F_OUTLINE))
+R_PATH = rounded_path(shear(R_OUTLINE))
+F_PATH = rounded_path(shear(F_TOP)) + rounded_path(shear(F_LOW))
 
-MONO_W = 178.0 + H * TAN  # right edge of F top bar after shear
+MONO_W = 196.0 + H * TAN  # right edge of F top bar after shear
 MONO_H = H
 MONO_W = round(MONO_W, 2)
 
@@ -148,6 +143,11 @@ from fontTools.pens.transformPen import TransformPen
 import uharfbuzz as hb
 
 
+WM_SLANT_DEG = 14.0
+WM_TAN = math.tan(math.radians(WM_SLANT_DEG))
+WM_WEIGHT = 800
+
+
 def instanced(path, wght):
     font = TTFont(path)
     if "fvar" in font:
@@ -178,7 +178,7 @@ def shape_text(font_path, wght, text, size, tracking_em=0.0, oblique=False):
     for info, pos in zip(buf.glyph_infos, buf.glyph_positions):
         name = order[info.codepoint]
         pen = SVGPathPen(glyph_set)
-        tp = TransformPen(pen, (k, 0, k * TAN if oblique else 0, -k, x + pos.x_offset * k, -pos.y_offset * k))
+        tp = TransformPen(pen, (k, 0, k * WM_TAN if oblique else 0, -k, x + pos.x_offset * k, -pos.y_offset * k))
         glyph_set[name].draw(tp)
         paths.append((info.cluster, pen.getCommands()))
         x += pos.x_advance * k + tracking
@@ -189,7 +189,7 @@ def shape_text(font_path, wght, text, size, tracking_em=0.0, oblique=False):
 
 
 def wordmark_paths(size, rep_fill, forge_fill, tracking=-0.015):
-    paths, width, cap = shape_text(FONT_DIR / "Sora[wght].ttf", 700, "RepForge", size, tracking, oblique=True)
+    paths, width, cap = shape_text(FONT_DIR / "Sora[wght].ttf", WM_WEIGHT, "RepForge", size, tracking, oblique=True)
     out = []
     for cluster, d in paths:
         fill = rep_fill if cluster < 3 else forge_fill
@@ -243,7 +243,7 @@ write(LOGO_DIR / "rf-monogram-amber-on-slate.svg", svg(panel_w, panel_h, body, "
 # ----------------------------------------------------------------------------------------
 WM_SIZE = 125.0  # font size so that cap height ~ 0.70 * monogram height
 _, _, cap_probe = wordmark_paths(WM_SIZE, SLATE, AMBER)
-WM_SIZE = WM_SIZE * (0.74 * MONO_H) / cap_probe
+WM_SIZE = WM_SIZE * (0.52 * MONO_H) / cap_probe
 wm_body, wm_w, wm_cap = wordmark_paths(WM_SIZE, SLATE, AMBER)
 DESC = 0.26 * WM_SIZE  # room for p / g descenders
 
@@ -257,20 +257,21 @@ for name, rep, forge, bg, title in [
     body = f'<g transform="translate({PAD:.2f} {PAD + cap:.2f})">{paths}</g>'
     write(LOGO_DIR / name, svg(w + 2 * PAD, cap + DESC + PAD, body, title, bg))
 
-GAP = 0.30 * MONO_H
+GAP = 0.35 * MONO_H
+WM_BASE_LIFT = 33.0  # wordmark baseline sits this far above the monogram baseline (centred on the mark)
 
 
 def lockup(r_fill, f_fill, rep_fill, forge_fill, tagline_fill=None, bg=None, title="", defs=""):
     paths, w, cap = wordmark_paths(WM_SIZE, rep_fill, forge_fill)
     total_w = MONO_W + GAP + w + 2 * PAD
-    base_y = PAD + MONO_H
+    base_y = PAD + MONO_H - WM_BASE_LIFT
     body = defs + monogram_group(r_fill, f_fill, PAD, PAD)
     body += f'<g transform="translate({PAD + MONO_W + GAP:.2f} {base_y:.2f})">{paths}</g>'
-    total_h = base_y + DESC
+    total_h = PAD + MONO_H + PAD
     if tagline_fill:
         tl_size = 0.155 * MONO_H
         tl, tl_w, tl_cap = tagline_paths(tl_size, tagline_fill)
-        ty = base_y + DESC + tl_cap + 0.02 * MONO_H
+        ty = PAD + MONO_H + tl_cap + 0.06 * MONO_H
         tx = PAD + MONO_W + GAP
         body += f'<g transform="translate({tx:.2f} {ty:.2f})">{tl}</g>'
         total_h = ty + PAD
@@ -298,7 +299,7 @@ write(LOGO_DIR / "repforge-lockup-tagline-reversed.svg",
 # Stacked lockup (monogram above wordmark) for splash / square placements
 def stacked(r_fill, f_fill, rep_fill, forge_fill, title):
     paths, w, cap = wordmark_paths(WM_SIZE * 0.8, rep_fill, forge_fill)
-    mono_scale = 1.35
+    mono_scale = 1.1
     mw, mh = MONO_W * mono_scale, MONO_H * mono_scale
     total_w = max(mw, w) + 2 * PAD
     body = monogram_group(r_fill, f_fill, (total_w - mw) / 2, PAD, mono_scale)
@@ -363,7 +364,7 @@ geom = {
     "grid": {"height": H, "width": MONO_W, "stroke": STROKE, "slantDeg": SLANT_DEG,
              "radii": {"outer": R_OUT, "inner": R_IN, "bowlShoulder": R_BOWL, "counter": R_CTR}},
     "paths": {"R": R_PATH, "F": F_PATH},
-    "wordmark": {"font": "Sora", "weight": 700, "tracking": -0.015, "capHeightRatio": 0.74, "gapRatio": 0.30, "oblique": SLANT_DEG},
+    "wordmark": {"font": "Sora", "tracking": -0.015, "weight": WM_WEIGHT, "capHeightRatio": 0.52, "gapRatio": 0.35, "baselineLift": WM_BASE_LIFT, "obliqueDeg": WM_SLANT_DEG},
 }
 write(LOGO_DIR / "geometry.json", json.dumps(geom, indent=2) + "\n")
 print("monogram box", MONO_W, MONO_H)

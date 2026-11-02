@@ -100,27 +100,28 @@ def contrast_rows(pairs):
 
 # ---------------------------------------------------------------- construction diagram
 W = geom["grid"]["width"]
-TAN = 0.2125565617
+import math as _m
+TAN = _m.tan(_m.radians(geom['grid']['slantDeg']))
 def construction_svg():
     g = []
     g.append(f'<svg viewBox="-36 -24 {W + 84} 184" class="construct" aria-label="RF monogram construction grid">')
     # sheared grid, 8-unit cells, drawn in upright space then skewed like the letters
-    g.append(f'<g transform="translate({128 * TAN:.3f} 0) skewX(-12)">')
-    for x in range(0, 161, 8):
+    g.append(f'<g transform="translate({128 * TAN:.3f} 0) skewX(-{geom["grid"]["slantDeg"]:.0f})">')
+    for x in range(0, 201, 8):
         g.append(f'<line x1="{x}" y1="-16" x2="{x}" y2="144" class="grid"/>')
     for y in range(-16, 145, 8):
-        g.append(f'<line x1="0" y1="{y}" x2="160" y2="{y}" class="grid"/>')
+        g.append(f'<line x1="0" y1="{y}" x2="200" y2="{y}" class="grid"/>')
     # key horizontals: cap, bar, counter, mid bar, baseline
-    for y, lab in [(0, "cap"), (24, "bar"), (46, "counter"), (70, "mid bar"), (128, "baseline")]:
-        g.append(f'<line x1="-8" y1="{y}" x2="168" y2="{y}" class="guide"/>')
+    for y, lab in [(0, "cap"), (30, "bar"), (53, "band"), (82, "band"), (128, "baseline")]:
+        g.append(f'<line x1="-8" y1="{y}" x2="204" y2="{y}" class="guide"/>')
     g.append('</g>')
     g.append(f'<path fill="#FF8A00" opacity="0.55" d="{geom["paths"]["F"]}"/>')
     g.append(f'<path fill="currentColor" opacity="0.55" d="{geom["paths"]["R"]}"/>')
     # labels (unsheared text)
-    labels = [(-14, 0, "0"), (-14, 24, "24"), (-14, 46, "46"), (-14, 70, "70"), (-14, 128, "128")]
+    labels = [(-14, 0, "0"), (-14, 30, "30"), (-14, 53, "53"), (-14, 82, "82"), (-14, 128, "128")]
     for x, y, t in labels:
         g.append(f'<text x="{x}" y="{y + 3}" class="lbl" text-anchor="end">{t}</text>')
-    g.append(f'<text x="{W / 2:.1f}" y="148" class="lbl" text-anchor="middle" style="font-size:4.6px">stroke 26 / 24 · slant 12° · leg 34° · shoulder R26 · counter R9 · corners R6 / R3 · grid 8</text>')
+    g.append(f'<text x="{W / 2:.1f}" y="148" class="lbl" text-anchor="middle" style="font-size:4.6px">strokes 33 / 36 / 30 · slant 25° · leg 35° · shoulder R30 · counter R10 · corners R5 / R3 · grid 8</text>')
     g.append('</svg>')
     return "".join(g)
 
@@ -297,9 +298,9 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
   <p class="lead">Green items reproduce the established direction. Amber items are refinements that preserve the concept but need your sign-off. Blue items are additions the brief leaves open.</p>
   <div class="tscroll" style="margin-top:16px"><table>
     <tr><th>Element</th><th>Decision</th><th>Detail</th></tr>
-    <tr><td>RF monogram concept</td><td><span class="chip keep">Reproduced</span></td><td>Light/slate R in front, long leg sweeping under the amber F, F resting on the leg. Italic slant, heavy weight, rounded corners, shared cap line.</td></tr>
-    <tr><td>Monogram geometry</td><td><span class="chip refine">Refined</span></td><td>Rebuilt on a 128-unit grid from the board: stroke 26, 12° slant, R26 shoulders, R6 / R3 corners, leg sweeping under the F at 34°, F sitting on the leg with a 14-unit gap from the bowl.</td></tr>
-    <tr><td>Wordmark oblique</td><td><span class="chip refine">Refined</span></td><td>The board wordmark is italic. Sora has no italic, so the wordmark is Sora Bold with a 12° synthetic oblique, matching the monogram slant.</td></tr>
+    <tr><td>RF monogram concept</td><td><span class="chip keep">Reproduced</span></td><td>Measured from the supplied vector artwork: 25° italic, open-counter R, leg sweeping under the F, amber F in two pieces (floating top bar, mid bar with a stem leaning on the leg) with the R's bowl acting as the F's upper stem.</td></tr>
+    <tr><td>Monogram geometry</td><td><span class="chip refine">Refined</span></td><td>The supplied SVGs are smoothed traces with wobbly edges. Rebuilt as clean geometry on a 128-unit grid: verticals 33 (stem 36), horizontals 30, 25° slant, R30 shoulder, R10 counter, R5 / R3 corners. Overlay below shows the fit.</td></tr>
+    <tr><td>Wordmark oblique</td><td><span class="chip refine">Refined</span></td><td>The approved wordmark is a 14° oblique. Sora has no italic, so the wordmark is Sora ExtraBold with a 14° synthetic oblique. The supplied lettering is slightly wider; approve Sora or supply the original typeface.</td></tr>
     <tr><td>Gradient logo variants</td><td><span class="chip new">Added</span></td><td>Board shows amber and silver gradients on the mark. Flat masters are the UI default; gradient variants (#FFB13B → #FF8A00 → #E96B00, white → Mist) are supplied for hero and marketing use only.</td></tr>
     <tr><td>Iconography</td><td><span class="chip keep">Reproduced</span></td><td>The approved reference sheet (12 icons) rebuilt as a vector library: 24 grid, stroke 2, round caps. Home added for navigation.</td></tr>
     <tr><td>Wordmark</td><td><span class="chip keep">Reproduced</span></td><td>Oblique Sora Bold, "Rep" in slate/light and "Forge" in amber. Outlined to paths, −1.5% tracking.</td></tr>
@@ -318,7 +319,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
 <section>
   <div class="eyebrow">1 · Logo</div>
   <h2>RF monogram</h2>
-  <p class="lead">The R is the structure. Its leg sweeps down and right under the F, and the amber F rests on that leg, its stem cut by the leg's upper edge. The F's bars sit on the R's cap and bowl lines, so the pair reads as one object.</p>
+  <p class="lead">The R is the structure: an open-counter italic R whose leg sweeps under the F. The amber F is two pieces. Its top bar floats to the right of the R's bowl, and its mid bar carries a stem that leans on the R's leg. The R's bowl stroke completes the F, so the pair reads as one object.</p>
   <div class="grid g2" style="margin-top:20px">
     <div><div class="slab dark">{svg_inline(LOGO / "rf-monogram.svg", height="150px")}</div><span class="cap"><b>Primary monogram</b> · light R, amber F, for dark surfaces</span></div>
     <div><div class="slab light">{svg_inline(LOGO / "rf-monogram-on-light.svg", height="150px")}</div><span class="cap"><b>Monogram on light</b> · slate R, amber F</span></div>
@@ -335,22 +336,24 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
   </div>
 
   <h3 style="margin-top:36px">Construction</h3>
-  <p class="sub" style="margin-top:6px">Upright geometry on a 128-unit grid, sheared 12°, then every corner rounded with true arcs. Horizontal lines at 0, 24, 46, 70 and 128 are shared by both letters. Vector masters are generated from this definition, not traced from the board.</p>
+  <p class="sub" style="margin-top:6px">Upright geometry on a 128-unit grid, sheared 25°, then every corner rounded with true arcs. Horizontal lines at 0, 30, 53, 82 and 128 are shared by both letters. Vector masters are generated from this definition; the supplied artwork is the reference, not the master.</p>
+  <div class="card" style="margin-top:14px"><h3>Fit against the approved artwork</h3><p class="sub" style="margin-top:6px">Supplied vector artwork at 55% opacity under the rebuilt mark at 55%. Where the two agree the colour is solid; fringes show the trace's edge noise and the small deviations of the clean geometry.</p>
+    <div style="position:relative;max-width:640px;margin:14px auto 0;aspect-ratio:2016/1080"><div style="position:absolute;inset:0;opacity:.55">{svg_inline(ROOT / "brand" / "reference" / "approved-artwork" / "RepForge_Standalone_Monogram.svg").replace('<svg ', '<svg style="width:100%;height:100%" ', 1)}</div><div style="position:absolute;left:{(30 - 8 * 919 / 128) / 2016 * 100:.2f}%;top:{(30 - 8 * 919 / 128) / 1080 * 100:.2f}%;width:{(geom["grid"]["width"] + 16) * 919 / 128 / 2016 * 100:.2f}%;opacity:.55">{svg_inline(LOGO / "rf-monogram-on-light.svg").replace('<svg ', '<svg style="width:100%;height:auto" ', 1)}</div></div></div>
   <div class="card" style="margin-top:14px;display:flex;justify-content:center">{construction_svg()}</div>
   <div class="grid g3" style="margin-top:16px">
     <div class="card"><h3>Proportions</h3><ul class="sub">
-      <li>Verticals 26, horizontals 24 (20% / 19% of cap height) for both letters.</li>
-      <li>Bowl 0–70, counter 24–46 × 26–58, leg from the bowl junction to x 133 at 34° after slant.</li>
-      <li>Monogram box 205 × 128 (aspect 1.6:1). F stem 98–124, 14 units clear of the bowl.</li>
-      <li>F top bar extends 54 past its stem, mid bar 28, so the F stays an F at small sizes.</li>
+      <li>Verticals 33, R stem 36, horizontals 30 (about 25% of cap height). Heavy by design.</li>
+      <li>Top bar 0–30, open counter 30–53, lower band 53–82, leg from the band to x 133 at 35° after slant.</li>
+      <li>Monogram box 256 × 128 (aspect 2:1). Bowl right edge 108; F top bar 112–196, F mid bar and stem 120–196.</li>
+      <li>Wordmark cap height 52% of the mark, centred on it, gap 35%.</li>
     </ul></div>
     <div class="card"><h3>Corners and mass</h3><ul class="sub">
-      <li>Outer corners R6, inner corners R3, counter R9, bowl shoulder R26.</li>
+      <li>Outer corners R5, inner corners R3, counter R10, bowl shoulder R30.</li>
       <li>Only two colours, no outlines, no gradients on the mark itself.</li>
-      <li>The F is drawn behind the R; the leg cuts the F stem. Monochrome versions are the union.</li>
+      <li>The F is drawn behind the R; the leg clips the F stem at the base. Monochrome versions are the union.</li>
     </ul></div>
     <div class="card"><h3>Clear space and minimum size</h3><ul class="sub">
-      <li>Clear space on all sides = one stem width (26 units, 20% of mark height).</li>
+      <li>Clear space on all sides = one bar height (30 units, 23% of mark height).</li>
       <li>Minimum: monogram 20 px tall on screen, 6 mm in print. Lockup 28 px tall.</li>
       <li>Below 20 px use the app icon, never the lockup.</li>
     </ul></div>
@@ -364,7 +367,7 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
 <section>
   <div class="eyebrow">2 · Wordmark and lockups</div>
   <h2>Wordmark and lockups</h2>
-  <p class="lead">Sora Bold at a 12° oblique, set as outlines, Rep in the neutral and Forge in amber. The wordmark cap height is 74% of the monogram height and sits on the monogram baseline, with a gap of 30% of the mark height.</p>
+  <p class="lead">Sora ExtraBold at a 14° oblique, set as outlines, Rep in the neutral and Forge in amber. The wordmark cap height is 52% of the monogram height, centred vertically on the mark, with a gap of 35% of the mark height, all measured from the supplied lockup.</p>
   <div class="grid g2" style="margin-top:20px">
     <div><div class="slab light">{svg_inline(LOGO / "repforge-lockup-horizontal.svg", height="72px")}</div><span class="cap"><b>Primary horizontal lockup</b></span></div>
     <div><div class="slab dark">{svg_inline(LOGO / "repforge-lockup-horizontal-reversed.svg", height="72px")}</div><span class="cap"><b>Reversed horizontal lockup</b></span></div>
@@ -524,7 +527,8 @@ footer {{ margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--pg-bo
   <div class="eyebrow">8 · Approval</div>
   <h2>Decisions needed before Stage 2</h2>
   <div class="q" style="margin-top:16px">
-    <div class="card"><div class="n">1</div><div><b>Monogram geometry.</b> Approve the rebuilt mark (12° slant, stroke 20% of height, leg at 34°, F resting on the leg), or request changes to the leg angle, bowl size or F position.</div></div>
+    <div class="card"><div class="n">1</div><div><b>Monogram geometry.</b> Approve the clean rebuild of the supplied artwork (overlay above) as the master, or ship the supplied traced SVGs as-is and accept their edge noise at large sizes.</div></div>
+    <div class="card"><div class="n">1a</div><div><b>Wordmark typeface.</b> Sora ExtraBold oblique is a close match to the supplied lettering, not identical. Approve Sora, or name the original face so the wordmark can be set from it.</div></div>
     <div class="card"><div class="n">1b</div><div><b>Flat or gradient.</b> Flat masters for the app and icons, gradient variants only for hero, splash and marketing (as shown). Confirm, or make gradient the primary treatment.</div></div>
     <div class="card"><div class="n">2</div><div><b>Slate labels on amber buttons.</b> Approve dark labels on primary buttons (AA) in place of the board's white labels.</div></div>
     <div class="card"><div class="n">3</div><div><b>Amber Ink #B45F00</b> for amber text and links on light surfaces, with #FF8A00 kept for fills and icons.</div></div>

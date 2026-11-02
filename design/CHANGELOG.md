@@ -9,8 +9,8 @@ Reproduced from the commission brief and branding board:
 - App icon: rounded square, slate primary, amber and light variants.
 
 Refinements proposed (need approval):
-- Monogram rebuilt as vector geometry from the board crops: 128 grid, stroke 26/24, 12° slant, R26 shoulders, R6/R3 corners, leg sweeping under the F at 34°, F resting on the leg.
-- Wordmark set as Sora Bold with a 12° synthetic oblique (Sora has no italic).
+- Supplied vector logo artwork (smoothed traces) stored under `brand/reference/approved-artwork/` and measured. Monogram rebuilt as clean geometry to match it: 128 grid, verticals 33 (stem 36), horizontals 30, 25° slant, open-counter R, two-piece amber F, leg at 35°. Aspect 2:1.
+- Wordmark set as Sora ExtraBold with a 14° synthetic oblique (Sora has no italic); lockup proportions measured from the supplied lockup (cap 52% of mark, centred, gap 35%).
 - Gradient monogram and lockup variants added for hero/marketing use only; flat masters remain the UI default.
 - First uploaded icon set withdrawn. Approved reference sheet (12 icons) rebuilt as a vector library: 24 grid, stroke 2, round caps, glyph + tile exports. Home added for navigation.
 - Primary buttons use Forge Slate labels on amber (white on amber fails WCAG AA).
