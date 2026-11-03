@@ -3,7 +3,7 @@
 Date: 2026-11-01
 Branch: `ccr-ac6db77c-jcnexo` (`main` untouched)
 Commits: d48f513 (foundation, WIP), 8d56021 (test fix, app label), 86bb061 (code-review fixes), plus the docs commit that adds this record.
-Status: **delivered for owner acceptance**. Nothing below is claimed without the evidence cited.
+Status: **accepted by the owner on 2026-11-03** after the physical-device test below. Nothing below is claimed without the evidence cited.
 
 ## 1. What was built
 
@@ -67,7 +67,7 @@ Local run at 86bb061 (Linux, Flutter 3.47.9): `flutter analyze --fatal-infos` �
 An independent review pass over `app/` produced ten findings; all were applied in 86bb061: double-submit guard, delete errors decoupled from the form, application-support directory, domain no longer imports Flutter, injected clock and idempotent soft delete in the repository, lenient row mapping, router disposal, single query definition, shared test helper, dead colour extension and unused direct dependency removed. One new repository test written for the review exposed a real defect (`latest()` limited to one row before validity filtering) which is fixed and covered.
 
 ## 6. Outstanding defects and known limitations
-- **No physical-device run.** Android was exercised on a CI emulator; iOS only compiled for the simulator. Owner should install the CI APK on a device and confirm launch and a save/restart/reopen cycle (this is the acceptance step for D06 WP 1).
+- **Physical-device test (Android): passed.** On 2026-11-03 the owner installed `RepForge-debug-arm64-v8a.apk` from the `debug-latest` release (built by run 41651281438 from commit 4c6b8b3) on a phone, recorded a body weight, restarted the app and confirmed the entry survived. iOS has only been compiled for the simulator; no iOS device run yet.
 - **iOS signing not configured.** Requires an Apple Developer account and secrets (D07 §2.4). Simulator build only.
 - **Debug APK size 172 MB** (all ABIs, debug engine). Release builds will be far smaller; not a WP 1 concern.
 - **Local Android build in this container could not be completed** because Maven Central rate-limited the shared proxy egress (HTTP 429). CI builds are unaffected; the CI artifacts are the evidence.
@@ -77,4 +77,4 @@ An independent review pass over `app/` produced ten findings; all were applied i
 - Four `GradleDependency`-style "newer version available" notices will appear over time; dependency updates go through the pinned-upgrade process (D03 §1).
 
 ## 7. Next step
-Owner acceptance of WP 1 (install APK on a device; optionally run the simulator app in Xcode). Then WP 2 (design system build-out) begins with ADR-0003 step 2: remove the ZIPs and the legacy workflow.
+WP 1 accepted 2026-11-03. Pull request opened from `ccr-ac6db77c-jcnexo` into `main`. Then WP 2 (design system build-out) begins with ADR-0003 step 2: remove the ZIPs and the legacy workflow.
