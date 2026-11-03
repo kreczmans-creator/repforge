@@ -30,6 +30,7 @@ Verdict: the workflow infrastructure is now adequate for a Gradle build, but it 
 | `android.yml` | push to main, PR, manual | ubuntu-latest | ci steps → `flutter build apk --debug` → (main only) `flutter build appbundle --release` with signing from secrets | `app-debug.apk`, `app-release.aab` |
 | `ios.yml` | push to main, manual | macos-latest | ci steps → `flutter build ios --simulator --no-codesign` → (when signing configured) `flutter build ipa` with Fastlane match or App Store Connect API key from secrets | simulator `.app`, `.ipa` |
 | `integration.yml` | nightly + manual | ubuntu-latest (Android emulator via `reactivecircus/android-emulator-runner`), macos-latest (iOS simulator) | `flutter test integration_test` | screenshots, logs |
+| `debug-release.yml` | push to `main` or the active branch touching `app/**`, manual | ubuntu-latest | build per-ABI and universal debug APKs → move tag `debug-latest` → create/update prerelease → upload assets + SHA256SUMS (added 2026-11-03) | rolling GitHub Release with stable download URLs |
 | `deps.yml` | weekly | ubuntu-latest | `dart pub outdated`, `osv-scanner` | report (not yet added; WP 14) |
 | `release.yml` | tag `v*` | ubuntu + macos | build signed artefacts → create GitHub Release with changelog | APK/AAB/IPA (not yet added; WP 14) |
 
