@@ -28,7 +28,7 @@ void main() {
     expect(find.byKey(const Key('latest-weight')), findsOneWidget);
     expect(find.text('—'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('nav-weight')));
+    await tester.tap(find.byKey(const Key('nav-track')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('weight-input')), '83.2');
     await tester.tap(find.byKey(const Key('save-weight')));
@@ -37,7 +37,10 @@ void main() {
 
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
-    expect(find.text('83.2 kg'), findsOneWidget);
+    // Stat tile shows value and unit separately; the activity row shows the
+    // label.
+    expect(find.text('83.2'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
+    expect(find.textContaining('83.2 kg'), findsOneWidget);
   });
 }

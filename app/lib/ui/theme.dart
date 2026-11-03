@@ -303,15 +303,7 @@ ThemeData rfTheme(Brightness brightness) {
       ),
       actionTextColor: RfBrand.amber,
     ),
-    cardTheme: CardThemeData(
-      color: rf.surface1,
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(RfRadius.lg),
-        side: BorderSide(color: rf.border),
-      ),
-    ),
+    // Cards are RfCard (one source for the panel look); no cardTheme.
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: rf.accent,
       linearTrackColor: rf.track,

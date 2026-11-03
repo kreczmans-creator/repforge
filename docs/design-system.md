@@ -62,9 +62,10 @@ User text scaling is always respected; no fixed-height text containers.
 | `RfTrendChart` | Time-proportional line chart, value axis, first/last dates, multi-series legend | Handles 0/1/2/n points and flat series; semantics summary |
 | `RfButton` | primary (amber, slate label) / secondary (outlined) / tertiary (amber text) / danger; loading and disabled states | ≥ 48 dp; loading blocks taps |
 | `RfTextField` + `.number` + `.integer` | Inputs with unit suffix, decimal/integer formatters | Error text up to 3 lines |
-| `RfListTile` | Activity row with amber-tinted icon tile | ≥ 48 dp |
+| `RfIconTile` | 36 px amber-tinted icon tile | Used by `RfListTile` and `RfEmptyState` |
+| `RfListTile` | Activity row with icon tile | ≥ 48 dp |
 | `RfEmptyState`, `RfLoading`, `RfErrorState` | Mandatory states for every data panel | Error state offers retry when possible |
-| `RfNotYetAvailable` | Labelled placeholder for features of later work packages | Never shipped unlabelled |
+| `RfNotYetAvailable` | Labelled placeholder for features of later work packages | The only placeholder allowed in release builds (standards §10) |
 
 Navigation: five-pillar bottom bar Home · Train · Fuel · Track · Goals (brand mock-up option), Surface 1 background with top border, amber active icon, Amber-Ink/amber active label.
 

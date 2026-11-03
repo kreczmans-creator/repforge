@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:repforge/ui/components/rf_card.dart';
+import 'package:repforge/ui/components/rf_icon_tile.dart';
 import 'package:repforge/ui/tokens.dart';
 
 /// Shown when a list or panel has no data yet.
@@ -12,23 +13,10 @@ class RfEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final rf = context.rf;
     return RfCard(
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: rf.accentSubtle,
-              borderRadius: BorderRadius.circular(RfRadius.sm),
-            ),
-            child: Icon(
-              icon ?? Icons.inbox_outlined,
-              size: RfIcon.sm,
-              color: rf.accent,
-            ),
-          ),
+          RfIconTile(icon: icon ?? Icons.inbox_outlined),
           const SizedBox(width: RfSpace.s3),
           Expanded(child: Text(message, style: theme.textTheme.bodySmall)),
         ],

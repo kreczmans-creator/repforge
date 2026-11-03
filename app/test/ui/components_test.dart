@@ -141,6 +141,37 @@ void main() {
       });
     }
 
+    testWidgets('single-point series and wide tick labels render', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          SizedBox(
+            width: 360,
+            child: RfTrendChart(
+              unit: 'kg',
+              series: [
+                RfTrendSeries(
+                  label: 'Volume',
+                  points: [
+                    RfTrendPoint(DateTime(2026, 10), 10000),
+                    RfTrendPoint(DateTime(2026, 10, 29), 12345.6),
+                  ],
+                ),
+                RfTrendSeries(
+                  label: 'Single',
+                  points: [RfTrendPoint(DateTime(2026, 10), 11000)],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Volume'), findsOneWidget);
+      expect(find.text('Single'), findsOneWidget);
+    });
+
     testWidgets('flat series (all equal values) does not divide by zero', (
       tester,
     ) async {

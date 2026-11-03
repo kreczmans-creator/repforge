@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:repforge/ui/components/rf_icon_tile.dart';
 import 'package:repforge/ui/tokens.dart';
 
 /// Activity row as in the brand mock-up: 36 px amber-tinted icon tile,
@@ -26,20 +27,7 @@ class RfListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final rf = context.rf;
-    final lead =
-        leading ??
-        (icon == null
-            ? null
-            : Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: rf.accentSubtle,
-                  borderRadius: BorderRadius.circular(RfRadius.sm),
-                ),
-                child: Icon(icon, size: RfIcon.sm, color: rf.accent),
-              ));
+    final lead = leading ?? (icon == null ? null : RfIconTile(icon: icon!));
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: rfMinTouchTarget),
       child: ListTile(

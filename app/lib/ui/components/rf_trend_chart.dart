@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:repforge/ui/tokens.dart';
@@ -10,6 +11,13 @@ final class RfTrendPoint {
   const RfTrendPoint(this.at, this.value);
   final DateTime at;
   final double value;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RfTrendPoint && other.at == at && other.value == value;
+
+  @override
+  int get hashCode => Object.hash(at, value);
 }
 
 /// One named series on a trend chart.
@@ -159,51 +167,54 @@ class _TrendPainter extends CustomPainter {
   final String unit;
   final TextDirection textDirection;
 
-  static const _axisWidth = 44.0;
   static const _bottom = 20.0;
   static const _top = 8.0;
   static const _right = 8.0;
+  static const _axisGap = 6.0;
+  static const _ticks = 4;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final plot = Rect.fromLTRB(
-      _axisWidth,
-      _top,
-      size.width - _right,
-      size.height - _bottom,
-    );
     // Pad the value range so a flat series does not sit on the edge.
     final span = (max - min).abs();
     final pad = span == 0 ? (max.abs() * 0.05).clamp(0.5, 5.0) : span * 0.1;
     final lo = min - pad;
     final hi = max + pad;
-    final totalMs = math.max(
-      1,
-      last.millisecondsSinceEpoch - first.millisecondsSinceEpoch,
-    );
 
-    double x(DateTime t) =>
-        plot.left +
-        (t.millisecondsSinceEpoch - first.millisecondsSinceEpoch) /
-            totalMs *
-            plot.width;
+    // Lay out tick labels first so the axis is as wide as the widest label.
+    final tickPainters = [
+      for (var i = 0; i <= _ticks; i++)
+        _painter(RfTrendChart._fmt(lo + (hi - lo) * i / _ticks)),
+    ];
+    final axisWidth =
+        tickPainters.map((p) => p.width).reduce(math.max) + _axisGap;
+    final plot = Rect.fromLTRB(
+      axisWidth,
+      _top,
+      size.width - _right,
+      size.height - _bottom,
+    );
+    final totalMs = last.millisecondsSinceEpoch - first.millisecondsSinceEpoch;
+    final singleInstant = totalMs <= 0;
+
+    double x(DateTime t) => singleInstant
+        ? plot.center.dx
+        : plot.left +
+              (t.millisecondsSinceEpoch - first.millisecondsSinceEpoch) /
+                  totalMs *
+                  plot.width;
     double y(double v) => plot.bottom - (v - lo) / (hi - lo) * plot.height;
 
     final grid = Paint()
       ..color = gridColor
       ..strokeWidth = 1;
-    const ticks = 4;
-    for (var i = 0; i <= ticks; i++) {
-      final v = lo + (hi - lo) * i / ticks;
-      final yy = y(v);
+    for (var i = 0; i <= _ticks; i++) {
+      final yy = y(lo + (hi - lo) * i / _ticks);
       canvas.drawLine(Offset(plot.left, yy), Offset(plot.right, yy), grid);
-      _label(
+      final tp = tickPainters[i];
+      tp.paint(
         canvas,
-        RfTrendChart._fmt(v),
-        Offset(0, yy),
-        maxWidth: _axisWidth - 6,
-        align: TextAlign.right,
-        anchorY: 0.5,
+        Offset(axisWidth - _axisGap - tp.width, yy - tp.height / 2),
       );
     }
     final df = DateFormat.MMMd();
@@ -224,10 +235,7 @@ class _TrendPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..style = PaintingStyle.stroke;
       final dot = Paint()..color = s.color;
-      final offsets = [
-        for (final p in s.points)
-          Offset(s.points.length == 1 ? plot.center.dx : x(p.at), y(p.value)),
-      ];
+      final offsets = [for (final p in s.points) Offset(x(p.at), y(p.value))];
       if (offsets.length > 1) {
         final path = Path()..moveTo(offsets.first.dx, offsets.first.dy);
         for (final o in offsets.skip(1)) {
@@ -241,33 +249,46 @@ class _TrendPainter extends CustomPainter {
     }
   }
 
+  TextPainter _painter(String text) => TextPainter(
+    text: TextSpan(text: text, style: labelStyle),
+    textDirection: textDirection,
+    maxLines: 1,
+    ellipsis: '…',
+  )..layout();
+
   void _label(
     Canvas canvas,
     String text,
     Offset at, {
-    double? maxWidth,
     TextAlign align = TextAlign.left,
     double anchorX = 0,
     double anchorY = 0,
   }) {
-    final tp = TextPainter(
-      text: TextSpan(text: text, style: labelStyle),
-      textDirection: textDirection,
-      textAlign: align,
-    )..layout(maxWidth: maxWidth ?? double.infinity);
-    final dx = maxWidth != null
-        ? at.dx + (maxWidth - tp.width)
-        : at.dx - tp.width * anchorX;
-    tp.paint(canvas, Offset(dx, at.dy - tp.height * anchorY));
+    final tp = _painter(text);
+    tp.paint(
+      canvas,
+      Offset(at.dx - tp.width * anchorX, at.dy - tp.height * anchorY),
+    );
   }
 
   @override
   bool shouldRepaint(_TrendPainter old) =>
-      old.series != series ||
       old.min != min ||
       old.max != max ||
       old.first != first ||
       old.last != last ||
       old.gridColor != gridColor ||
-      old.labelStyle != labelStyle;
+      old.labelStyle != labelStyle ||
+      old.textDirection != textDirection ||
+      !_sameSeries(old.series, series);
+
+  static bool _sameSeries(List<_Series> a, List<_Series> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].color != b[i].color || !listEquals(a[i].points, b[i].points)) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

@@ -65,11 +65,8 @@ class RfButton extends StatelessWidget {
         child: child,
       ),
     };
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: loading ? '$label, in progress' : null,
-      child: button,
-    );
+    // The Material button already exposes a single button node whose label
+    // is the text child; an outer Semantics would nest a second button.
+    return button;
   }
 }

@@ -20,6 +20,8 @@ abstract final class RfRoutes {
   static const gallery = '/gallery';
 }
 
+// TODO(placeholder): Train, Fuel and Goals branches show labelled
+// RfNotYetAvailable screens until WP 5–11 deliver them (standards §10).
 /// Application router: brand app bar, five-pillar bottom navigation
 /// (Home · Train · Fuel · Track · Goals, per the brand mock-up) with one
 /// branch per tab. Train, Fuel and Goals are labelled placeholders until their
@@ -117,7 +119,9 @@ class _Shell extends StatelessWidget {
             ),
         ],
       ),
-      body: shell,
+      // AppBar and NavigationBar handle top/bottom insets; this covers
+      // display cutouts on the sides in landscape.
+      body: SafeArea(top: false, bottom: false, child: shell),
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: rf.border)),
