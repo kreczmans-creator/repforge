@@ -1,0 +1,90 @@
+name: Debug release (latest APK)
+
+# Publishes the current debug APKs to a rolling GitHub Release tagged
+# `debug-latest`, so testers get a stable download link without needing an
+# Actions login. Debug builds only; the signed release process is WP 14.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, ccr-ac6db77c-jcnexo]
+    paths: ["app/**", ".github/workflows/debug-release.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: debug-release
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.47.9"
+  TAG: debug-latest
+
+jobs:
+  publish:
+    name: Build and publish debug APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies (pinned)
+        working-directory: app
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build per-ABI and universal debug APKs
+        working-directory: app
+        run: |
+          flutter build apk --debug --split-per-abi
+          flutter build apk --debug
+          mkdir -p ../dist
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk   ../dist/RepForge-debug-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-debug.apk ../dist/RepForge-debug-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-debug.apk             ../dist/RepForge-debug-universal.apk
+          ls -l ../dist
+          (cd ../dist && sha256sum *.apk | tee SHA256SUMS.txt)
+
+      - name: Write release notes
+        run: |
+          {
+            echo "RepForge debug build, rolling release."
+            echo
+            echo "- Commit: ${GITHUB_SHA} (branch ${GITHUB_REF_NAME})"
+            echo "- Built: $(date -u +%Y-%m-%dT%H:%MZ) by run ${GITHUB_RUN_ID}"
+            echo "- Flutter ${FLUTTER_VERSION}"
+            echo
+            echo "Most phones made since 2017 need RepForge-debug-arm64-v8a.apk. Use the universal APK if unsure."
+            echo "These are unsigned-for-store debug builds for testing only; Android will warn about an unknown source."
+            echo
+            echo '```'
+            cat dist/SHA256SUMS.txt
+            echo '```'
+          } > notes.md
+          cat notes.md
+
+      - name: Move tag and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --prerelease --title "RepForge debug build (latest)" --notes-file notes.md --target "$GITHUB_SHA"
+          else
+            gh release create "$TAG" --prerelease --title "RepForge debug build (latest)" --notes-file notes.md --target "$GITHUB_SHA"
+          fi
+          gh release upload "$TAG" dist/RepForge-debug-arm64-v8a.apk dist/RepForge-debug-armeabi-v7a.apk dist/RepForge-debug-universal.apk dist/SHA256SUMS.txt --clobber
+          gh release view "$TAG" --json assets --jq '.assets[] | "\(.name) \(.size) bytes"'

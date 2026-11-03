@@ -1,11 +1,10 @@
-name: Build RepForge Android APK
+name: Legacy ZIP build (manual only)
 
+# LEGACY. Builds the retired Kotlin prototype from the ZIP archive. Kept on
+# manual trigger only until the ZIPs are removed under ADR-0003; it is known
+# to fail on the archive's own compile errors (docs/wp0/D01 §3).
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'RepForge-v0.3.0-Android-source.zip'
-      - '.github/workflows/build-android-apk.yml'
 
 permissions:
   contents: read

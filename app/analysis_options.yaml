@@ -1,0 +1,21 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - build/**
+    - android/**
+    - ios/**
+  errors:
+    # Generated-code boundaries are documented in the engineering standards.
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    # Doc comments are required on domain types and use cases by review
+    # (engineering standards §8), not on every widget member.
+    public_member_api_docs: false
+    # Dart 3.13 primary-constructor syntax is not adopted yet; classic
+    # constructors stay until the team is familiar with the new form.
+    unnecessary_type_name_in_constructor: false
