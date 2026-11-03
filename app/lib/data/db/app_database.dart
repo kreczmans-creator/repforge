@@ -15,12 +15,15 @@ part 'app_database.g.dart';
 ///    site = weight); adds foods, food_log_entries, recipes,
 ///    recipe_ingredients, exercises, workout_plans, plan_exercises,
 ///    workout_sessions, session_sets, goals, settings.
+/// 3. WP 5: saved_meals, saved_meal_items.
 @DriftDatabase(
   tables: [
     Measurements,
     Foods,
     FoodServings,
     FoodLogEntries,
+    SavedMeals,
+    SavedMealItems,
     Recipes,
     RecipeIngredients,
     Exercises,
@@ -39,14 +42,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       if (from < 2) {
+        // Creates the full current schema (createAll) plus the data move, so
+        // no later step is needed on this path.
         await _migrateV1ToV2(m);
+        return;
+      }
+      if (from < 3) {
+        await _migrateV2ToV3(m);
       }
     },
     beforeOpen: (details) async {
@@ -68,5 +77,12 @@ class AppDatabase extends _$AppDatabase {
       FROM weight_entries
     ''');
     await customStatement('DROP TABLE weight_entries');
+  });
+
+  /// v2 → v3: saved meals (two tables and one index). Additive only.
+  Future<void> _migrateV2ToV3(Migrator m) => transaction(() async {
+    await m.createTable(savedMeals);
+    await m.createTable(savedMealItems);
+    await m.createIndex(idxSavedMealItemsMeal);
   });
 }

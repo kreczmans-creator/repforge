@@ -5,7 +5,9 @@ import 'package:repforge/domain/units/units.dart';
 part 'nutrition.freezed.dart';
 
 /// Where a nutrient value came from (requirement GEN: provenance labelling).
-enum DataProvenance { verified, userEntered, estimated }
+/// `crowdsourced` is data from a community database such as Open Food
+/// Facts: label-derived but not verified by RepForge.
+enum DataProvenance { verified, userEntered, estimated, crowdsourced }
 
 /// Meal slot for the daily diary.
 enum MealSlot { breakfast, lunch, dinner, snack }

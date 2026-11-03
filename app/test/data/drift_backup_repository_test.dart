@@ -14,6 +14,8 @@ const _tableNames = [
   'foods',
   'food_servings',
   'food_log_entries',
+  'saved_meals',
+  'saved_meal_items',
   'recipes',
   'recipe_ingredients',
   'exercises',
@@ -140,7 +142,7 @@ void main() {
 
       expect(doc['app'], 'repforge');
       expect(doc['formatVersion'], 1);
-      expect(doc['schemaVersion'], 2);
+      expect(doc['schemaVersion'], 3);
       expect(DateTime.tryParse(doc['exportedAt']! as String), isNotNull);
       final tables = doc['tables']! as Map<String, Object?>;
       expect(tables.keys, containsAll(_tableNames));

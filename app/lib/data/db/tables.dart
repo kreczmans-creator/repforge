@@ -89,6 +89,40 @@ class FoodLogEntries extends Table with SyncColumns {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Saved meals (NUT-013): a named set of items re-logged in one action.
+@DataClassName('SavedMealRow')
+class SavedMeals extends Table with SyncColumns {
+  TextColumn get name => text()();
+  TextColumn get defaultMeal => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Items of a saved meal with a nutrient snapshot per 100 of `unit`.
+@DataClassName('SavedMealItemRow')
+@TableIndex(name: 'idx_saved_meal_items_meal', columns: {#savedMealId})
+class SavedMealItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get savedMealId =>
+      text().references(SavedMeals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get foodId => text().nullable()();
+  TextColumn get recipeId => text().nullable()();
+  RealColumn get amount => real()();
+  TextColumn get unit => text()();
+  IntColumn get sortOrder => integer()();
+  RealColumn get kcal => real()();
+  RealColumn get proteinG => real()();
+  RealColumn get carbsG => real()();
+  RealColumn get fatG => real()();
+  RealColumn get fibreG => real().nullable()();
+  TextColumn get provenance => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// Recipes (RCP). Method steps are stored as a JSON array of strings.
 @DataClassName('RecipeRow')
 class Recipes extends Table with SyncColumns {
