@@ -43,6 +43,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: README, ADRs, D03 updated with pinned versions.
 
 ### WP 2 — Application foundation and design system
+- Status: **Delivered 2026-11-03** (`docs/delivery-record/WP2.md`); owner review of the brand deviations pending.
 - Objective: reusable UI system before any feature screens.
 - Scope: design tokens (colour, typography, spacing, radii, elevation), light and dark themes, components (`RfCard`, `RfButton`, `RfTextField` with numeric/unit variants, `RfMacroBar`, `RfStatTile`, `RfTrendChart`, `RfEmptyState`, `RfErrorState`, `RfLoading`, `RfListTile`), navigation shell with bottom tabs, accessibility baseline (48 dp targets, semantics labels, text scaling), a component gallery screen (debug only), golden tests.
 - Dependencies: WP 1.
@@ -51,6 +52,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: `docs/design-system.md`.
 
 ### WP 3 — Domain models and local persistence
+- Status: **Delivered for acceptance 2026-11-03** (`docs/delivery-record/WP3.md`).
 - Objective: the data foundation for all features, fully tested, with backup.
 - Scope: domain entities and value objects (units, nutrient profile, portion, provenance, exercise types, set records, measurement sites, goals); drift schema for foods, food log, recipes, ingredients, exercises, workouts, sessions, sets, measurements, goals, settings; repositories; migration test harness; JSON backup export/import round trip; an explicit assessment and ADR on encryption at rest and the privacy implications of locally stored fitness and body-composition data (owner direction, 2026-11-01).
 - Dependencies: WP 1.

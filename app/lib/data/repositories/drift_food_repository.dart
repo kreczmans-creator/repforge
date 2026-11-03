@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/mappers/group_by.dart';
 import 'package:repforge/data/mappers/nutrition_mappers.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/nutrition/food_repository.dart';
@@ -17,10 +18,7 @@ final class DriftFoodRepository implements FoodRepository {
     final servings = await (_db.select(
       _db.foodServings,
     )..where((s) => s.foodId.isIn(rows.map((r) => r.id)))).get();
-    final byFood = <String, List<FoodServingRow>>{};
-    for (final s in servings) {
-      byFood.putIfAbsent(s.foodId, () => []).add(s);
-    }
+    final byFood = groupByParent(servings, (s) => s.foodId);
     return [
       for (final row in rows) ?foodFromRow(row, byFood[row.id] ?? const []),
     ];

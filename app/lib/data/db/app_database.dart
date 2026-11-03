@@ -54,13 +54,12 @@ class AppDatabase extends _$AppDatabase {
     },
   );
 
-  /// v1 → v2: create every new table, copy weight_entries into measurements
-  /// as site = weight, then drop the old table. Runs inside drift's upgrade
-  /// transaction so a failure leaves v1 intact.
-  Future<void> _migrateV1ToV2(Migrator m) async {
-    for (final table in allTables) {
-      await m.createTable(table);
-    }
+  /// v1 → v2: create every v2 entity (tables and indexes), copy
+  /// weight_entries into measurements as site = weight, then drop the old
+  /// table. Wrapped in an explicit transaction so an interruption leaves v1
+  /// intact and the upgrade can be retried.
+  Future<void> _migrateV1ToV2(Migrator m) => transaction(() async {
+    await m.createAll();
     await customStatement('''
       INSERT INTO measurements
         (id, site, value, recorded_at, note, created_at, updated_at, deleted_at)
@@ -69,5 +68,5 @@ class AppDatabase extends _$AppDatabase {
       FROM weight_entries
     ''');
     await customStatement('DROP TABLE weight_entries');
-  }
+  });
 }

@@ -9039,6 +9039,46 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SessionSetsTable sessionSets = $SessionSetsTable(this);
   late final $GoalsTable goals = $GoalsTable(this);
   late final $SettingsTable settings = $SettingsTable(this);
+  late final Index idxMeasurementsSiteRecorded = Index(
+    'idx_measurements_site_recorded',
+    'CREATE INDEX idx_measurements_site_recorded ON measurements (site, recorded_at)',
+  );
+  late final Index idxFoodsBarcode = Index(
+    'idx_foods_barcode',
+    'CREATE INDEX idx_foods_barcode ON foods (barcode)',
+  );
+  late final Index idxFoodsSearchKey = Index(
+    'idx_foods_search_key',
+    'CREATE INDEX idx_foods_search_key ON foods (search_key)',
+  );
+  late final Index idxFoodServingsFood = Index(
+    'idx_food_servings_food',
+    'CREATE INDEX idx_food_servings_food ON food_servings (food_id)',
+  );
+  late final Index idxFoodLogDay = Index(
+    'idx_food_log_day',
+    'CREATE INDEX idx_food_log_day ON food_log_entries (day)',
+  );
+  late final Index idxRecipeIngredientsRecipe = Index(
+    'idx_recipe_ingredients_recipe',
+    'CREATE INDEX idx_recipe_ingredients_recipe ON recipe_ingredients (recipe_id)',
+  );
+  late final Index idxPlanExercisesPlan = Index(
+    'idx_plan_exercises_plan',
+    'CREATE INDEX idx_plan_exercises_plan ON plan_exercises (plan_id)',
+  );
+  late final Index idxWorkoutSessionsStarted = Index(
+    'idx_workout_sessions_started',
+    'CREATE INDEX idx_workout_sessions_started ON workout_sessions (started_at)',
+  );
+  late final Index idxSessionSetsSession = Index(
+    'idx_session_sets_session',
+    'CREATE INDEX idx_session_sets_session ON session_sets (session_id)',
+  );
+  late final Index idxSessionSetsExercise = Index(
+    'idx_session_sets_exercise',
+    'CREATE INDEX idx_session_sets_exercise ON session_sets (exercise_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9057,6 +9097,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     sessionSets,
     goals,
     settings,
+    idxMeasurementsSiteRecorded,
+    idxFoodsBarcode,
+    idxFoodsSearchKey,
+    idxFoodServingsFood,
+    idxFoodLogDay,
+    idxRecipeIngredientsRecipe,
+    idxPlanExercisesPlan,
+    idxWorkoutSessionsStarted,
+    idxSessionSetsSession,
+    idxSessionSetsExercise,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([

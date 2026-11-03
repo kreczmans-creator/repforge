@@ -199,10 +199,10 @@ Recipe? recipeFromRow(RecipeRow row, List<RecipeIngredientRow> ingredientRows) {
   final sorted = [...ingredientRows]
     ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   final ingredients = <RecipeIngredient>[];
+  // Lenient like the training mappers: a bad ingredient line is skipped, the
+  // recipe itself is still returned.
   for (final r in sorted) {
-    final i = _ingredientFromRow(r);
-    if (i == null) return null;
-    ingredients.add(i);
+    if (_ingredientFromRow(r) case final i?) ingredients.add(i);
   }
   final declared =
       row.declaredKcal == null ||
@@ -298,22 +298,28 @@ RecipesCompanion recipeToRow(Recipe r) => RecipesCompanion.insert(
   updatedAt: r.updatedAt,
 );
 
+/// The per-100 snapshot is stored only when its reference unit equals the
+/// line's unit; otherwise the line is not calculable and is saved without one
+/// (the column set cannot express a different basis).
 List<RecipeIngredientsCompanion> ingredientRows(Recipe r) => [
   for (final i in r.ingredients)
-    RecipeIngredientsCompanion.insert(
-      id: i.id,
-      recipeId: r.id,
-      name: i.name,
-      foodId: Value(i.foodId),
-      amount: i.quantity.amount,
-      unit: i.quantity.unit.name,
-      sortOrder: i.sortOrder,
-      note: Value(i.note),
-      kcal: Value(i.per100?.per100Amounts.kcal),
-      proteinG: Value(i.per100?.per100Amounts.proteinG),
-      carbsG: Value(i.per100?.per100Amounts.carbsG),
-      fatG: Value(i.per100?.per100Amounts.fatG),
-      fibreG: Value(i.per100?.per100Amounts.fibreG),
-      provenance: Value(i.per100?.provenance.name),
-    ),
+    () {
+      final p = i.per100?.per100 == i.quantity.unit ? i.per100 : null;
+      return RecipeIngredientsCompanion.insert(
+        id: i.id,
+        recipeId: r.id,
+        name: i.name,
+        foodId: Value(i.foodId),
+        amount: i.quantity.amount,
+        unit: i.quantity.unit.name,
+        sortOrder: i.sortOrder,
+        note: Value(i.note),
+        kcal: Value(p?.per100Amounts.kcal),
+        proteinG: Value(p?.per100Amounts.proteinG),
+        carbsG: Value(p?.per100Amounts.carbsG),
+        fatG: Value(p?.per100Amounts.fatG),
+        fibreG: Value(p?.per100Amounts.fibreG),
+        provenance: Value(p?.provenance.name),
+      );
+    }(),
 ];

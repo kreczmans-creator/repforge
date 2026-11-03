@@ -11,6 +11,10 @@ mixin SyncColumns on Table {
 /// Body measurements: one row per site per reading (BCM). `site` is the
 /// `MeasurementSite` enum name; `value` is kg for weight, cm otherwise.
 @DataClassName('MeasurementRow')
+@TableIndex(
+  name: 'idx_measurements_site_recorded',
+  columns: {#site, #recordedAt},
+)
 class Measurements extends Table with SyncColumns {
   TextColumn get site => text()();
   RealColumn get value => real()();
@@ -24,6 +28,8 @@ class Measurements extends Table with SyncColumns {
 /// Foods (NUT-004). Nutrients per 100 of `per100Unit`, stored as the
 /// `ReferenceUnit` enum name (`grams` | `millilitres`).
 @DataClassName('FoodRow')
+@TableIndex(name: 'idx_foods_barcode', columns: {#barcode})
+@TableIndex(name: 'idx_foods_search_key', columns: {#searchKey})
 class Foods extends Table with SyncColumns {
   TextColumn get name => text()();
   TextColumn get brand => text().nullable()();
@@ -46,6 +52,7 @@ class Foods extends Table with SyncColumns {
 
 /// Named serving sizes of a food.
 @DataClassName('FoodServingRow')
+@TableIndex(name: 'idx_food_servings_food', columns: {#foodId})
 class FoodServings extends Table {
   TextColumn get id => text()();
   TextColumn get foodId =>
@@ -61,6 +68,7 @@ class FoodServings extends Table {
 
 /// Diary entries with a nutrient snapshot (NUT-010).
 @DataClassName('FoodLogEntryRow')
+@TableIndex(name: 'idx_food_log_day', columns: {#day})
 class FoodLogEntries extends Table with SyncColumns {
   TextColumn get day => text()();
   TextColumn get meal => text()();
@@ -112,6 +120,7 @@ class Recipes extends Table with SyncColumns {
 /// reference unit is not calculable for that line (domain rule) and is stored
 /// without a snapshot.
 @DataClassName('RecipeIngredientRow')
+@TableIndex(name: 'idx_recipe_ingredients_recipe', columns: {#recipeId})
 class RecipeIngredients extends Table {
   TextColumn get id => text()();
   TextColumn get recipeId =>
@@ -161,6 +170,7 @@ class WorkoutPlans extends Table with SyncColumns {
 }
 
 @DataClassName('PlanExerciseRow')
+@TableIndex(name: 'idx_plan_exercises_plan', columns: {#planId})
 class PlanExercises extends Table {
   TextColumn get id => text()();
   TextColumn get planId =>
@@ -178,6 +188,7 @@ class PlanExercises extends Table {
 }
 
 @DataClassName('WorkoutSessionRow')
+@TableIndex(name: 'idx_workout_sessions_started', columns: {#startedAt})
 class WorkoutSessions extends Table with SyncColumns {
   TextColumn get name => text()();
   TextColumn get planId => text().nullable()();
@@ -192,6 +203,8 @@ class WorkoutSessions extends Table with SyncColumns {
 /// One performed set. `type` selects which nullable columns are meaningful
 /// (the domain `SetData` sealed class enforces the combinations).
 @DataClassName('SessionSetRow')
+@TableIndex(name: 'idx_session_sets_session', columns: {#sessionId})
+@TableIndex(name: 'idx_session_sets_exercise', columns: {#exerciseId})
 class SessionSets extends Table {
   TextColumn get id => text()();
   TextColumn get sessionId =>

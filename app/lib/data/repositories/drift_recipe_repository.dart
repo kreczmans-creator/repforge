@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/mappers/group_by.dart';
 import 'package:repforge/data/mappers/nutrition_mappers.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
@@ -17,10 +18,7 @@ final class DriftRecipeRepository implements RecipeRepository {
     final ingredients = await (_db.select(
       _db.recipeIngredients,
     )..where((i) => i.recipeId.isIn(rows.map((r) => r.id)))).get();
-    final byRecipe = <String, List<RecipeIngredientRow>>{};
-    for (final i in ingredients) {
-      byRecipe.putIfAbsent(i.recipeId, () => []).add(i);
-    }
+    final byRecipe = groupByParent(ingredients, (i) => i.recipeId);
     return [
       for (final row in rows) ?recipeFromRow(row, byRecipe[row.id] ?? const []),
     ];

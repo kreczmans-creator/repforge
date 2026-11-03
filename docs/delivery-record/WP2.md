@@ -19,5 +19,13 @@ Implements "RepForge Design System v1.0" (the brand reconstruction the owner app
 - Assets: fonts (11 TTFs, SIL OFL, `assets/fonts/LICENSE.md`), logo masters and rendered PNGs (`assets/brand/logo`), twelve icon tiles (`assets/brand/icons`), Android launcher + adaptive icons, iOS app icon set, all generated from the brand SVG masters.
 - Tests added: contrast (WCAG AA for every text/surface pair in both themes), component behaviour (button, number/integer fields, macro bar, trend chart 0/1/2/n/flat, list tile height, text scaling), gallery goldens in both themes with real fonts. Suite: 90 tests, all passing locally; analyzer clean with `--fatal-infos`.
 
+## CI evidence
+| Commit | Workflow | Run ID | Conclusion |
+|---|---|---|---|
+| f2baa74 | CI / Android / iOS / Debug release | 41697263658 / 41697263484 / 41697263863 / 41697263476 | success |
+| f2baa74 | Integration tests | 41697263437 | failure (integration test still targeted the old `nav-weight` key; fixed in a32aad4) |
+| 06cadb6 (dark default) | CI / Android / iOS / Debug release | 41699874953 / 41699874428 / 41699874379 / 41699874318 | success |
+| 06cadb6 | Integration tests | 41699874286 | failure (`textContaining('83.2 kg')` matched the activity row and the still-visible snackbar; assertion relaxed in the WP 3 commit) |
+
 ## Remaining WP 2 scope (D06)
 Manual TalkBack/VoiceOver pass on devices (owner); Stage 2 glyph exports from the brand (navigation currently uses Material icons); owner review of the four deviations listed in `docs/design-system.md` §7; CI evidence for this commit (filled in below once runs complete).

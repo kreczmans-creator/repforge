@@ -72,7 +72,10 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 );
 
 final backupRepositoryProvider = Provider<BackupRepository>(
-  (ref) => DriftBackupRepository(ref.watch(databaseProvider)),
+  (ref) => DriftBackupRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
 
 /// Live settings; defaults until the first save.

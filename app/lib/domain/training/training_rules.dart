@@ -46,7 +46,8 @@ abstract final class TrainingRules {
       s.reps == 1 ? s.load.value : s.load.value * (1 + s.reps / 30);
 
   /// True when [candidate] strictly beats every comparable set in [history]:
-  /// Epley score for weighted sets, reps for bodyweight, less assistance then
+  /// Epley score for weighted sets, added load then reps for bodyweight, less
+  /// assistance then
   /// more reps for assisted, duration for timed, distance for distance and
   /// cardio (a cardio set without distance is never a record). An empty
   /// history makes the first set a record. Ties are not records.
@@ -55,8 +56,13 @@ abstract final class TrainingRules {
       case WeightedSet():
         final c = _prScore(candidate);
         return history.whereType<WeightedSet>().every((h) => c > _prScore(h));
-      case BodyweightSet(:final reps):
-        return history.whereType<BodyweightSet>().every((h) => reps > h.reps);
+      case BodyweightSet(:final reps, :final addedLoad):
+        // More added load wins; at equal added load, more reps wins.
+        final load = addedLoad?.value ?? 0;
+        return history.whereType<BodyweightSet>().every((h) {
+          final hl = h.addedLoad?.value ?? 0;
+          return load > hl || (load == hl && reps > h.reps);
+        });
       case AssistedSet(:final reps, :final assistance):
         // Less assistance is better; more reps at equal assistance is better.
         return history.whereType<AssistedSet>().every(

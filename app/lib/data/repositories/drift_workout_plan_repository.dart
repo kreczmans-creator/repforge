@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/mappers/group_by.dart';
 import 'package:repforge/data/mappers/training_mappers.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/training/training.dart';
@@ -67,12 +68,10 @@ final class DriftWorkoutPlanRepository implements WorkoutPlanRepository {
               ..where((t) => t.planId.isIn(rows.map((r) => r.id)))
               ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
             .get();
+    final byPlan = groupByParent(children, (c) => c.planId);
     return [
       for (final r in rows)
-        ?TrainingMappers.planToEntity(
-          r,
-          children.where((c) => c.planId == r.id).toList(),
-        ),
+        ?TrainingMappers.planToEntity(r, byPlan[r.id] ?? const []),
     ];
   }
 }

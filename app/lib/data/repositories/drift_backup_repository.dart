@@ -3,15 +3,19 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/backup/backup.dart';
+import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
 
 /// JSON backup of every table (DAT-003, DAT-004). Rows are exported as raw
-/// SQL column values, so the backup is a faithful copy independent of domain
-/// mapping. Restore replaces all data inside one transaction.
+/// SQL column values and restored with raw SQL inserts, so the backup is a
+/// faithful copy independent of domain mapping. Restore replaces all data
+/// inside one transaction; any failure rolls back and is returned as an
+/// [AppError], never thrown.
 final class DriftBackupRepository implements BackupRepository {
-  DriftBackupRepository(this._db);
+  DriftBackupRepository(this._db, {required this._clock});
 
   final AppDatabase _db;
+  final Clock _clock;
 
   /// Bump when the JSON layout changes; a newer file is refused on import.
   static const formatVersion = 1;
@@ -30,7 +34,7 @@ final class DriftBackupRepository implements BackupRepository {
       'app': 'repforge',
       'formatVersion': formatVersion,
       'schemaVersion': _db.schemaVersion,
-      'exportedAt': DateTime.now().toUtc().toIso8601String(),
+      'exportedAt': _clock.now().toUtc().toIso8601String(),
       'tables': tables,
     });
   }
@@ -74,16 +78,20 @@ final class DriftBackupRepository implements BackupRepository {
           final table = byName[entry.key];
           final rows = entry.value;
           if (table == null || rows is! List) continue;
+          final allowed = {for (final c in table.$columns) c.$name};
           var n = 0;
           for (final r in rows) {
             if (r is! Map<String, Object?>) continue;
-            await _db.into(table).insert(RawValuesInsertable(_toColumns(r)));
+            await _insertRaw(table.actualTableName, allowed, r);
             n++;
           }
           counts[entry.key] = n;
         }
       });
-    } on Exception catch (e) {
+    } on Object catch (e) {
+      // Errors (not only Exceptions) are possible here: sqlite3 binding
+      // rejects nested values with ArgumentError. All of them mean "bad
+      // backup"; the transaction has rolled back.
       return Err(
         StorageError('Restore failed; nothing was changed.', cause: e),
       );
@@ -91,10 +99,34 @@ final class DriftBackupRepository implements BackupRepository {
     return Ok(BackupSummary(formatVersion: version, rowCounts: counts));
   }
 
-  static Map<String, Expression<Object>> _toColumns(Map<String, Object?> r) => {
-    for (final e in r.entries)
-      if (e.value case final Object v) e.key: Variable<Object>(v),
-    for (final e in r.entries)
-      if (e.value == null) e.key: const Constant<Object>(null),
-  };
+  Future<void> _insertRaw(
+    String table,
+    Set<String> allowed,
+    Map<String, Object?> row,
+  ) async {
+    final cols = [
+      for (final k in row.keys)
+        if (allowed.contains(k)) k,
+    ];
+    if (cols.isEmpty) {
+      throw const FormatException('Row has no known columns.');
+    }
+    final placeholders = List.filled(cols.length, '?').join(', ');
+    final names = cols.map((c) => '"$c"').join(', ');
+    await _db.customInsert(
+      'INSERT INTO "$table" ($names) VALUES ($placeholders)',
+      variables: [
+        for (final c in cols)
+          switch (row[c]) {
+            null => const Variable<Object>(null),
+            final num v => Variable<num>(v),
+            final String v => Variable<String>(v),
+            final bool v => Variable<bool>(v),
+            final other => throw ArgumentError(
+              'Unsupported value ${other.runtimeType} in $table.$c',
+            ),
+          },
+      ],
+    );
+  }
 }

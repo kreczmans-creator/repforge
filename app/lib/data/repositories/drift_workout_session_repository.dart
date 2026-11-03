@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/mappers/group_by.dart';
 import 'package:repforge/data/mappers/training_mappers.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/training/training.dart';
@@ -69,8 +70,10 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
               _db.workoutSessions.id.equalsExp(_db.sessionSets.sessionId),
             ),
           ])
+          // Only completed sets count as performed history (PR checks).
           ..where(
             _db.sessionSets.exerciseId.equals(exerciseId) &
+                _db.sessionSets.completed.equals(true) &
                 _db.workoutSessions.deletedAt.isNull(),
           )
           ..orderBy([
@@ -88,12 +91,10 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
     final sets = await (_db.select(
       _db.sessionSets,
     )..where((t) => t.sessionId.isIn(rows.map((r) => r.id)))).get();
+    final bySession = groupByParent(sets, (s) => s.sessionId);
     return [
       for (final r in rows)
-        TrainingMappers.sessionToEntity(
-          r,
-          sets.where((s) => s.sessionId == r.id).toList(),
-        ),
+        TrainingMappers.sessionToEntity(r, bySession[r.id] ?? const []),
     ];
   }
 }

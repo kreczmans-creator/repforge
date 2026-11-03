@@ -14,14 +14,20 @@ final class DriftMeasurementRepository implements MeasurementRepository {
   final AppDatabase _db;
   final Clock _clock;
 
+  /// Visible rows newest first. The valid value range is applied in SQL so
+  /// a corrupt row can neither fail the stream nor shadow `latest()`.
   SimpleSelectStatement<$MeasurementsTable, MeasurementRow> _visible({
     MeasurementSite? site,
   }) => _db.select(_db.measurements)
-    ..where(
-      (t) => site == null
-          ? t.deletedAt.isNull()
-          : t.deletedAt.isNull() & t.site.equals(site.name),
-    )
+    ..where((t) {
+      final isWeight = t.site.equals(MeasurementSite.weight.name);
+      final inRange =
+          (isWeight & t.value.isBetweenValues(Kilograms.min, Kilograms.max)) |
+          (isWeight.not() &
+              t.value.isBetweenValues(Centimetres.min, Centimetres.max));
+      final base = t.deletedAt.isNull() & inRange;
+      return site == null ? base : base & t.site.equals(site.name);
+    })
     ..orderBy([
       (t) => OrderingTerm.desc(t.recordedAt),
       (t) => OrderingTerm.desc(t.createdAt),
@@ -40,7 +46,7 @@ final class DriftMeasurementRepository implements MeasurementRepository {
 
   @override
   Future<Measurement?> latest(MeasurementSite site) async {
-    final rows = await (_visible(site: site)..limit(5)).get();
+    final rows = await (_visible(site: site)..limit(1)).get();
     return toEntities(rows).firstOrNull;
   }
 
@@ -51,7 +57,9 @@ final class DriftMeasurementRepository implements MeasurementRepository {
   @override
   Future<void> update(Measurement m) async {
     final now = _clock.now().toUtc();
-    await (_db.update(_db.measurements)..where((t) => t.id.equals(m.id))).write(
+    final target = _db.update(_db.measurements)
+      ..where((t) => t.id.equals(m.id) & t.deletedAt.isNull());
+    await target.write(
       MeasurementsCompanion(
         site: Value(m.site.name),
         value: Value(m.value.raw),

@@ -1837,6 +1837,200 @@
           "key"
         ]
       }
+    },
+    {
+      "id": 13,
+      "references": [
+        0
+      ],
+      "type": "index",
+      "data": {
+        "on": 0,
+        "name": "idx_measurements_site_recorded",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "site",
+            "order_by": null
+          },
+          {
+            "column": "recorded_at",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "references": [
+        1
+      ],
+      "type": "index",
+      "data": {
+        "on": 1,
+        "name": "idx_foods_barcode",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "barcode",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "references": [
+        1
+      ],
+      "type": "index",
+      "data": {
+        "on": 1,
+        "name": "idx_foods_search_key",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "search_key",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "references": [
+        2
+      ],
+      "type": "index",
+      "data": {
+        "on": 2,
+        "name": "idx_food_servings_food",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "food_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "references": [
+        3
+      ],
+      "type": "index",
+      "data": {
+        "on": 3,
+        "name": "idx_food_log_day",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "day",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "references": [
+        5
+      ],
+      "type": "index",
+      "data": {
+        "on": 5,
+        "name": "idx_recipe_ingredients_recipe",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "recipe_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "references": [
+        8
+      ],
+      "type": "index",
+      "data": {
+        "on": 8,
+        "name": "idx_plan_exercises_plan",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "plan_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "references": [
+        9
+      ],
+      "type": "index",
+      "data": {
+        "on": 9,
+        "name": "idx_workout_sessions_started",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "started_at",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "references": [
+        10
+      ],
+      "type": "index",
+      "data": {
+        "on": 10,
+        "name": "idx_session_sets_session",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "session_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "references": [
+        10
+      ],
+      "type": "index",
+      "data": {
+        "on": 10,
+        "name": "idx_session_sets_exercise",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "exercise_id",
+            "order_by": null
+          }
+        ]
+      }
     }
   ],
   "fixed_sql": [
@@ -1954,6 +2148,96 @@
         {
           "dialect": "sqlite",
           "sql": "CREATE TABLE IF NOT EXISTS \"settings\" (\"key\" TEXT NOT NULL, \"value\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL, PRIMARY KEY (\"key\"));"
+        }
+      ]
+    },
+    {
+      "name": "idx_measurements_site_recorded",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_measurements_site_recorded ON measurements (site, recorded_at)"
+        }
+      ]
+    },
+    {
+      "name": "idx_foods_barcode",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_foods_barcode ON foods (barcode)"
+        }
+      ]
+    },
+    {
+      "name": "idx_foods_search_key",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_foods_search_key ON foods (search_key)"
+        }
+      ]
+    },
+    {
+      "name": "idx_food_servings_food",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_food_servings_food ON food_servings (food_id)"
+        }
+      ]
+    },
+    {
+      "name": "idx_food_log_day",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_food_log_day ON food_log_entries (day)"
+        }
+      ]
+    },
+    {
+      "name": "idx_recipe_ingredients_recipe",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_recipe_ingredients_recipe ON recipe_ingredients (recipe_id)"
+        }
+      ]
+    },
+    {
+      "name": "idx_plan_exercises_plan",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_plan_exercises_plan ON plan_exercises (plan_id)"
+        }
+      ]
+    },
+    {
+      "name": "idx_workout_sessions_started",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_workout_sessions_started ON workout_sessions (started_at)"
+        }
+      ]
+    },
+    {
+      "name": "idx_session_sets_session",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_session_sets_session ON session_sets (session_id)"
+        }
+      ]
+    },
+    {
+      "name": "idx_session_sets_exercise",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX idx_session_sets_exercise ON session_sets (exercise_id)"
         }
       ]
     }
