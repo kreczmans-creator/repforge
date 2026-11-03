@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/units/display.dart';
+import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -172,19 +174,21 @@ class _TrainingPanel extends ConsumerWidget {
                 : '$count recent session(s). No plan scheduled.',
           );
         }
-        final next = list.first;
+        // Scheduling (which plan is next) arrives in WP 9; until then the
+        // panel reports what exists without guessing an order.
+        final names = list.take(3).map((p) => p.name).join(' · ');
         return RfCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('NEXT PLAN', style: context.rfText.kicker),
+              Text('PLANS', style: context.rfText.kicker),
               const SizedBox(height: RfSpace.s1),
-              Text(next.name, style: Theme.of(context).textTheme.titleMedium),
               Text(
-                '${next.exercises.length} exercises'
-                '${next.split == null ? '' : ' · ${next.split}'}',
-                style: Theme.of(context).textTheme.bodySmall,
+                '${list.length} plan${list.length == 1 ? '' : 's'}'
+                '${count == 0 ? '' : ' · $count recent session(s)'}',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
+              Text(names, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
         );
@@ -200,6 +204,9 @@ class _BodyPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final latest = ref.watch(latestWeightProvider);
     final entries = ref.watch(weightEntriesProvider);
+    final units =
+        ref.watch(settingsProvider.select((s) => s.value?.units)) ??
+        UnitSystem.metric;
     return latest.when(
       loading: () => const RfLoading(),
       error: (e, _) =>
@@ -214,8 +221,10 @@ class _BodyPanel extends ConsumerWidget {
                 label: 'Latest weight',
                 value: entry == null
                     ? '—'
-                    : entry.weight.value.toStringAsFixed(1),
-                unit: entry == null ? null : 'kg',
+                    : bodyWeightParts(entry.weight, units).value,
+                unit: entry == null
+                    ? null
+                    : bodyWeightParts(entry.weight, units).unit,
                 caption: entry == null
                     ? 'Nothing logged yet'
                     : DateFormat.yMMMd().format(entry.recordedAt.toLocal()),
@@ -242,15 +251,26 @@ class _ActivityPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final weights = ref.watch(weightEntriesProvider).value ?? const [];
-    final sessions = ref.watch(recentSessionsProvider).value ?? const [];
+    final weightsAsync = ref.watch(weightEntriesProvider);
+    final sessionsAsync = ref.watch(recentSessionsProvider);
+    final units =
+        ref.watch(settingsProvider.select((s) => s.value?.units)) ??
+        UnitSystem.metric;
+    if (weightsAsync.isLoading || sessionsAsync.isLoading) {
+      return const RfLoading();
+    }
+    if (weightsAsync.hasError || sessionsAsync.hasError) {
+      return const RfErrorState(message: 'Could not load recent activity.');
+    }
+    final weights = weightsAsync.value ?? const [];
+    final sessions = sessionsAsync.value ?? const [];
     final items = <_Activity>[
       for (final e in weights.take(5))
         _Activity(
           at: e.recordedAt,
           icon: Icons.monitor_weight_outlined,
           title: 'Weigh-in',
-          subtitle: e.weight.label,
+          subtitle: formatBodyWeight(e.weight, units),
         ),
       for (final s in sessions)
         _Activity(

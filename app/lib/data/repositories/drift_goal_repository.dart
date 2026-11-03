@@ -20,6 +20,39 @@ final class DriftGoalRepository implements GoalRepository {
           .map((rows) => [for (final r in rows) ?toEntity(r)]);
 
   @override
+  Future<List<Goal>> active() async {
+    final rows =
+        await (_db.select(_db.goals)
+              ..where((t) => t.deletedAt.isNull() & t.active.equals(true))
+              ..orderBy([(t) => OrderingTerm.asc(t.startDate)]))
+            .get();
+    return [for (final r in rows) ?toEntity(r)];
+  }
+
+  @override
+  Future<void> replaceActive(
+    GoalKind kind,
+    Goal? next, {
+    MeasurementSite? site,
+  }) => _db.transaction(() async {
+    final now = _clock.now().toUtc();
+    final target = _db.update(_db.goals)
+      ..where(
+        (t) =>
+            t.deletedAt.isNull() &
+            t.active.equals(true) &
+            t.kind.equals(kind.name) &
+            (site == null ? t.site.isNull() : t.site.equals(site.name)),
+      );
+    await target.write(
+      GoalsCompanion(active: const Value(false), updatedAt: Value(now)),
+    );
+    if (next != null) {
+      await _db.into(_db.goals).insertOnConflictUpdate(toRow(next));
+    }
+  });
+
+  @override
   Future<void> upsert(Goal goal) =>
       _db.into(_db.goals).insertOnConflictUpdate(toRow(goal));
 

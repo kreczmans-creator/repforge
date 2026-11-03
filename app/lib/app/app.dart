@@ -33,7 +33,8 @@ class _RepForgeAppState extends ConsumerState<RepForgeApp> {
     // Dark is the product's default state (owner direction, 2026-11-03);
     // the persisted theme preference can switch it.
     final pref =
-        ref.watch(settingsProvider).value?.theme ?? ThemePreference.dark;
+        ref.watch(settingsProvider.select((s) => s.value?.theme)) ??
+        ThemePreference.dark;
     return MaterialApp.router(
       title: 'RepForge',
       debugShowCheckedModeBanner: false,

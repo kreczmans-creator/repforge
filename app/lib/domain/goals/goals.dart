@@ -34,6 +34,15 @@ abstract class Goal with _$Goal {
 
 abstract interface class GoalRepository {
   Stream<List<Goal>> watchActive();
+  Future<List<Goal>> active();
   Future<void> upsert(Goal goal);
+
+  /// Atomically deactivates every active goal of [kind] (and [site] when the
+  /// kind is a measurement) and inserts [next] when it is not null.
+  Future<void> replaceActive(
+    GoalKind kind,
+    Goal? next, {
+    MeasurementSite? site,
+  });
   Future<void> delete(String id);
 }

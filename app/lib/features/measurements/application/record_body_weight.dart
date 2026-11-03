@@ -1,11 +1,9 @@
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/measurements/weight_entry.dart';
 import 'package:repforge/domain/measurements/weight_repository.dart';
 import 'package:repforge/domain/units/kilograms.dart';
-
-/// Generates record identifiers. Injected so tests can be deterministic.
-typedef IdGenerator = String Function();
 
 /// Use case: validate and persist a body-weight entry (BCM-001).
 ///

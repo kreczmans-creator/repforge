@@ -6,6 +6,7 @@ import 'package:repforge/domain/goals/daily_targets.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
@@ -53,16 +54,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _seed(DailyTargets t) {
     if (_seeded) return;
     _seeded = true;
-    String s(double? v) => v == null ? '' : _fmt(v);
+    String s(double? v) => v == null ? '' : formatNumber(v);
     _controllers[GoalKind.calories]!.text = s(t.kcal);
     _controllers[GoalKind.protein]!.text = s(t.proteinG);
     _controllers[GoalKind.carbs]!.text = s(t.carbsG);
     _controllers[GoalKind.fat]!.text = s(t.fatG);
     _controllers[GoalKind.fibre]!.text = s(t.fibreG);
   }
-
-  static String _fmt(double v) =>
-      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 
   Future<void> _saveTargets() async {
     if (_savingTargets) return;
@@ -71,10 +69,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _targetError = null;
       _targetErrorKind = null;
     });
-    final existing = ref.read(activeGoalsProvider).value ?? const [];
     final result = await ref.read(saveDailyTargetsProvider)(
       input: {for (final e in _controllers.entries) e.key: e.value.text},
-      existing: existing,
     );
     if (!mounted) return;
     setState(() => _savingTargets = false);
@@ -198,7 +194,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     },
                     onChanged: (v) =>
                         _saveSettings((s) => s.copyWith(units: v)),
-                    note: 'Data is stored in metric; imperial is display only.',
+                    note:
+                        'Stored in metric. Imperial changes how weights are '
+                        'shown; entry stays in kg for now.',
                   ),
                   const SizedBox(height: RfSpace.s4),
                   _choice<ThemePreference>(

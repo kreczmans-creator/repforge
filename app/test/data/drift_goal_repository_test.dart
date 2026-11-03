@@ -30,6 +30,7 @@ Goal _goal(
 );
 
 void main() {
+  _replaceActiveTests();
   group('DriftGoalRepository (in-memory)', () {
     late AppDatabase db;
     late DriftGoalRepository repo;
@@ -142,6 +143,77 @@ void main() {
             ),
           );
       expect((await repo.watchActive().first).single.site, isNull);
+    });
+  });
+}
+
+void _replaceActiveTests() {
+  group('DriftGoalRepository.replaceActive', () {
+    late AppDatabase db;
+    late DriftGoalRepository repo;
+    final now = DateTime.utc(2026, 11, 3, 9);
+    Goal goal(String id, GoalKind k, double v) => Goal(
+      id: id,
+      kind: k,
+      target: v,
+      startDate: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    setUp(() {
+      db = AppDatabase.inMemory();
+      repo = DriftGoalRepository(db, clock: FixedClock(now));
+    });
+    tearDown(() => db.close());
+
+    test(
+      'deactivates all active goals of the kind and inserts the next',
+      () async {
+        await repo.upsert(goal('a', GoalKind.calories, 2400));
+        await repo.upsert(goal('b', GoalKind.calories, 2300));
+        await repo.upsert(goal('p', GoalKind.protein, 180));
+        await repo.replaceActive(
+          GoalKind.calories,
+          goal('c', GoalKind.calories, 2200),
+        );
+        final active = await repo.active();
+        expect(active.map((g) => g.id), unorderedEquals(['c', 'p']));
+      },
+    );
+
+    test('with null next only deactivates', () async {
+      await repo.upsert(goal('a', GoalKind.calories, 2400));
+      await repo.replaceActive(GoalKind.calories, null);
+      expect(await repo.active(), isEmpty);
+    });
+
+    test('measurement goals are scoped by site', () async {
+      await repo.upsert(
+        goal(
+          'w',
+          GoalKind.measurement,
+          90,
+        ).copyWith(site: MeasurementSite.waist),
+      );
+      await repo.upsert(
+        goal(
+          'c',
+          GoalKind.measurement,
+          100,
+        ).copyWith(site: MeasurementSite.chest),
+      );
+      await repo.replaceActive(
+        GoalKind.measurement,
+        goal(
+          'w2',
+          GoalKind.measurement,
+          88,
+        ).copyWith(site: MeasurementSite.waist),
+        site: MeasurementSite.waist,
+      );
+      final active = await repo.active();
+      expect(active.map((g) => g.id), unorderedEquals(['w2', 'c']));
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/units/format.dart';
 
 /// Reference basis for nutrient values: per 100 g or per 100 ml.
 enum ReferenceUnit {
@@ -46,7 +47,7 @@ final class Quantity {
     return Ok(Quantity._(rounded, unit));
   }
 
-  String get label => '${_fmt(amount)} ${unit.symbol}';
+  String get label => '${formatNumber(amount)} ${unit.symbol}';
 
   @override
   bool operator ==(Object other) =>
@@ -127,7 +128,7 @@ final class LoadKg {
     return Ok(LoadKg._(rounded));
   }
 
-  String get label => '${_fmt(value)} kg';
+  String get label => '${formatNumber(value, maxDecimals: 2)} kg';
 
   @override
   bool operator ==(Object other) => other is LoadKg && other.value == value;
@@ -150,10 +151,3 @@ abstract final class UnitConversion {
   static double gToOz(double g) => g * ozPerG;
   static double mlToFlOz(double ml) => ml * flOzPerMl;
 }
-
-String _fmt(double v) => v == v.roundToDouble()
-    ? v.toStringAsFixed(0)
-    : v
-          .toStringAsFixed(2)
-          .replaceFirst(RegExp(r'0+$'), '')
-          .replaceFirst(RegExp(r'\.$'), '');

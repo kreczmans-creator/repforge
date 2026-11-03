@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/ui/tokens.dart';
 
 /// One dated value in a trend series.
@@ -73,7 +74,7 @@ class RfTrendChart extends StatelessWidget {
       ..write(DateFormat.yMMMd().format(first))
       ..write(' to ')
       ..write(DateFormat.yMMMd().format(last))
-      ..write(', range ${_fmt(min)} to ${_fmt(max)} $unit');
+      ..write(', range ${formatNumber(min)} to ${formatNumber(max)} $unit');
     return Semantics(
       label: summary.toString(),
       excludeSemantics: true,
@@ -137,9 +138,6 @@ class RfTrendChart extends StatelessWidget {
       ),
     );
   }
-
-  static String _fmt(double v) =>
-      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 }
 
 typedef _Series = ({Color color, List<RfTrendPoint> points});
@@ -184,7 +182,7 @@ class _TrendPainter extends CustomPainter {
     // Lay out tick labels first so the axis is as wide as the widest label.
     final tickPainters = [
       for (var i = 0; i <= _ticks; i++)
-        _painter(RfTrendChart._fmt(lo + (hi - lo) * i / _ticks)),
+        _painter(formatNumber(lo + (hi - lo) * i / _ticks)),
     ];
     final axisWidth =
         tickPainters.map((p) => p.width).reduce(math.max) + _axisGap;

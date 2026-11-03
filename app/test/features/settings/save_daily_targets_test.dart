@@ -35,7 +35,6 @@ void main() {
         GoalKind.carbs: '',
         GoalKind.fat: ' 75 ',
       },
-      existing: const [],
     );
     expect(r, isA<Ok<DailyTargets>>());
     final goals = await repo.watchActive().first;
@@ -48,15 +47,9 @@ void main() {
   });
 
   test('replaces a changed target and keeps an unchanged one', () async {
-    await useCase(
-      input: {GoalKind.calories: '2400', GoalKind.protein: '180'},
-      existing: const [],
-    );
+    await useCase(input: {GoalKind.calories: '2400', GoalKind.protein: '180'});
     final before = await repo.watchActive().first;
-    await useCase(
-      input: {GoalKind.calories: '2200', GoalKind.protein: '180'},
-      existing: before,
-    );
+    await useCase(input: {GoalKind.calories: '2200', GoalKind.protein: '180'});
     final after = await repo.watchActive().first;
     expect(after.length, 2);
     expect(after.firstWhere((g) => g.kind == GoalKind.calories).target, 2200);
@@ -67,23 +60,16 @@ void main() {
   });
 
   test('blank input deactivates an existing target', () async {
-    await useCase(input: {GoalKind.calories: '2400'}, existing: const []);
-    final before = await repo.watchActive().first;
-    await useCase(input: {GoalKind.calories: ''}, existing: before);
+    await useCase(input: {GoalKind.calories: '2400'});
+    await useCase(input: {GoalKind.calories: ''});
     expect(await repo.watchActive().first, isEmpty);
   });
 
   test('rejects an out-of-range or non-numeric value with the field', () async {
-    final r1 = await useCase(
-      input: {GoalKind.calories: '300'},
-      existing: const [],
-    );
+    final r1 = await useCase(input: {GoalKind.calories: '300'});
     final e1 = (r1 as Err<DailyTargets>).error as ValidationError;
     expect(e1.field, 'calories');
-    final r2 = await useCase(
-      input: {GoalKind.protein: 'lots'},
-      existing: const [],
-    );
+    final r2 = await useCase(input: {GoalKind.protein: 'lots'});
     expect(
       ((r2 as Err<DailyTargets>).error as ValidationError).field,
       'protein',

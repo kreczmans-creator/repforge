@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/units/format.dart';
 
 part 'daily_targets.freezed.dart';
 
@@ -68,16 +69,13 @@ Result<double> validateTarget(GoalKind kind, double value) {
   if (value < min || value > max) {
     return Err(
       ValidationError(
-        'Must be between ${_fmt(min)} and ${_fmt(max)}.',
+        'Must be between ${formatNumber(min)} and ${formatNumber(max)}.',
         field: kind.name,
       ),
     );
   }
   return Ok(value);
 }
-
-String _fmt(double v) =>
-    v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 
 /// Today's intake against targets (dashboard, NUT-020).
 @freezed

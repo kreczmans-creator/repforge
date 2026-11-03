@@ -27,4 +27,4 @@ Two independent passes. The first (ten findings) was applied in full: atomic mig
 - Coverage of hand-written code is above 77 %; the threshold gate in CI is still to be added (WP 14).
 
 ## CI evidence
-Filled in below for the final WP 3 commit.
+Commit eeab56e: CI 41708808851 (`No issues found!`, `+236: All tests passed!`), Android build 41708808979, Debug release 41708809043, Integration tests 41708808869 (`+1: All tests passed!`) all success; iOS build 41708808930 cancelled by the next push's concurrency group (iOS passed on the following commit, see WP 4).

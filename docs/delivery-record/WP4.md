@@ -19,6 +19,9 @@ Status: **delivered for owner acceptance** (CI evidence appended when the runs c
 - Targets persist across restart: covered by the integration test's rebuild on the same database.
 - Widget tests for each panel state: empty and populated nutrition/training/activity states covered; error states are rendered by the shared `RfErrorState` (component test).
 
+## Review
+Independent review produced ten findings, all applied: the day key now rolls over while the app is open (minute tick), target replacement is atomic in the goal repository and the use case reads current goals itself, the units preference is applied to every body-weight display, the activity panel has explicit loading and error states, the training panel no longer presents an arbitrary plan as "next", one shared number formatter and a shared `IdGenerator` typedef, settings watched with `select`, and upstream stack traces preserved.
+
 ## Outstanding
 - Food logging and plans do not exist yet, so the nutrition and training panels show empty states until WP 5 and WP 8/9.
 - Imperial display conversion is stored as a preference but not yet applied to screens (first consumer is WP 5's portion entry).

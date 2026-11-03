@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/measurements/weight_entry.dart';
+import 'package:repforge/domain/units/display.dart';
+import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -33,6 +36,9 @@ class _WeightScreenState extends ConsumerState<WeightScreen> {
     super.dispose();
   }
 
+  UnitSystem get _units =>
+      ref.read(settingsProvider).value?.units ?? UnitSystem.metric;
+
   Future<void> _submit() async {
     if (ref.read(weightFormControllerProvider) is WeightFormSubmitting) {
       return;
@@ -47,7 +53,11 @@ class _WeightScreenState extends ConsumerState<WeightScreen> {
       _note.clear();
       FocusScope.of(context).unfocus();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved ${state.entry.weight.label}')),
+        SnackBar(
+          content: Text(
+            'Saved ${formatBodyWeight(state.entry.weight, _units)}',
+          ),
+        ),
       );
       ref.read(weightFormControllerProvider.notifier).reset();
     }
@@ -136,6 +146,9 @@ class _History extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat.yMMMd().add_Hm();
+    final units =
+        ref.watch(settingsProvider.select((s) => s.value?.units)) ??
+        UnitSystem.metric;
     return RfCard(
       padding: const EdgeInsets.symmetric(
         horizontal: RfSpace.s4,
@@ -147,7 +160,7 @@ class _History extends ConsumerWidget {
             RfListTile(
               key: Key('weight-entry-${e.id}'),
               icon: Icons.monitor_weight_outlined,
-              title: e.weight.label,
+              title: formatBodyWeight(e.weight, units),
               subtitle: [
                 dateFormat.format(e.recordedAt.toLocal()),
                 if (e.note != null) e.note!,

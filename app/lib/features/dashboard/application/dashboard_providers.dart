@@ -15,12 +15,22 @@ final dailyTargetsProvider = Provider<AsyncValue<DailyTargets>>(
   (ref) => ref.watch(activeGoalsProvider).whenData(DailyTargets.fromGoals),
 );
 
+/// Ticks once a minute so date-dependent providers roll over at midnight
+/// (or the day-start hour) while the app stays open.
+final minuteTickProvider = StreamProvider<DateTime>((ref) {
+  final clock = ref.watch(clockProvider);
+  return Stream.periodic(const Duration(minutes: 1), (_) => clock.now());
+});
+
 /// Today's diary day key, from the injected clock and the day-start setting.
+/// Re-evaluated every minute; downstream providers only rebuild when the
+/// key actually changes.
 final todayKeyProvider = Provider<String>((ref) {
-  final now = ref.watch(clockProvider).now().toLocal();
-  final dayStart = ref.watch(settingsProvider).value?.dayStartHour ?? 0;
-  final shifted = now.subtract(Duration(hours: dayStart));
-  return dayKey(shifted);
+  final clock = ref.watch(clockProvider);
+  final now = (ref.watch(minuteTickProvider).value ?? clock.now()).toLocal();
+  final dayStart =
+      ref.watch(settingsProvider.select((s) => s.value?.dayStartHour)) ?? 0;
+  return dayKey(now.subtract(Duration(hours: dayStart)));
 });
 
 /// Today's food log entries.
@@ -34,8 +44,12 @@ final todayEntriesProvider = StreamProvider<List<FoodLogEntry>>(
 final todaySummaryProvider = Provider<AsyncValue<DailySummary>>((ref) {
   final entries = ref.watch(todayEntriesProvider);
   final targets = ref.watch(dailyTargetsProvider);
-  if (entries.hasError) return AsyncError(entries.error!, StackTrace.current);
-  if (targets.hasError) return AsyncError(targets.error!, StackTrace.current);
+  if (entries.hasError) {
+    return AsyncError(entries.error!, entries.stackTrace ?? StackTrace.empty);
+  }
+  if (targets.hasError) {
+    return AsyncError(targets.error!, targets.stackTrace ?? StackTrace.empty);
+  }
   if (entries.isLoading || targets.isLoading) return const AsyncLoading();
   return AsyncData(
     DailySummary.fromEntries(
