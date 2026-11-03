@@ -51,7 +51,7 @@ void main() {
 
       expect(await repo.watchAll().first, isEmpty);
       expect(await repo.latest(), isNull);
-      final raw = await db.select(db.weightEntries).get();
+      final raw = await db.select(db.measurements).get();
       expect(raw.single.deletedAt, isNotNull);
     });
 
@@ -59,11 +59,11 @@ void main() {
       final t = DateTime.utc(2026, 11, 1, 8);
       await repo.insert(_entry('a', 80, t));
       await repo.delete('a');
-      final first = (await db.select(db.weightEntries).get()).single;
+      final first = (await db.select(db.measurements).get()).single;
       expect(first.deletedAt, _clock.now());
 
       await repo.delete('a'); // second delete must not re-stamp
-      final second = (await db.select(db.weightEntries).get()).single;
+      final second = (await db.select(db.measurements).get()).single;
       expect(second.updatedAt, first.updatedAt);
     });
 
@@ -71,12 +71,13 @@ void main() {
       final t = DateTime.utc(2026, 11, 1, 8);
       await repo.insert(_entry('ok', 80, t));
       await db
-          .into(db.weightEntries)
+          .into(db.measurements)
           .insert(
-            WeightEntriesCompanion.insert(
+            MeasurementsCompanion.insert(
               id: 'bad',
+              site: 'weight',
+              value: 5, // below Kilograms.min
               recordedAt: t.add(const Duration(days: 1)),
-              weightKg: 5, // below Kilograms.min
               createdAt: t,
               updatedAt: t,
             ),

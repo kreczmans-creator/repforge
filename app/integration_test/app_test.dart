@@ -41,6 +41,7 @@ void main() {
     // label.
     expect(find.text('83.2'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
-    expect(find.textContaining('83.2 kg'), findsOneWidget);
+    // Activity row (and the snackbar while it is still showing).
+    expect(find.textContaining('83.2 kg'), findsAtLeastNWidgets(1));
   });
 }

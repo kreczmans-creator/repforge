@@ -1,0 +1,63 @@
+import 'package:drift/drift.dart';
+import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/goals/goals.dart';
+import 'package:repforge/domain/measurements/measurements.dart';
+
+/// drift-backed [GoalRepository].
+final class DriftGoalRepository implements GoalRepository {
+  DriftGoalRepository(this._db, {required this._clock});
+
+  final AppDatabase _db;
+  final Clock _clock;
+
+  @override
+  Stream<List<Goal>> watchActive() =>
+      (_db.select(_db.goals)
+            ..where((t) => t.deletedAt.isNull() & t.active.equals(true))
+            ..orderBy([(t) => OrderingTerm.asc(t.startDate)]))
+          .watch()
+          .map((rows) => [for (final r in rows) ?toEntity(r)]);
+
+  @override
+  Future<void> upsert(Goal goal) =>
+      _db.into(_db.goals).insertOnConflictUpdate(toRow(goal));
+
+  @override
+  Future<void> delete(String id) async {
+    final now = _clock.now().toUtc();
+    final target = _db.update(_db.goals)
+      ..where((t) => t.id.equals(id) & t.deletedAt.isNull());
+    await target.write(
+      GoalsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+  }
+
+  static Goal? toEntity(GoalRow r) {
+    final kind = GoalKind.values.asNameMap()[r.kind];
+    if (kind == null) return null;
+    return Goal(
+      id: r.id,
+      kind: kind,
+      site: MeasurementSite.values.asNameMap()[r.site ?? ''],
+      target: r.target,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      active: r.active,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    );
+  }
+
+  static GoalsCompanion toRow(Goal g) => GoalsCompanion.insert(
+    id: g.id,
+    kind: g.kind.name,
+    site: Value(g.site?.name),
+    target: g.target,
+    startDate: g.startDate,
+    endDate: Value(g.endDate),
+    active: Value(g.active),
+    createdAt: g.createdAt,
+    updatedAt: g.updatedAt,
+  );
+}

@@ -1,0 +1,30 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/units/units.dart';
+
+part 'settings.freezed.dart';
+
+/// App theme preference.
+enum ThemePreference { dark, light, system }
+
+/// Persisted user settings (replaces the prototype's in-memory targets).
+@freezed
+abstract class AppSettings with _$AppSettings {
+  const factory AppSettings({
+    @Default(UnitSystem.metric) UnitSystem units,
+    @Default(ThemePreference.dark) ThemePreference theme,
+    @Default(ExertionScale.rpe) ExertionScale exertionScale,
+
+    /// Hour (0–23) at which a new diary day starts; 0 = local midnight.
+    @Default(0) int dayStartHour,
+
+    /// 1 = Monday … 7 = Sunday.
+    @Default(1) int weekStartDay,
+  }) = _AppSettings;
+}
+
+abstract interface class SettingsRepository {
+  Stream<AppSettings> watch();
+  Future<AppSettings> read();
+  Future<void> save(AppSettings settings);
+}

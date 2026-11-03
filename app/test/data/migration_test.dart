@@ -1,0 +1,84 @@
+import 'package:drift/drift.dart';
+import 'package:drift_dev/api/migrations_native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:repforge/data/db/app_database.dart';
+
+import 'generated_migrations/schema.dart';
+import 'generated_migrations/schema_v1.dart' as v1;
+import 'generated_migrations/schema_v2.dart' as v2;
+
+/// Every schema version must migrate to the current one without loss. Add a
+/// case here for each new version (R-07: data loss from an untested
+/// migration is the project's top data-integrity risk).
+void main() {
+  late SchemaVerifier verifier;
+
+  setUpAll(() {
+    verifier = SchemaVerifier(GeneratedHelper());
+  });
+
+  test('schema v1 upgrades to v2 and the structure matches', () async {
+    final connection = await verifier.startAt(1);
+    final db = AppDatabase(connection);
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 2);
+  });
+
+  test(
+    'v1 weight_entries rows become v2 measurements (site = weight)',
+    () async {
+      final schema = await verifier.schemaAt(1);
+      final oldDb = v1.DatabaseAtV1(schema.newConnection());
+      await oldDb
+          .into(oldDb.weightEntries)
+          .insert(
+            v1.WeightEntriesCompanion.insert(
+              id: 'w1',
+              recordedAt: '2026-11-01T08:00:00.000Z',
+              weightKg: 82.4,
+              note: const Value('morning'),
+              createdAt: '2026-11-01T08:00:00.000Z',
+              updatedAt: '2026-11-01T08:00:00.000Z',
+            ),
+          );
+      await oldDb
+          .into(oldDb.weightEntries)
+          .insert(
+            v1.WeightEntriesCompanion.insert(
+              id: 'w2',
+              recordedAt: '2026-11-02T08:00:00.000Z',
+              weightKg: 81.9,
+              createdAt: '2026-11-02T08:00:00.000Z',
+              updatedAt: '2026-11-02T08:00:00.000Z',
+              deletedAt: const Value('2026-11-03T00:00:00.000Z'),
+            ),
+          );
+      await oldDb.close();
+
+      final db = AppDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 2);
+
+      final migrated = v2.DatabaseAtV2(schema.newConnection());
+      addTearDown(migrated.close);
+      final rows = await (migrated.select(
+        migrated.measurements,
+      )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+      expect(rows.map((r) => r.id), ['w1', 'w2']);
+      expect(rows.first.site, 'weight');
+      expect(rows.first.value, 82.4);
+      expect(rows.first.note, 'morning');
+      expect(rows.first.recordedAt, '2026-11-01T08:00:00.000Z');
+      expect(rows.last.deletedAt, '2026-11-03T00:00:00.000Z');
+      expect(
+        await migrated
+            .customSelect(
+              'SELECT name FROM sqlite_master '
+              "WHERE type='table' AND name='weight_entries'",
+            )
+            .get(),
+        isEmpty,
+      );
+    },
+  );
+}

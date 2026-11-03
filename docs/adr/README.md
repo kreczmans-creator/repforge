@@ -10,3 +10,4 @@ Format: see `ADR-0001`. Required fields: ID, Title, Status (Proposed / Accepted 
 | ADR-0002 | Adopt Flutter as the cross-platform framework | Accepted (2026-11-01) |
 | ADR-0003 | Git tree, not ZIP archives, is the source of truth | Accepted (2026-11-01) |
 | ADR-0004 | Local-first persistence with SQLite via drift; cloud sync deferred | Accepted (2026-11-01) |
+| ADR-0005 | Encryption at rest and privacy of locally stored fitness data | Accepted (2026-11-03) |

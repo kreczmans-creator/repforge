@@ -27,6 +27,7 @@ Scales: Severity and Impact: Low / Medium / High / Critical. Likelihood: Low / M
 | TD-17 | No app icon, no resources directory, no ProGuard/R8 rules, no release signing configuration. | Low | Certain | Low | Addressed by new app scaffolding. | — | P3 |
 | TD-18 | Food search results have no pagination, no debouncing and run on every button press; trend chart has no axis labels or dates. | Low | Certain | Low | Design system chart component. | — | P3 |
 | TD-19 | README states "has not been compiled or device-tested" and lists v0.1.0 in Settings while archive says v0.3.0. Version identity inconsistent. | Low | Certain | Low | Single version source in `pubspec.yaml`. | — | P3 |
+| TD-21 | iOS database directory is not yet excluded from iCloud backup (needs a native hook; Dart cannot set the attribute). ADR-0005. | Medium | Certain | Medium | Add a small Swift shim or plugin in WP 12. | — | P2 |
 | TD-20 | GitHub Actions use action majors pinned to Node 20 (deprecated); forced onto Node 24. | Low | High | Low | Upgrade action versions in WP 1. | — | P2 |
 
 ## B. Project and delivery risks
