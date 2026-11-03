@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/db/open_database.dart';
+import 'package:repforge/data/external/open_food_facts_client.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
 import 'package:repforge/data/repositories/drift_exercise_repository.dart';
 import 'package:repforge/data/repositories/drift_food_log_repository.dart';
@@ -8,6 +10,7 @@ import 'package:repforge/data/repositories/drift_food_repository.dart';
 import 'package:repforge/data/repositories/drift_goal_repository.dart';
 import 'package:repforge/data/repositories/drift_measurement_repository.dart';
 import 'package:repforge/data/repositories/drift_recipe_repository.dart';
+import 'package:repforge/data/repositories/drift_saved_meal_repository.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/data/repositories/drift_weight_repository.dart';
 import 'package:repforge/data/repositories/drift_workout_plan_repository.dart';
@@ -18,7 +21,9 @@ import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_repository.dart';
 import 'package:repforge/domain/measurements/weight_repository.dart';
+import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/food_repository.dart';
+import 'package:repforge/domain/nutrition/saved_meal_repository.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training_repository.dart';
@@ -147,4 +152,25 @@ final saveDailyTargetsProvider = Provider<SaveDailyTargets>(
 
 final saveSettingsProvider = Provider<SaveSettings>(
   (ref) => SaveSettings(repository: ref.watch(settingsRepositoryProvider)),
+);
+
+final savedMealRepositoryProvider = Provider<SavedMealRepository>(
+  (ref) => DriftSavedMealRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Shared HTTP client. Tests override [foodLookupServiceProvider] instead.
+final dioProvider = Provider<Dio>((ref) {
+  final dio = Dio();
+  ref.onDispose(dio.close);
+  return dio;
+});
+
+final foodLookupServiceProvider = Provider<FoodLookupService>(
+  (ref) => OpenFoodFactsClient(
+    dio: ref.watch(dioProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );

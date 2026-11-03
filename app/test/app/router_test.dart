@@ -29,9 +29,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Track'), findsWidgets);
     expect(find.byKey(const Key('weight-input')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-fuel')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('log-food')), findsOneWidget);
     for (final (key, label) in [
       ('nav-train', 'Train'),
-      ('nav-fuel', 'Fuel'),
       ('nav-goals', 'Goals'),
     ]) {
       await tester.tap(find.byKey(Key(key)));

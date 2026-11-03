@@ -14,6 +14,7 @@ environment:
 # through a reviewed change that re-runs the full test suite on both platforms.
 dependencies:
   cupertino_icons: 1.0.8
+  dio: 5.11.1
   drift: 2.35.3
   drift_flutter: 0.3.1
   flutter:

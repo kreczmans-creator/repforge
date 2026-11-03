@@ -15,6 +15,9 @@ abstract interface class FoodLogRepository {
   Stream<List<FoodLogEntry>> watchDay(String day);
   Future<List<FoodLogEntry>> forDays(String fromDay, String toDay);
   Future<void> insert(FoodLogEntry entry);
+
+  /// Inserts all entries atomically (all or none).
+  Future<void> insertAll(List<FoodLogEntry> entries);
   Future<void> update(FoodLogEntry entry);
   Future<void> delete(String id);
 }

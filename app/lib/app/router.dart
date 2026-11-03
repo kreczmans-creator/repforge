@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
 import 'package:repforge/features/measurements/presentation/weight_screen.dart';
+import 'package:repforge/features/nutrition/presentation/custom_food_screen.dart';
+import 'package:repforge/features/nutrition/presentation/food_search_screen.dart';
+import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
+import 'package:repforge/features/nutrition/presentation/saved_meals_screen.dart';
+import 'package:repforge/features/nutrition/presentation/weekly_summary_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
 import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/ui/components/rf_brand_mark.dart';
@@ -14,6 +19,10 @@ abstract final class RfRoutes {
   static const home = '/home';
   static const train = '/train';
   static const fuel = '/fuel';
+  static const fuelSearch = '/fuel/search';
+  static const fuelNewFood = '/fuel/new-food';
+  static const fuelWeek = '/fuel/week';
+  static const fuelSavedMeals = '/fuel/saved-meals';
   static const track = '/track';
   static const goals = '/goals';
 
@@ -29,7 +38,10 @@ abstract final class RfRoutes {
 /// (Home · Train · Fuel · Track · Goals, per the brand mock-up) with one
 /// branch per tab. Train, Fuel and Goals are labelled placeholders until their
 /// work packages land; Track hosts body-weight logging.
+final _rootKey = GlobalKey<NavigatorState>();
+
 GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
+  navigatorKey: _rootKey,
   initialLocation: initialLocation,
   routes: [
     StatefulShellRoute.indexedStack(
@@ -60,12 +72,29 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
           routes: [
             GoRoute(
               path: RfRoutes.fuel,
-              builder: (context, state) => const PillarPlaceholderScreen(
-                title: 'Fuel',
-                caption: 'Food log, recipes and macros',
-                feature: 'Food database, barcode scanning and recipes',
-                workPackage: 'WP 5 to WP 7',
-              ),
+              builder: (context, state) => const FuelScreen(),
+              routes: [
+                GoRoute(
+                  path: 'search',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const FoodSearchScreen(),
+                ),
+                GoRoute(
+                  path: 'new-food',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const CustomFoodScreen(),
+                ),
+                GoRoute(
+                  path: 'week',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const WeeklySummaryScreen(),
+                ),
+                GoRoute(
+                  path: 'saved-meals',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const SavedMealsScreen(),
+                ),
+              ],
             ),
           ],
         ),

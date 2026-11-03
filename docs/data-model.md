@@ -1,4 +1,4 @@
-# RepForge data model (schema v2)
+# RepForge data model (schema v3)
 
 Source of truth: `app/lib/data/db/tables.dart` (drift tables) and `app/lib/domain/**` (entities). Snapshots: `app/drift_schemas/drift_schema_v{n}.json`; migration tests: `app/test/data/migration_test.dart`.
 
@@ -37,6 +37,7 @@ Solid lines are foreign keys with cascade delete; dotted lines are loose referen
 | `foods` | Food database | `per100_unit`, `kcal`, `protein_g`, `carbs_g`, `fat_g`, `fibre_g?`, `provenance`, `source`, `barcode?`, `search_key` (lower-cased, diacritic-stripped) |
 | `food_servings` | Named servings of a food | `label`, `amount`, `unit`, `sort_order` |
 | `food_log_entries` | Diary entries with nutrient snapshot | `day` (YYYY-MM-DD local), `meal`, `amount`, `unit`, nutrient columns, `provenance`, `logged_at`, `food_id?`, `recipe_id?` |
+| `saved_meals` / `saved_meal_items` | Named sets of logged items re-logged in one action; item nutrients are the snapshot for the stored amount | `name`, `default_meal?`; items: `amount`, `unit`, nutrient columns, `provenance`, `sort_order` |
 | `recipes` | Recipes | `portions`, prep/cook minutes, storage, `freezer_friendly`, reheating, `favourite`, `method_steps_json`, declared per-portion nutrients (nullable), `nutrition_note` |
 | `recipe_ingredients` | Ingredient lines with optional per-100 nutrient snapshot in the line's unit | `amount`, `unit`, `sort_order`, `food_id?`, nutrient columns?, `provenance?` |
 | `exercises` | Exercise library | `type` (weighted/bodyweight/assisted/timed/distance/cardio), `category`, `primary_muscle`, `secondary_muscles_json`, `equipment_json`, `is_custom`, `archived` |
@@ -56,7 +57,8 @@ Solid lines are foreign keys with cascade delete; dotted lines are loose referen
 ## Migrations
 | From → to | What happens | Test |
 |---|---|---|
-| 1 → 2 | Creates all new tables; copies `weight_entries` into `measurements` with `site = weight` (including soft-deleted rows); drops `weight_entries` | `migration_test.dart`: structure validated with drift's `SchemaVerifier`; data copy asserted row by row |
+| 2 → 3 | Adds `saved_meals`, `saved_meal_items` and their index | `migration_test.dart` (v2→v3 keeps rows; v1→v3 direct) |
+| 1 → 2 | Creates the full current schema (`createAll`) and returns; copies `weight_entries` into `measurements` with `site = weight` (including soft-deleted rows); drops `weight_entries` | `migration_test.dart`: structure validated with drift's `SchemaVerifier`; data copy asserted row by row |
 
 Adding a version: bump `schemaVersion`, add the step in `onUpgrade`, run `dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/drift_schema_v{n}.json` and `dart run drift_dev schema generate --data-classes --companions drift_schemas/ test/data/generated_migrations/`, then add a case to the migration test.
 

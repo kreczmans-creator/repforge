@@ -9,3 +9,6 @@ String formatNumber(double v, {int maxDecimals = 1}) {
       ? s.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '')
       : s;
 }
+
+/// Whole-number form used in dense diary rows: 82.4 → "82".
+String whole(double v) => formatNumber(v, maxDecimals: 0);

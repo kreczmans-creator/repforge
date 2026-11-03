@@ -37,6 +37,7 @@ FoodLogEntry _entry(
 );
 
 void main() {
+  _insertAllTests();
   late AppDatabase db;
   late DriftFoodLogRepository repo;
 
@@ -142,5 +143,49 @@ void main() {
           ),
         );
     expect((await repo.watchDay('2026-11-01').first).map((e) => e.id), ['ok']);
+  });
+}
+
+void _insertAllTests() {
+  group('DriftFoodLogRepository.insertAll', () {
+    late AppDatabase db;
+    late DriftFoodLogRepository repo;
+    setUp(() {
+      db = AppDatabase.inMemory();
+      repo = DriftFoodLogRepository(db, clock: _clock);
+    });
+    tearDown(() => db.close());
+
+    FoodLogEntry e(String id) => FoodLogEntry(
+      id: id,
+      day: '2026-11-03',
+      meal: MealSlot.lunch,
+      name: id,
+      quantity: Quantity.fromStored(100, ReferenceUnit.grams),
+      nutrients: const NutrientAmounts(
+        kcal: 1,
+        proteinG: 1,
+        carbsG: 1,
+        fatG: 1,
+      ),
+      provenance: DataProvenance.userEntered,
+      loggedAt: _clock.now(),
+      createdAt: _clock.now(),
+      updatedAt: _clock.now(),
+    );
+
+    test('inserts every entry', () async {
+      await repo.insertAll([e('a'), e('b'), e('c')]);
+      expect((await repo.watchDay('2026-11-03').first).length, 3);
+    });
+
+    test('is all-or-nothing when one row is invalid', () async {
+      await repo.insert(e('a'));
+      await expectLater(
+        repo.insertAll([e('b'), e('a')]), // duplicate primary key
+        throwsA(anything),
+      );
+      expect((await repo.watchDay('2026-11-03').first).map((x) => x.id), ['a']);
+    });
   });
 }

@@ -47,6 +47,13 @@ final class DriftFoodLogRepository implements FoodLogRepository {
       _db.into(_db.foodLogEntries).insert(logEntryToRow(entry));
 
   @override
+  Future<void> insertAll(List<FoodLogEntry> entries) => _db.transaction(
+    () => _db.batch(
+      (b) => b.insertAll(_db.foodLogEntries, entries.map(logEntryToRow)),
+    ),
+  );
+
+  @override
   Future<void> update(FoodLogEntry entry) async {
     final now = _clock.now().toUtc();
     final row = logEntryToRow(entry);

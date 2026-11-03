@@ -69,6 +69,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: widget tests; integration test "change target, restart, verify".
 
 ### WP 5 — Nutrition and food database
+- Status: **Delivered for acceptance 2026-11-03** (`docs/delivery-record/WP5.md`).
 - Objective: fast, correct food logging.
 - Scope: food search (Open Food Facts client with typed errors, debounce, caching), custom foods, custom serving sizes, portion entry in g/ml/servings, meal assignment, daily diary with edit/delete, date navigation, fibre, saved meals, provenance labels, daily and weekly summaries.
 - Dependencies: WP 4.
