@@ -29,6 +29,11 @@ Scales: Severity and Impact: Low / Medium / High / Critical. Likelihood: Low / M
 | TD-19 | README states "has not been compiled or device-tested" and lists v0.1.0 in Settings while archive says v0.3.0. Version identity inconsistent. | Low | Certain | Low | Single version source in `pubspec.yaml`. | — | P3 |
 | TD-21 | iOS database directory is not yet excluded from iCloud backup (needs a native hook; Dart cannot set the attribute). ADR-0005. | Medium | Certain | Medium | Add a small Swift shim or plugin in WP 12. | — | P2 |
 | TD-20 | GitHub Actions use action majors pinned to Node 20 (deprecated); forced onto Node 24. | Low | High | Low | Upgrade action versions in WP 1. | — | P2 |
+| TD-22 | Backup import checks `formatVersion` only, not `schemaVersion`; unknown tables/columns are dropped silently, and tables are restored in file order with foreign keys on. A file from a newer schema restores with silent loss. WP 3 audit A3. | Low | Low | Medium | Refuse files whose `schemaVersion` is newer than the app's, or migrate them; restore in declaration order. Do this with the backup UI in WP 10. | — | P2 |
+| TD-23 | `DriftExerciseRepository.archive` is not guarded by `deleted_at IS NULL`, unlike every other update. WP 3 audit A4. | Low | Low | Low | Add the guard with the exercise library in WP 8. | — | P3 |
+| TD-24 | Coverage threshold is not set or enforced in CI (D06 WP 3 verification; standards §7). Hand-written coverage at the WP 3 commit is 84.6 %. WP 3 audit A5. | Medium | Certain | Medium | Owner decision at WP 3 acceptance: enforce 80 % on hand-written code now, or record the deferral in an ADR. | — | P2 |
+| TD-25 | `tables.dart` has no `CHECK` or unique constraints (standards §6), and the lenient mappers skip corrupt rows without a `Logger` call (§5), so data loss on read is invisible. WP 3 audit A6. | Low | Low | Medium | Add constraints with the next schema version; log skipped rows at warning level. | — | P3 |
+| TD-26 | No `CHANGELOG.md` exists although standards §8 require each package to update it; test paths do not mirror `lib/` (§7). WP 3 audit A6. | Low | Certain | Low | Create the changelog from the delivery records at the next package; decide whether to keep or amend the §7 path rule. | — | P3 |
 
 ## B. Project and delivery risks
 

@@ -43,7 +43,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: README, ADRs, D03 updated with pinned versions.
 
 ### WP 2 — Application foundation and design system
-- Status: **Delivered 2026-11-03** (`docs/delivery-record/WP2.md`); owner review of the brand deviations pending.
+- Status: **Accepted by the owner 2026-11-03** (`docs/delivery-record/WP2.md`); the four brand deviations are approved; TalkBack/VoiceOver device pass and Stage 2 glyph exports remain tracked items.
 - Objective: reusable UI system before any feature screens.
 - Scope: design tokens (colour, typography, spacing, radii, elevation), light and dark themes, components (`RfCard`, `RfButton`, `RfTextField` with numeric/unit variants, `RfMacroBar`, `RfStatTile`, `RfTrendChart`, `RfEmptyState`, `RfErrorState`, `RfLoading`, `RfListTile`), navigation shell with bottom tabs, accessibility baseline (48 dp targets, semantics labels, text scaling), a component gallery screen (debug only), golden tests.
 - Dependencies: WP 1.

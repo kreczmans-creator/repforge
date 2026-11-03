@@ -50,7 +50,7 @@ Solid lines are foreign keys with cascade delete; dotted lines are loose referen
 
 ## Domain rules with tests
 - Nutrition: `NutrientProfile.forQuantity` (per-100 × quantity ÷ 100; unit mismatch is a validation error), `NutrientAmounts` sum/scale with fibre-null propagation, `validateNutrientsPer100` (non-negative, ≤100 g per macro, ≤900 kcal), `dayKey`.
-- Recipes: per-portion nutrition is computed when every ingredient has a snapshot, otherwise the declared estimate is used and labelled `estimated`; `forPortions` scales.
+- Recipes: per-portion nutrition is computed when every ingredient has a snapshot, otherwise the declared estimate is used and labelled `estimated`; a computed recipe is `estimated` if any ingredient snapshot is estimated, `verified` only if all are verified, otherwise `userEntered`; `forPortions` scales.
 - Training: `volumeKg` (load×reps for weighted; added load×reps for bodyweight; others 0), `estimatedOneRepMax` (Epley, 1–12 reps, 1 rep = load), `maxLoadFor`, `isPersonalRecord` per type (ties are not records), `validReps` (1–100), `validExertion` (RPE 1–10 / RIR 0–10 in half steps).
 - Units: `Quantity` (≥0, 0.1 steps), `Kilograms` (20–500, 0.1), `Centimetres` (10–300, 0.1), `LoadKg` (0–1000, 0.25), display conversions kg↔lb, cm↔in, g↔oz, ml↔fl oz.
 
@@ -58,7 +58,7 @@ Solid lines are foreign keys with cascade delete; dotted lines are loose referen
 | From → to | What happens | Test |
 |---|---|---|
 | 2 → 3 | Adds `saved_meals`, `saved_meal_items` and their index | `migration_test.dart` (v2→v3 keeps rows; v1→v3 direct) |
-| 1 → 2 | Creates the full current schema (`createAll`) and returns; copies `weight_entries` into `measurements` with `site = weight` (including soft-deleted rows); drops `weight_entries` | `migration_test.dart`: structure validated with drift's `SchemaVerifier`; data copy asserted row by row |
+| 1 → 2 | Creates the full current schema and returns; copies `weight_entries` into `measurements` with `site = weight` (including soft-deleted rows); drops `weight_entries`. Idempotent: every statement is guarded, so a re-run after a crash before `user_version` is written is a no-op | `migration_test.dart`: structure validated with drift's `SchemaVerifier`; data copy asserted row by row |
 
 Adding a version: bump `schemaVersion`, add the step in `onUpgrade`, run `dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/drift_schema_v{n}.json` and `dart run drift_dev schema generate --data-classes --companions drift_schemas/ test/data/generated_migrations/`, then add a case to the migration test.
 

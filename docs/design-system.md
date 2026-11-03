@@ -77,6 +77,8 @@ Navigation: five-pillar bottom bar Home · Train · Fuel · Track · Goals (bran
 - Manual TalkBack and VoiceOver pass: not yet performed (owner device checklist, WP 14).
 
 ## 7. Deviations from the brand document (recorded for approval)
+
+**All four deviations were approved by the owner on 2026-11-03** (`docs/delivery-record/WP2.md`, “Owner acceptance”). Deviation 4 is approved as an interim implementation: the Material navigation icons are to be replaced when the approved glyph exports arrive.
 1. Amber Ink darkened from `#B45F00` to `#A85800` so amber text also passes 4.5:1 on Surface 2 (`#F5F1EB`), not only on white.
 2. Light-mode semantic inks (`#14763A` success, `#1D4ED8` info, `#C62828` alert) chosen for small text, as the document defers to "Stage 2"; dark-mode small semantic text uses tints (`#4ADE80`, `#60A5FA`, `#F87171`) because the brand fills are AA-large-only on Surface 1.
 3. Light-theme snackbars are inverted (slate background, light text) so they read as transient; the document does not specify snackbars.

@@ -1,6 +1,6 @@
 # Delivery record — WP 2: Application foundation and design system
 
-Status: **delivered for owner acceptance** (started 2026-11-03 after WP 1 acceptance and merge of PR #1; design implementation complete, CI green on the final WP 2 commit 06cadb6 except the integration assertion fixed in WP 3)
+Status: **accepted by the owner on 2026-11-03** (see “Owner acceptance” below; started 2026-11-03 after WP 1 acceptance and merge of PR #1; design implementation complete, CI green on the final WP 2 commit 06cadb6 except the integration assertion fixed in WP 3)
 Branch: `ccr-ac6db77c-jcnexo`, restarted from `main` at 30e51b0.
 
 ## Task 1 — ADR-0003 step 2: remove ZIP archives and legacy workflow (done)
@@ -34,7 +34,25 @@ Independent review of the design-system code produced ten findings, all applied 
 | 06cadb6 (dark default) | CI / Android / iOS / Debug release | 41699874953 / 41699874428 / 41699874379 / 41699874318 | success |
 | 06cadb6 | Integration tests | 41699874286 | failure (`textContaining('83.2 kg')` matched the activity row and the still-visible snackbar; assertion relaxed in the WP 3 commit) |
 
+## Owner acceptance (2026-11-03)
+The owner accepted WP 2 and approved all four deviations recorded in `docs/design-system.md` §7:
+
+| Deviation | Decision | Owner rationale |
+|---|---|---|
+| 1. Amber Ink #A85800 | Approved | Accessibility takes precedence over preserving an unsuitable text colour. |
+| 2. Semantic inks and tints | Approved | Appropriate completion of the previously deferred Stage 2 decisions. |
+| 3. Light-mode snackbars | Approved | Sensible contrast and visual hierarchy. |
+| 4. Material navigation icons | Approved | Acceptable interim implementation, provided the approved glyph exports replace them when available. |
+
+Acceptance conditions carried forward (tracked items, not blockers; WP 2 is not to be reopened without a demonstrated defect):
+- Accessibility: complete physical-device TalkBack and VoiceOver testing; record findings and remediation.
+- Brand glyphs: replace the temporary Material navigation icons when the approved exports arrive.
+- Theme integrity: retain automated WCAG AA contrast enforcement for both themes.
+- Regression protection: keep both light and dark gallery goldens and component tests in CI.
+
+Progression to WP 3 authorised by the owner.
+
 ## Outstanding
 - Manual TalkBack/VoiceOver pass on devices (owner, WP 14 checklist).
 - Stage 2 glyph exports from the brand (navigation currently uses Material icons; the twelve tile icons are bundled unused).
-- Owner review of the four deviations in `docs/design-system.md` §7.
+- ~~Owner review of the four deviations in `docs/design-system.md` §7.~~ Approved 2026-11-03.
