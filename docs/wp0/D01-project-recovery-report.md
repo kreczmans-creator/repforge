@@ -1,6 +1,6 @@
 # D01 — Project Recovery Report
 
-Status: Final for WP 0
+Status: Final for WP 0. Historical note: the ZIP archives and the legacy workflow described here were removed from the tree on 2026-11-03 (ADR-0003 step 2); they remain in git history at commits 78cffbd, bfd0b34 and de7c0b1.
 Date: 2026-10-31
 Evidence basis: repository at commit `de7c0b1` (main), GitHub Actions runs 1–9 of workflow `build-android-apk.yml`, full job logs of runs 8 and 9, archive contents of both ZIPs, and a local build reproduction (§5).
 

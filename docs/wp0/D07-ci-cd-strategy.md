@@ -54,4 +54,4 @@ Verdict: the workflow infrastructure is now adequate for a Gradle build, but it 
 
 ## 4. Transition plan
 1. **Done in WP 1:** `ci.yml`, `android.yml`, `ios.yml` and `integration.yml` exist and pass (`docs/delivery-record/WP1.md`). The old workflow `build-android-apk.yml` is renamed in its `name:` to "Legacy ZIP build (manual only)" and runs only on `workflow_dispatch`.
-2. The Flutter debug APK is produced by CI (WP 1). Removal of the ZIPs and the legacy workflow is now unblocked under ADR-0003 (accepted) and is scheduled as the first task of WP 2, after the owner confirms the APK installs on a device.
+2. **Done 2026-11-03 (WP 2, first task):** the owner confirmed the APK on a physical device, PR #1 was merged, and the ZIPs plus `build-android-apk.yml` were removed under ADR-0003. The remaining workflows are the Flutter ones in §2.1.

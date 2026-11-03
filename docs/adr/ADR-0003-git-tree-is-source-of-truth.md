@@ -22,5 +22,9 @@ Version control only has value when it tracks the source. Removal is deferred un
 - The legacy workflow is switched to manual trigger in WP 1 and deleted with the ZIPs.
 - Future changes to any source arrive as commits and pull requests, never as uploaded archives.
 
+## Execution
+- Step 1 (extraction to `legacy/android`, verbatim): WP 0, commit 3625e78.
+- Step 2 (removal): executed 2026-11-03 at the start of WP 2, after WP 1 acceptance and merge of PR #1. Removed `RepForge-Android-Project.zip`, `RepForge-v0.3.0-Android-source.zip` and `.github/workflows/build-android-apk.yml`. The archives remain in git history (commits 78cffbd and bfd0b34); `legacy/android` stays as read-only reference.
+
 ## Approval
 Owner direction at acceptance: retain the Kotlin implementation under `legacy/android` as read-only reference; retire ZIP-based development and CI only after the replacement pipeline is verified. Preserve useful legacy recipe data, product knowledge, assets and domain concepts where technically appropriate; do not migrate the old architecture merely to preserve code.
