@@ -43,5 +43,27 @@ void main() {
     expect(find.text('1'), findsOneWidget);
     // Activity row (and the snackbar while it is still showing).
     expect(find.textContaining('83.2 kg'), findsAtLeastNWidgets(1));
+
+    // Settings: set a calorie target, then rebuild the whole app on the same
+    // database (simulated restart) and confirm the dashboard uses it.
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('target-calories')), '2100');
+    await tester.ensureVisible(find.byKey(const Key('save-targets')));
+    await tester.tap(find.byKey(const Key('save-targets')));
+    await tester.pumpAndSettle();
+    expect(find.text('Targets saved'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const RepForgeApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('0 of 2100'), findsOneWidget);
+    expect(find.text('83.2'), findsOneWidget); // weight survived too
   });
 }

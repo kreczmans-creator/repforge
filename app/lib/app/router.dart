@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
 import 'package:repforge/features/measurements/presentation/weight_screen.dart';
+import 'package:repforge/features/settings/presentation/settings_screen.dart';
 import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/ui/components/rf_brand_mark.dart';
 import 'package:repforge/ui/gallery/gallery_screen.dart';
@@ -15,6 +16,8 @@ abstract final class RfRoutes {
   static const fuel = '/fuel';
   static const track = '/track';
   static const goals = '/goals';
+
+  static const settings = '/settings';
 
   /// Debug-only component gallery.
   static const gallery = '/gallery';
@@ -89,6 +92,10 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
         ),
       ],
     ),
+    GoRoute(
+      path: RfRoutes.settings,
+      builder: (context, state) => const SettingsScreen(),
+    ),
     if (kDebugMode)
       GoRoute(
         path: RfRoutes.gallery,
@@ -110,6 +117,12 @@ class _Shell extends StatelessWidget {
         title: const RfBrandMark(),
         titleSpacing: RfSpace.gutter,
         actions: [
+          IconButton(
+            key: const Key('open-settings'),
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => context.push(RfRoutes.settings),
+          ),
           if (kDebugMode)
             IconButton(
               key: const Key('open-gallery'),

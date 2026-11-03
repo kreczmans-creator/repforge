@@ -24,7 +24,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Recent activity'), findsOneWidget);
+    expect(find.byKey(const Key('kcal-tile')), findsOneWidget);
     await tester.tap(find.byKey(const Key('nav-track')));
     await tester.pumpAndSettle();
     expect(find.text('Track'), findsWidgets);
@@ -41,7 +41,7 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
-    expect(find.text('Recent activity'), findsOneWidget);
+    expect(find.byKey(const Key('kcal-tile')), findsOneWidget);
     await unmount(tester);
   });
 }

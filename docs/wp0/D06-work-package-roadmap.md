@@ -61,6 +61,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: `docs/data-model.md` with ER diagram.
 
 ### WP 4 — Navigation, dashboard and application shell
+- Status: **Delivered for acceptance 2026-11-03** (`docs/delivery-record/WP4.md`).
 - Objective: the daily "cockpit" screen and navigation between domains.
 - Scope: go_router routes, bottom navigation (Home, Food, Recipes, Train, Progress, Settings), dashboard showing today's calories/macros vs targets, next session, latest weight, workouts count; settings screen with persisted targets and units; empty states for every panel.
 - Dependencies: WP 2, WP 3.

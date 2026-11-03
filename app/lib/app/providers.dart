@@ -2,18 +2,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/db/open_database.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
+import 'package:repforge/data/repositories/drift_exercise_repository.dart';
+import 'package:repforge/data/repositories/drift_food_log_repository.dart';
+import 'package:repforge/data/repositories/drift_food_repository.dart';
 import 'package:repforge/data/repositories/drift_goal_repository.dart';
 import 'package:repforge/data/repositories/drift_measurement_repository.dart';
+import 'package:repforge/data/repositories/drift_recipe_repository.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/data/repositories/drift_weight_repository.dart';
+import 'package:repforge/data/repositories/drift_workout_plan_repository.dart';
+import 'package:repforge/data/repositories/drift_workout_session_repository.dart';
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_repository.dart';
 import 'package:repforge/domain/measurements/weight_repository.dart';
+import 'package:repforge/domain/nutrition/food_repository.dart';
+import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/settings/settings.dart';
+import 'package:repforge/domain/training/training_repository.dart';
 import 'package:repforge/features/measurements/application/delete_weight_entry.dart';
 import 'package:repforge/features/measurements/application/record_body_weight.dart';
+import 'package:repforge/features/settings/application/save_daily_targets.dart';
+import 'package:repforge/features/settings/application/save_settings.dart';
 import 'package:uuid/uuid.dart';
 
 /// Composition root. Tests override [databaseProvider] (and [clockProvider],
@@ -81,4 +92,58 @@ final backupRepositoryProvider = Provider<BackupRepository>(
 /// Live settings; defaults until the first save.
 final settingsProvider = StreamProvider<AppSettings>(
   (ref) => ref.watch(settingsRepositoryProvider).watch(),
+);
+
+final foodRepositoryProvider = Provider<FoodRepository>(
+  (ref) => DriftFoodRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final foodLogRepositoryProvider = Provider<FoodLogRepository>(
+  (ref) => DriftFoodLogRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final recipeRepositoryProvider = Provider<RecipeRepository>(
+  (ref) => DriftRecipeRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final exerciseRepositoryProvider = Provider<ExerciseRepository>(
+  (ref) => DriftExerciseRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final workoutPlanRepositoryProvider = Provider<WorkoutPlanRepository>(
+  (ref) => DriftWorkoutPlanRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final workoutSessionRepositoryProvider = Provider<WorkoutSessionRepository>(
+  (ref) => DriftWorkoutSessionRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final saveDailyTargetsProvider = Provider<SaveDailyTargets>(
+  (ref) => SaveDailyTargets(
+    repository: ref.watch(goalRepositoryProvider),
+    clock: ref.watch(clockProvider),
+    newId: ref.watch(idGeneratorProvider),
+  ),
+);
+
+final saveSettingsProvider = Provider<SaveSettings>(
+  (ref) => SaveSettings(repository: ref.watch(settingsRepositoryProvider)),
 );
