@@ -4,9 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/measurements/weight_entry.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
+import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
+import 'package:repforge/ui/components/rf_list_tile.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
+import 'package:repforge/ui/components/rf_section_header.dart';
 import 'package:repforge/ui/components/rf_states.dart';
+import 'package:repforge/ui/components/rf_text_field.dart';
 import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
 
@@ -53,87 +57,73 @@ class _WeightScreenState extends ConsumerState<WeightScreen> {
   Widget build(BuildContext context) {
     final entries = ref.watch(weightEntriesProvider);
     final form = ref.watch(weightFormControllerProvider);
-    final theme = Theme.of(context);
     final errorText = form is WeightFormFailed
         ? userMessageFor(form.error)
         : null;
 
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: RfSpace.lg),
-          children: [
-            const RfScreenTitle(
-              kicker: 'Measure what matters',
-              title: 'Body weight',
-            ),
-            RfCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Log weight', style: theme.textTheme.labelSmall),
-                  const SizedBox(height: RfSpace.md),
-                  TextField(
-                    key: const Key('weight-input'),
-                    controller: _weight,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: 'Weight (kg)',
-                      hintText: 'e.g. 82.4',
-                      errorText: errorText,
-                    ),
-                    onChanged: (_) {
-                      if (form is WeightFormFailed) {
-                        ref.read(weightFormControllerProvider.notifier).reset();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: RfSpace.md),
-                  TextField(
-                    key: const Key('note-input'),
-                    controller: _note,
-                    textInputAction: TextInputAction.done,
-                    decoration: const InputDecoration(
-                      labelText: 'Note (optional)',
-                    ),
-                    onSubmitted: (_) => _submit(),
-                  ),
-                  const SizedBox(height: RfSpace.lg),
-                  FilledButton(
-                    key: const Key('save-weight'),
-                    onPressed: form is WeightFormSubmitting ? null : _submit,
-                    child: Text(
-                      form is WeightFormSubmitting ? 'Saving…' : 'Save weight',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: RfSpace.lg),
-            Text('History', style: theme.textTheme.titleMedium),
-            const SizedBox(height: RfSpace.sm),
-            entries.when(
-              loading: () => const RfLoading(),
-              error: (e, _) => RfErrorState(
-                message: 'Could not load your weight history.',
-                onRetry: () => ref.invalidate(weightEntriesProvider),
-              ),
-              data: (list) => list.isEmpty
-                  ? const RfEmptyState(
-                      key: Key('weight-empty'),
-                      icon: Icons.monitor_weight_outlined,
-                      message:
-                          'No weight logged yet. Add your first entry above.',
-                    )
-                  : _History(entries: list),
-            ),
-            const SizedBox(height: RfSpace.xxl),
-          ],
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: RfSpace.gutter),
+      children: [
+        const RfScreenTitle(
+          title: 'Track',
+          caption: 'Body weight · more measurements arrive in WP 10',
         ),
-      ),
+        RfCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('LOG WEIGHT', style: context.rfText.kicker),
+              const SizedBox(height: RfSpace.s3),
+              RfTextField.number(
+                key: const Key('weight-input'),
+                controller: _weight,
+                label: 'Weight',
+                unit: 'kg',
+                hint: 'e.g. 82.4',
+                errorText: errorText,
+                textInputAction: TextInputAction.next,
+                onChanged: (_) {
+                  if (form is WeightFormFailed) {
+                    ref.read(weightFormControllerProvider.notifier).reset();
+                  }
+                },
+              ),
+              const SizedBox(height: RfSpace.s3),
+              RfTextField(
+                key: const Key('note-input'),
+                controller: _note,
+                label: 'Note (optional)',
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submit(),
+              ),
+              const SizedBox(height: RfSpace.s4),
+              RfButton(
+                key: const Key('save-weight'),
+                label: form is WeightFormSubmitting ? 'Saving' : 'Save weight',
+                loading: form is WeightFormSubmitting,
+                onPressed: _submit,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: RfSpace.s4),
+        const RfSectionHeader(title: 'History'),
+        entries.when(
+          loading: () => const RfLoading(),
+          error: (e, _) => RfErrorState(
+            message: 'Could not load your weight history.',
+            onRetry: () => ref.invalidate(weightEntriesProvider),
+          ),
+          data: (list) => list.isEmpty
+              ? const RfEmptyState(
+                  key: Key('weight-empty'),
+                  icon: Icons.monitor_weight_outlined,
+                  message: 'No weight logged yet. Add your first entry above.',
+                )
+              : _History(entries: list),
+        ),
+        const SizedBox(height: RfSpace.s8),
+      ],
     );
   }
 }
@@ -145,25 +135,23 @@ class _History extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final dateFormat = DateFormat.yMMMd().add_Hm();
     return RfCard(
-      padding: const EdgeInsets.symmetric(vertical: RfSpace.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: RfSpace.s4,
+        vertical: RfSpace.s1,
+      ),
       child: Column(
         children: [
           for (final e in entries)
-            ListTile(
+            RfListTile(
               key: Key('weight-entry-${e.id}'),
-              title: Text(e.weight.label, style: theme.textTheme.titleMedium),
-              subtitle: Text(
-                [
-                  dateFormat.format(e.recordedAt.toLocal()),
-                  if (e.note != null) e.note!,
-                ].join(' · '),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
+              icon: Icons.monitor_weight_outlined,
+              title: e.weight.label,
+              subtitle: [
+                dateFormat.format(e.recordedAt.toLocal()),
+                if (e.note != null) e.note!,
+              ].join(' · '),
               trailing: IconButton(
                 tooltip: 'Delete entry',
                 icon: const Icon(Icons.delete_outline),

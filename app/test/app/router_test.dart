@@ -13,7 +13,7 @@ void main() {
   setUp(() => db = AppDatabase.inMemory());
   tearDown(() => db.close());
 
-  testWidgets('bottom navigation switches between Home and Weight', (
+  testWidgets('bottom navigation switches between the five pillars', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -24,13 +24,24 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Your cockpit'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('nav-weight')));
+    expect(find.text('Recent activity'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-track')));
     await tester.pumpAndSettle();
-    expect(find.text('Body weight'), findsOneWidget);
+    expect(find.text('Track'), findsWidgets);
+    expect(find.byKey(const Key('weight-input')), findsOneWidget);
+    for (final (key, label) in [
+      ('nav-train', 'Train'),
+      ('nav-fuel', 'Fuel'),
+      ('nav-goals', 'Goals'),
+    ]) {
+      await tester.tap(find.byKey(Key(key)));
+      await tester.pumpAndSettle();
+      expect(find.text(label), findsWidgets);
+      expect(find.text('NOT YET AVAILABLE'), findsOneWidget);
+    }
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
-    expect(find.text('Your cockpit'), findsOneWidget);
+    expect(find.text('Recent activity'), findsOneWidget);
     await unmount(tester);
   });
 }

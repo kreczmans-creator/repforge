@@ -14,9 +14,11 @@ Widget _harness(AppDatabase db) => ProviderScope(
     databaseProvider.overrideWithValue(db),
     clockProvider.overrideWithValue(FixedClock(DateTime.utc(2026, 11, 1, 9))),
   ],
+  // The app shell provides the Scaffold (snackbars need one), so the harness
+  // does too.
   child: MaterialApp(
     theme: rfTheme(Brightness.dark),
-    home: const WeightScreen(),
+    home: const Scaffold(body: WeightScreen()),
   ),
 );
 
@@ -47,12 +49,13 @@ void main() {
     expect(find.text('82.4 kg'), findsOneWidget);
     expect(find.textContaining('morning'), findsOneWidget);
     expect(find.text('Saved 82.4 kg'), findsOneWidget); // snackbar
-    expect(
-      (tester.widget(
-        find.byKey(const Key('weight-input')),
-      ) as TextField).controller!.text,
-      isEmpty,
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('weight-input')),
+        matching: find.byType(TextField),
+      ),
     );
+    expect(field.controller!.text, isEmpty);
     await unmount(tester);
   });
 
