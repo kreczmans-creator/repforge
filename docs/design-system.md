@@ -9,7 +9,7 @@ Status: WP 2 implementation of "RepForge Design System v1.0" (brand reconstructi
 - Icon tiles for the twelve pillar icons: `app/assets/brand/icons/*-tile.svg` (not yet wired into UI; Material icons are used for navigation until the Stage 2 glyph exports arrive).
 
 ## 2. Colour tokens
-Two themes, dark primary. Values are the brand document's dark and light tables; deviations are listed in §7.
+Two themes. **Dark is the default state of the app** (`ThemeMode.dark`, owner direction 2026-11-03); light is implemented and tested and becomes selectable when persisted settings land in WP 3. Values are the brand document's dark and light tables; deviations are listed in §7.
 
 | Role | Dark | Light |
 |---|---|---|

@@ -29,8 +29,11 @@ class _RepForgeAppState extends State<RepForgeApp> {
   Widget build(BuildContext context) => MaterialApp.router(
     title: 'RepForge',
     debugShowCheckedModeBanner: false,
+    // Dark is the product's default state (owner direction, 2026-11-03). A
+    // user-selectable theme setting arrives with persisted settings in WP 3.
     theme: rfTheme(Brightness.light),
     darkTheme: rfTheme(Brightness.dark),
+    themeMode: ThemeMode.dark,
     routerConfig: _router,
   );
 }
