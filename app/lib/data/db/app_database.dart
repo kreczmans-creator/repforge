@@ -63,21 +63,41 @@ class AppDatabase extends _$AppDatabase {
     },
   );
 
-  /// v1 → v2: create every v2 entity (tables and indexes), copy
+  /// v1 → v2: create every current entity (tables and indexes), copy
   /// weight_entries into measurements as site = weight, then drop the old
   /// table. Wrapped in an explicit transaction so an interruption leaves v1
-  /// intact and the upgrade can be retried.
+  /// intact. drift records the new user_version only after this step
+  /// returns, so the step can run again after a crash in that window: every
+  /// statement is guarded so a re-run is a no-op (idempotent).
   Future<void> _migrateV1ToV2(Migrator m) => transaction(() async {
-    await m.createAll();
-    await customStatement('''
-      INSERT INTO measurements
-        (id, site, value, recorded_at, note, created_at, updated_at, deleted_at)
-      SELECT id, 'weight', weight_kg, recorded_at, note, created_at,
-             updated_at, deleted_at
-      FROM weight_entries
-    ''');
-    await customStatement('DROP TABLE weight_entries');
+    for (final table in allTables) {
+      await m.createTable(table); // CREATE TABLE IF NOT EXISTS
+    }
+    for (final index in allSchemaEntities.whereType<Index>()) {
+      if (!await _schemaEntityExists('index', index.entityName)) {
+        await m.createIndex(index);
+      }
+    }
+    if (await _schemaEntityExists('table', 'weight_entries')) {
+      await customStatement('''
+        INSERT INTO measurements
+          (id, site, value, recorded_at, note, created_at, updated_at,
+           deleted_at)
+        SELECT id, 'weight', weight_kg, recorded_at, note, created_at,
+               updated_at, deleted_at
+        FROM weight_entries
+      ''');
+      await customStatement('DROP TABLE weight_entries');
+    }
   });
+
+  Future<bool> _schemaEntityExists(String type, String name) async {
+    final rows = await customSelect(
+      'SELECT 1 FROM sqlite_master WHERE type = ? AND name = ?',
+      variables: [Variable.withString(type), Variable.withString(name)],
+    ).get();
+    return rows.isNotEmpty;
+  }
 
   /// v2 → v3: saved meals (two tables and one index). Additive only.
   Future<void> _migrateV2ToV3(Migrator m) => transaction(() async {

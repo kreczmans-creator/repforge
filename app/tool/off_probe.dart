@@ -1,5 +1,7 @@
 // Manual probe: exercises the real Open Food Facts client against the live
 // API. Not a test (network); run with `dart run tool/off_probe.dart`.
+// Console output is the purpose of this tool, so `print` is allowed here.
+// ignore_for_file: avoid_print
 import 'package:dio/dio.dart';
 import 'package:repforge/data/external/open_food_facts_client.dart';
 import 'package:repforge/domain/core/clock.dart';
@@ -19,15 +21,18 @@ Future<void> main() async {
         );
       }
     case Err(:final error):
-      print('search failed: ${error.message} ${error}');
+      print('search failed: ${error.message} $error');
   }
   for (final code in ['3017624010701', '0000000000000']) {
     final r = await client.byBarcode(code);
-    print(
-      'barcode $code: ${switch (r) {
-        Ok(:final value) => value == null ? 'not found' : '${value.name} (${value.brand}) ${value.profile.per100Amounts.kcal} kcal',
-        Err(:final error) => 'failed: ${error.message}',
-      }}',
-    );
+    final text = switch (r) {
+      Ok(:final value) =>
+        value == null
+            ? 'not found'
+            : '${value.name} (${value.brand}) '
+                  '${value.profile.per100Amounts.kcal} kcal',
+      Err(:final error) => 'failed: ${error.message}',
+    };
+    print('barcode $code: $text');
   }
 }

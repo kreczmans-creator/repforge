@@ -125,12 +125,20 @@ void main() {
       expect(r.provenance, DataProvenance.verified);
     });
 
-    test('userEntered when computed with any non-verified ingredient', () {
+    test('userEntered when computed with a user-entered ingredient', () {
       final r = _recipe([
         _ing('a', 100, per100: _profile(DataProvenance.verified)),
-        _ing('b', 100, per100: _profile(DataProvenance.estimated)),
+        _ing('b', 100, per100: _profile(DataProvenance.userEntered)),
       ]);
       expect(r.provenance, DataProvenance.userEntered);
+    });
+
+    test('estimated when any calculable ingredient is estimated', () {
+      final r = _recipe([
+        _ing('a', 100, per100: _profile(DataProvenance.userEntered)),
+        _ing('b', 100, per100: _profile(DataProvenance.estimated)),
+      ]);
+      expect(r.provenance, DataProvenance.estimated);
     });
 
     test('estimated when not all calculable', () {
