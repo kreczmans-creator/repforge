@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `ccr-ac6db77c-jcnexo`
-Status: **delivered for owner acceptance**; acceptance audit completed 2026-11-04 (see “Acceptance audit” below). Not accepted until the owner records a decision.
+Status: **rejected as delivered 2026-11-04; closure actions complete at df0f6d9 (record 1aa11bc+); re-presented for the owner's acceptance decision.** The airplane-mode device verification (R6) is the one condition only the owner can satisfy.
 
 ## What was built
 - **Food lookup**: `FoodLookupService` interface with an Open Food Facts client (dio) behind it. Search uses the search-a-licious endpoint (the legacy `search.pl` and `api/v2/search` endpoints were returning an HTML "temporarily unavailable" page on the day of implementation); barcode lookup uses `api/v2/product`. Typed failures (offline, rate-limited, unavailable, not found); the client never throws. Community data is labelled `crowdsourced`.
@@ -166,7 +166,7 @@ Local at df0f6d9 (Flutter 3.47.9): **372 tests pass**, analyzer and formatter cl
 | 82a4670 (D5, allocations) | 41825207117 success | 41825207142 success | 41825207147 success | 41825207345 success |
 | 864065f (D1, schema v4) | 41827033870 success | 41827033764 success | 41827033864 success | 41827033811 success |
 | ca90c49 (D2/D3 UI) | 41828763729 success | 41828763777 success | 41828764033 success | 41828763827 success |
-| df0f6d9 (review F1–F3) | pending | pending | pending | pending |
+| df0f6d9 (review F1–F3, final closure commit) | 41830059871 success | 41830059855 success | 41830059827 success | 41830059924 success |
 
 ### Closure conditions
 | Condition | Status |
@@ -179,7 +179,7 @@ Local at df0f6d9 (Flutter 3.47.9): **372 tests pass**, analyzer and formatter cl
 | NUT P1 ownership recorded in D04/D06 | done (82a4670) |
 | Airplane-mode device verification | **pending — owner to perform** (procedure above; build from the final closure commit) |
 | Coverage gate ≥ 80 % on the final head | done (88.1 %) |
-| Four workflows green on the final closure commit | pending df0f6d9 (table above) |
+| Four workflows green on the final closure commit | done (df0f6d9, table above) |
 | Fresh independent review with findings resolved | done (F1–F3 fixed, F4 recorded) |
 
 Not merged to `main`. Formal acceptance remains the owner's decision.
