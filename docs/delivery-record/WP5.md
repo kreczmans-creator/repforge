@@ -33,7 +33,7 @@ No independent review was performed before delivery (the line below was left as 
 | 9ed0e7d (schema v3) | 41711905248 success | 41711905237 success | 41711905223 success | 41711905224 success | 41711905225 cancelled (concurrency) |
 | b852ea4 (features) | 41719172874 success | 41719172996 cancelled | 41719172827 cancelled | 41719172706 success | 41719172859 cancelled |
 | af0c763 (integration tests) | 41719826662 success | 41719826764 cancelled | 41719826658 cancelled | 41719826760 success | 41719826746 cancelled |
-| 24547dc (system check, probe tool) | 41720337618 **failure** (`flutter analyze --fatal-infos` on `tool/off_probe.dart`; fixed in c899fe4) | 41720337436 success | 41720337509 success | 41720337676 success | 41720337687 did not complete (hung after a timing failure; see WP 3 closure) |
+| 24547dc (system check, probe tool) | 41720337618 **failure** (`flutter analyze --fatal-infos` on `tool/off_probe.dart`; fixed in c899fe4) | 41720337436 success | 41720337509 success | 41720337676 success | 41720337687 cancelled at the 60-minute cap (hung after a timing failure; see WP 3 closure) |
 
 The emulator integration test introduced by af0c763 never completed on CI until the WP 3 closing commits fixed its waits; its first green run is 41790734724, and the WP 4 closure extended it (41819053519 green).
 
@@ -56,6 +56,11 @@ Conducted after WP 4 acceptance. A fresh reviewer read the WP 5 range `7e892e1..
 | D6 | Standards: no `Logger` exists in `lib`; the client and mapper drop hits and failures silently (§5). `fuel_flow_test.dart`, `log_food_test.dart` do not mirror `lib/` paths (§7). `tables.dart` comment on saved-meal item snapshots contradicts the domain ("per 100" vs "for the stored amount"). | Low | Fold into TD-25/TD-26; fix the comment with the next schema change. |
 | D7 | Minor: `normaliseSearchKey` folds a fixed Latin set (no ø, ß, ł, š); search is a contiguous LIKE so "yogurt greek" misses "Greek yogurt"; malformed-JSON and missing-`nutriments` paths exist but are untested. | Low | Debt; resolve with NUT-014 recent/frequent foods. |
 | D8 | **Record accuracy.** WP5.md claims NUT-006, 020 and 021 are "exercised by tests": 006 is barcode *scanning* (WP 6, not built; only the lookup method exists), 020 has no estimation flow (the system-check document itself says "Not started"), 021 fails (D1, D2). The system check lists 011, 012, 015, 016, 021 as "Verified": 011 (rename/reorder meals) is unimplemented, 012 lacks copy-to-date, 015/016/021 fail per D2/D3/D1. | Medium (record accuracy) | Corrected in the criteria table below; both documents to be amended at closure. |
+
+### CI evidence for the audit commit
+| Commit | What | CI (gate) | Android build | iOS build | Integration tests |
+|---|---|---|---|---|---|
+| a216fc2 | D4 fix + re-run test; this audit record | 41823397838 success | 41823397821 success | 41823397991 success | 41823397901 success |
 
 ### Scope and acceptance criteria (D06 WP 5) against evidence
 | Item | Status | Evidence / gap |
