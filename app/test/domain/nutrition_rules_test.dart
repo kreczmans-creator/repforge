@@ -30,6 +30,102 @@ void main() {
     });
   });
 
+  group('unknown nutrients', () {
+    const known = NutrientAmounts(kcal: 100, proteinG: 10, carbsG: 20, fatG: 5);
+    const unknown = NutrientAmounts(kcal: 50);
+
+    test('scaling keeps unknown values unknown', () {
+      final s = unknown.scaled(2);
+      expect(s.kcal, 100);
+      expect(s.proteinG, isNull);
+      expect(s.carbsG, isNull);
+      expect(s.fatG, isNull);
+      expect(s.fibreG, isNull);
+    });
+
+    test('adding sums the known values and null only when none is known', () {
+      final s = known + unknown;
+      expect(s.kcal, 150);
+      expect(s.proteinG, 10);
+      expect(s.fibreG, isNull);
+      final u = unknown + unknown;
+      expect(u.proteinG, isNull);
+      expect(u.carbsG, isNull);
+    });
+
+    test('sum of only-unknown items is unknown, not zero', () {
+      final s = NutrientAmounts.sum(const [unknown, unknown]);
+      expect(s.kcal, 100);
+      expect(s.proteinG, isNull);
+    });
+
+    test('totals report the known sum and the unknown count per nutrient', () {
+      const withFibre = NutrientAmounts(
+        kcal: 1,
+        proteinG: 1,
+        carbsG: 1,
+        fatG: 1,
+        fibreG: 3,
+      );
+      final t = NutrientTotals.of(const [known, unknown, withFibre]);
+      expect(t.known.proteinG, 11);
+      expect(t.known.fibreG, 3);
+      expect(t.unknownProteinCount, 1);
+      expect(t.unknownCarbsCount, 1);
+      expect(t.unknownFatCount, 1);
+      expect(t.unknownFibreCount, 2);
+      expect(t.unknownCount(Nutrient.fibreG), 2);
+      expect(t.inputCount, 3);
+      expect(t.isComplete, isFalse);
+    });
+
+    test('totals of nothing are zero with no unknowns', () {
+      final t = NutrientTotals.of(const []);
+      expect(t.known, NutrientAmounts.zero);
+      expect(t.isComplete, isTrue);
+      expect(t, NutrientTotals.empty);
+    });
+
+    test('combining totals adds known values and unknown counts', () {
+      final a = NutrientTotals.of(const [known, unknown]);
+      final b = NutrientTotals.of(const [unknown]);
+      final c = NutrientTotals.combine([a, b]);
+      expect(c.known.proteinG, 10);
+      expect(c.unknownProteinCount, 2);
+      expect(c.inputCount, 3);
+    });
+
+    test('validation accepts null macros', () {
+      final r = validateNutrientsPer100(kcal: 100);
+      final v = (r as Ok<NutrientAmounts>).value;
+      expect(v.proteinG, isNull);
+      expect(v.carbsG, isNull);
+      expect(v.fatG, isNull);
+    });
+
+    test('validation still rejects negative or oversized macros', () {
+      final neg = validateNutrientsPer100(kcal: 100, proteinG: -1);
+      expect(((neg as Err).error as ValidationError).field, 'proteinG');
+      final big = validateNutrientsPer100(kcal: 100, fatG: 101);
+      expect(((big as Err).error as ValidationError).field, 'fatG');
+      final negKcal = validateNutrientsPer100(kcal: -1);
+      expect(negKcal, isA<Err<NutrientAmounts>>());
+    });
+
+    test('forQuantity keeps unknown macros unknown', () {
+      const profile = NutrientProfile(
+        per100: ReferenceUnit.grams,
+        per100Amounts: NutrientAmounts(kcal: 10),
+        provenance: DataProvenance.crowdsourced,
+      );
+      final v = (profile.forQuantity(
+        Quantity.fromStored(200, ReferenceUnit.grams),
+      ) as Ok<NutrientAmounts>).value;
+      expect(v.kcal, 20);
+      expect(v.proteinG, isNull);
+    });
+  });
+
   group('NutrientAmounts', () {
     test('sum of empty is zero', () {
       expect(NutrientAmounts.sum(const []), NutrientAmounts.zero);

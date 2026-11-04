@@ -138,9 +138,9 @@ SavedMealItemsCompanion _itemToRow(String mealId, SavedMealItem i) =>
       unit: i.quantity.unit.name,
       sortOrder: i.sortOrder,
       kcal: i.nutrients.kcal,
-      proteinG: i.nutrients.proteinG,
-      carbsG: i.nutrients.carbsG,
-      fatG: i.nutrients.fatG,
+      proteinG: Value(i.nutrients.proteinG),
+      carbsG: Value(i.nutrients.carbsG),
+      fatG: Value(i.nutrients.fatG),
       fibreG: Value(i.nutrients.fibreG),
       provenance: i.provenance.name,
     );

@@ -29,9 +29,9 @@ Food? mapOffProduct(Map<String, dynamic> json, {required DateTime now}) {
 
   final validated = validateNutrientsPer100(
     kcal: kcal,
-    proteinG: _number(nutriments['proteins_100g']) ?? 0,
-    carbsG: _number(nutriments['carbohydrates_100g']) ?? 0,
-    fatG: _number(nutriments['fat_100g']) ?? 0,
+    proteinG: _number(nutriments['proteins_100g']),
+    carbsG: _number(nutriments['carbohydrates_100g']),
+    fatG: _number(nutriments['fat_100g']),
     fibreG: _number(nutriments['fiber_100g']),
   );
   final NutrientAmounts amounts;

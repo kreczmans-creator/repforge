@@ -614,27 +614,27 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
   late final GeneratedColumn<double> proteinG = GeneratedColumn<double>(
     'protein_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _carbsGMeta = const VerificationMeta('carbsG');
   @override
   late final GeneratedColumn<double> carbsG = GeneratedColumn<double>(
     'carbs_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _fatGMeta = const VerificationMeta('fatG');
   @override
   late final GeneratedColumn<double> fatG = GeneratedColumn<double>(
     'fat_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _fibreGMeta = const VerificationMeta('fibreG');
   @override
@@ -775,24 +775,18 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
         _proteinGMeta,
         proteinG.isAcceptableOrUnknown(data['protein_g']!, _proteinGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_proteinGMeta);
     }
     if (data.containsKey('carbs_g')) {
       context.handle(
         _carbsGMeta,
         carbsG.isAcceptableOrUnknown(data['carbs_g']!, _carbsGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_carbsGMeta);
     }
     if (data.containsKey('fat_g')) {
       context.handle(
         _fatGMeta,
         fatG.isAcceptableOrUnknown(data['fat_g']!, _fatGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_fatGMeta);
     }
     if (data.containsKey('fibre_g')) {
       context.handle(
@@ -872,15 +866,15 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
       proteinG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}protein_g'],
-      )!,
+      ),
       carbsG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}carbs_g'],
-      )!,
+      ),
       fatG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}fat_g'],
-      )!,
+      ),
       fibreG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}fibre_g'],
@@ -916,9 +910,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
   final String? barcode;
   final String per100Unit;
   final double kcal;
-  final double proteinG;
-  final double carbsG;
-  final double fatG;
+  final double? proteinG;
+  final double? carbsG;
+  final double? fatG;
   final double? fibreG;
   final String provenance;
   final String source;
@@ -935,9 +929,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     this.barcode,
     required this.per100Unit,
     required this.kcal,
-    required this.proteinG,
-    required this.carbsG,
-    required this.fatG,
+    this.proteinG,
+    this.carbsG,
+    this.fatG,
     this.fibreG,
     required this.provenance,
     required this.source,
@@ -961,9 +955,15 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     }
     map['per100_unit'] = Variable<String>(per100Unit);
     map['kcal'] = Variable<double>(kcal);
-    map['protein_g'] = Variable<double>(proteinG);
-    map['carbs_g'] = Variable<double>(carbsG);
-    map['fat_g'] = Variable<double>(fatG);
+    if (!nullToAbsent || proteinG != null) {
+      map['protein_g'] = Variable<double>(proteinG);
+    }
+    if (!nullToAbsent || carbsG != null) {
+      map['carbs_g'] = Variable<double>(carbsG);
+    }
+    if (!nullToAbsent || fatG != null) {
+      map['fat_g'] = Variable<double>(fatG);
+    }
     if (!nullToAbsent || fibreG != null) {
       map['fibre_g'] = Variable<double>(fibreG);
     }
@@ -990,9 +990,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
           : Value(barcode),
       per100Unit: Value(per100Unit),
       kcal: Value(kcal),
-      proteinG: Value(proteinG),
-      carbsG: Value(carbsG),
-      fatG: Value(fatG),
+      proteinG: proteinG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proteinG),
+      carbsG: carbsG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(carbsG),
+      fatG: fatG == null && nullToAbsent ? const Value.absent() : Value(fatG),
       fibreG: fibreG == null && nullToAbsent
           ? const Value.absent()
           : Value(fibreG),
@@ -1017,9 +1021,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       barcode: serializer.fromJson<String?>(json['barcode']),
       per100Unit: serializer.fromJson<String>(json['per100Unit']),
       kcal: serializer.fromJson<double>(json['kcal']),
-      proteinG: serializer.fromJson<double>(json['proteinG']),
-      carbsG: serializer.fromJson<double>(json['carbsG']),
-      fatG: serializer.fromJson<double>(json['fatG']),
+      proteinG: serializer.fromJson<double?>(json['proteinG']),
+      carbsG: serializer.fromJson<double?>(json['carbsG']),
+      fatG: serializer.fromJson<double?>(json['fatG']),
       fibreG: serializer.fromJson<double?>(json['fibreG']),
       provenance: serializer.fromJson<String>(json['provenance']),
       source: serializer.fromJson<String>(json['source']),
@@ -1039,9 +1043,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       'barcode': serializer.toJson<String?>(barcode),
       'per100Unit': serializer.toJson<String>(per100Unit),
       'kcal': serializer.toJson<double>(kcal),
-      'proteinG': serializer.toJson<double>(proteinG),
-      'carbsG': serializer.toJson<double>(carbsG),
-      'fatG': serializer.toJson<double>(fatG),
+      'proteinG': serializer.toJson<double?>(proteinG),
+      'carbsG': serializer.toJson<double?>(carbsG),
+      'fatG': serializer.toJson<double?>(fatG),
       'fibreG': serializer.toJson<double?>(fibreG),
       'provenance': serializer.toJson<String>(provenance),
       'source': serializer.toJson<String>(source),
@@ -1059,9 +1063,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     Value<String?> barcode = const Value.absent(),
     String? per100Unit,
     double? kcal,
-    double? proteinG,
-    double? carbsG,
-    double? fatG,
+    Value<double?> proteinG = const Value.absent(),
+    Value<double?> carbsG = const Value.absent(),
+    Value<double?> fatG = const Value.absent(),
     Value<double?> fibreG = const Value.absent(),
     String? provenance,
     String? source,
@@ -1076,9 +1080,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     barcode: barcode.present ? barcode.value : this.barcode,
     per100Unit: per100Unit ?? this.per100Unit,
     kcal: kcal ?? this.kcal,
-    proteinG: proteinG ?? this.proteinG,
-    carbsG: carbsG ?? this.carbsG,
-    fatG: fatG ?? this.fatG,
+    proteinG: proteinG.present ? proteinG.value : this.proteinG,
+    carbsG: carbsG.present ? carbsG.value : this.carbsG,
+    fatG: fatG.present ? fatG.value : this.fatG,
     fibreG: fibreG.present ? fibreG.value : this.fibreG,
     provenance: provenance ?? this.provenance,
     source: source ?? this.source,
@@ -1183,9 +1187,9 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
   final Value<String?> barcode;
   final Value<String> per100Unit;
   final Value<double> kcal;
-  final Value<double> proteinG;
-  final Value<double> carbsG;
-  final Value<double> fatG;
+  final Value<double?> proteinG;
+  final Value<double?> carbsG;
+  final Value<double?> fatG;
   final Value<double?> fibreG;
   final Value<String> provenance;
   final Value<String> source;
@@ -1220,9 +1224,9 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     this.barcode = const Value.absent(),
     required String per100Unit,
     required double kcal,
-    required double proteinG,
-    required double carbsG,
-    required double fatG,
+    this.proteinG = const Value.absent(),
+    this.carbsG = const Value.absent(),
+    this.fatG = const Value.absent(),
     this.fibreG = const Value.absent(),
     required String provenance,
     required String source,
@@ -1234,9 +1238,6 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
        name = Value(name),
        per100Unit = Value(per100Unit),
        kcal = Value(kcal),
-       proteinG = Value(proteinG),
-       carbsG = Value(carbsG),
-       fatG = Value(fatG),
        provenance = Value(provenance),
        source = Value(source),
        searchKey = Value(searchKey);
@@ -1290,9 +1291,9 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     Value<String?>? barcode,
     Value<String>? per100Unit,
     Value<double>? kcal,
-    Value<double>? proteinG,
-    Value<double>? carbsG,
-    Value<double>? fatG,
+    Value<double?>? proteinG,
+    Value<double?>? carbsG,
+    Value<double?>? fatG,
     Value<double?>? fibreG,
     Value<String>? provenance,
     Value<String>? source,
@@ -1935,27 +1936,27 @@ class $FoodLogEntriesTable extends FoodLogEntries
   late final GeneratedColumn<double> proteinG = GeneratedColumn<double>(
     'protein_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _carbsGMeta = const VerificationMeta('carbsG');
   @override
   late final GeneratedColumn<double> carbsG = GeneratedColumn<double>(
     'carbs_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _fatGMeta = const VerificationMeta('fatG');
   @override
   late final GeneratedColumn<double> fatG = GeneratedColumn<double>(
     'fat_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _fibreGMeta = const VerificationMeta('fibreG');
   @override
@@ -2113,24 +2114,18 @@ class $FoodLogEntriesTable extends FoodLogEntries
         _proteinGMeta,
         proteinG.isAcceptableOrUnknown(data['protein_g']!, _proteinGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_proteinGMeta);
     }
     if (data.containsKey('carbs_g')) {
       context.handle(
         _carbsGMeta,
         carbsG.isAcceptableOrUnknown(data['carbs_g']!, _carbsGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_carbsGMeta);
     }
     if (data.containsKey('fat_g')) {
       context.handle(
         _fatGMeta,
         fatG.isAcceptableOrUnknown(data['fat_g']!, _fatGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_fatGMeta);
     }
     if (data.containsKey('fibre_g')) {
       context.handle(
@@ -2214,15 +2209,15 @@ class $FoodLogEntriesTable extends FoodLogEntries
       proteinG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}protein_g'],
-      )!,
+      ),
       carbsG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}carbs_g'],
-      )!,
+      ),
       fatG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}fat_g'],
-      )!,
+      ),
       fibreG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}fibre_g'],
@@ -2257,9 +2252,9 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
   final double amount;
   final String unit;
   final double kcal;
-  final double proteinG;
-  final double carbsG;
-  final double fatG;
+  final double? proteinG;
+  final double? carbsG;
+  final double? fatG;
   final double? fibreG;
   final String provenance;
   final DateTime loggedAt;
@@ -2276,9 +2271,9 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
     required this.amount,
     required this.unit,
     required this.kcal,
-    required this.proteinG,
-    required this.carbsG,
-    required this.fatG,
+    this.proteinG,
+    this.carbsG,
+    this.fatG,
     this.fibreG,
     required this.provenance,
     required this.loggedAt,
@@ -2304,9 +2299,15 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
     map['amount'] = Variable<double>(amount);
     map['unit'] = Variable<String>(unit);
     map['kcal'] = Variable<double>(kcal);
-    map['protein_g'] = Variable<double>(proteinG);
-    map['carbs_g'] = Variable<double>(carbsG);
-    map['fat_g'] = Variable<double>(fatG);
+    if (!nullToAbsent || proteinG != null) {
+      map['protein_g'] = Variable<double>(proteinG);
+    }
+    if (!nullToAbsent || carbsG != null) {
+      map['carbs_g'] = Variable<double>(carbsG);
+    }
+    if (!nullToAbsent || fatG != null) {
+      map['fat_g'] = Variable<double>(fatG);
+    }
     if (!nullToAbsent || fibreG != null) {
       map['fibre_g'] = Variable<double>(fibreG);
     }
@@ -2335,9 +2336,13 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
       amount: Value(amount),
       unit: Value(unit),
       kcal: Value(kcal),
-      proteinG: Value(proteinG),
-      carbsG: Value(carbsG),
-      fatG: Value(fatG),
+      proteinG: proteinG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proteinG),
+      carbsG: carbsG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(carbsG),
+      fatG: fatG == null && nullToAbsent ? const Value.absent() : Value(fatG),
       fibreG: fibreG == null && nullToAbsent
           ? const Value.absent()
           : Value(fibreG),
@@ -2364,9 +2369,9 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
       amount: serializer.fromJson<double>(json['amount']),
       unit: serializer.fromJson<String>(json['unit']),
       kcal: serializer.fromJson<double>(json['kcal']),
-      proteinG: serializer.fromJson<double>(json['proteinG']),
-      carbsG: serializer.fromJson<double>(json['carbsG']),
-      fatG: serializer.fromJson<double>(json['fatG']),
+      proteinG: serializer.fromJson<double?>(json['proteinG']),
+      carbsG: serializer.fromJson<double?>(json['carbsG']),
+      fatG: serializer.fromJson<double?>(json['fatG']),
       fibreG: serializer.fromJson<double?>(json['fibreG']),
       provenance: serializer.fromJson<String>(json['provenance']),
       loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
@@ -2388,9 +2393,9 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
       'amount': serializer.toJson<double>(amount),
       'unit': serializer.toJson<String>(unit),
       'kcal': serializer.toJson<double>(kcal),
-      'proteinG': serializer.toJson<double>(proteinG),
-      'carbsG': serializer.toJson<double>(carbsG),
-      'fatG': serializer.toJson<double>(fatG),
+      'proteinG': serializer.toJson<double?>(proteinG),
+      'carbsG': serializer.toJson<double?>(carbsG),
+      'fatG': serializer.toJson<double?>(fatG),
       'fibreG': serializer.toJson<double?>(fibreG),
       'provenance': serializer.toJson<String>(provenance),
       'loggedAt': serializer.toJson<DateTime>(loggedAt),
@@ -2410,9 +2415,9 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
     double? amount,
     String? unit,
     double? kcal,
-    double? proteinG,
-    double? carbsG,
-    double? fatG,
+    Value<double?> proteinG = const Value.absent(),
+    Value<double?> carbsG = const Value.absent(),
+    Value<double?> fatG = const Value.absent(),
     Value<double?> fibreG = const Value.absent(),
     String? provenance,
     DateTime? loggedAt,
@@ -2429,9 +2434,9 @@ class FoodLogEntryRow extends DataClass implements Insertable<FoodLogEntryRow> {
     amount: amount ?? this.amount,
     unit: unit ?? this.unit,
     kcal: kcal ?? this.kcal,
-    proteinG: proteinG ?? this.proteinG,
-    carbsG: carbsG ?? this.carbsG,
-    fatG: fatG ?? this.fatG,
+    proteinG: proteinG.present ? proteinG.value : this.proteinG,
+    carbsG: carbsG.present ? carbsG.value : this.carbsG,
+    fatG: fatG.present ? fatG.value : this.fatG,
     fibreG: fibreG.present ? fibreG.value : this.fibreG,
     provenance: provenance ?? this.provenance,
     loggedAt: loggedAt ?? this.loggedAt,
@@ -2544,9 +2549,9 @@ class FoodLogEntriesCompanion extends UpdateCompanion<FoodLogEntryRow> {
   final Value<double> amount;
   final Value<String> unit;
   final Value<double> kcal;
-  final Value<double> proteinG;
-  final Value<double> carbsG;
-  final Value<double> fatG;
+  final Value<double?> proteinG;
+  final Value<double?> carbsG;
+  final Value<double?> fatG;
   final Value<double?> fibreG;
   final Value<String> provenance;
   final Value<DateTime> loggedAt;
@@ -2585,9 +2590,9 @@ class FoodLogEntriesCompanion extends UpdateCompanion<FoodLogEntryRow> {
     required double amount,
     required String unit,
     required double kcal,
-    required double proteinG,
-    required double carbsG,
-    required double fatG,
+    this.proteinG = const Value.absent(),
+    this.carbsG = const Value.absent(),
+    this.fatG = const Value.absent(),
     this.fibreG = const Value.absent(),
     required String provenance,
     required DateTime loggedAt,
@@ -2601,9 +2606,6 @@ class FoodLogEntriesCompanion extends UpdateCompanion<FoodLogEntryRow> {
        amount = Value(amount),
        unit = Value(unit),
        kcal = Value(kcal),
-       proteinG = Value(proteinG),
-       carbsG = Value(carbsG),
-       fatG = Value(fatG),
        provenance = Value(provenance),
        loggedAt = Value(loggedAt);
   static Insertable<FoodLogEntryRow> custom({
@@ -2663,9 +2665,9 @@ class FoodLogEntriesCompanion extends UpdateCompanion<FoodLogEntryRow> {
     Value<double>? amount,
     Value<String>? unit,
     Value<double>? kcal,
-    Value<double>? proteinG,
-    Value<double>? carbsG,
-    Value<double>? fatG,
+    Value<double?>? proteinG,
+    Value<double?>? carbsG,
+    Value<double?>? fatG,
     Value<double?>? fibreG,
     Value<String>? provenance,
     Value<DateTime>? loggedAt,
@@ -3302,27 +3304,27 @@ class $SavedMealItemsTable extends SavedMealItems
   late final GeneratedColumn<double> proteinG = GeneratedColumn<double>(
     'protein_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _carbsGMeta = const VerificationMeta('carbsG');
   @override
   late final GeneratedColumn<double> carbsG = GeneratedColumn<double>(
     'carbs_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _fatGMeta = const VerificationMeta('fatG');
   @override
   late final GeneratedColumn<double> fatG = GeneratedColumn<double>(
     'fat_g',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _fibreGMeta = const VerificationMeta('fibreG');
   @override
@@ -3446,24 +3448,18 @@ class $SavedMealItemsTable extends SavedMealItems
         _proteinGMeta,
         proteinG.isAcceptableOrUnknown(data['protein_g']!, _proteinGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_proteinGMeta);
     }
     if (data.containsKey('carbs_g')) {
       context.handle(
         _carbsGMeta,
         carbsG.isAcceptableOrUnknown(data['carbs_g']!, _carbsGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_carbsGMeta);
     }
     if (data.containsKey('fat_g')) {
       context.handle(
         _fatGMeta,
         fatG.isAcceptableOrUnknown(data['fat_g']!, _fatGMeta),
       );
-    } else if (isInserting) {
-      context.missing(_fatGMeta);
     }
     if (data.containsKey('fibre_g')) {
       context.handle(
@@ -3527,15 +3523,15 @@ class $SavedMealItemsTable extends SavedMealItems
       proteinG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}protein_g'],
-      )!,
+      ),
       carbsG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}carbs_g'],
-      )!,
+      ),
       fatG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}fat_g'],
-      )!,
+      ),
       fibreG: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}fibre_g'],
@@ -3564,9 +3560,9 @@ class SavedMealItemRow extends DataClass
   final String unit;
   final int sortOrder;
   final double kcal;
-  final double proteinG;
-  final double carbsG;
-  final double fatG;
+  final double? proteinG;
+  final double? carbsG;
+  final double? fatG;
   final double? fibreG;
   final String provenance;
   const SavedMealItemRow({
@@ -3579,9 +3575,9 @@ class SavedMealItemRow extends DataClass
     required this.unit,
     required this.sortOrder,
     required this.kcal,
-    required this.proteinG,
-    required this.carbsG,
-    required this.fatG,
+    this.proteinG,
+    this.carbsG,
+    this.fatG,
     this.fibreG,
     required this.provenance,
   });
@@ -3601,9 +3597,15 @@ class SavedMealItemRow extends DataClass
     map['unit'] = Variable<String>(unit);
     map['sort_order'] = Variable<int>(sortOrder);
     map['kcal'] = Variable<double>(kcal);
-    map['protein_g'] = Variable<double>(proteinG);
-    map['carbs_g'] = Variable<double>(carbsG);
-    map['fat_g'] = Variable<double>(fatG);
+    if (!nullToAbsent || proteinG != null) {
+      map['protein_g'] = Variable<double>(proteinG);
+    }
+    if (!nullToAbsent || carbsG != null) {
+      map['carbs_g'] = Variable<double>(carbsG);
+    }
+    if (!nullToAbsent || fatG != null) {
+      map['fat_g'] = Variable<double>(fatG);
+    }
     if (!nullToAbsent || fibreG != null) {
       map['fibre_g'] = Variable<double>(fibreG);
     }
@@ -3626,9 +3628,13 @@ class SavedMealItemRow extends DataClass
       unit: Value(unit),
       sortOrder: Value(sortOrder),
       kcal: Value(kcal),
-      proteinG: Value(proteinG),
-      carbsG: Value(carbsG),
-      fatG: Value(fatG),
+      proteinG: proteinG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proteinG),
+      carbsG: carbsG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(carbsG),
+      fatG: fatG == null && nullToAbsent ? const Value.absent() : Value(fatG),
       fibreG: fibreG == null && nullToAbsent
           ? const Value.absent()
           : Value(fibreG),
@@ -3651,9 +3657,9 @@ class SavedMealItemRow extends DataClass
       unit: serializer.fromJson<String>(json['unit']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       kcal: serializer.fromJson<double>(json['kcal']),
-      proteinG: serializer.fromJson<double>(json['proteinG']),
-      carbsG: serializer.fromJson<double>(json['carbsG']),
-      fatG: serializer.fromJson<double>(json['fatG']),
+      proteinG: serializer.fromJson<double?>(json['proteinG']),
+      carbsG: serializer.fromJson<double?>(json['carbsG']),
+      fatG: serializer.fromJson<double?>(json['fatG']),
       fibreG: serializer.fromJson<double?>(json['fibreG']),
       provenance: serializer.fromJson<String>(json['provenance']),
     );
@@ -3671,9 +3677,9 @@ class SavedMealItemRow extends DataClass
       'unit': serializer.toJson<String>(unit),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'kcal': serializer.toJson<double>(kcal),
-      'proteinG': serializer.toJson<double>(proteinG),
-      'carbsG': serializer.toJson<double>(carbsG),
-      'fatG': serializer.toJson<double>(fatG),
+      'proteinG': serializer.toJson<double?>(proteinG),
+      'carbsG': serializer.toJson<double?>(carbsG),
+      'fatG': serializer.toJson<double?>(fatG),
       'fibreG': serializer.toJson<double?>(fibreG),
       'provenance': serializer.toJson<String>(provenance),
     };
@@ -3689,9 +3695,9 @@ class SavedMealItemRow extends DataClass
     String? unit,
     int? sortOrder,
     double? kcal,
-    double? proteinG,
-    double? carbsG,
-    double? fatG,
+    Value<double?> proteinG = const Value.absent(),
+    Value<double?> carbsG = const Value.absent(),
+    Value<double?> fatG = const Value.absent(),
     Value<double?> fibreG = const Value.absent(),
     String? provenance,
   }) => SavedMealItemRow(
@@ -3704,9 +3710,9 @@ class SavedMealItemRow extends DataClass
     unit: unit ?? this.unit,
     sortOrder: sortOrder ?? this.sortOrder,
     kcal: kcal ?? this.kcal,
-    proteinG: proteinG ?? this.proteinG,
-    carbsG: carbsG ?? this.carbsG,
-    fatG: fatG ?? this.fatG,
+    proteinG: proteinG.present ? proteinG.value : this.proteinG,
+    carbsG: carbsG.present ? carbsG.value : this.carbsG,
+    fatG: fatG.present ? fatG.value : this.fatG,
     fibreG: fibreG.present ? fibreG.value : this.fibreG,
     provenance: provenance ?? this.provenance,
   );
@@ -3801,9 +3807,9 @@ class SavedMealItemsCompanion extends UpdateCompanion<SavedMealItemRow> {
   final Value<String> unit;
   final Value<int> sortOrder;
   final Value<double> kcal;
-  final Value<double> proteinG;
-  final Value<double> carbsG;
-  final Value<double> fatG;
+  final Value<double?> proteinG;
+  final Value<double?> carbsG;
+  final Value<double?> fatG;
   final Value<double?> fibreG;
   final Value<String> provenance;
   final Value<int> rowid;
@@ -3834,9 +3840,9 @@ class SavedMealItemsCompanion extends UpdateCompanion<SavedMealItemRow> {
     required String unit,
     required int sortOrder,
     required double kcal,
-    required double proteinG,
-    required double carbsG,
-    required double fatG,
+    this.proteinG = const Value.absent(),
+    this.carbsG = const Value.absent(),
+    this.fatG = const Value.absent(),
     this.fibreG = const Value.absent(),
     required String provenance,
     this.rowid = const Value.absent(),
@@ -3847,9 +3853,6 @@ class SavedMealItemsCompanion extends UpdateCompanion<SavedMealItemRow> {
        unit = Value(unit),
        sortOrder = Value(sortOrder),
        kcal = Value(kcal),
-       proteinG = Value(proteinG),
-       carbsG = Value(carbsG),
-       fatG = Value(fatG),
        provenance = Value(provenance);
   static Insertable<SavedMealItemRow> custom({
     Expression<String>? id,
@@ -3897,9 +3900,9 @@ class SavedMealItemsCompanion extends UpdateCompanion<SavedMealItemRow> {
     Value<String>? unit,
     Value<int>? sortOrder,
     Value<double>? kcal,
-    Value<double>? proteinG,
-    Value<double>? carbsG,
-    Value<double>? fatG,
+    Value<double?>? proteinG,
+    Value<double?>? carbsG,
+    Value<double?>? fatG,
     Value<double?>? fibreG,
     Value<String>? provenance,
     Value<int>? rowid,
@@ -10651,9 +10654,9 @@ typedef $$FoodsTableCreateCompanionBuilder = FoodsCompanion Function({
   Value<String?> barcode,
   required String per100Unit,
   required double kcal,
-  required double proteinG,
-  required double carbsG,
-  required double fatG,
+  Value<double?> proteinG,
+  Value<double?> carbsG,
+  Value<double?> fatG,
   Value<double?> fibreG,
   required String provenance,
   required String source,
@@ -10670,9 +10673,9 @@ typedef $$FoodsTableUpdateCompanionBuilder = FoodsCompanion Function({
   Value<String?> barcode,
   Value<String> per100Unit,
   Value<double> kcal,
-  Value<double> proteinG,
-  Value<double> carbsG,
-  Value<double> fatG,
+  Value<double?> proteinG,
+  Value<double?> carbsG,
+  Value<double?> fatG,
   Value<double?> fibreG,
   Value<String> provenance,
   Value<String> source,
@@ -11031,9 +11034,9 @@ class $$FoodsTableTableManager
                 Value<String?> barcode = const Value.absent(),
                 Value<String> per100Unit = const Value.absent(),
                 Value<double> kcal = const Value.absent(),
-                Value<double> proteinG = const Value.absent(),
-                Value<double> carbsG = const Value.absent(),
-                Value<double> fatG = const Value.absent(),
+                Value<double?> proteinG = const Value.absent(),
+                Value<double?> carbsG = const Value.absent(),
+                Value<double?> fatG = const Value.absent(),
                 Value<double?> fibreG = const Value.absent(),
                 Value<String> provenance = const Value.absent(),
                 Value<String> source = const Value.absent(),
@@ -11069,9 +11072,9 @@ class $$FoodsTableTableManager
                 Value<String?> barcode = const Value.absent(),
                 required String per100Unit,
                 required double kcal,
-                required double proteinG,
-                required double carbsG,
-                required double fatG,
+                Value<double?> proteinG = const Value.absent(),
+                Value<double?> carbsG = const Value.absent(),
+                Value<double?> fatG = const Value.absent(),
                 Value<double?> fibreG = const Value.absent(),
                 required String provenance,
                 required String source,
@@ -11500,9 +11503,9 @@ typedef $$FoodLogEntriesTableCreateCompanionBuilder =
       required double amount,
       required String unit,
       required double kcal,
-      required double proteinG,
-      required double carbsG,
-      required double fatG,
+      Value<double?> proteinG,
+      Value<double?> carbsG,
+      Value<double?> fatG,
       Value<double?> fibreG,
       required String provenance,
       required DateTime loggedAt,
@@ -11522,9 +11525,9 @@ typedef $$FoodLogEntriesTableUpdateCompanionBuilder =
       Value<double> amount,
       Value<String> unit,
       Value<double> kcal,
-      Value<double> proteinG,
-      Value<double> carbsG,
-      Value<double> fatG,
+      Value<double?> proteinG,
+      Value<double?> carbsG,
+      Value<double?> fatG,
       Value<double?> fibreG,
       Value<String> provenance,
       Value<DateTime> loggedAt,
@@ -11846,9 +11849,9 @@ class $$FoodLogEntriesTableTableManager
                 Value<double> amount = const Value.absent(),
                 Value<String> unit = const Value.absent(),
                 Value<double> kcal = const Value.absent(),
-                Value<double> proteinG = const Value.absent(),
-                Value<double> carbsG = const Value.absent(),
-                Value<double> fatG = const Value.absent(),
+                Value<double?> proteinG = const Value.absent(),
+                Value<double?> carbsG = const Value.absent(),
+                Value<double?> fatG = const Value.absent(),
                 Value<double?> fibreG = const Value.absent(),
                 Value<String> provenance = const Value.absent(),
                 Value<DateTime> loggedAt = const Value.absent(),
@@ -11888,9 +11891,9 @@ class $$FoodLogEntriesTableTableManager
                 required double amount,
                 required String unit,
                 required double kcal,
-                required double proteinG,
-                required double carbsG,
-                required double fatG,
+                Value<double?> proteinG = const Value.absent(),
+                Value<double?> carbsG = const Value.absent(),
+                Value<double?> fatG = const Value.absent(),
                 Value<double?> fibreG = const Value.absent(),
                 required String provenance,
                 required DateTime loggedAt,
@@ -12284,9 +12287,9 @@ typedef $$SavedMealItemsTableCreateCompanionBuilder =
       required String unit,
       required int sortOrder,
       required double kcal,
-      required double proteinG,
-      required double carbsG,
-      required double fatG,
+      Value<double?> proteinG,
+      Value<double?> carbsG,
+      Value<double?> fatG,
       Value<double?> fibreG,
       required String provenance,
       Value<int> rowid,
@@ -12302,9 +12305,9 @@ typedef $$SavedMealItemsTableUpdateCompanionBuilder =
       Value<String> unit,
       Value<int> sortOrder,
       Value<double> kcal,
-      Value<double> proteinG,
-      Value<double> carbsG,
-      Value<double> fatG,
+      Value<double?> proteinG,
+      Value<double?> carbsG,
+      Value<double?> fatG,
       Value<double?> fibreG,
       Value<String> provenance,
       Value<int> rowid,
@@ -12646,9 +12649,9 @@ class $$SavedMealItemsTableTableManager
                 Value<String> unit = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<double> kcal = const Value.absent(),
-                Value<double> proteinG = const Value.absent(),
-                Value<double> carbsG = const Value.absent(),
-                Value<double> fatG = const Value.absent(),
+                Value<double?> proteinG = const Value.absent(),
+                Value<double?> carbsG = const Value.absent(),
+                Value<double?> fatG = const Value.absent(),
                 Value<double?> fibreG = const Value.absent(),
                 Value<String> provenance = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -12680,9 +12683,9 @@ class $$SavedMealItemsTableTableManager
                 required String unit,
                 required int sortOrder,
                 required double kcal,
-                required double proteinG,
-                required double carbsG,
-                required double fatG,
+                Value<double?> proteinG = const Value.absent(),
+                Value<double?> carbsG = const Value.absent(),
+                Value<double?> fatG = const Value.absent(),
                 Value<double?> fibreG = const Value.absent(),
                 required String provenance,
                 Value<int> rowid = const Value.absent(),

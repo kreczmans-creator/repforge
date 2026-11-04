@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WeeklySummary {
 
- String get fromDay; String get toDay; Map<String, NutrientAmounts> get perDay;
+ String get fromDay; String get toDay; Map<String, NutrientTotals> get dayTotals;
 /// Create a copy of WeeklySummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $WeeklySummaryCopyWith<WeeklySummary> get copyWith => _$WeeklySummaryCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as WeeklySummary;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeeklySummary&&(identical(other.fromDay, _this.fromDay) || other.fromDay == _this.fromDay)&&(identical(other.toDay, _this.toDay) || other.toDay == _this.toDay)&&const DeepCollectionEquality().equals(other.perDay, _this.perDay));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeeklySummary&&(identical(other.fromDay, _this.fromDay) || other.fromDay == _this.fromDay)&&(identical(other.toDay, _this.toDay) || other.toDay == _this.toDay)&&const DeepCollectionEquality().equals(other.dayTotals, _this.dayTotals));
 }
 
 
 @override
 int get hashCode {
   final _this = this as WeeklySummary;
-  return Object.hash(runtimeType,_this.fromDay,_this.toDay,const DeepCollectionEquality().hash(_this.perDay));
+  return Object.hash(runtimeType,_this.fromDay,_this.toDay,const DeepCollectionEquality().hash(_this.dayTotals));
 }
 
 @override
 String toString() {
   final _this = this as WeeklySummary;
-  return 'WeeklySummary(fromDay: ${_this.fromDay}, toDay: ${_this.toDay}, perDay: ${_this.perDay})';
+  return 'WeeklySummary(fromDay: ${_this.fromDay}, toDay: ${_this.toDay}, dayTotals: ${_this.dayTotals})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $WeeklySummaryCopyWith<$Res>  {
   factory $WeeklySummaryCopyWith(WeeklySummary value, $Res Function(WeeklySummary) _then) = _$WeeklySummaryCopyWithImpl;
 @useResult
 $Res call({
- String fromDay, String toDay, Map<String, NutrientAmounts> perDay
+ String fromDay, String toDay, Map<String, NutrientTotals> dayTotals
 });
 
 
@@ -68,12 +68,12 @@ class _$WeeklySummaryCopyWithImpl<$Res>
 
 /// Create a copy of WeeklySummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fromDay = null,Object? toDay = null,Object? perDay = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fromDay = null,Object? toDay = null,Object? dayTotals = null,}) {
   return _then(WeeklySummary(
 fromDay: null == fromDay ? _self.fromDay : fromDay // ignore: cast_nullable_to_non_nullable
 as String,toDay: null == toDay ? _self.toDay : toDay // ignore: cast_nullable_to_non_nullable
-as String,perDay: null == perDay ? _self.perDay : perDay // ignore: cast_nullable_to_non_nullable
-as Map<String, NutrientAmounts>,
+as String,dayTotals: null == dayTotals ? _self.dayTotals : dayTotals // ignore: cast_nullable_to_non_nullable
+as Map<String, NutrientTotals>,
   ));
 }
 
@@ -158,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String fromDay,  String toDay,  Map<String, NutrientAmounts> perDay)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String fromDay,  String toDay,  Map<String, NutrientTotals> dayTotals)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WeeklySummary() when $default != null:
-return $default(_that.fromDay,_that.toDay,_that.perDay);case _:
+return $default(_that.fromDay,_that.toDay,_that.dayTotals);case _:
   return orElse();
 
 }
@@ -179,10 +179,10 @@ return $default(_that.fromDay,_that.toDay,_that.perDay);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String fromDay,  String toDay,  Map<String, NutrientAmounts> perDay)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String fromDay,  String toDay,  Map<String, NutrientTotals> dayTotals)  $default,) {final _that = this;
 switch (_that) {
 case _WeeklySummary():
-return $default(_that.fromDay,_that.toDay,_that.perDay);case _:
+return $default(_that.fromDay,_that.toDay,_that.dayTotals);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +199,10 @@ return $default(_that.fromDay,_that.toDay,_that.perDay);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String fromDay,  String toDay,  Map<String, NutrientAmounts> perDay)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String fromDay,  String toDay,  Map<String, NutrientTotals> dayTotals)?  $default,) {final _that = this;
 switch (_that) {
 case _WeeklySummary() when $default != null:
-return $default(_that.fromDay,_that.toDay,_that.perDay);case _:
+return $default(_that.fromDay,_that.toDay,_that.dayTotals);case _:
   return null;
 
 }
@@ -214,16 +214,16 @@ return $default(_that.fromDay,_that.toDay,_that.perDay);case _:
 
 
 class _WeeklySummary extends WeeklySummary {
-  const _WeeklySummary({required this.fromDay, required this.toDay, required  Map<String, NutrientAmounts> perDay}): _perDay = perDay,super._();
+  const _WeeklySummary({required this.fromDay, required this.toDay, required  Map<String, NutrientTotals> dayTotals}): _dayTotals = dayTotals,super._();
   
 
 @override final  String fromDay;
 @override final  String toDay;
- final  Map<String, NutrientAmounts> _perDay;
-@override Map<String, NutrientAmounts> get perDay {
-  if (_perDay is EqualUnmodifiableMapView) return _perDay;
+ final  Map<String, NutrientTotals> _dayTotals;
+@override Map<String, NutrientTotals> get dayTotals {
+  if (_dayTotals is EqualUnmodifiableMapView) return _dayTotals;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_perDay);
+  return EqualUnmodifiableMapView(_dayTotals);
 }
 
 
@@ -237,18 +237,18 @@ _$WeeklySummaryCopyWith<_WeeklySummary> get copyWith => __$WeeklySummaryCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeeklySummary&&(identical(other.fromDay, fromDay) || other.fromDay == fromDay)&&(identical(other.toDay, toDay) || other.toDay == toDay)&&const DeepCollectionEquality().equals(other.perDay, _perDay));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeeklySummary&&(identical(other.fromDay, fromDay) || other.fromDay == fromDay)&&(identical(other.toDay, toDay) || other.toDay == toDay)&&const DeepCollectionEquality().equals(other.dayTotals, _dayTotals));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,fromDay,toDay,const DeepCollectionEquality().hash(_perDay));
+    return Object.hash(runtimeType,fromDay,toDay,const DeepCollectionEquality().hash(_dayTotals));
 }
 
 @override
 String toString() {
-    return 'WeeklySummary(fromDay: $fromDay, toDay: $toDay, perDay: $perDay)';
+    return 'WeeklySummary(fromDay: $fromDay, toDay: $toDay, dayTotals: $dayTotals)';
 }
 
 
@@ -259,7 +259,7 @@ abstract mixin class _$WeeklySummaryCopyWith<$Res> implements $WeeklySummaryCopy
   factory _$WeeklySummaryCopyWith(_WeeklySummary value, $Res Function(_WeeklySummary) _then) = __$WeeklySummaryCopyWithImpl;
 @override @useResult
 $Res call({
- String fromDay, String toDay, Map<String, NutrientAmounts> perDay
+ String fromDay, String toDay, Map<String, NutrientTotals> dayTotals
 });
 
 
@@ -276,12 +276,12 @@ class __$WeeklySummaryCopyWithImpl<$Res>
 
 /// Create a copy of WeeklySummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fromDay = null,Object? toDay = null,Object? perDay = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fromDay = null,Object? toDay = null,Object? dayTotals = null,}) {
   return _then(_WeeklySummary(
 fromDay: null == fromDay ? _self.fromDay : fromDay // ignore: cast_nullable_to_non_nullable
 as String,toDay: null == toDay ? _self.toDay : toDay // ignore: cast_nullable_to_non_nullable
-as String,perDay: null == perDay ? _self._perDay : perDay // ignore: cast_nullable_to_non_nullable
-as Map<String, NutrientAmounts>,
+as String,dayTotals: null == dayTotals ? _self._dayTotals : dayTotals // ignore: cast_nullable_to_non_nullable
+as Map<String, NutrientTotals>,
   ));
 }
 

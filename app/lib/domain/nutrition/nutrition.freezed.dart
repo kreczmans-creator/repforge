@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$NutrientAmounts {
 
- double get kcal; double get proteinG; double get carbsG; double get fatG; double? get fibreG;
+ double get kcal; double? get proteinG; double? get carbsG; double? get fatG; double? get fibreG;
 /// Create a copy of NutrientAmounts
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $NutrientAmountsCopyWith<$Res>  {
   factory $NutrientAmountsCopyWith(NutrientAmounts value, $Res Function(NutrientAmounts) _then) = _$NutrientAmountsCopyWithImpl;
 @useResult
 $Res call({
- double kcal, double proteinG, double carbsG, double fatG, double? fibreG
+ double kcal, double? proteinG, double? carbsG, double? fatG, double? fibreG
 });
 
 
@@ -68,13 +68,13 @@ class _$NutrientAmountsCopyWithImpl<$Res>
 
 /// Create a copy of NutrientAmounts
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? kcal = null,Object? proteinG = null,Object? carbsG = null,Object? fatG = null,Object? fibreG = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? kcal = null,Object? proteinG = freezed,Object? carbsG = freezed,Object? fatG = freezed,Object? fibreG = freezed,}) {
   return _then(NutrientAmounts(
 kcal: null == kcal ? _self.kcal : kcal // ignore: cast_nullable_to_non_nullable
-as double,proteinG: null == proteinG ? _self.proteinG : proteinG // ignore: cast_nullable_to_non_nullable
-as double,carbsG: null == carbsG ? _self.carbsG : carbsG // ignore: cast_nullable_to_non_nullable
-as double,fatG: null == fatG ? _self.fatG : fatG // ignore: cast_nullable_to_non_nullable
-as double,fibreG: freezed == fibreG ? _self.fibreG : fibreG // ignore: cast_nullable_to_non_nullable
+as double,proteinG: freezed == proteinG ? _self.proteinG : proteinG // ignore: cast_nullable_to_non_nullable
+as double?,carbsG: freezed == carbsG ? _self.carbsG : carbsG // ignore: cast_nullable_to_non_nullable
+as double?,fatG: freezed == fatG ? _self.fatG : fatG // ignore: cast_nullable_to_non_nullable
+as double?,fibreG: freezed == fibreG ? _self.fibreG : fibreG // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
 }
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double kcal,  double proteinG,  double carbsG,  double fatG,  double? fibreG)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double kcal,  double? proteinG,  double? carbsG,  double? fatG,  double? fibreG)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NutrientAmounts() when $default != null:
 return $default(_that.kcal,_that.proteinG,_that.carbsG,_that.fatG,_that.fibreG);case _:
@@ -181,7 +181,7 @@ return $default(_that.kcal,_that.proteinG,_that.carbsG,_that.fatG,_that.fibreG);
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double kcal,  double proteinG,  double carbsG,  double fatG,  double? fibreG)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double kcal,  double? proteinG,  double? carbsG,  double? fatG,  double? fibreG)  $default,) {final _that = this;
 switch (_that) {
 case _NutrientAmounts():
 return $default(_that.kcal,_that.proteinG,_that.carbsG,_that.fatG,_that.fibreG);case _:
@@ -201,7 +201,7 @@ return $default(_that.kcal,_that.proteinG,_that.carbsG,_that.fatG,_that.fibreG);
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double kcal,  double proteinG,  double carbsG,  double fatG,  double? fibreG)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double kcal,  double? proteinG,  double? carbsG,  double? fatG,  double? fibreG)?  $default,) {final _that = this;
 switch (_that) {
 case _NutrientAmounts() when $default != null:
 return $default(_that.kcal,_that.proteinG,_that.carbsG,_that.fatG,_that.fibreG);case _:
@@ -216,13 +216,13 @@ return $default(_that.kcal,_that.proteinG,_that.carbsG,_that.fatG,_that.fibreG);
 
 
 class _NutrientAmounts extends NutrientAmounts {
-  const _NutrientAmounts({required this.kcal, required this.proteinG, required this.carbsG, required this.fatG, this.fibreG}): super._();
+  const _NutrientAmounts({required this.kcal, this.proteinG, this.carbsG, this.fatG, this.fibreG}): super._();
   
 
 @override final  double kcal;
-@override final  double proteinG;
-@override final  double carbsG;
-@override final  double fatG;
+@override final  double? proteinG;
+@override final  double? carbsG;
+@override final  double? fatG;
 @override final  double? fibreG;
 
 /// Create a copy of NutrientAmounts
@@ -257,7 +257,7 @@ abstract mixin class _$NutrientAmountsCopyWith<$Res> implements $NutrientAmounts
   factory _$NutrientAmountsCopyWith(_NutrientAmounts value, $Res Function(_NutrientAmounts) _then) = __$NutrientAmountsCopyWithImpl;
 @override @useResult
 $Res call({
- double kcal, double proteinG, double carbsG, double fatG, double? fibreG
+ double kcal, double? proteinG, double? carbsG, double? fatG, double? fibreG
 });
 
 
@@ -274,13 +274,13 @@ class __$NutrientAmountsCopyWithImpl<$Res>
 
 /// Create a copy of NutrientAmounts
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? kcal = null,Object? proteinG = null,Object? carbsG = null,Object? fatG = null,Object? fibreG = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? kcal = null,Object? proteinG = freezed,Object? carbsG = freezed,Object? fatG = freezed,Object? fibreG = freezed,}) {
   return _then(_NutrientAmounts(
 kcal: null == kcal ? _self.kcal : kcal // ignore: cast_nullable_to_non_nullable
-as double,proteinG: null == proteinG ? _self.proteinG : proteinG // ignore: cast_nullable_to_non_nullable
-as double,carbsG: null == carbsG ? _self.carbsG : carbsG // ignore: cast_nullable_to_non_nullable
-as double,fatG: null == fatG ? _self.fatG : fatG // ignore: cast_nullable_to_non_nullable
-as double,fibreG: freezed == fibreG ? _self.fibreG : fibreG // ignore: cast_nullable_to_non_nullable
+as double,proteinG: freezed == proteinG ? _self.proteinG : proteinG // ignore: cast_nullable_to_non_nullable
+as double?,carbsG: freezed == carbsG ? _self.carbsG : carbsG // ignore: cast_nullable_to_non_nullable
+as double?,fatG: freezed == fatG ? _self.fatG : fatG // ignore: cast_nullable_to_non_nullable
+as double?,fibreG: freezed == fibreG ? _self.fibreG : fibreG // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
 }

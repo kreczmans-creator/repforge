@@ -50,9 +50,9 @@ Quantity? _quantity(double amount, String unit) {
 
 NutrientAmounts _amounts(
   double kcal,
-  double proteinG,
-  double carbsG,
-  double fatG,
+  double? proteinG,
+  double? carbsG,
+  double? fatG,
   double? fibreG,
 ) => NutrientAmounts(
   kcal: kcal,
@@ -112,9 +112,9 @@ FoodsCompanion foodToRow(Food f) => FoodsCompanion.insert(
   barcode: Value(f.barcode),
   per100Unit: f.profile.per100.name,
   kcal: f.profile.per100Amounts.kcal,
-  proteinG: f.profile.per100Amounts.proteinG,
-  carbsG: f.profile.per100Amounts.carbsG,
-  fatG: f.profile.per100Amounts.fatG,
+  proteinG: Value(f.profile.per100Amounts.proteinG),
+  carbsG: Value(f.profile.per100Amounts.carbsG),
+  fatG: Value(f.profile.per100Amounts.fatG),
   fibreG: Value(f.profile.per100Amounts.fibreG),
   provenance: f.profile.provenance.name,
   source: f.source.name,
@@ -175,9 +175,9 @@ FoodLogEntriesCompanion logEntryToRow(FoodLogEntry e) =>
       amount: e.quantity.amount,
       unit: e.quantity.unit.name,
       kcal: e.nutrients.kcal,
-      proteinG: e.nutrients.proteinG,
-      carbsG: e.nutrients.carbsG,
-      fatG: e.nutrients.fatG,
+      proteinG: Value(e.nutrients.proteinG),
+      carbsG: Value(e.nutrients.carbsG),
+      fatG: Value(e.nutrients.fatG),
       fibreG: Value(e.nutrients.fibreG),
       provenance: e.provenance.name,
       loggedAt: e.loggedAt,
@@ -204,17 +204,13 @@ Recipe? recipeFromRow(RecipeRow row, List<RecipeIngredientRow> ingredientRows) {
   for (final r in sorted) {
     if (_ingredientFromRow(r) case final i?) ingredients.add(i);
   }
-  final declared =
-      row.declaredKcal == null ||
-          row.declaredProteinG == null ||
-          row.declaredCarbsG == null ||
-          row.declaredFatG == null
+  final declared = row.declaredKcal == null
       ? null
       : _amounts(
           row.declaredKcal!,
-          row.declaredProteinG!,
-          row.declaredCarbsG!,
-          row.declaredFatG!,
+          row.declaredProteinG,
+          row.declaredCarbsG,
+          row.declaredFatG,
           row.declaredFibreG,
         );
   return Recipe(
@@ -244,23 +240,11 @@ RecipeIngredient? _ingredientFromRow(RecipeIngredientRow r) {
   NutrientProfile? profile;
   if (r.provenance != null) {
     final prov = _prov(r.provenance);
-    if (prov == null ||
-        r.kcal == null ||
-        r.proteinG == null ||
-        r.carbsG == null ||
-        r.fatG == null) {
-      return null;
-    }
+    if (prov == null || r.kcal == null) return null;
     profile = NutrientProfile(
       // The per-100 reference unit of the snapshot equals the line's unit.
       per100: q.unit,
-      per100Amounts: _amounts(
-        r.kcal!,
-        r.proteinG!,
-        r.carbsG!,
-        r.fatG!,
-        r.fibreG,
-      ),
+      per100Amounts: _amounts(r.kcal!, r.proteinG, r.carbsG, r.fatG, r.fibreG),
       provenance: prov,
     );
   }

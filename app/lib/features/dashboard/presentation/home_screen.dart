@@ -90,11 +90,15 @@ class _NutritionPanel extends ConsumerWidget {
                     child: RfStatTile(
                       key: const Key('protein-tile'),
                       label: 'Protein',
-                      value: _n(s.intake.proteinG),
+                      // TODO(D1-ui): unknown value rendered as 0
+                      // until the UI agent handles it
+                      value: _n(s.intake.proteinG ?? 0),
                       unit: 'g',
                       progress: t.proteinG == null || t.proteinG == 0
                           ? null
-                          : s.intake.proteinG / t.proteinG!,
+                          // TODO(D1-ui): unknown value rendered as 0
+                          // until the UI agent handles it
+                          : (s.intake.proteinG ?? 0) / t.proteinG!,
                       caption: t.proteinG == null
                           ? 'No target set'
                           : 'of ${_n(t.proteinG!)} g',
@@ -118,18 +122,24 @@ class _NutritionPanel extends ConsumerWidget {
                   children: [
                     RfMacroBar(
                       label: 'Protein',
-                      amount: s.intake.proteinG,
+                      // TODO(D1-ui): unknown value rendered as 0
+                      // until the UI agent handles it
+                      amount: s.intake.proteinG ?? 0,
                       target: t.proteinG ?? 0,
                     ),
                     RfMacroBar(
                       label: 'Carbs',
-                      amount: s.intake.carbsG,
+                      // TODO(D1-ui): unknown value rendered as 0
+                      // until the UI agent handles it
+                      amount: s.intake.carbsG ?? 0,
                       target: t.carbsG ?? 0,
                       color: context.rf.textSecondary,
                     ),
                     RfMacroBar(
                       label: 'Fat',
-                      amount: s.intake.fatG,
+                      // TODO(D1-ui): unknown value rendered as 0
+                      // until the UI agent handles it
+                      amount: s.intake.fatG ?? 0,
                       target: t.fatG ?? 0,
                       color: context.rf.textSecondary,
                     ),

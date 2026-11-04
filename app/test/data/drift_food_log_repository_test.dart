@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_food_log_repository.dart';
@@ -133,9 +134,9 @@ void main() {
             amount: 1,
             unit: 'grams',
             kcal: 1,
-            proteinG: 1,
-            carbsG: 1,
-            fatG: 1,
+            proteinG: const Value(1),
+            carbsG: const Value(1),
+            fatG: const Value(1),
             provenance: 'verified',
             loggedAt: t,
             createdAt: t,

@@ -40,29 +40,35 @@ final class CreateCustomFood {
     double? num(String? s, String field) => (s == null || s.trim().isEmpty)
         ? null
         : double.tryParse(s.trim().replaceAll(',', '.'));
-    final values = {
-      'kcal': num(kcal, 'kcal'),
-      'proteinG': num(proteinG, 'proteinG'),
-      'carbsG': num(carbsG, 'carbsG'),
-      'fatG': num(fatG, 'fatG'),
-    };
-    for (final e in values.entries) {
-      if (e.value == null) {
-        return Err(ValidationError('Enter a number.', field: e.key));
-      }
+    final energy = num(kcal, 'kcal');
+    if (energy == null) {
+      return const Err(ValidationError('Enter a number.', field: 'kcal'));
     }
-    final fibre = fibreG == null || fibreG.trim().isEmpty
-        ? null
-        : num(fibreG, 'fibreG');
-    if (fibreG != null && fibreG.trim().isNotEmpty && fibre == null) {
-      return const Err(ValidationError('Enter a number.', field: 'fibreG'));
+    // Blank protein/carbs/fat/fibre means "unknown" (null), never zero;
+    // text that is not a number is still an error for that field.
+    final optional = <String, double?>{};
+    for (final (field, text) in [
+      ('proteinG', proteinG),
+      ('carbsG', carbsG),
+      ('fatG', fatG),
+      ('fibreG', fibreG),
+    ]) {
+      if (text == null || text.trim().isEmpty) {
+        optional[field] = null;
+        continue;
+      }
+      final v = num(text, field);
+      if (v == null) {
+        return Err(ValidationError('Enter a number.', field: field));
+      }
+      optional[field] = v;
     }
     final amounts = validateNutrientsPer100(
-      kcal: values['kcal']!,
-      proteinG: values['proteinG']!,
-      carbsG: values['carbsG']!,
-      fatG: values['fatG']!,
-      fibreG: fibre,
+      kcal: energy,
+      proteinG: optional['proteinG'],
+      carbsG: optional['carbsG'],
+      fatG: optional['fatG'],
+      fibreG: optional['fibreG'],
     );
     if (amounts case Err(:final error)) return Err(error);
 

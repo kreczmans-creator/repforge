@@ -78,8 +78,17 @@ abstract class Recipe with _$Recipe {
   NutrientAmounts? get perPortion {
     if (portions <= 0) return null;
     if (allIngredientsCalculable) {
-      return NutrientAmounts.sum(ingredients.map((i) => i.nutrients!))
-          .scaled(1 / portions);
+      // A nutrient that any ingredient does not state stays unknown for the
+      // recipe: a partial sum would pass as a complete total.
+      final totals = NutrientTotals.of(ingredients.map((i) => i.nutrients!));
+      final k = totals.known;
+      return NutrientAmounts(
+        kcal: k.kcal,
+        proteinG: totals.unknownProteinCount > 0 ? null : k.proteinG,
+        carbsG: totals.unknownCarbsCount > 0 ? null : k.carbsG,
+        fatG: totals.unknownFatCount > 0 ? null : k.fatG,
+        fibreG: totals.unknownFibreCount > 0 ? null : k.fibreG,
+      ).scaled(1 / portions);
     }
     return declaredPerPortion;
   }

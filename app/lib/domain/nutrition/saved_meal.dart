@@ -34,7 +34,10 @@ abstract class SavedMeal with _$SavedMeal {
 
   const SavedMeal._();
 
-  /// Sum of the item nutrient snapshots.
-  NutrientAmounts get totals =>
-      NutrientAmounts.sum(items.map((i) => i.nutrients));
+  /// Sum of the known values of the item snapshots, with unknown counts.
+  NutrientTotals get nutrientTotals =>
+      NutrientTotals.of(items.map((i) => i.nutrients));
+
+  /// Sum of the known values of the item snapshots (see [nutrientTotals]).
+  NutrientAmounts get totals => nutrientTotals.known;
 }

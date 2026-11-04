@@ -16,6 +16,8 @@ part 'app_database.g.dart';
 ///    recipe_ingredients, exercises, workout_plans, plan_exercises,
 ///    workout_sessions, session_sets, goals, settings.
 /// 3. WP 5: saved_meals, saved_meal_items.
+/// 4. WP 5 audit D1: protein, carbs and fat become nullable on foods,
+///    food_log_entries and saved_meal_items (unknown is never stored as 0).
 @DriftDatabase(
   tables: [
     Measurements,
@@ -42,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -56,6 +58,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await _migrateV2ToV3(m);
+      }
+      if (from < 4) {
+        await _migrateV3ToV4(m);
       }
     },
     beforeOpen: (details) async {
@@ -107,6 +112,34 @@ class AppDatabase extends _$AppDatabase {
     await m.createTable(savedMealItems);
     if (!await _schemaEntityExists('index', idxSavedMealItemsMeal.entityName)) {
       await m.createIndex(idxSavedMealItemsMeal);
+    }
+  });
+
+  /// v3 → v4: protein, carbs and fat become nullable on `foods`,
+  /// `food_log_entries` and `saved_meal_items`. SQLite cannot drop NOT NULL,
+  /// so each table is rebuilt with [Migrator.alterTable] (create new, copy
+  /// every row, drop, rename; indexes are recreated). Existing values are
+  /// copied as they are. Idempotent: rebuilding a table that already has the
+  /// v4 shape copies the same rows into the same shape, so a re-run after a
+  /// crash before `user_version` is written is safe.
+  ///
+  /// Foreign keys are switched off for the whole step (the pragma is a no-op
+  /// inside a transaction, so it is set outside it): dropping `foods` with
+  /// keys on would cascade-delete `food_servings`. They are restored after
+  /// the transaction commits.
+  Future<void> _migrateV3ToV4(Migrator m) => exclusively(() async {
+    final keysOn = (await customSelect(
+      'PRAGMA foreign_keys',
+    ).getSingle()).read<bool>('foreign_keys');
+    if (keysOn) await customStatement('PRAGMA foreign_keys = OFF');
+    try {
+      await transaction(() async {
+        await m.alterTable(TableMigration(foods));
+        await m.alterTable(TableMigration(foodLogEntries));
+        await m.alterTable(TableMigration(savedMealItems));
+      });
+    } finally {
+      if (keysOn) await customStatement('PRAGMA foreign_keys = ON');
     }
   });
 }

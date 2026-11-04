@@ -105,7 +105,9 @@ class SavedMealsScreen extends ConsumerWidget {
                       Text(
                         '${m.items.length} item(s) · '
                         '${whole(m.totals.kcal)} kcal · '
-                        'P ${whole(m.totals.proteinG)} g',
+                        // TODO(D1-ui): unknown value rendered as 0
+                        // until the UI agent handles it
+                        'P ${whole(m.totals.proteinG ?? 0)} g',
                         style: theme.textTheme.bodySmall,
                       ),
                       const SizedBox(height: RfSpace.s2),

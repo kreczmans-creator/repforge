@@ -77,12 +77,13 @@ Result<double> validateTarget(GoalKind kind, double value) {
   return Ok(value);
 }
 
-/// Today's intake against targets (dashboard, NUT-020).
+/// Today's intake against targets (dashboard, NUT-020). [totals] carries the
+/// known sums plus how many entries lacked each nutrient.
 @freezed
 abstract class DailySummary with _$DailySummary {
   const factory DailySummary({
     required String day,
-    required NutrientAmounts intake,
+    required NutrientTotals totals,
     required DailyTargets targets,
     required int entryCount,
   }) = _DailySummary;
@@ -97,11 +98,15 @@ abstract class DailySummary with _$DailySummary {
     final list = entries.toList();
     return DailySummary(
       day: day,
-      intake: NutrientAmounts.sum(list.map((e) => e.nutrients)),
+      totals: NutrientTotals.of(list.map((e) => e.nutrients)),
       targets: targets,
       entryCount: list.length,
     );
   }
+
+  /// Sum of the known intake values. A nutrient is null when no entry knew
+  /// it; see [totals] for how many entries were unknown.
+  NutrientAmounts get intake => totals.known;
 
   double? get kcalRemaining =>
       targets.kcal == null ? null : targets.kcal! - intake.kcal;

@@ -211,9 +211,15 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _Figure('kcal', formatNumber(preview.kcal, maxDecimals: 0)),
-                  _Figure('P', '${formatNumber(preview.proteinG)} g'),
-                  _Figure('C', '${formatNumber(preview.carbsG)} g'),
-                  _Figure('F', '${formatNumber(preview.fatG)} g'),
+                  // TODO(D1-ui): unknown value rendered as 0
+                  // until the UI agent handles it
+                  _Figure('P', '${formatNumber(preview.proteinG ?? 0)} g'),
+                  // TODO(D1-ui): unknown value rendered as 0
+                  // until the UI agent handles it
+                  _Figure('C', '${formatNumber(preview.carbsG ?? 0)} g'),
+                  // TODO(D1-ui): unknown value rendered as 0
+                  // until the UI agent handles it
+                  _Figure('F', '${formatNumber(preview.fatG ?? 0)} g'),
                   if (preview.fibreG != null)
                     _Figure('Fibre', '${formatNumber(preview.fibreG!)} g'),
                 ],

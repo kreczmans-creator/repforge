@@ -26,7 +26,8 @@ class Measurements extends Table with SyncColumns {
 }
 
 /// Foods (NUT-004). Nutrients per 100 of `per100Unit`, stored as the
-/// `ReferenceUnit` enum name (`grams` | `millilitres`).
+/// `ReferenceUnit` enum name (`grams` | `millilitres`). Protein, carbs, fat
+/// and fibre are null when unknown (schema v4); unknown is never stored as 0.
 @DataClassName('FoodRow')
 @TableIndex(name: 'idx_foods_barcode', columns: {#barcode})
 @TableIndex(name: 'idx_foods_search_key', columns: {#searchKey})
@@ -36,9 +37,9 @@ class Foods extends Table with SyncColumns {
   TextColumn get barcode => text().nullable()();
   TextColumn get per100Unit => text()();
   RealColumn get kcal => real()();
-  RealColumn get proteinG => real()();
-  RealColumn get carbsG => real()();
-  RealColumn get fatG => real()();
+  RealColumn get proteinG => real().nullable()();
+  RealColumn get carbsG => real().nullable()();
+  RealColumn get fatG => real().nullable()();
   RealColumn get fibreG => real().nullable()();
   TextColumn get provenance => text()();
   TextColumn get source => text()();
@@ -66,7 +67,8 @@ class FoodServings extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-/// Diary entries with a nutrient snapshot (NUT-010).
+/// Diary entries with a nutrient snapshot (NUT-010). Protein, carbs, fat and
+/// fibre are null when unknown (schema v4); unknown is never stored as 0.
 @DataClassName('FoodLogEntryRow')
 @TableIndex(name: 'idx_food_log_day', columns: {#day})
 class FoodLogEntries extends Table with SyncColumns {
@@ -78,9 +80,9 @@ class FoodLogEntries extends Table with SyncColumns {
   RealColumn get amount => real()();
   TextColumn get unit => text()();
   RealColumn get kcal => real()();
-  RealColumn get proteinG => real()();
-  RealColumn get carbsG => real()();
-  RealColumn get fatG => real()();
+  RealColumn get proteinG => real().nullable()();
+  RealColumn get carbsG => real().nullable()();
+  RealColumn get fatG => real().nullable()();
   RealColumn get fibreG => real().nullable()();
   TextColumn get provenance => text()();
   DateTimeColumn get loggedAt => dateTime()();
@@ -99,7 +101,9 @@ class SavedMeals extends Table with SyncColumns {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-/// Items of a saved meal with a nutrient snapshot per 100 of `unit`.
+/// Items of a saved meal with a nutrient snapshot FOR THE STORED AMOUNT (not
+/// per 100). Protein, carbs, fat and fibre are null when unknown (schema v4);
+/// unknown is never stored as 0.
 @DataClassName('SavedMealItemRow')
 @TableIndex(name: 'idx_saved_meal_items_meal', columns: {#savedMealId})
 class SavedMealItems extends Table {
@@ -113,9 +117,9 @@ class SavedMealItems extends Table {
   TextColumn get unit => text()();
   IntColumn get sortOrder => integer()();
   RealColumn get kcal => real()();
-  RealColumn get proteinG => real()();
-  RealColumn get carbsG => real()();
-  RealColumn get fatG => real()();
+  RealColumn get proteinG => real().nullable()();
+  RealColumn get carbsG => real().nullable()();
+  RealColumn get fatG => real().nullable()();
   RealColumn get fibreG => real().nullable()();
   TextColumn get provenance => text()();
 

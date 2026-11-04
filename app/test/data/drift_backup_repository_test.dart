@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
@@ -48,9 +49,9 @@ Future<void> _seed(AppDatabase db, {String suffix = ''}) async {
           name: 'Chicken',
           per100Unit: 'grams',
           kcal: 165,
-          proteinG: 31,
-          carbsG: 0,
-          fatG: 3.6,
+          proteinG: const Value(31),
+          carbsG: const Value(0),
+          fatG: const Value(3.6),
           provenance: 'verified',
           source: 'openFoodFacts',
           searchKey: 'chicken',
@@ -142,7 +143,7 @@ void main() {
 
       expect(doc['app'], 'repforge');
       expect(doc['formatVersion'], 1);
-      expect(doc['schemaVersion'], 3);
+      expect(doc['schemaVersion'], 4);
       expect(DateTime.tryParse(doc['exportedAt']! as String), isNotNull);
       final tables = doc['tables']! as Map<String, Object?>;
       expect(tables.keys, containsAll(_tableNames));

@@ -5,13 +5,13 @@ part 'summaries.freezed.dart';
 
 /// Weekly nutrition summary (NUT-021): per-day totals and averages over the
 /// days that have at least one entry, so an unlogged day does not drag the
-/// average down.
+/// average down. Unknown macros are carried as counts, never as zeros.
 @freezed
 abstract class WeeklySummary with _$WeeklySummary {
   const factory WeeklySummary({
     required String fromDay,
     required String toDay,
-    required Map<String, NutrientAmounts> perDay,
+    required Map<String, NutrientTotals> dayTotals,
   }) = _WeeklySummary;
 
   const WeeklySummary._();
@@ -20,21 +20,38 @@ abstract class WeeklySummary with _$WeeklySummary {
     required List<String> days,
     required Iterable<FoodLogEntry> entries,
   }) {
-    final perDay = <String, NutrientAmounts>{};
+    final byDay = <String, List<NutrientAmounts>>{};
     for (final e in entries) {
-      perDay[e.day] = (perDay[e.day] ?? NutrientAmounts.zero) + e.nutrients;
+      (byDay[e.day] ??= []).add(e.nutrients);
     }
-    return WeeklySummary(fromDay: days.first, toDay: days.last, perDay: perDay);
+    return WeeklySummary(
+      fromDay: days.first,
+      toDay: days.last,
+      dayTotals: {
+        for (final e in byDay.entries) e.key: NutrientTotals.of(e.value),
+      },
+    );
   }
 
-  int get loggedDays => perDay.length;
+  /// Number of days with at least one entry.
+  int get loggedDays => dayTotals.length;
 
-  /// Average over logged days; null when nothing was logged.
-  NutrientAmounts? get averagePerLoggedDay => perDay.isEmpty
-      ? null
-      : NutrientAmounts.sum(perDay.values).scaled(1 / perDay.length);
+  /// Known per-day sums (unknown values are left out of the sum, not zero).
+  /// See [dayTotals] for the unknown counts.
+  Map<String, NutrientAmounts> get perDay => {
+    for (final e in dayTotals.entries) e.key: e.value.known,
+  };
 
-  NutrientAmounts get total => NutrientAmounts.sum(perDay.values);
+  /// Totals of the whole week with unknown counts per nutrient.
+  NutrientTotals get weekTotals => NutrientTotals.combine(dayTotals.values);
+
+  /// Average of the known values over logged days; null when nothing was
+  /// logged. See [weekTotals] for how many entries were unknown.
+  NutrientAmounts? get averagePerLoggedDay =>
+      dayTotals.isEmpty ? null : total.scaled(1 / dayTotals.length);
+
+  /// Sum of the known values over the week.
+  NutrientAmounts get total => weekTotals.known;
 }
 
 /// The seven day keys ending at the given local date (inclusive), oldest

@@ -291,7 +291,7 @@ as double?,
 /// @nodoc
 mixin _$DailySummary {
 
- String get day; NutrientAmounts get intake; DailyTargets get targets; int get entryCount;
+ String get day; NutrientTotals get totals; DailyTargets get targets; int get entryCount;
 /// Create a copy of DailySummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,20 +303,20 @@ $DailySummaryCopyWith<DailySummary> get copyWith => _$DailySummaryCopyWithImpl<D
 @override
 bool operator ==(Object other) {
   final _this = this as DailySummary;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DailySummary&&(identical(other.day, _this.day) || other.day == _this.day)&&(identical(other.intake, _this.intake) || other.intake == _this.intake)&&(identical(other.targets, _this.targets) || other.targets == _this.targets)&&(identical(other.entryCount, _this.entryCount) || other.entryCount == _this.entryCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DailySummary&&(identical(other.day, _this.day) || other.day == _this.day)&&(identical(other.totals, _this.totals) || other.totals == _this.totals)&&(identical(other.targets, _this.targets) || other.targets == _this.targets)&&(identical(other.entryCount, _this.entryCount) || other.entryCount == _this.entryCount));
 }
 
 
 @override
 int get hashCode {
   final _this = this as DailySummary;
-  return Object.hash(runtimeType,_this.day,_this.intake,_this.targets,_this.entryCount);
+  return Object.hash(runtimeType,_this.day,_this.totals,_this.targets,_this.entryCount);
 }
 
 @override
 String toString() {
   final _this = this as DailySummary;
-  return 'DailySummary(day: ${_this.day}, intake: ${_this.intake}, targets: ${_this.targets}, entryCount: ${_this.entryCount})';
+  return 'DailySummary(day: ${_this.day}, totals: ${_this.totals}, targets: ${_this.targets}, entryCount: ${_this.entryCount})';
 }
 
 
@@ -327,11 +327,11 @@ abstract mixin class $DailySummaryCopyWith<$Res>  {
   factory $DailySummaryCopyWith(DailySummary value, $Res Function(DailySummary) _then) = _$DailySummaryCopyWithImpl;
 @useResult
 $Res call({
- String day, NutrientAmounts intake, DailyTargets targets, int entryCount
+ String day, NutrientTotals totals, DailyTargets targets, int entryCount
 });
 
 
-$NutrientAmountsCopyWith<$Res> get intake;$DailyTargetsCopyWith<$Res> get targets;
+$DailyTargetsCopyWith<$Res> get targets;
 
 }
 /// @nodoc
@@ -344,25 +344,16 @@ class _$DailySummaryCopyWithImpl<$Res>
 
 /// Create a copy of DailySummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? day = null,Object? intake = null,Object? targets = null,Object? entryCount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? day = null,Object? totals = null,Object? targets = null,Object? entryCount = null,}) {
   return _then(DailySummary(
 day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
-as String,intake: null == intake ? _self.intake : intake // ignore: cast_nullable_to_non_nullable
-as NutrientAmounts,targets: null == targets ? _self.targets : targets // ignore: cast_nullable_to_non_nullable
+as String,totals: null == totals ? _self.totals : totals // ignore: cast_nullable_to_non_nullable
+as NutrientTotals,targets: null == targets ? _self.targets : targets // ignore: cast_nullable_to_non_nullable
 as DailyTargets,entryCount: null == entryCount ? _self.entryCount : entryCount // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
 /// Create a copy of DailySummary
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$NutrientAmountsCopyWith<$Res> get intake {
-  
-  return $NutrientAmountsCopyWith<$Res>(_self.intake, (value) {
-    return _then(_self.copyWith(intake: value));
-  });
-}/// Create a copy of DailySummary
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -453,10 +444,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String day,  NutrientAmounts intake,  DailyTargets targets,  int entryCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String day,  NutrientTotals totals,  DailyTargets targets,  int entryCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DailySummary() when $default != null:
-return $default(_that.day,_that.intake,_that.targets,_that.entryCount);case _:
+return $default(_that.day,_that.totals,_that.targets,_that.entryCount);case _:
   return orElse();
 
 }
@@ -474,10 +465,10 @@ return $default(_that.day,_that.intake,_that.targets,_that.entryCount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String day,  NutrientAmounts intake,  DailyTargets targets,  int entryCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String day,  NutrientTotals totals,  DailyTargets targets,  int entryCount)  $default,) {final _that = this;
 switch (_that) {
 case _DailySummary():
-return $default(_that.day,_that.intake,_that.targets,_that.entryCount);case _:
+return $default(_that.day,_that.totals,_that.targets,_that.entryCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -494,10 +485,10 @@ return $default(_that.day,_that.intake,_that.targets,_that.entryCount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String day,  NutrientAmounts intake,  DailyTargets targets,  int entryCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String day,  NutrientTotals totals,  DailyTargets targets,  int entryCount)?  $default,) {final _that = this;
 switch (_that) {
 case _DailySummary() when $default != null:
-return $default(_that.day,_that.intake,_that.targets,_that.entryCount);case _:
+return $default(_that.day,_that.totals,_that.targets,_that.entryCount);case _:
   return null;
 
 }
@@ -509,11 +500,11 @@ return $default(_that.day,_that.intake,_that.targets,_that.entryCount);case _:
 
 
 class _DailySummary extends DailySummary {
-  const _DailySummary({required this.day, required this.intake, required this.targets, required this.entryCount}): super._();
+  const _DailySummary({required this.day, required this.totals, required this.targets, required this.entryCount}): super._();
   
 
 @override final  String day;
-@override final  NutrientAmounts intake;
+@override final  NutrientTotals totals;
 @override final  DailyTargets targets;
 @override final  int entryCount;
 
@@ -527,18 +518,18 @@ _$DailySummaryCopyWith<_DailySummary> get copyWith => __$DailySummaryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DailySummary&&(identical(other.day, day) || other.day == day)&&(identical(other.intake, intake) || other.intake == intake)&&(identical(other.targets, targets) || other.targets == targets)&&(identical(other.entryCount, entryCount) || other.entryCount == entryCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DailySummary&&(identical(other.day, day) || other.day == day)&&(identical(other.totals, totals) || other.totals == totals)&&(identical(other.targets, targets) || other.targets == targets)&&(identical(other.entryCount, entryCount) || other.entryCount == entryCount));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,day,intake,targets,entryCount);
+    return Object.hash(runtimeType,day,totals,targets,entryCount);
 }
 
 @override
 String toString() {
-    return 'DailySummary(day: $day, intake: $intake, targets: $targets, entryCount: $entryCount)';
+    return 'DailySummary(day: $day, totals: $totals, targets: $targets, entryCount: $entryCount)';
 }
 
 
@@ -549,11 +540,11 @@ abstract mixin class _$DailySummaryCopyWith<$Res> implements $DailySummaryCopyWi
   factory _$DailySummaryCopyWith(_DailySummary value, $Res Function(_DailySummary) _then) = __$DailySummaryCopyWithImpl;
 @override @useResult
 $Res call({
- String day, NutrientAmounts intake, DailyTargets targets, int entryCount
+ String day, NutrientTotals totals, DailyTargets targets, int entryCount
 });
 
 
-@override $NutrientAmountsCopyWith<$Res> get intake;@override $DailyTargetsCopyWith<$Res> get targets;
+@override $DailyTargetsCopyWith<$Res> get targets;
 
 }
 /// @nodoc
@@ -566,26 +557,17 @@ class __$DailySummaryCopyWithImpl<$Res>
 
 /// Create a copy of DailySummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? day = null,Object? intake = null,Object? targets = null,Object? entryCount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? day = null,Object? totals = null,Object? targets = null,Object? entryCount = null,}) {
   return _then(_DailySummary(
 day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
-as String,intake: null == intake ? _self.intake : intake // ignore: cast_nullable_to_non_nullable
-as NutrientAmounts,targets: null == targets ? _self.targets : targets // ignore: cast_nullable_to_non_nullable
+as String,totals: null == totals ? _self.totals : totals // ignore: cast_nullable_to_non_nullable
+as NutrientTotals,targets: null == targets ? _self.targets : targets // ignore: cast_nullable_to_non_nullable
 as DailyTargets,entryCount: null == entryCount ? _self.entryCount : entryCount // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
 
 /// Create a copy of DailySummary
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$NutrientAmountsCopyWith<$Res> get intake {
-  
-  return $NutrientAmountsCopyWith<$Res>(_self.intake, (value) {
-    return _then(_self.copyWith(intake: value));
-  });
-}/// Create a copy of DailySummary
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

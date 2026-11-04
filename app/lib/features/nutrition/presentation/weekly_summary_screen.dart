@@ -68,7 +68,12 @@ class WeeklySummaryScreen extends ConsumerWidget {
                       Expanded(
                         child: RfStatTile(
                           label: 'Avg protein',
-                          value: formatNumber(avg.proteinG, maxDecimals: 0),
+                          // TODO(D1-ui): unknown value rendered as 0
+                          // until the UI agent handles it
+                          value: formatNumber(
+                            avg.proteinG ?? 0,
+                            maxDecimals: 0,
+                          ),
                           unit: 'g',
                           caption: targets.proteinG == null
                               ? 'per logged day'
@@ -157,7 +162,9 @@ class _DayRow extends StatelessWidget {
               a == null
                   ? 'not logged'
                   : '${formatNumber(a.kcal, maxDecimals: 0)} kcal · '
-                        'P ${formatNumber(a.proteinG, maxDecimals: 0)}',
+                        // TODO(D1-ui): unknown value rendered as 0
+                        // until the UI agent handles it
+                        'P ${formatNumber(a.proteinG ?? 0, maxDecimals: 0)}',
               textAlign: TextAlign.right,
               style: context.rfText.dataS,
             ),

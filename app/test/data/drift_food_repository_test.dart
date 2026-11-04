@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/mappers/nutrition_mappers.dart';
@@ -167,9 +168,9 @@ void main() {
             name: 'Bad',
             per100Unit: 'grams',
             kcal: 5000,
-            proteinG: 1,
-            carbsG: 1,
-            fatG: 1,
+            proteinG: const Value(1),
+            carbsG: const Value(1),
+            fatG: const Value(1),
             provenance: 'verified',
             source: 'seed',
             searchKey: 'bad',

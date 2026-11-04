@@ -230,18 +230,24 @@ class _Totals extends StatelessWidget {
             children: [
               RfMacroBar(
                 label: 'Protein',
-                amount: s.intake.proteinG,
+                // TODO(D1-ui): unknown value rendered as 0
+                // until the UI agent handles it
+                amount: s.intake.proteinG ?? 0,
                 target: t.proteinG ?? 0,
               ),
               RfMacroBar(
                 label: 'Carbs',
-                amount: s.intake.carbsG,
+                // TODO(D1-ui): unknown value rendered as 0
+                // until the UI agent handles it
+                amount: s.intake.carbsG ?? 0,
                 target: t.carbsG ?? 0,
                 color: context.rf.textSecondary,
               ),
               RfMacroBar(
                 label: 'Fat',
-                amount: s.intake.fatG,
+                // TODO(D1-ui): unknown value rendered as 0
+                // until the UI agent handles it
+                amount: s.intake.fatG ?? 0,
                 target: t.fatG ?? 0,
                 color: context.rf.textSecondary,
               ),
@@ -318,9 +324,15 @@ class _MealSection extends ConsumerWidget {
                         Flexible(
                           child: Text(
                             '${e.quantity.label} · '
-                            'P ${whole(e.nutrients.proteinG)} · '
-                            'C ${whole(e.nutrients.carbsG)} · '
-                            'F ${whole(e.nutrients.fatG)}',
+                            // TODO(D1-ui): unknown value rendered as 0
+                            // until the UI agent handles it
+                            'P ${whole(e.nutrients.proteinG ?? 0)} · '
+                            // TODO(D1-ui): unknown value rendered as 0
+                            // until the UI agent handles it
+                            'C ${whole(e.nutrients.carbsG ?? 0)} · '
+                            // TODO(D1-ui): unknown value rendered as 0
+                            // until the UI agent handles it
+                            'F ${whole(e.nutrients.fatG ?? 0)}',
                             style: context.rfText.caption,
                             overflow: TextOverflow.ellipsis,
                           ),
