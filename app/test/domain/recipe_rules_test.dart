@@ -133,6 +133,22 @@ void main() {
       expect(r.provenance, DataProvenance.userEntered);
     });
 
+    test('crowdsourced when the weakest ingredient is crowdsourced', () {
+      final r = _recipe([
+        _ing('a', 100, per100: _profile(DataProvenance.verified)),
+        _ing('b', 100, per100: _profile(DataProvenance.crowdsourced)),
+      ]);
+      expect(r.provenance, DataProvenance.crowdsourced);
+    });
+
+    test('user-entered is weaker than crowdsourced', () {
+      final r = _recipe([
+        _ing('a', 100, per100: _profile(DataProvenance.crowdsourced)),
+        _ing('b', 100, per100: _profile(DataProvenance.userEntered)),
+      ]);
+      expect(r.provenance, DataProvenance.userEntered);
+    });
+
     test('estimated when any calculable ingredient is estimated', () {
       final r = _recipe([
         _ing('a', 100, per100: _profile(DataProvenance.userEntered)),

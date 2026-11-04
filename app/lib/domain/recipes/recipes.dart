@@ -93,19 +93,12 @@ abstract class Recipe with _$Recipe {
     return declaredPerPortion;
   }
 
-  /// Weakest provenance of the computed nutrition: `estimated` when any
-  /// ingredient snapshot is estimated (or the recipe falls back to the
-  /// declared estimate), `verified` only when every snapshot is verified,
-  /// otherwise `userEntered`.
+  /// Weakest provenance of the computed nutrition (calculation
+  /// specification §8): the weakest ingredient snapshot label, or
+  /// `estimated` when the recipe falls back to its declared values.
   DataProvenance get provenance {
     if (!allIngredientsCalculable) return DataProvenance.estimated;
-    final sources = ingredients.map((i) => i.per100!.provenance);
-    if (sources.contains(DataProvenance.estimated)) {
-      return DataProvenance.estimated;
-    }
-    return sources.every((p) => p == DataProvenance.verified)
-        ? DataProvenance.verified
-        : DataProvenance.userEntered;
+    return weakestProvenance(ingredients.map((i) => i.per100!.provenance))!;
   }
 
   /// Nutrition for [portionCount] portions (RCP portion scaling).

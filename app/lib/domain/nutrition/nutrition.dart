@@ -9,6 +9,29 @@ part 'nutrition.freezed.dart';
 /// Facts: label-derived but not verified by RepForge.
 enum DataProvenance { verified, userEntered, estimated, crowdsourced }
 
+/// Strength order of provenance labels, strongest first (D04 §7 amendment,
+/// nutrition calculation specification §8.1): verified › crowdsourced ›
+/// user-entered › estimated.
+const List<DataProvenance> provenanceStrength = [
+  DataProvenance.verified,
+  DataProvenance.crowdsourced,
+  DataProvenance.userEntered,
+  DataProvenance.estimated,
+];
+
+/// The weakest label among [sources] (specification §8.2); `null` when
+/// [sources] is empty.
+DataProvenance? weakestProvenance(Iterable<DataProvenance> sources) {
+  DataProvenance? weakest;
+  for (final p in sources) {
+    if (weakest == null ||
+        provenanceStrength.indexOf(p) > provenanceStrength.indexOf(weakest)) {
+      weakest = p;
+    }
+  }
+  return weakest;
+}
+
 /// Meal slot for the daily diary.
 enum MealSlot { breakfast, lunch, dinner, snack }
 
