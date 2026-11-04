@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `ccr-ac6db77c-jcnexo`
-Status: **delivered for owner acceptance**; acceptance audit completed 2026-11-03 (see “Acceptance audit” below). Not accepted until the owner records a decision.
+Status: **accepted by the owner on 2026-11-04** (conditional acceptance granted 2026-11-04; all conditions satisfied and recorded below).
 
 ## What was built
 - **Domain** (`app/lib/domain`): value objects with validation (`Quantity`, `Kilograms`, `Centimetres`, `LoadKg`, display conversions); nutrition (`NutrientAmounts`, `NutrientProfile` with provenance, `Food`, `ServingSize`, `FoodLogEntry` snapshot, `dayKey`); recipes (`RecipeIngredient`, `Recipe` with computed-vs-declared per-portion nutrition and provenance); training (`Exercise`, sealed `SetData` for the six exercise types, `SessionSet`, `WorkoutSession`, `PlanExercise`, `WorkoutPlan`, `Exertion`; rules for volume, Epley e1RM, max load, personal records, validation); measurements (`MeasurementSite` ×13 with left/right separate, `MeasurementValue`, `Measurement`); goals; settings; backup interface. Repository interfaces for each aggregate.
@@ -95,4 +95,13 @@ Conditional acceptance granted. Decisions recorded verbatim in effect:
 | Documentation reflects the owner decisions | this section; standards §7; D05; `docs/data-model.md`; D06 |
 
 ### CI evidence for the closing commits
-Appended when the runs complete.
+| Commit | What | CI (gate on) | Android build | iOS build | Integration tests |
+|---|---|---|---|---|---|
+| 33b0730 + 2fc0ea2 (one push) | coverage gate, 26 widget tests, integration waits, owner decisions | 41784936627 success (gate 87.3 %) | 41784936539 success | 41784936557 success | 41784936545 cancelled at 40 min (test got past `Targets saved`, then failed on the lazily built `food-save` button and hung) |
+| ecd924b | integration: scroll lazy forms; bounded database close | 41789730698 success | 41789730734 success | 41789730618 success | 41789730617 failure (both flows ran; cleanup asserted before the delete completed; no hang) |
+| 7c9067f | integration: wait for the delete | 41790734888 success | 41790734846 success | 41790734926 success | **41790734724 success** (both tests: in-memory end to end, and real on-device database open, migrate, persist, delete) |
+
+The three integration-test commits change only `integration_test/app_test.dart` and the job timeout; no implementation changed. The emulator job had never completed since WP 5 added the on-device test (af0c763).
+
+### Closure
+All four acceptance conditions are met: gate implemented and green; audit fixes in place (c899fe4); CI, Android, iOS and integration green on 7c9067f; documentation updated. **WP 3 closed as accepted 2026-11-04.** Not merged to `main`; the owner decides the merge point.

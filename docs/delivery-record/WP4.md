@@ -40,7 +40,7 @@ Conducted after WP 3 acceptance. Independent of the review pass above: a fresh r
 
 ### Independent verification
 - Local run of the WP 4 commit 7e892e1 (Flutter 3.47.9, Linux): analyzer clean; **254 tests pass** (the record says 251; the three extra are counted in the same suite, no discrepancy in content); hand-written line coverage 85.9 %.
-- The integration test's "restart" (`app_test.dart`, `restart()`) is a widget remount over the same in-memory database object, not a process restart. On the emulator (CI) it had never completed: the run on af0c763 was cancelled by concurrency, and the run on 24547dc and on the WP 3 audit commit failed on `Targets saved` and hung to the 60-minute timeout, because `pumpAndSettle` returns during database I/O on a device. Fixed in the WP 3 closing commit 33b0730 (`pumpUntil` after every async action; job timeout 40 min). Result on the closing commit: run 41784936545 (see below).
+- The integration test's "restart" (`app_test.dart`, `restart()`) is a widget remount over the same in-memory database object, not a process restart. On the emulator (CI) it had never completed: the run on af0c763 was cancelled by concurrency, and the run on 24547dc and on the WP 3 audit commit failed on `Targets saved` and hung to the 60-minute timeout, because `pumpAndSettle` returns during database I/O on a device. Fixed in the WP 3 closing commits 33b0730, ecd924b and 7c9067f (`pumpUntil`/`pumpUntilGone` after every async action, `scrollUntilVisible` for the lazily built save buttons, bounded database close, job timeout 40 min). First green emulator run: **41790734724** on 7c9067f, covering weight, targets, custom food creation, logging, dashboard after remount, and the real on-device database open/migrate/persist/delete.
 
 ### Findings
 | ID | Finding (verified in code) | Severity | Resolution proposed |
@@ -70,7 +70,7 @@ Verified true: ten review findings applied as described (atomic `replaceActive`,
 | Dashboard reflects database changes live | Met in code, evidence partial | B2 |
 | Targets persist across restart | Partial | B1 |
 | Widget tests for each panel state | Partial | all-empty and nutrition-populated covered; training-populated, body-populated, loading and error states not covered |
-| Integration test "change target, restart, verify" | Partial | remount, not restart (B1); first green emulator run on the WP 3 closing commit |
+| Integration test "change target, restart, verify" | Partial | remount, not restart (B1); green on the emulator in run 41790734724 |
 
 ### Deviations from approved requirements
 1. Navigation tabs follow the brand mock-up (Home, Train, Fuel, Track, Goals) rather than the D06 list; Settings is pushed from the app bar. Approved implicitly with WP 2; D06 should be amended.

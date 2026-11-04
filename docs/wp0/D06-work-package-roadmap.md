@@ -52,7 +52,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: `docs/design-system.md`.
 
 ### WP 3 — Domain models and local persistence
-- Status: **Delivered for acceptance 2026-11-03** (`docs/delivery-record/WP3.md`).
+- Status: **Accepted by the owner 2026-11-04** (`docs/delivery-record/WP3.md`): two audit fixes approved, 80 % coverage gate on hand-written code enforced in CI, TD-22..26 tracked with resolution packages.
 - Objective: the data foundation for all features, fully tested, with backup.
 - Scope: domain entities and value objects (units, nutrient profile, portion, provenance, exercise types, set records, measurement sites, goals); drift schema for foods, food log, recipes, ingredients, exercises, workouts, sessions, sets, measurements, goals, settings; repositories; migration test harness; JSON backup export/import round trip; an explicit assessment and ADR on encryption at rest and the privacy implications of locally stored fitness and body-composition data (owner direction, 2026-11-01).
 - Dependencies: WP 1.
