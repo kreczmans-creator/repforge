@@ -13,6 +13,8 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/scanner_preview.dart';
 
+import '../test/helpers/scrolling.dart';
+
 /// End-to-end flows on a real device or emulator. The first test uses an
 /// in-memory database so it leaves nothing behind; the last test uses the
 /// real on-device database file to prove that the production open path,
@@ -83,7 +85,8 @@ void main() {
       await tester.scrollUntilVisible(
         finder,
         200,
-        scrollable: find.byType(Scrollable).last,
+        // Vertical only: a TextField's horizontal scroller can be last.
+        scrollable: lastPageScrollable(),
       );
       await tester.pumpAndSettle();
       if (finder.evaluate().isNotEmpty) return;
@@ -218,6 +221,8 @@ void main() {
     // Edit the recipe: 100 g instead of 200 g (190 kcal per portion).
     await tester.tap(find.byKey(const Key('recipe-edit')));
     await pumpUntil(tester, find.byKey(const Key('ingredient-0')));
+    // The row can be below the fold on a short screen (review N1).
+    await scrollTo(tester, find.byKey(const Key('ingredient-0')));
     await tester.tap(find.byKey(const Key('ingredient-0')));
     await pumpUntil(tester, find.byKey(const Key('ingredient-amount')));
     await tester.enterText(find.byKey(const Key('ingredient-amount')), '100');

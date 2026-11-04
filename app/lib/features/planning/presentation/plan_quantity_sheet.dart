@@ -82,7 +82,10 @@ class _PlanQuantitySheetState extends ConsumerState<_PlanQuantitySheet> {
   void _step(double delta) {
     final next = ((_value ?? 0) + delta).clamp(0.5, 1000).toDouble();
     setState(() {
-      _amount.text = formatNumber(next, maxDecimals: 2);
+      _amount.text = formatNumber(
+        next,
+        maxDecimals: widget.kind == PlannedKind.savedMeal ? 2 : 1,
+      );
       _error = null;
     });
   }
@@ -130,7 +133,7 @@ class _PlanQuantitySheetState extends ConsumerState<_PlanQuantitySheet> {
       controller: _amount,
       label: label,
       unit: widget.kind == PlannedKind.food ? widget.unit.symbol : null,
-      decimals: widget.kind == PlannedKind.food ? 1 : 2,
+      decimals: widget.kind == PlannedKind.savedMeal ? 2 : 1,
       errorText: _error,
       autofocus: !_stepped,
       onChanged: (_) => setState(() => _error = null),

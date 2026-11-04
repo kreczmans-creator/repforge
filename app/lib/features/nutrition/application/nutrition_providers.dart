@@ -9,6 +9,7 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/nutrition/saved_meal.dart';
 import 'package:repforge/domain/nutrition/summaries.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
+import 'package:repforge/features/nutrition/application/cache_food.dart';
 import 'package:repforge/features/nutrition/application/create_custom_food.dart';
 import 'package:repforge/features/nutrition/application/log_food.dart';
 import 'package:repforge/features/nutrition/application/lookup_barcode.dart';
@@ -85,6 +86,10 @@ final weeklySummaryProvider = FutureProvider<WeeklySummary>((ref) async {
       .forDays(days.first, days.last);
   return WeeklySummary.fromEntries(days: days, entries: entries);
 });
+
+final cacheFoodProvider = Provider<CacheFood>(
+  (ref) => CacheFood(foods: ref.watch(foodRepositoryProvider)),
+);
 
 final logFoodProvider = Provider<LogFood>(
   (ref) => LogFood(

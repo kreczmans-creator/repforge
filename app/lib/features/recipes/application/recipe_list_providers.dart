@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
+import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/features/recipes/application/recipe_providers.dart';
 
 /// Whether the recipe list shows favourites only (RCP-011). Stored in the
@@ -11,16 +13,21 @@ final recipeFavouritesOnlyProvider = StreamProvider<bool>(
 
 /// Use case: remember the favourites filter.
 final class SetRecipeFavouritesOnly {
-  const SetRecipeFavouritesOnly(this._ref);
-  final Ref _ref;
+  const SetRecipeFavouritesOnly(this._settings);
+  final SettingsRepository _settings;
 
-  Future<void> call({required bool value}) => _ref
-      .read(settingsRepositoryProvider)
-      .saveRecipeFavouritesOnly(value: value);
+  Future<Result<void>> call({required bool value}) async {
+    try {
+      await _settings.saveRecipeFavouritesOnly(value: value);
+    } on Exception catch (e) {
+      return Err(StorageError('Could not save the filter.', cause: e));
+    }
+    return const Ok(null);
+  }
 }
 
 final setRecipeFavouritesOnlyProvider = Provider<SetRecipeFavouritesOnly>(
-  SetRecipeFavouritesOnly.new,
+  (ref) => SetRecipeFavouritesOnly(ref.watch(settingsRepositoryProvider)),
 );
 
 /// One recipe by id: null when it does not exist (or was deleted).

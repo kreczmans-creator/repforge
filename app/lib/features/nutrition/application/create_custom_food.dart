@@ -33,6 +33,14 @@ final class CreateCustomFood {
     List<ServingInput> servings = const [],
     Food? existing,
   }) async {
+    if (per100 == ReferenceUnit.portions) {
+      return const Err(
+        ValidationError(
+          'A food is measured in grams or millilitres.',
+          field: 'unit',
+        ),
+      );
+    }
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
       return const Err(ValidationError('Enter a food name.', field: 'name'));

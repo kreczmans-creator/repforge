@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
@@ -12,6 +11,7 @@ import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
+import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
@@ -47,9 +47,10 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
   /// Days after today, 0 to [planWindowDays] - 1.
   int _offset = 0;
 
+  /// Today's diary day (honours the day-start setting), as a calendar date.
   DateTime _today() {
-    final now = ref.read(clockProvider).now();
-    return DateTime(now.year, now.month, now.day);
+    final parts = ref.read(todayKeyProvider).split('-').map(int.parse).toList();
+    return DateTime(parts[0], parts[1], parts[2]);
   }
 
   DateTime _date() {
@@ -158,6 +159,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(todayKeyProvider);
     final date = _date();
     final day = planDayKey(date);
     final view = ref.watch(planDayViewProvider(day));
@@ -180,6 +182,15 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
             onPrevious: _offset == 0 ? null : () => _shift(-1),
             onNext: _offset >= planWindowDays - 1 ? null : () => _shift(1),
           ),
+          if (_offset > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: RfSpace.s2),
+              child: Text(
+                'Planned meals can be marked as eaten on their day.',
+                key: const Key('plan-future-note'),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           view.when(
             loading: () => const RfLoading(),
             error: (e, _) =>
@@ -199,7 +210,7 @@ class _MealPlanScreenState extends ConsumerState<MealPlanScreen> {
                     ],
                     onAdd: () => _add(meal),
                     onRemove: _remove,
-                    onEat: _markEaten,
+                    onEat: _offset == 0 ? _markEaten : null,
                   ),
               ],
             ),
@@ -354,7 +365,7 @@ class _MealSection extends StatelessWidget {
   final List<PlannedLine> lines;
   final VoidCallback onAdd;
   final void Function(MealPlanItem) onRemove;
-  final void Function(MealPlanItem) onEat;
+  final void Function(MealPlanItem)? onEat;
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +431,7 @@ class _PlannedTile extends StatelessWidget {
 
   final PlannedLine line;
   final void Function(MealPlanItem) onRemove;
-  final void Function(MealPlanItem) onEat;
+  final void Function(MealPlanItem)? onEat;
 
   @override
   Widget build(BuildContext context) {
@@ -467,12 +478,12 @@ class _PlannedTile extends StatelessWidget {
                 color: context.rf.successText,
               ),
             )
-          else
+          else if (onEat != null)
             IconButton(
               key: Key('plan-eat-${item.id}'),
               tooltip: 'Mark as eaten',
               icon: const Icon(Icons.check_circle_outline),
-              onPressed: () => onEat(item),
+              onPressed: () => onEat!(item),
             ),
           IconButton(
             key: Key('plan-remove-${item.id}'),

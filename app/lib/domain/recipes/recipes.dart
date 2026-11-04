@@ -75,7 +75,8 @@ enum RecipeNutritionSource {
 enum FreezingSuitability { yes, no, unknown }
 
 /// Recipe (RCP-001..). Per-portion nutrition is computed from ingredients when
-/// all are calculable; otherwise the declared estimate is used and labelled.
+/// all are calculable and there are no ingredient notes; otherwise the
+/// declared estimate is used and labelled.
 /// All nutrition rules follow `docs/nutrition-calculation-spec.md` §7.5, §8
 /// and §9.
 @freezed
@@ -128,7 +129,16 @@ abstract class Recipe with _$Recipe {
   bool get allIngredientsCalculable =>
       ingredients.isNotEmpty && ingredients.every((i) => i.nutrients != null);
 
-  RecipeNutritionSource get nutritionSource => allIngredientsCalculable
+  /// True when the per-portion nutrition is computed from the ingredients
+  /// (spec §8.3): at least one linked ingredient, every one calculable, and
+  /// no free-text ingredient notes. A note is an ingredient the app cannot
+  /// calculate, so a recipe with notes is incomplete and keeps its declared
+  /// values; blank notes are ignored.
+  bool get isComputed =>
+      allIngredientsCalculable &&
+      !ingredientNotes.any((n) => n.trim().isNotEmpty);
+
+  RecipeNutritionSource get nutritionSource => isComputed
       ? RecipeNutritionSource.computed
       : RecipeNutritionSource.declared;
 
@@ -139,7 +149,7 @@ abstract class Recipe with _$Recipe {
   /// Use [perPortionTotals] to show the partial sum.
   NutrientAmounts? get perPortion {
     if (portions <= 0) return null;
-    if (allIngredientsCalculable) {
+    if (isComputed) {
       final totals = NutrientTotals.of(ingredients.map((i) => i.nutrients!));
       final k = totals.known;
       return NutrientAmounts(
@@ -161,7 +171,7 @@ abstract class Recipe with _$Recipe {
   /// estimate. Null when there is no nutrition or [portions] is not positive.
   NutrientTotals? get perPortionTotals {
     if (portions <= 0) return null;
-    if (allIngredientsCalculable) {
+    if (isComputed) {
       return NutrientTotals.of(ingredients.map((i) => i.nutrients!))
           .dividedBy(portions);
     }
@@ -193,7 +203,7 @@ abstract class Recipe with _$Recipe {
   /// specification §8): the weakest ingredient snapshot label, or
   /// `estimated` when the recipe falls back to its declared values.
   DataProvenance get provenance {
-    if (!allIngredientsCalculable) return DataProvenance.estimated;
+    if (!isComputed) return DataProvenance.estimated;
     return weakestProvenance(ingredients.map((i) => i.per100!.provenance))!;
   }
 
@@ -228,9 +238,9 @@ abstract class Recipe with _$Recipe {
   /// substitute quantity, the portion count and an explicit total weight are
   /// multiplied by [factor], so the per-portion values stay the same.
   /// Nothing is persisted; the saved recipe changes only through "save as
-  /// new" or "overwrite". Quantities are rounded to 0.1 (spec §2.1), so the
-  /// per-portion values are exactly unchanged only when the scaled
-  /// quantities are multiples of 0.1. Fails for a non-positive or non-finite
+  /// new" or "overwrite". Scaled quantities are kept exactly, not rounded
+  /// (spec §9.4), so the per-portion values are unchanged; round only for
+  /// display. Fails for a non-positive or non-finite
   /// factor or a quantity beyond the supported range.
   Result<Recipe> scaledBy(double factor) {
     if (factor.isNaN || factor.isInfinite || factor <= 0) {
@@ -242,7 +252,7 @@ abstract class Recipe with _$Recipe {
       );
     }
     Result<Quantity> scale(Quantity q) =>
-        Quantity.of(q.amount * factor, q.unit);
+        Quantity.exact(q.amount * factor, q.unit);
     final scaledIngredients = <RecipeIngredient>[];
     for (final i in ingredients) {
       final q = scale(i.quantity);
@@ -339,7 +349,7 @@ abstract class Recipe with _$Recipe {
   /// when this recipe's nutrition is not computed from its ingredients (a
   /// declared estimate cannot be compared with a computed figure).
   double? kcalPerPortionDelta(String ingredientId, int substituteIndex) {
-    if (!allIngredientsCalculable) return null;
+    if (!isComputed) return null;
     final view = withSubstitution(ingredientId, substituteIndex);
     if (view is! Ok<Recipe>) return null;
     final before = perPortion?.kcal;

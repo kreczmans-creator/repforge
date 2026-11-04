@@ -90,7 +90,10 @@ final class ImportLegacyRecipes {
           alreadyDone: false,
         ),
       );
-    } on Exception catch (e) {
+    } on Object catch (e) {
+      // Not only Exceptions: a missing asset makes rootBundle.loadString
+      // throw a FlutterError (an Error). Whatever fails, the import records
+      // nothing and reports a typed error.
       return Err(
         StorageError('Could not import the starter recipes.', cause: e),
       );

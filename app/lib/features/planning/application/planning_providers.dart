@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/planning/meal_plan.dart';
 import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
@@ -44,7 +45,15 @@ final planItemProvider = Provider<PlanItem>(
     savedMeals: ref.watch(savedMealRepositoryProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
+    todayKey: () => _todayKey(ref),
   ),
+);
+
+/// Today's diary day key, computed exactly as `todayKeyProvider` does (clock,
+/// local time, day-start hour) but read at call time so it is never stale.
+String _todayKey(Ref ref) => diaryDayKey(
+  ref.read(clockProvider).now(),
+  ref.read(settingsProvider).value?.dayStartHour ?? 0,
 );
 
 final removePlannedItemProvider = Provider<RemovePlannedItem>(
@@ -66,10 +75,11 @@ final markPlannedEatenProvider = Provider<MarkPlannedEaten>(
     recipes: ref.watch(recipeRepositoryProvider),
     foods: ref.watch(foodRepositoryProvider),
     savedMeals: ref.watch(savedMealRepositoryProvider),
-    log: ref.watch(foodLogRepositoryProvider),
     logFood: ref.watch(logFoodProvider),
     logRecipe: ref.watch(logRecipeProvider),
     logSavedMeal: ref.watch(logSavedMealProvider),
+    transactor: ref.watch(transactorProvider),
+    todayKey: () => _todayKey(ref),
   ),
 );
 

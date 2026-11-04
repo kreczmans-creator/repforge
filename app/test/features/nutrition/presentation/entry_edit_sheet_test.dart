@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/recipes/recipes.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/presentation/entry_edit_sheet.dart';
 import 'package:repforge/ui/theme.dart';
@@ -133,5 +135,95 @@ void main() {
           .forDays('2026-11-03', '2026-11-03'),
       isEmpty,
     );
+  });
+
+  group('recipe entries (RCP-013)', () {
+    final recipe = Recipe(
+      id: 'r1',
+      name: 'Chilli',
+      category: '',
+      portions: 2,
+      ingredients: [
+        RecipeIngredient(
+          id: 'i1',
+          name: 'Beans',
+          foodId: 'beans',
+          quantity: Quantity.fromStored(400, ReferenceUnit.grams),
+          sortOrder: 0,
+          per100: const NutrientProfile(
+            per100: ReferenceUnit.grams,
+            per100Amounts: NutrientAmounts(kcal: 100),
+            provenance: DataProvenance.userEntered,
+          ),
+        ),
+      ],
+      createdAt: _now.toUtc(),
+      updatedAt: _now.toUtc(),
+    );
+    final fromRecipe = _entry.copyWith(recipeId: 'r1');
+
+    Future<void> openRouted(WidgetTester tester) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, _) => Scaffold(
+              body: TextButton(
+                onPressed: () => showEntryEditSheet(context, fromRecipe),
+                child: const Text('edit'),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/fuel/recipes/:id',
+            builder: (context, state) =>
+                Scaffold(body: Text('detail ${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            theme: rfTheme(Brightness.dark),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.tap(find.text('edit'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a plain entry has no open-recipe action', (tester) async {
+      await openSheet(tester);
+      expect(find.byKey(const Key('entry-open-recipe')), findsNothing);
+    });
+
+    testWidgets('opens the recipe it was logged from', (tester) async {
+      await tester.runAsync(
+        () => container.read(recipeRepositoryProvider).upsert(recipe),
+      );
+      await openRouted(tester);
+      await tester.tap(find.byKey(const Key('entry-open-recipe')));
+      // drift streams only emit in real time.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('detail r1'), findsOneWidget);
+      expect(find.byKey(const Key('edit-save')), findsNothing);
+    });
+
+    testWidgets('says so when the recipe no longer exists', (tester) async {
+      await openRouted(tester);
+      await tester.tap(find.byKey(const Key('entry-open-recipe')));
+      // drift streams only emit in real time.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('This recipe no longer exists.'), findsOneWidget);
+      expect(find.byKey(const Key('edit-save')), findsOneWidget);
+    });
   });
 }

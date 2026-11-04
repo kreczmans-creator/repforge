@@ -40,6 +40,17 @@ final class Quantity {
   final double amount;
   final ReferenceUnit unit;
 
+  /// Validates like [of] but keeps [amount] as given (no rounding to 0.1).
+  /// Only for derived values that must stay exact, such as a scaled recipe
+  /// view (spec §9.4); a quantity the user enters goes through [of].
+  static Result<Quantity> exact(double amount, ReferenceUnit unit) {
+    final checked = of(amount, unit);
+    return switch (checked) {
+      Ok() => Ok(Quantity._(amount, unit)),
+      Err() => checked,
+    };
+  }
+
   static Result<Quantity> of(double amount, ReferenceUnit unit) {
     if (amount.isNaN || amount.isInfinite || amount < 0) {
       return const Err(

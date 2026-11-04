@@ -27,10 +27,10 @@ final minuteTickProvider = StreamProvider<DateTime>((ref) {
 /// key actually changes.
 final todayKeyProvider = Provider<String>((ref) {
   final clock = ref.watch(clockProvider);
-  final now = (ref.watch(minuteTickProvider).value ?? clock.now()).toLocal();
+  final now = ref.watch(minuteTickProvider).value ?? clock.now();
   final dayStart =
       ref.watch(settingsProvider.select((s) => s.value?.dayStartHour)) ?? 0;
-  return dayKey(now.subtract(Duration(hours: dayStart)));
+  return diaryDayKey(now, dayStart);
 });
 
 /// Today's food log entries.

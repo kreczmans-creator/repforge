@@ -776,8 +776,8 @@ return $default(_that.label,_that.quantity);case _:
 /// @nodoc
 
 
-class _ServingSize implements ServingSize {
-  const _ServingSize({required this.label, required this.quantity});
+class _ServingSize extends ServingSize {
+  const _ServingSize({required this.label, required this.quantity}): super._();
   
 
 @override final  String label;

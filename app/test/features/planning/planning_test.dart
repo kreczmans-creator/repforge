@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/db/drift_transactor.dart';
 import 'package:repforge/data/repositories/drift_food_log_repository.dart';
 import 'package:repforge/data/repositories/drift_food_repository.dart';
 import 'package:repforge/data/repositories/drift_meal_plan_repository.dart';
@@ -109,6 +110,28 @@ SavedMeal _meal() => SavedMeal(
   updatedAt: _now,
 );
 
+/// A plan repository whose `markEaten` fails, to probe atomicity.
+final class _FailingMarkEatenPlan implements MealPlanRepository {
+  _FailingMarkEatenPlan(this._inner);
+  final MealPlanRepository _inner;
+
+  @override
+  Future<void> markEaten(String id, List<String> entryIds) =>
+      throw Exception('disk full');
+
+  @override
+  Stream<List<MealPlanItem>> watchDay(String day) => _inner.watchDay(day);
+  @override
+  Stream<List<MealPlanItem>> watchRange(String a, String b) =>
+      _inner.watchRange(a, b);
+  @override
+  Future<MealPlanItem?> byId(String id) => _inner.byId(id);
+  @override
+  Future<void> upsert(MealPlanItem item) => _inner.upsert(item);
+  @override
+  Future<void> delete(String id) => _inner.delete(id);
+}
+
 void main() {
   late AppDatabase db;
   late DriftRecipeRepository recipes;
@@ -119,16 +142,19 @@ void main() {
   late DriftPrepBatchRepository batches;
   late PlanItem planItem;
   late MarkPlannedEaten markEaten;
+  late MarkPlannedEaten Function(MealPlanRepository) markWith;
   late SummarisePlanDay summarise;
   late RecordPrepBatch recordBatch;
   late ConsumePrepPortion consume;
   final clock = FixedClock(_now);
   var ids = 0;
+  var todayKey = _today;
   String newId() => 'id${++ids}';
 
   setUp(() async {
     db = AppDatabase.inMemory();
     ids = 0;
+    todayKey = _today;
     recipes = DriftRecipeRepository(db, clock: clock);
     foods = DriftFoodRepository(db, clock: clock);
     savedMeals = DriftSavedMealRepository(db, clock: clock);
@@ -145,6 +171,7 @@ void main() {
       savedMeals: savedMeals,
       clock: clock,
       newId: newId,
+      todayKey: () => todayKey,
     );
     final logRecipe = LogRecipe(
       recipes: recipes,
@@ -153,16 +180,18 @@ void main() {
       newId: newId,
       prepBatches: batches,
     );
-    markEaten = MarkPlannedEaten(
-      plan: plan,
+    markWith = (p) => MarkPlannedEaten(
+      plan: p,
       recipes: recipes,
       foods: foods,
       savedMeals: savedMeals,
-      log: log,
       logFood: LogFood(foods: foods, log: log, clock: clock, newId: newId),
       logRecipe: logRecipe,
       logSavedMeal: LogSavedMeal(log: log, clock: clock, newId: newId),
+      transactor: DriftTransactor(db),
+      todayKey: () => todayKey,
     );
+    markEaten = markWith(plan);
     summarise = SummarisePlanDay(
       plan: plan,
       recipes: recipes,
@@ -217,10 +246,11 @@ void main() {
     });
 
     test('the window follows the clock', () {
-      expect(isInPlanWindow('2026-12-01', DateTime(2026, 11, 4)), isTrue);
-      expect(isInPlanWindow('2026-12-01', DateTime(2026, 11, 5)), isTrue);
-      expect(isInPlanWindow('2026-12-02', DateTime(2026, 11, 5)), isTrue);
-      expect(isInPlanWindow('2026-12-02', DateTime(2026, 11, 4)), isFalse);
+      expect(isInPlanWindow('2026-12-01', '2026-11-04'), isTrue);
+      expect(isInPlanWindow('2026-12-01', '2026-11-05'), isTrue);
+      expect(isInPlanWindow('2026-12-02', '2026-11-05'), isTrue);
+      expect(isInPlanWindow('2026-12-02', '2026-11-04'), isFalse);
+      expect(isInPlanWindow('2026-11-03', '2026-11-04'), isFalse);
     });
 
     test('zero quantity, missing reference are typed errors', () async {
@@ -446,6 +476,108 @@ void main() {
       expect(error, isA<ValidationError>());
       expect((error as ValidationError).field, PlanErrorField.alreadyEaten);
       expect(await logged(), hasLength(1));
+    });
+
+    test('M2 a future day cannot be marked eaten; nothing is logged', () async {
+      final item = ok(await planRecipe('2026-11-05'));
+      final r = await markEaten(item.id);
+      final error = (r as Err<List<FoodLogEntry>>).error as ValidationError;
+      expect(error.field, PlanErrorField.day);
+      expect(
+        error.message,
+        'A planned meal can only be marked as eaten on or after its day.',
+      );
+      expect(await logged(), isEmpty);
+      expect((await plan.byId(item.id))!.isEaten, isFalse);
+    });
+
+    test('M2 a past planned day can still be marked eaten', () async {
+      final item = ok(await planRecipe(_today));
+      todayKey = '2026-11-06';
+      expect((await markEaten(item.id)).isOk, isTrue);
+    });
+
+    test(
+      'M3 the plan window follows the diary day (day start 04:00)',
+      () async {
+        // At 02:30 on 5 Nov with a 04:00 day start the diary is still on 4 Nov.
+        todayKey = diaryDayKey(DateTime(2026, 11, 5, 2, 30), 4);
+        expect(todayKey, '2026-11-04');
+        expect((await planRecipe('2026-11-04')).isOk, isTrue);
+        final tomorrow = ok(await planRecipe('2026-11-05'));
+        expect((await markEaten(tomorrow.id)).isErr, isTrue);
+        // After 04:00 it is the 5th: the 4th is out of the window.
+        todayKey = diaryDayKey(DateTime(2026, 11, 5, 4, 30), 4);
+        expect((await planRecipe('2026-11-04')).isErr, isTrue);
+        expect((await markEaten(tomorrow.id)).isOk, isTrue);
+      },
+    );
+
+    test('M4 markEaten failing rolls back the entries AND the batch', () async {
+      final batch = ((await recordBatch(
+        recipeId: 'r1',
+        portionsMade: 4,
+      )) as Ok<PrepBatch>).value;
+      final item = ok(await planRecipe(_today, 1));
+      final r = await markWith(_FailingMarkEatenPlan(plan))(
+        item.id,
+        prepBatchId: batch.id,
+      );
+      expect(r.isErr, isTrue);
+      expect(await logged(), isEmpty);
+      expect((await batches.byId(batch.id))!.portionsRemaining, 4);
+      expect((await plan.byId(item.id))!.isEaten, isFalse);
+    });
+
+    test('a prep batch is consumed together with the eaten mark', () async {
+      final batch = ((await recordBatch(
+        recipeId: 'r1',
+        portionsMade: 4,
+      )) as Ok<PrepBatch>).value;
+      final item = ok(await planRecipe(_today));
+      expect((await markEaten(item.id, prepBatchId: batch.id)).isOk, isTrue);
+      expect((await batches.byId(batch.id))!.portionsRemaining, 2.5);
+      expect(await logged(), hasLength(1));
+      // A batch too small for the plan is refused with no side effects.
+      final big = ok(await planRecipe(_today, 3));
+      final r = await markEaten(big.id, prepBatchId: batch.id);
+      expect(
+        ((r as Err<List<FoodLogEntry>>).error as ValidationError).field,
+        prepInsufficientField,
+      );
+      expect((await batches.byId(batch.id))!.portionsRemaining, 2.5);
+      expect(await logged(), hasLength(1));
+      expect((await plan.byId(big.id))!.isEaten, isFalse);
+    });
+
+    test('M5 two concurrent marks log exactly once', () async {
+      final item = ok(await planRecipe(_today));
+      final results = await Future.wait([
+        markEaten(item.id),
+        markEaten(item.id),
+      ]);
+      expect(results.where((r) => r.isOk), hasLength(1));
+      final failed =
+          results.singleWhere((r) => r.isErr) as Err<List<FoodLogEntry>>;
+      expect(
+        (failed.error as ValidationError).field,
+        PlanErrorField.alreadyEaten,
+      );
+      expect(await logged(), hasLength(1));
+    });
+
+    test('M5 concurrent marks with a batch consume one portion once', () async {
+      final batch = ((await recordBatch(
+        recipeId: 'r1',
+        portionsMade: 4,
+      )) as Ok<PrepBatch>).value;
+      final item = ok(await planRecipe(_today, 1));
+      await Future.wait([
+        markEaten(item.id, prepBatchId: batch.id),
+        markEaten(item.id, prepBatchId: batch.id),
+      ]);
+      expect(await logged(), hasLength(1));
+      expect((await batches.byId(batch.id))!.portionsRemaining, 3);
     });
 
     test('an eaten item cannot be edited', () async {

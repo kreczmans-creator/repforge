@@ -88,8 +88,17 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   label: const Text('Favourites'),
                   avatar: const Icon(Icons.star_outline, size: RfIcon.sm),
                   selected: favOnly,
-                  onSelected: (v) =>
-                      ref.read(setRecipeFavouritesOnlyProvider)(value: v),
+                  onSelected: (v) async {
+                    final result = await ref.read(
+                      setRecipeFavouritesOnlyProvider,
+                    )(value: v);
+                    if (!context.mounted) return;
+                    if (result case Err(:final error)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(userMessageFor(error))),
+                      );
+                    }
+                  },
                 ),
               ),
               const SizedBox(height: RfSpace.s2),

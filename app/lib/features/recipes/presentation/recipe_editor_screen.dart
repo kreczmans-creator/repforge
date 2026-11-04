@@ -44,6 +44,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
   final List<TextEditingController> _prepSteps = [];
   final List<TextEditingController> _cookSteps = [];
   List<RecipeIngredient> _ingredients = [];
+  List<String> _notes = [];
   bool _byWeight = false;
   FreezingSuitability _freezing = FreezingSuitability.unknown;
   bool _favourite = false;
@@ -105,6 +106,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     _freezing = r.freezing;
     _favourite = r.favourite;
     _ingredients = [...r.ingredients];
+    _notes = [...r.ingredientNotes];
     _prepSteps.addAll(r.prepSteps.map((s) => TextEditingController(text: s)));
     _cookSteps.addAll(r.cookSteps.map((s) => TextEditingController(text: s)));
   }
@@ -115,9 +117,32 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     return double.tryParse(t.replaceAll(',', '.')) ?? double.nan;
   }
 
+  /// Total weight in grams: the entered value, otherwise the sum of the
+  /// ingredient grams when every ingredient is in grams (spec §9.3), else
+  /// null.
+  double? get _effectiveTotal {
+    final now = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final probe =
+        (_original ??
+                Recipe(
+                  id: '',
+                  name: '',
+                  category: '',
+                  portions: 1,
+                  ingredients: const [],
+                  createdAt: now,
+                  updatedAt: now,
+                ))
+            .copyWith(
+              ingredients: _ingredients,
+              totalWeightG: _num(_totalWeight),
+            );
+    return probe.effectiveTotalWeightG;
+  }
+
   /// Portions derived from weights, or null.
   double? get _derived =>
-      portionsByWeight(_num(_totalWeight), _num(_portionWeight));
+      portionsByWeight(_effectiveTotal, _num(_portionWeight));
 
   Recipe _build() {
     final now = ref.read(clockProvider).now().toUtc();
@@ -135,7 +160,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     final total = _num(_totalWeight);
     final portionW = _byWeight ? _num(_portionWeight) : null;
     final portions = _byWeight
-        ? (portionsByWeight(total, portionW) ?? 0)
+        ? (portionsByWeight(_effectiveTotal, portionW) ?? 0)
         : (_num(_portions) ?? 0);
     int? minutes(TextEditingController c) {
       final t = c.text.trim();
@@ -156,6 +181,7 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
         for (var i = 0; i < _ingredients.length; i++)
           _ingredients[i].copyWith(sortOrder: i),
       ],
+      ingredientNotes: _notes,
       prepSteps: [for (final c in _prepSteps) c.text],
       cookSteps: [for (final c in _cookSteps) c.text],
       prepMinutes: minutes(_prep),
@@ -169,6 +195,15 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
 
   Future<void> _save() async {
     if (_busy) return;
+    if (_byWeight && _effectiveTotal == null) {
+      setState(() {
+        _error =
+            'Enter the total weight; it cannot be worked out from the '
+            'ingredients.';
+        _errorField = 'totalWeightG';
+      });
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -313,10 +348,8 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
     final original = _original;
     final imported =
         original != null &&
-        original.ingredients.isEmpty &&
-        _ingredients.isEmpty &&
-        (original.ingredientNotes.isNotEmpty ||
-            original.declaredPerPortion != null);
+        original.declaredPerPortion != null &&
+        _notes.isNotEmpty;
     final derived = _derived;
     return Scaffold(
       appBar: AppBar(title: Text(_isNew ? 'New recipe' : 'Edit recipe')),
@@ -328,9 +361,9 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
             RfCard(
               key: const Key('imported-note'),
               child: Text(
-                'This is an imported recipe. Its original ingredient notes '
-                'and estimated nutrition are kept until you add ingredients '
-                'linked to foods; then nutrition is calculated from them.',
+                'This is an imported recipe. Its nutrition stays the original '
+                'estimate until every ingredient note is replaced by a '
+                'linked ingredient and the notes are removed.',
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -412,10 +445,21 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                 ),
               ],
             ),
+            if (_num(_totalWeight) == null && _effectiveTotal != null) ...[
+              const SizedBox(height: RfSpace.s1),
+              Text(
+                'Total weight defaults to the ingredients: '
+                '${formatNumber(_effectiveTotal!)} g.',
+                key: const Key('default-total-weight'),
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: RfSpace.s2),
             Text(
               derived == null
-                  ? 'Enter both weights to get the number of portions.'
+                  ? 'Enter the portion weight (and the total weight unless '
+                        'every ingredient is in grams) to get the number of '
+                        'portions.'
                   : '= ${formatNumber(derived, maxDecimals: 2)} portions',
               key: const Key('derived-portions'),
               style: theme.textTheme.bodyMedium,
@@ -495,6 +539,49 @@ class _RecipeEditorScreenState extends ConsumerState<RecipeEditorScreen> {
                 ],
               ),
             ),
+          if (_notes.isNotEmpty) ...[
+            const SizedBox(height: RfSpace.s3),
+            Text('INGREDIENT NOTES', style: context.rfText.kicker),
+            RfCard(
+              key: const Key('ingredient-notes'),
+              padding: const EdgeInsets.symmetric(
+                horizontal: RfSpace.s3,
+                vertical: RfSpace.s1,
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < _notes.length; i++)
+                    Row(
+                      key: ValueKey('note-$i-${_notes[i]}'),
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: RfSpace.s2,
+                            ),
+                            child: Text(
+                              _notes[i],
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          key: Key('note-delete-$i'),
+                          tooltip: 'Remove note',
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: RfIcon.sm,
+                          ),
+                          onPressed: () => setState(() {
+                            _notes = [..._notes]..removeAt(i);
+                          }),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
           if (_errorFor('ingredients') != null)
             _FieldError(_errorFor('ingredients')!),
           if (_errorFor('quantity') != null)

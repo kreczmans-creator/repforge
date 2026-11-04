@@ -73,7 +73,7 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
       return double.tryParse(_amount.text.trim().replaceAll(',', '.'));
     }
     final n = double.tryParse(_servings.text.trim().replaceAll(',', '.'));
-    return n == null ? null : n * _serving!.quantity.amount;
+    return n == null ? null : _serving!.quantityFor(n).amount;
   }
 
   NutrientAmounts? get _preview {

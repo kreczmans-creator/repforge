@@ -223,9 +223,10 @@ class RecipeSubstitutes extends Table {
 
 /// Meal-plan items (RCP-014, schema v5; used from WP 7 stage 3). `day` is
 /// `YYYY-MM-DD`, `meal` a `MealSlot` name, `kind` recipe | food | savedMeal,
-/// `ref_id` the id of the referenced record, `unit` g | ml | portion.
-/// `eaten_entry_id` links the diary entry created when the item is marked
-/// eaten.
+/// `ref_id` the id of the referenced record, `unit` grams | millilitres |
+/// portions (the `ReferenceUnit` names). `eaten_entry_id` holds the id(s) of
+/// the diary entries created when the item is marked eaten: one or more,
+/// comma-separated (a saved meal creates one per item).
 @DataClassName('MealPlanItemRow')
 @TableIndex(name: 'idx_meal_plan_items_day', columns: {#day})
 class MealPlanItems extends Table with SyncColumns {

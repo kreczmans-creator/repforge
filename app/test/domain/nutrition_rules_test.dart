@@ -220,4 +220,53 @@ void main() {
       expect(dayKey(DateTime(987, 3, 9)), '0987-03-09');
     });
   });
+
+  group('diaryDayKey (day start across midnight)', () {
+    test('with a 04:00 start 02:30 still belongs to the previous day', () {
+      expect(diaryDayKey(DateTime(2026, 11, 5, 2, 30), 4), '2026-11-04');
+      expect(diaryDayKey(DateTime(2026, 11, 5, 3, 59), 4), '2026-11-04');
+    });
+
+    test('from 04:00 the new day starts', () {
+      expect(diaryDayKey(DateTime(2026, 11, 5, 4), 4), '2026-11-05');
+      expect(diaryDayKey(DateTime(2026, 11, 5, 23, 59), 4), '2026-11-05');
+    });
+
+    test('midnight start equals the plain local date; month boundary', () {
+      expect(diaryDayKey(DateTime(2026, 11, 5, 0, 1), 0), '2026-11-05');
+      expect(diaryDayKey(DateTime(2026, 12, 1, 1), 4), '2026-11-30');
+    });
+
+    test('a UTC instant is read in local time', () {
+      final utc = DateTime.utc(2026, 11, 5, 2, 30);
+      expect(
+        diaryDayKey(utc, 4),
+        dayKey(utc.toLocal().subtract(const Duration(hours: 4))),
+      );
+    });
+  });
+
+  group('ServingSize.quantityFor', () {
+    final slice = ServingSize(
+      label: 'slice',
+      quantity: Quantity.fromStored(35, ReferenceUnit.grams),
+    );
+
+    test('count x serving, rounded to 0.1 (spec 2.1)', () {
+      expect(slice.quantityFor(2).amount, 70);
+      expect(slice.quantityFor(1.5).amount, 52.5);
+      expect(slice.quantityFor(0.3).amount, 10.5);
+      final odd = ServingSize(
+        label: 'x',
+        quantity: Quantity.fromStored(33.4, ReferenceUnit.grams),
+      );
+      expect(odd.quantityFor(1.5).amount, 50.1);
+      expect(slice.quantityFor(2).unit, ReferenceUnit.grams);
+    });
+
+    test('an invalid count gives a zero quantity', () {
+      expect(slice.quantityFor(-1).amount, 0);
+      expect(slice.quantityFor(double.nan).amount, 0);
+    });
+  });
 }

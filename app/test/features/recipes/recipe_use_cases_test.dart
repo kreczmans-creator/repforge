@@ -57,6 +57,19 @@ void main() {
   tearDown(() => db.close());
 
   group('SaveRecipe', () {
+    test('a saved scaled recipe stores quantities in 0.1 steps and reads back '
+        'exactly as returned (spec §2.1, §9.4)', () async {
+      await save(_recipe(ingredients: [_ing('i1', 400)], portions: 3));
+      final original = (await repo.byId('r1'))!;
+      // 4/3 makes 533.333... g in the exact scaled view.
+      final scaled = (original.scaleToPortions(4) as Ok<Recipe>).value;
+      final saved = ((await save(scaled, saveAsNew: true)) as Ok<Recipe>).value;
+      expect(saved.ingredients.single.quantity.amount, 533.3);
+      final reread = (await repo.byId(saved.id))!;
+      expect(reread.ingredients.single.quantity.amount, 533.3);
+      expect(reread.perPortion, saved.perPortion);
+    });
+
     test('saves a valid new recipe, stamping created and updated', () async {
       final r = await save(_recipe(name: '  Chilli  '));
       final saved = (r as Ok<Recipe>).value;

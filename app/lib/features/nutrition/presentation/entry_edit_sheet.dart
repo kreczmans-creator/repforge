@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:repforge/app/providers.dart';
+import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/units/format.dart';
@@ -35,6 +40,7 @@ class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
   late MealSlot _meal = widget.entry.meal;
   String? _error;
   bool _busy = false;
+  bool _recipeMissing = false;
 
   @override
   void dispose() {
@@ -71,6 +77,21 @@ class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
           _error = userMessageFor(error);
         });
     }
+  }
+
+  Future<void> _openRecipe() async {
+    final id = widget.entry.recipeId;
+    if (id == null) return;
+    final router = GoRouter.of(context);
+    final nav = Navigator.of(context);
+    final recipe = await ref.read(recipeRepositoryProvider).byId(id);
+    if (!mounted) return;
+    if (recipe == null) {
+      setState(() => _recipeMissing = true);
+      return;
+    }
+    nav.pop();
+    unawaited(router.push(RfRoutes.fuelRecipe(id)));
   }
 
   Future<void> _delete() async {
@@ -124,6 +145,25 @@ class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
             onSelectionChanged: (s) => setState(() => _meal = s.first),
           ),
           const SizedBox(height: RfSpace.s4),
+          if (e.recipeId != null) ...[
+            RfButton(
+              key: const Key('entry-open-recipe'),
+              label: 'Open recipe',
+              variant: RfButtonVariant.secondary,
+              icon: Icons.menu_book_outlined,
+              onPressed: _busy ? null : _openRecipe,
+            ),
+            if (_recipeMissing)
+              Padding(
+                padding: const EdgeInsets.only(top: RfSpace.s1),
+                child: Text(
+                  'This recipe no longer exists.',
+                  key: const Key('entry-recipe-missing'),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            const SizedBox(height: RfSpace.s3),
+          ],
           RfButton(
             key: const Key('edit-save'),
             label: 'Save changes',

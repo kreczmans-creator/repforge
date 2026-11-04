@@ -385,7 +385,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   }
 
   double? _kcalDelta(Recipe before, Recipe after) {
-    if (!before.allIngredientsCalculable) return null;
+    if (!before.isComputed) return null;
     final a = before.perPortion?.kcal;
     final b = after.perPortion?.kcal;
     if (a == null || b == null) return null;

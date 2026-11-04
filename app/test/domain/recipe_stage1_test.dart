@@ -417,6 +417,22 @@ void main() {
       expect(i.substitutes.single.quantity.amount, 200);
     });
 
+    test('scaled views keep per-portion values exactly (spec 9.4)', () {
+      // 333 g / 7 is not a multiple of 0.1, so rounding would change the
+      // per-portion values.
+      final r = _recipe(
+        ingredients: [_ing('chicken', _chicken, 333)],
+        portions: 3,
+      );
+      final scaled = (r.scaledBy(1 / 7) as Ok<Recipe>).value;
+      expect(scaled.ingredients.single.quantity.amount, closeTo(333 / 7, 1e-9));
+      expect(scaled.perPortion!.kcal, closeTo(r.perPortion!.kcal, 1e-9));
+      expect(
+        scaled.perPortion!.proteinG,
+        closeTo(r.perPortion!.proteinG!, 1e-9),
+      );
+    });
+
     test('invalid targets are errors', () {
       final r = _recipe();
       expect(r.scaledBy(0).isErr, isTrue);

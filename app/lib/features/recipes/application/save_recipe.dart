@@ -3,6 +3,7 @@ import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
+import 'package:repforge/domain/units/units.dart';
 
 /// Use case: save a recipe (RCP-001, RCP-009(2)).
 ///
@@ -43,12 +44,40 @@ final class SaveRecipe {
         next = next.copyWith(createdAt: existing?.createdAt ?? now);
       }
       next = next.copyWith(updatedAt: now);
+      switch (_storedQuantities(next)) {
+        case Ok(:final value):
+          next = value;
+        case Err(:final error):
+          return Err(error);
+      }
       if (validateRecipe(next) case Err(:final error)) return Err(error);
       await recipes.upsert(next);
     } on Exception catch (e) {
       return Err(StorageError('Could not save the recipe.', cause: e));
     }
     return Ok(next);
+  }
+
+  /// Quantities are stored in 0.1 steps (spec §2.1). A scaled view keeps
+  /// exact amounts so its per-portion values do not drift (§9.4); saving it
+  /// rounds them here, so the returned recipe equals what is read back.
+  static Result<Recipe> _storedQuantities(Recipe r) {
+    Result<Quantity> round(Quantity q) => Quantity.of(q.amount, q.unit);
+    final ingredients = <RecipeIngredient>[];
+    for (final i in r.ingredients) {
+      final q = round(i.quantity);
+      if (q case Err(:final error)) return Err(error);
+      final subs = <RecipeSubstitute>[];
+      for (final sub in i.substitutes) {
+        final sq = round(sub.quantity);
+        if (sq case Err(:final error)) return Err(error);
+        subs.add(sub.copyWith(quantity: (sq as Ok<Quantity>).value));
+      }
+      ingredients.add(
+        i.copyWith(quantity: (q as Ok<Quantity>).value, substitutes: subs),
+      );
+    }
+    return Ok(r.copyWith(ingredients: ingredients));
   }
 
   static Recipe _tidy(Recipe r) {

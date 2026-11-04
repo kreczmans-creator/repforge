@@ -39,7 +39,10 @@ class _MarkEatenSheet extends ConsumerStatefulWidget {
 
 class _MarkEatenSheetState extends ConsumerState<_MarkEatenSheet> {
   late final TextEditingController _amount = TextEditingController(
-    text: formatNumber(widget.item.quantity, maxDecimals: 2),
+    text: formatNumber(
+      widget.item.quantity,
+      maxDecimals: widget.item.kind == PlannedKind.savedMeal ? 2 : 1,
+    ),
   );
   String? _batchId;
   String? _error;
@@ -125,7 +128,7 @@ class _MarkEatenSheetState extends ConsumerState<_MarkEatenSheet> {
                 PlannedKind.savedMeal => 'Times eaten (multiplier)',
               },
               unit: item.kind == PlannedKind.food ? item.unit.symbol : null,
-              decimals: item.kind == PlannedKind.food ? 1 : 2,
+              decimals: item.kind == PlannedKind.savedMeal ? 2 : 1,
               errorText: _error,
               onChanged: (_) => setState(() => _error = null),
             ),

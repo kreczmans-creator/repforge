@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **in progress** (authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
+Status: **fixes in progress — verification commit pending CI; NOT delivered, NOT accepted.** (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
 
 ## Scope (D06 WP 7)
 Recipe CRUD; ingredients with quantities linked to foods; per-portion nutrition computed from ingredients (not typed in); portion scaling; prep/cook/storage/freezing/reheating fields; favourites; substitutions; seed import of the 22 legacy recipes flagged `estimated`; log a portion to the diary; weekly meal plan and prep list (P2); NUT-011 meal rename/reorder (owner allocation 2026-11-04).
@@ -42,17 +42,29 @@ Probes run in throwaway tests; 467 existing tests re-run. Findings:
 
 | ID | Finding (verified by probe) | Severity | Resolution |
 |---|---|---|---|
-| H1 | Linking one ingredient to a starter recipe replaced its declared estimate with that one ingredient's nutrition and labelled it verified (3 notes + 100 g oats → 95 kcal per portion, verified); NUT-021/RCP-007. | High | Fix in progress: a recipe with ingredient notes stays declared/estimated until the notes are removed; spec rev 1.2 §8.3 and example E38; editor text and note deletion. |
-| M1 | Planning an Open Food Facts food always fails; picked online foods are not cached locally. | Medium | Fix in progress: picker caches the food (`CacheFood`). |
-| M2 | Marking a future-day item eaten logs into the future diary. | Medium | Fix in progress: refused with a typed error; action hidden in the UI. |
-| M3 | Plan "today" ignores the day-start setting, so plan and diary disagree after midnight. | Medium | Fix in progress: one shared `diaryDayKey` rule. |
-| M4 | A prep batch loses a portion when recording the eaten link fails. | Medium | Fix in progress: mark-eaten runs in one transaction. |
-| M5 | Two concurrent mark-eaten calls log twice. | Medium | Fix in progress: eaten check inside the same transaction. |
-| M6 | A missing seed asset makes the importer throw (uncaught async error at startup). | Medium | Fix in progress: all failures become a typed error. |
-| L | Portion rounding undocumented; editor ignores the §9.3 default weight; scaling rounds quantities so per-portion values drift (§9.4); custom foods accept the portions unit; `eatenEntryId` docs; favourites setter not returning Result; E06/E07 compute in the test. | Low | Fix in progress. |
+| H1 | Linking one ingredient to a starter recipe replaced its declared estimate with that one ingredient's nutrition and labelled it verified (3 notes + 100 g oats → 95 kcal per portion, verified); NUT-021/RCP-007. | High | **Fixed**: `Recipe.isComputed` requires no ingredient notes; spec rev 1.2 §8.3, example E38; editor note deletion; detail screen's substitute difference uses the same rule (auditor fix, regression test). Re-verified by probe. |
+| M1 | Planning an Open Food Facts food always fails; picked online foods are not cached locally. | Medium | **Fixed**: picker caches non-user foods through `CacheFood`. Re-verified. |
+| M2 | Marking a future-day item eaten logs into the future diary. | Medium | **Fixed**: typed refusal; action hidden for future days. Re-verified. |
+| M3 | Plan "today" ignores the day-start setting, so plan and diary disagree after midnight. | Medium | **Fixed**: shared `diaryDayKey` in diary, plan screen and both use cases. Re-verified. |
+| M4 | A prep batch loses a portion when recording the eaten link fails. | Medium | **Fixed**: one `Transactor` transaction; batch unchanged on failure. Re-verified. |
+| M5 | Two concurrent mark-eaten calls log twice. | Medium | **Fixed**: concurrent calls give one Ok, one refusal, one entry. Re-verified. |
+| M6 | A missing seed asset makes the importer throw (uncaught async error at startup). | Medium | **Fixed**: any failure becomes a typed error; `main.dart` guarded. Re-verified. |
+| L | Portion rounding undocumented; editor ignores the §9.3 default weight; scaling rounds quantities so per-portion values drift (§9.4); custom foods accept the portions unit; `eatenEntryId` docs; favourites setter not returning Result; E06/E07 compute in the test. | Low | **Fixed** (portion rounding documented in spec §2.1 rather than changed; inputs limited to one decimal). |
 | L | Deleting/editing a mark-eaten or batch-drawn diary entry does not update the plan item or batch. | Low | TD-37. |
 
 RCP P1 criteria the reviewer found not fully met: **RCP-003** (step delete untested), **RCP-007** (H1), **RCP-013(2)** (no navigation from a diary entry to its recipe). All three are in the fix set.
+
+### Emulator failure and the scroll helper (owner gate: reproduce, then verify)
+- Emulator runs 41874764486 and 41880049338 failed the RCP-013 integration test at `scrollTo(recipe-save)` with "Bad state: No element" (diagnostic record 5e18144).
+- **Reproduced locally** with a phone-size (412×915) widget test of the recipe editor: `find.byType(Scrollable).last` is a single-line text field's horizontal scroller.
+- **The first fix was insufficient**: "last vertical scrollable" failed the same reproduction with the same error, because a multi-line text field (the description) owns a vertical scroller.
+- **Fix**: shared helper `app/test/helpers/scrolling.dart` `lastPageScrollable()` — the last vertical scrollable not inside an `EditableText`, used by the integration test and by the regression test "on a phone-sized screen the editor Save button is reached by scrolling the form, not a text field", which also asserts both traps.
+- Final review N1: the edit step tapped `ingredient-0` without scrolling; now scrolled first. Reviewer replayed the whole RCP-013 flow at 411×731 and 360×640: every tap hit-testable, assertions pass. Limit: widget replays, not the emulator; the four workflows on the verification commit are the evidence.
+
+### Final review of the combined fix diff (same reviewer)
+All original findings re-probed and **resolved**; no RCP P1 criterion unmet. New findings: N1 (above, fixed), **N2** a saved scaled recipe stored exact amounts but read back rounded — **fixed**: `SaveRecipe` stores quantities in 0.1 steps (regression test failed on old code with 533.333 vs 533.3; reviewer confirmed save-as-new and overwrite, substitutes, and a typed error for a quantity that rounds to 0); **N3** day-start fallback before settings load → TD-38; **N4** entry sheet reads the recipe repository directly → TD-39.
+
+Local evidence on the verification commit's tree: 709 tests pass, analyzer and formatter clean, hand-written coverage 89.1 %.
 
 ## CI evidence
 | Commit | CI (gate) | Android build | iOS build | Integration tests |

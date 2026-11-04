@@ -297,6 +297,20 @@ abstract class ServingSize with _$ServingSize {
     required String label,
     required Quantity quantity,
   }) = _ServingSize;
+
+  const ServingSize._();
+
+  /// [count] servings as a quantity in the food's reference unit: count ×
+  /// the serving quantity, rounded to 0.1 (spec §1.5, §2.1). An invalid
+  /// [count] (negative, NaN, or beyond the supported range) yields a zero
+  /// quantity, which callers refuse as "greater than zero".
+  Quantity quantityFor(double count) {
+    final q = Quantity.of(count * quantity.amount, quantity.unit);
+    return switch (q) {
+      Ok(:final value) => value,
+      Err() => Quantity.fromStored(0, quantity.unit),
+    };
+  }
 }
 
 /// Where a food record originated.
@@ -347,3 +361,9 @@ String dayKey(DateTime local) {
   final d = local.day.toString().padLeft(2, '0');
   return '$y-$m-$d';
 }
+
+/// The diary day a moment belongs to: the local date of [now] shifted back
+/// by the day-start hour, so with a 04:00 start, 02:30 still belongs to the
+/// previous day. The one definition of "today" for the diary and the plan.
+String diaryDayKey(DateTime now, int dayStartHour) =>
+    dayKey(now.toLocal().subtract(Duration(hours: dayStartHour)));

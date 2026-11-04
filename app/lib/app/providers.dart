@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/db/drift_transactor.dart';
 import 'package:repforge/data/db/open_database.dart';
 import 'package:repforge/data/external/open_food_facts_client.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
@@ -20,6 +21,7 @@ import 'package:repforge/data/repositories/drift_workout_session_repository.dart
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/ids.dart';
+import 'package:repforge/domain/core/transactor.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_repository.dart';
 import 'package:repforge/domain/measurements/weight_repository.dart';
@@ -54,6 +56,11 @@ final idGeneratorProvider = Provider<IdGenerator>((_) {
   const uuid = Uuid();
   return uuid.v4;
 });
+
+/// Atomic multi-repository operations (see [Transactor]).
+final transactorProvider = Provider<Transactor>(
+  (ref) => DriftTransactor(ref.watch(databaseProvider)),
+);
 
 final weightRepositoryProvider = Provider<WeightRepository>(
   (ref) => DriftWeightRepository(

@@ -71,7 +71,7 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
     final current = _parse(_portions) ?? 0;
     final next = (current + delta).clamp(0.5, 1000).toDouble();
     setState(() {
-      _portions.text = formatNumber(next, maxDecimals: 2);
+      _portions.text = formatNumber(next);
       _error = null;
     });
   }
@@ -176,7 +176,6 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
                       key: const Key('log-portions'),
                       controller: _portions,
                       label: 'Portions',
-                      decimals: 2,
                       errorText: _error,
                       onChanged: (_) => setState(() => _error = null),
                     ),

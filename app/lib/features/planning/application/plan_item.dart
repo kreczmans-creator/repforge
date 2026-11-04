@@ -18,12 +18,14 @@ DateTime? parsePlanDay(String day) {
   return d.year == p[0] && d.month == p[1] && d.day == p[2] ? d : null;
 }
 
-/// True when [day] is from today to today + 27 (28 days, RCP-014(1)).
-bool isInPlanWindow(String day, DateTime now) {
+/// True when [day] is from [today] to today + 27 (28 days, RCP-014(1)).
+/// [today] is the diary's day key (`diaryDayKey`, which honours the
+/// day-start setting), so the plan and the diary agree on which day it is.
+bool isInPlanWindow(String day, String today) {
   final d = parsePlanDay(day);
-  if (d == null) return false;
-  final today = DateTime.utc(now.year, now.month, now.day);
-  final offset = d.difference(today).inDays;
+  final t = parsePlanDay(today);
+  if (d == null || t == null) return false;
+  final offset = d.difference(t).inDays;
   return offset >= 0 && offset < planWindowDays;
 }
 
@@ -42,12 +44,16 @@ final class PlanItem {
     required this.savedMeals,
     required this.clock,
     required this.newId,
+    required this.todayKey,
   });
 
   final MealPlanRepository plan;
   final RecipeRepository recipes;
   final FoodRepository foods;
   final SavedMealRepository savedMeals;
+
+  /// The diary's current day key (honours the day-start setting).
+  final String Function() todayKey;
   final Clock clock;
   final IdGenerator newId;
 
@@ -60,7 +66,7 @@ final class PlanItem {
     String? id,
   }) async {
     final now = clock.now();
-    if (!isInPlanWindow(day, now)) {
+    if (!isInPlanWindow(day, todayKey())) {
       return const Err(
         ValidationError(
           'Plan a day from today to $planWindowDays days ahead.',

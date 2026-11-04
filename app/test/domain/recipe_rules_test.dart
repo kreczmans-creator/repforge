@@ -36,6 +36,7 @@ Recipe _recipe(
   List<RecipeIngredient> ings, {
   double portions = 2,
   NutrientAmounts? declared,
+  List<String> notes = const [],
 }) => Recipe(
   id: 'r',
   name: 'R',
@@ -43,6 +44,7 @@ Recipe _recipe(
   portions: portions,
   ingredients: ings,
   declaredPerPortion: declared,
+  ingredientNotes: notes,
   createdAt: _t,
   updatedAt: _t,
 );
@@ -101,6 +103,36 @@ void main() {
       ], declared: _declared);
       expect(r.nutritionSource, RecipeNutritionSource.declared);
       expect(r.perPortion, _declared);
+    });
+
+    test('H1 notes make a linked recipe incomplete: declared, estimated', () {
+      final r = _recipe(
+        [_ing('a', 100, per100: _profile(DataProvenance.verified))],
+        declared: _declared,
+        notes: const ['1 kg chicken', '8 tortillas', 'salt'],
+      );
+      expect(r.nutritionSource, RecipeNutritionSource.declared);
+      expect(r.perPortion, _declared);
+      expect(r.perPortionTotals!.known, _declared);
+      expect(r.provenance, DataProvenance.estimated);
+    });
+
+    test('H1 notes without declared values: per portion is null', () {
+      final r = _recipe(
+        [_ing('a', 100, per100: _profile(DataProvenance.verified))],
+        notes: const ['1 kg chicken'],
+      );
+      expect(r.perPortion, isNull);
+      expect(r.perPortionTotals, isNull);
+      expect(r.nutritionSource, RecipeNutritionSource.declared);
+    });
+
+    test('H1 blank notes do not block computing', () {
+      final r = _recipe(
+        [_ing('a', 100, per100: _profile(DataProvenance.verified))],
+        notes: const ['  '],
+      );
+      expect(r.nutritionSource, RecipeNutritionSource.computed);
     });
 
     test('no ingredients uses declared; null when none declared', () {

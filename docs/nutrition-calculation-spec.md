@@ -13,7 +13,7 @@
 5. A named serving (for example "1 slice = 35 g") is a quantity in the reference unit. *n* servings = *n* × the serving's quantity, then rule 1.3.
 
 ## 2. Quantities and storage precision
-1. Quantities are stored in canonical metric units (g, ml) as entered, **rounded to 0.1** of the unit at entry (half away from zero). Amounts must be greater than 0 to be logged.
+1. Quantities are stored in canonical metric units (g, ml) as entered, **rounded to 0.1** of the unit at entry (half away from zero). Amounts must be greater than 0 to be logged. Portion counts (recipe portions logged, planned portions, prepared-batch portions) are entered and stored in the same 0.1 steps; a finer value (for example 1.25) is rounded to 0.1 at entry, and the input fields offer one decimal only.
 2. Nutrient values are calculated from the stored quantity and stored at **full double precision**. There is **no intermediate rounding** in any calculation.
 3. Unit conversions (GEN-004): 1 kg = 1000 g, 1 l = 1000 ml, 1 mg = 0.001 g, exactly. **Not yet implemented:** no entry path accepts kg, l or mg today (NUT-022 entry is open), so these rules have no code and no executed example; they bind the first package that adds such entry. Imperial units are display-only (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); imperial entry is not offered.
 
@@ -46,14 +46,14 @@ Energy 0–900 kcal. Protein, carbohydrate, fat, fibre 0–100 g each, or unknow
 ## 8. Provenance (NUT-018, NUT-019; D04 §7 amendment)
 1. Labels, strongest to weakest: **verified › crowdsourced › user-entered › estimated**.
 2. A total, recipe or snapshot built from several inputs carries the **weakest** label among its inputs.
-3. A recipe that cannot be computed from its ingredients (any ingredient without a nutrient snapshot) uses its **declared** per-portion values, labelled **estimated** (seed recipes, RCP-007(1)).
+3. A recipe is **computed** from its ingredients only when it has at least one linked ingredient, **every** linked ingredient has a nutrient snapshot, **and it has no ingredient notes**. A note is a free-text ingredient the app cannot calculate, so a recipe that has any note (blank notes are ignored) is incomplete even when its linked ingredients are all calculable. Any other recipe uses its **declared** per-portion values, labelled **estimated** (seed recipes, RCP-007(1), NUT-021). A recipe with notes but no declared values has no per-portion nutrition (null), never a partial sum shown as complete.
 4. Data entered or edited by the user is never labelled verified.
 
 ## 9. Recipes (RCP-006, 008, 009, 012, 013)
 1. Recipe total = sum of ingredient nutrients (rule 1.3 for each ingredient, from its stored per-100 snapshot), with §7.5 for unknowns.
 2. **Per portion** = total ÷ portions. Portions are a positive number; editing the portion count changes per-portion values and nothing else.
 3. **Portion by weight** (RCP-008(2)): with a recipe total weight *W* g (the cooked yield entered by the user; defaults to the sum of ingredient grams when every ingredient is in g) and a portion weight *w* g, portions = *W* ÷ *w* (fractional allowed).
-4. **Scaling** (RCP-009) by factor *f* = target portions ÷ portions, or target total weight ÷ *W*: each ingredient quantity × *f*; per-portion values are unchanged. Scaling is a view; it changes the saved recipe only on "save as new" or "overwrite".
+4. **Scaling** (RCP-009) by factor *f* = target portions ÷ portions, or target total weight ÷ *W*: each ingredient quantity × *f*; per-portion values are unchanged. Scaled quantities are kept exactly (not rounded to 0.1), so per-portion values stay exactly equal; they are rounded only for display. Scaling is a view; it changes the saved recipe only on "save as new" or "overwrite".
 5. **Logging** (RCP-012): *n* portions → per-portion × *n*; *g* grams → total × *g* ÷ *W*. The diary entry stores a nutrient **snapshot**, the recipe name and portion count, and a link to the recipe; editing the recipe later never changes the entry (RCP-013).
 6. Ingredient nutrient snapshots are taken from the food when the ingredient is added (per 100 of the food's reference unit). A later edit of the food does not change the recipe until the ingredient is re-linked.
 
@@ -99,9 +99,11 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | E35 | 2.3 | 100 lb (display conversion) | 45.359237 kg ± 0.001 (kg/l/mg entry not implemented, see §2.3) |
 | E36 | 3.1 | display 19.5, 2.25 (1 dp), 131.25 (1 dp) | "20", "2.3", "131.3" |
 | E37 | 8.2, 9 | recipe: 100 g Oats (verified) + 250 ml Milk (crowdsourced) | recipe provenance crowdsourced |
+| E38 | 8.3 | recipe: 4 portions, 3 ingredient notes, declared 460 kcal per portion, plus one linked 100 g Oats | 460 kcal per portion, estimated (not computed from the oats alone) |
 
 ## 11. Change history
 | Revision | Date | Change |
 |---|---|---|
 | 1 | 2026-11-04 | First version, describing behaviour at commit 3111812 plus the approved crowdsourced ordering; §4 pending owner decision. |
 | 1.1 | 2026-11-04 | §2.3 and E35 narrowed: metric multiple conversions have no code path yet (found while implementing the examples). Results: 35 examples pass, E31–E32 pending WP 7 stage 1, none fail. |
+| 1.2 | 2026-11-04 | §8.3: a recipe with any ingredient note is not computed; it uses its declared values (estimated), or has no per-portion nutrition when none are declared (review finding H1). Example E38 added. §2.1: portion counts are entered and stored in 0.1 steps. §9.4: scaled quantities are not rounded, so per-portion values are exactly unchanged. E06/E07 use `ServingSize.quantityFor`. |

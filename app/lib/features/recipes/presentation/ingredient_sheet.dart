@@ -116,17 +116,22 @@ class _IngredientSheetState extends State<_IngredientSheet> {
   void _save() {
     final s = _serving;
     final count = s == null ? null : _num(_count);
-    final raw = s == null ? _num(_amount) : (count ?? 0) * s.quantity.amount;
-    if (raw == null || raw <= 0 || (s != null && (count ?? 0) <= 0)) {
+    final raw = s == null ? _num(_amount) : count;
+    if (raw == null || raw <= 0) {
       setState(() => _error = 'Enter an amount greater than zero.');
       return;
     }
-    final q = Quantity.of(raw, _profile.per100);
-    if (q case Err(:final error)) {
-      setState(() => _error = userMessageFor(error));
-      return;
+    final Quantity quantity;
+    if (s != null) {
+      quantity = s.quantityFor(raw);
+    } else {
+      final q = Quantity.of(raw, _profile.per100);
+      if (q case Err(:final error)) {
+        setState(() => _error = userMessageFor(error));
+        return;
+      }
+      quantity = (q as Ok<Quantity>).value;
     }
-    final quantity = (q as Ok<Quantity>).value;
     if (quantity.amount <= 0) {
       setState(() => _error = 'Enter an amount greater than zero.');
       return;

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show FlutterError;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_recipe_repository.dart';
@@ -210,5 +211,31 @@ void main() {
     );
     expect(((await failing()) as Err).error, isA<StorageError>());
     expect(await settings.readSeedRecipesVersion(), 0);
+  });
+
+  test('M6 a loader that throws an Error (missing asset) is a typed failure '
+      'and records nothing', () async {
+    final r = await ImportLegacyRecipes(
+      recipes: recipes,
+      settings: settings,
+      clock: clock,
+      loadJson: () async => throw FlutterError('Unable to load asset'),
+    )();
+    expect(r, isA<Err<LegacyImportSummary>>());
+    expect((r as Err<LegacyImportSummary>).error, isA<StorageError>());
+    expect(await recipes.watchAll().first, isEmpty);
+    expect(await settings.readSeedRecipesVersion(), 0);
+    // A later launch with the asset present still imports.
+    expect(((await importer()()) as Ok<LegacyImportSummary>).value.imported, 2);
+  });
+
+  test('M6 a synchronous throw from the loader is also caught', () async {
+    final r = await ImportLegacyRecipes(
+      recipes: recipes,
+      settings: settings,
+      clock: clock,
+      loadJson: () => throw StateError('boom'),
+    )();
+    expect(r.isErr, isTrue);
   });
 }

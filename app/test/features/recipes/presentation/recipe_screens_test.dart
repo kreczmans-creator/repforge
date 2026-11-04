@@ -21,6 +21,7 @@ import 'package:repforge/features/recipes/application/import_legacy_recipes.dart
 import 'package:repforge/ui/components/rf_text_field.dart';
 
 import '../../../helpers/pump.dart';
+import '../../../helpers/scrolling.dart';
 
 final _now = DateTime(2026, 11, 3, 9);
 
@@ -157,6 +158,44 @@ void main() {
   Finder inKey(String key, String text) =>
       find.descendant(of: find.byKey(Key(key)), matching: find.text(text));
 
+  testWidgets('on a phone-sized screen the editor Save button is reached '
+      'by scrolling the form, not a text field', (tester) async {
+    // Reproduces emulator run 41880049338 (integration test, recipe editor).
+    await recipes.upsert(_stew());
+    await open(tester, location: RfRoutes.fuelRecipeEdit('stew'));
+    tester.view.physicalSize = const Size(412, 915); // Pixel 6 logical size
+    await tester.pumpAndSettle();
+    // Put a text field's horizontal scroller on screen, as typing does.
+    await tester.tap(find.byKey(const Key('recipe-name-field')));
+    await tester.pumpAndSettle();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const Key('recipe-save'));
+    // The traps: the last Scrollable is a single-line field's horizontal
+    // scroller, and the last vertical one is a multi-line field's scroller.
+    final naive = tester.widget<Scrollable>(find.byType(Scrollable).last);
+    expect(naive.axisDirection, AxisDirection.right);
+    final lastVertical = find
+        .byWidgetPredicate(
+          (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+        )
+        .last;
+    expect(
+      find.ancestor(of: lastVertical, matching: find.byType(EditableText)),
+      findsOneWidget,
+    );
+    // The shared helper picks the form and reaches Save.
+    await tester.scrollUntilVisible(
+      save,
+      200,
+      scrollable: lastPageScrollable(),
+    );
+    await tester.pumpAndSettle();
+    expect(save.hitTestable(), findsOneWidget);
+    await unmount(tester);
+  });
+
   testWidgets('list shows the imported seeds labelled as estimates', (
     tester,
   ) async {
@@ -289,6 +328,24 @@ void main() {
     final r = (await recipes.byId('chilli'))!;
     expect(r.portions, 2);
     expect(r.ingredients.first.quantity.amount, 200);
+    await unmount(tester);
+  });
+
+  testWidgets('a recipe that still has ingredient notes shows no substitute '
+      'kcal difference', (tester) async {
+    // H1: notes keep the recipe on its declared estimate, so a computed
+    // difference would compare unlike figures.
+    await recipes.upsert(
+      _chilli().copyWith(
+        ingredientNotes: const ['1 tin of tomatoes'],
+        declaredPerPortion: const NutrientAmounts(kcal: 460),
+      ),
+    );
+    await open(tester, location: RfRoutes.fuelRecipes);
+    await tester.tap(find.text('Chilli'));
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'sub-chicken-0');
+    expect(find.byKey(const Key('sub-delta')), findsNothing);
     await unmount(tester);
   });
 
@@ -573,6 +630,167 @@ void main() {
       await tapKey(tester, 'recipe-delete-confirm');
       expect(await recipes.byId('chilli'), isNull);
       expect(find.byKey(const Key('recipes-empty')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    Future<void> openEditor(WidgetTester tester, String name) async {
+      await open(tester, location: RfRoutes.fuelRecipes);
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+      await tapKey(tester, 'recipe-edit');
+    }
+
+    List<String> fieldTexts(WidgetTester tester, String prefix, int n) => [
+      for (var i = 0; i < n; i++)
+        tester
+            .widget<RfTextField>(find.byKey(Key('$prefix-step-$i')))
+            .controller!
+            .text,
+    ];
+
+    testWidgets('deletes a preparation step and a cooking step', (
+      tester,
+    ) async {
+      await recipes.upsert(
+        _chilli().copyWith(
+          prepSteps: const ['Wash', 'Chop', 'Season'],
+          cookSteps: const ['Sear', 'Simmer'],
+        ),
+      );
+      await openEditor(tester, 'Chilli');
+      await tapKey(tester, 'prep-step-delete-1');
+      await tapKey(tester, 'cook-step-delete-0');
+      expect(find.byKey(const Key('prep-step-2')), findsNothing);
+      expect(find.byKey(const Key('cook-step-1')), findsNothing);
+      await tapKey(tester, 'recipe-save');
+      final r = (await recipes.byId('chilli'))!;
+      expect(r.prepSteps, ['Wash', 'Season']);
+      expect(r.cookSteps, ['Simmer']);
+      await unmount(tester);
+    });
+
+    testWidgets('adds, edits and reorders cooking steps', (tester) async {
+      await recipes.upsert(_chilli()); // cook steps: Simmer
+      await openEditor(tester, 'Chilli');
+      await tapKey(tester, 'cook-step-add');
+      await tester.enterText(find.byKey(const Key('cook-step-1')), 'Serve');
+      await tapKey(tester, 'cook-step-add');
+      await tester.enterText(find.byKey(const Key('cook-step-2')), 'Rest');
+      await tester.enterText(find.byKey(const Key('cook-step-0')), 'Boil');
+      await tapKey(tester, 'cook-step-up-2');
+      await tapKey(tester, 'cook-step-down-0');
+      expect(fieldTexts(tester, 'cook', 3), ['Rest', 'Boil', 'Serve']);
+      await tapKey(tester, 'recipe-save');
+      expect((await recipes.byId('chilli'))!.cookSteps, [
+        'Rest',
+        'Boil',
+        'Serve',
+      ]);
+      await unmount(tester);
+    });
+
+    group('imported estimate with linked ingredients (H1)', () {
+      Recipe mixed() => Recipe(
+        id: 'mix',
+        name: 'Mixed',
+        category: '',
+        portions: 2,
+        ingredientNotes: const ['1 tsp paprika', 'salt'],
+        declaredPerPortion: const NutrientAmounts(
+          kcal: 500,
+          proteinG: 20,
+          carbsG: 50,
+          fatG: 10,
+        ),
+        ingredients: [_ing('oats', 'Oats', 100, _profile(100, p: 10))],
+        createdAt: _now.toUtc(),
+        updatedAt: _now.toUtc(),
+      );
+
+      testWidgets('keeps the declared values until the notes are removed', (
+        tester,
+      ) async {
+        await recipes.upsert(mixed());
+        await open(tester, location: RfRoutes.fuelRecipes);
+        await tester.tap(find.text('Mixed'));
+        await tester.pumpAndSettle();
+        expect(inKey('nutrition-kcal', '500 kcal'), findsOneWidget);
+        expect(find.text('Estimate'), findsWidgets);
+        expect(find.byKey(const Key('nutrition-note')), findsOneWidget);
+
+        await tapKey(tester, 'recipe-edit');
+        expect(find.byKey(const Key('imported-note')), findsOneWidget);
+        expect(find.textContaining('every ingredient note'), findsOneWidget);
+        await tapKey(tester, 'note-delete-0');
+        expect(find.text('salt'), findsOneWidget);
+        await tapKey(tester, 'note-delete-0');
+        expect(find.byKey(const Key('ingredient-notes')), findsNothing);
+        await tapKey(tester, 'recipe-save');
+
+        expect((await recipes.byId('mix'))!.ingredientNotes, isEmpty);
+        // 100 g at 100 kcal / 2 portions.
+        expect(inKey('nutrition-kcal', '50 kcal'), findsOneWidget);
+        expect(find.byKey(const Key('nutrition-note')), findsNothing);
+        await unmount(tester);
+      });
+    });
+
+    testWidgets('by weight, a blank total defaults to the ingredient grams', (
+      tester,
+    ) async {
+      await addFood('f1', 'Oats', _profile(200, p: 10, c: 20, f: 8));
+      await addFood('f2', 'Milk', _profile(100, p: 5, c: 10, f: 2));
+      await openNew(tester);
+      await tester.enterText(find.byKey(const Key('recipe-name-field')), 'Mix');
+      await pickIngredient(tester, 'oat', 'f1', '300');
+      await pickIngredient(tester, 'milk', 'f2', '200');
+      await tapKey(tester, 'portion-mode');
+      await tester.tap(find.text('By weight'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('recipe-portion-weight-field')),
+        '250',
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('default-total-weight')), findsOneWidget);
+      expect(find.text('= 2 portions'), findsOneWidget);
+      await tapKey(tester, 'recipe-save');
+      final saved = (await recipes.watchAll().first).single;
+      expect(saved.portions, 2);
+      expect(saved.totalWeightG, isNull);
+      expect(saved.effectiveTotalWeightG, 500);
+      await unmount(tester);
+    });
+
+    testWidgets('by weight, a total is required without ingredient grams', (
+      tester,
+    ) async {
+      await addFood(
+        'f1',
+        'Stock',
+        const NutrientProfile(
+          per100: ReferenceUnit.millilitres,
+          per100Amounts: NutrientAmounts(kcal: 10),
+          provenance: DataProvenance.userEntered,
+        ),
+      );
+      await openNew(tester);
+      await tester.enterText(
+        find.byKey(const Key('recipe-name-field')),
+        'Soup',
+      );
+      await pickIngredient(tester, 'stock', 'f1', '500');
+      await tapKey(tester, 'portion-mode');
+      await tester.tap(find.text('By weight'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('recipe-portion-weight-field')),
+        '250',
+      );
+      await tapKey(tester, 'recipe-save');
+      expect(find.byKey(const Key('default-total-weight')), findsNothing);
+      expect(find.textContaining('Enter the total weight'), findsOneWidget);
+      expect(await recipes.watchAll().first, isEmpty);
       await unmount(tester);
     });
 

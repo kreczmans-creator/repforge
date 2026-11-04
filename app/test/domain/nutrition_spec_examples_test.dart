@@ -99,6 +99,7 @@ Recipe _recipe({
   required List<RecipeIngredient> ingredients,
   required double portions,
   NutrientAmounts? declared,
+  List<String> notes = const [],
 }) => Recipe(
   id: 'r',
   name: 'Recipe',
@@ -108,6 +109,7 @@ Recipe _recipe({
   createdAt: _now,
   updatedAt: _now,
   declaredPerPortion: declared,
+  ingredientNotes: notes,
 );
 
 FoodLogEntry _entry(
@@ -217,8 +219,7 @@ void main() {
     });
 
     test('E06 2 slices of bread are 70 g and 175 kcal', () {
-      final slice = bread.servings.single.quantity;
-      final grams = 2 * slice.amount;
+      final grams = bread.servings.single.quantityFor(2).amount;
       expect(grams, 70);
       expectAmounts(
         _for(bread, grams),
@@ -231,7 +232,7 @@ void main() {
     });
 
     test('E07 1.5 slices of bread store 131.25 kcal and display 131', () {
-      final grams = 1.5 * bread.servings.single.quantity.amount;
+      final grams = bread.servings.single.quantityFor(1.5).amount;
       expect(grams, 52.5);
       final n = _for(bread, grams);
       expect(n.kcal, closeTo(131.25, 1e-9));
@@ -535,5 +536,20 @@ void main() {
       );
       expect(r.provenance, DataProvenance.crowdsourced);
     });
+
+    test(
+      'E38 ingredient notes keep a linked recipe on its declared values',
+      () {
+        final r = _recipe(
+          ingredients: [_ing('i1', oats, 100)],
+          portions: 4,
+          declared: const NutrientAmounts(kcal: 460),
+          notes: const ['1 kg chicken breast', '8 tortillas', '2 tsp cumin'],
+        );
+        expect(r.nutritionSource, RecipeNutritionSource.declared);
+        expect(r.perPortion!.kcal, closeTo(460, 1e-9));
+        expect(r.provenance, DataProvenance.estimated);
+      },
+    );
   });
 }

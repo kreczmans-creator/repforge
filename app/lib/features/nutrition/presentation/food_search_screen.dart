@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
+import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
@@ -14,6 +15,7 @@ import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_section_header.dart';
 import 'package:repforge/ui/components/rf_states.dart';
 import 'package:repforge/ui/components/rf_text_field.dart';
+import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
 
 /// Search the local food database and Open Food Facts; tap a result to
@@ -40,7 +42,21 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
 
   Future<void> _pick(Food food) async {
     if (widget.pickOnly) {
-      Navigator.of(context).pop(food);
+      var picked = food;
+      if (food.source != FoodSource.userCreated) {
+        // An online food must exist locally before anything can reference it.
+        final stored = await ref.read(cacheFoodProvider)(food);
+        if (!mounted) return;
+        switch (stored) {
+          case Ok(:final value):
+            picked = value;
+          case Err(:final error):
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(userMessageFor(error))));
+            return;
+        }
+      }
+      Navigator.of(context).pop(picked);
       return;
     }
     final now = ref.read(clockProvider).now().toLocal();

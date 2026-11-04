@@ -11,6 +11,7 @@ import 'package:repforge/data/repositories/drift_meal_plan_repository.dart';
 import 'package:repforge/data/repositories/drift_prep_batch_repository.dart';
 import 'package:repforge/data/repositories/drift_recipe_repository.dart';
 import 'package:repforge/data/repositories/drift_saved_meal_repository.dart';
+import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
@@ -19,6 +20,7 @@ import 'package:repforge/domain/nutrition/saved_meal.dart';
 import 'package:repforge/domain/planning/meal_plan.dart';
 import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
+import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/planning/application/planning_providers.dart';
@@ -31,6 +33,18 @@ import '../../../helpers/pump.dart';
 final _now = DateTime(2026, 11, 4, 9);
 const _today = '2026-11-04';
 const _last = '2026-12-01';
+
+final class _OnlineLookup implements FoodLookupService {
+  _OnlineLookup(this.food);
+  final Food food;
+
+  @override
+  Future<Result<List<Food>>> search(String query, {int limit = 20}) async =>
+      Ok([food]);
+
+  @override
+  Future<Result<Food?>> byBarcode(String barcode) async => Ok(food);
+}
 
 final class _NoLookup implements FoodLookupService {
   @override
@@ -149,6 +163,8 @@ void main() {
   Future<void> open(
     WidgetTester tester, {
     String location = RfRoutes.fuel,
+    DateTime? at,
+    FoodLookupService? lookup,
   }) async {
     tester.view.physicalSize = const Size(390, 4000);
     tester.view.devicePixelRatio = 1;
@@ -157,8 +173,8 @@ void main() {
       ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
-          clockProvider.overrideWithValue(clock),
-          foodLookupServiceProvider.overrideWithValue(_NoLookup()),
+          clockProvider.overrideWithValue(at == null ? clock : FixedClock(at)),
+          foodLookupServiceProvider.overrideWithValue(lookup ?? _NoLookup()),
           minuteTickProvider.overrideWith((ref) => const Stream.empty()),
         ],
         child: RepForgeApp(router: createRouter(initialLocation: location)),
@@ -560,6 +576,109 @@ void main() {
     );
     expect(await log.forDays(_today, _today), hasLength(1));
     expect((await batches.byId(batch.id))!.portionsRemaining, 1);
+    await unmount(tester);
+  });
+
+  testWidgets('an online food picked for the plan is cached and plannable', (
+    tester,
+  ) async {
+    final off = Food(
+      id: 'off-1',
+      name: 'Online Oats',
+      source: FoodSource.openFoodFacts,
+      barcode: '123',
+      profile: const NutrientProfile(
+        per100: ReferenceUnit.grams,
+        per100Amounts: NutrientAmounts(kcal: 370, proteinG: 13),
+        provenance: DataProvenance.crowdsourced,
+      ),
+      createdAt: _now.toUtc(),
+      updatedAt: _now.toUtc(),
+    );
+    await open(tester, location: RfRoutes.fuelPlan, lookup: _OnlineLookup(off));
+    expect(await foods.byId('off-1'), isNull);
+    await tapKey(tester, 'plan-add-lunch');
+    await tapKey(tester, 'plan-add-food');
+    await tester.enterText(find.byKey(const Key('food-query')), 'Oats');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'online-off-1', real: true);
+    await tester.enterText(find.byKey(const Key('plan-quantity')), '100');
+    await tapKey(tester, 'plan-submit', real: true);
+    expect(find.textContaining('That food no longer exists'), findsNothing);
+    expect(find.text('Online Oats'), findsOneWidget);
+    expect(find.text('370 kcal'), findsWidgets);
+    expect(await tester.runAsync(() => foods.byId('off-1')), isNotNull);
+    await unmount(tester);
+  });
+
+  testWidgets('the plan opens on the diary day, not the calendar day', (
+    tester,
+  ) async {
+    // 01:00 on 5 Nov with a 04:00 day start is still the 4 Nov diary day.
+    await DriftSettingsRepository(
+      db,
+      clock: clock,
+    ).save(const AppSettings(dayStartHour: 4));
+    await open(
+      tester,
+      location: RfRoutes.fuelPlan,
+      at: DateTime(2026, 11, 5, 1),
+    );
+    final item = await plan(
+      tester,
+      kind: PlannedKind.recipe,
+      refId: 'r1',
+      quantity: 1,
+    );
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.byKey(Key('plan-item-${item.id}')), findsOneWidget);
+    // The window ends 28 days after the diary day: 1 Dec, not 2 Dec.
+    for (var i = 0; i < 27; i++) {
+      await tester.tap(find.byKey(const Key('plan-day-next')));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Tue 1 Dec'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('a future-day item cannot be marked as eaten', (tester) async {
+    await open(tester, location: RfRoutes.fuelPlan);
+    final item = await plan(
+      tester,
+      kind: PlannedKind.recipe,
+      refId: 'r1',
+      quantity: 1,
+      day: '2026-11-05',
+    );
+    expect(find.byKey(Key('plan-eat-${item.id}')), findsNothing);
+    await tapKey(tester, 'plan-day-next');
+    expect(find.byKey(Key('plan-item-${item.id}')), findsOneWidget);
+    expect(find.byKey(Key('plan-eat-${item.id}')), findsNothing);
+    expect(find.byKey(const Key('plan-future-note')), findsOneWidget);
+    expect(find.byKey(Key('plan-remove-${item.id}')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('the mark-eaten sheet limits portions to one decimal', (
+    tester,
+  ) async {
+    await open(tester, location: RfRoutes.fuelPlan);
+    final item = await plan(
+      tester,
+      kind: PlannedKind.recipe,
+      refId: 'r1',
+      quantity: 1,
+    );
+    await tapKey(tester, 'plan-eat-${item.id}');
+    await tester.enterText(find.byKey(const Key('eaten-quantity')), '1.2');
+    await tester.enterText(find.byKey(const Key('eaten-quantity')), '1.25');
+    final text = tester
+        .widget<RfTextField>(find.byKey(const Key('eaten-quantity')))
+        .controller!
+        .text;
+    expect(text, '1.2');
     await unmount(tester);
   });
 }

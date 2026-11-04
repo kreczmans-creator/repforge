@@ -25,9 +25,15 @@ void main() {
 }
 
 Future<void> _importStarterRecipes(ProviderContainer container) async {
-  final result = await container.read(importLegacyRecipesProvider).call();
-  if (result case Err(:final error)) {
-    debugPrint('Starter recipe import failed: ${error.message}');
+  try {
+    final result = await container.read(importLegacyRecipesProvider).call();
+    if (result case Err(:final error)) {
+      debugPrint('Starter recipe import failed: ${error.message}');
+    }
+  } on Object catch (e) {
+    // Nothing may escape an unawaited call: it would be an uncaught async
+    // error. The import is retried on the next launch.
+    debugPrint('Starter recipe import failed: $e');
   }
 }
 
