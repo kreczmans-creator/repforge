@@ -64,6 +64,7 @@ Scales: Severity and Impact: Low / Medium / High / Critical. Likelihood: Low / M
 | R-10 | Legacy ZIP workflow keeps running and keeps failing, creating noise and confusion about project health. | Low | High | Low | Disable automatic trigger in WP 1 (D07 §4). | — | P2 |
 | R-11 | Recipe nutrition seeds are estimates presented as numbers; users may treat them as facts. | Medium | High | Medium | Store with `estimated` provenance and show the label in UI. | — | P2 |
 | R-12 | No documented product decisions (units, markets, food database licence). | Medium | High | Medium | D04 open questions answered before WP 5. | Owner | P2 |
+| R-13 | AI-to-AI coordination (`docs/ai-coordination/`) depends on the owner relaying ChatGPT's reviews into the repository and on Claude Code following `CLAUDE.md`; records can drift from the code, and an unrelayed review is invisible. Added 2026-11-04 (GOV 1). | Medium | Medium | Medium | Checker workflow fails on structural drift and lists open items; `CURRENT-STATE.md` carries the commit it describes; future direct integration assessed in `docs/ai-coordination/MCP-INTEGRATION-ASSESSMENT.md`. | Owner (DL-0001..0003) | P2 |
 
 ## C. Open verification items (evidence missing, not defects)
 

@@ -1,0 +1,46 @@
+name: AI coordination checks
+
+# Structural validation of docs/ai-coordination: required files and sections,
+# statuses, cross-references, commit SHA format, relative links and CLAUDE.md
+# imports. Warnings (open findings, handoffs without a review, open messages)
+# go to the job summary, which doubles as the coordination index.
+# It uses no secrets, creates nothing, merges nothing, accepts nothing, and
+# cannot tell whether ChatGPT has actually reviewed anything.
+
+on:
+  push:
+    paths:
+      - "docs/ai-coordination/**"
+      - "CLAUDE.md"
+      - ".claude/skills/**"
+      - "tools/coordination/**"
+      - ".github/workflows/coordination.yml"
+  pull_request:
+    paths:
+      - "docs/ai-coordination/**"
+      - "CLAUDE.md"
+      - ".claude/skills/**"
+      - "tools/coordination/**"
+      - ".github/workflows/coordination.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coordination-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Validate coordination records
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checker self-tests
+        run: python3 -m unittest discover -s tools/coordination -p 'test_*.py'
+
+      - name: Validate records and write the index to the job summary
+        run: python3 tools/coordination/check_coordination.py --summary "$GITHUB_STEP_SUMMARY"
