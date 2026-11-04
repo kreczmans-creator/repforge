@@ -34,6 +34,11 @@ abstract interface class SettingsRepository {
   Future<MealLabels> readMealLabels();
   Future<void> saveMealLabels(MealLabels labels);
 
+  /// Whether the recipe list shows favourites only (RCP-011); persists
+  /// across restarts. False until set.
+  Stream<bool> watchRecipeFavouritesOnly();
+  Future<void> saveRecipeFavouritesOnly({required bool value});
+
   /// Version of the bundled seed recipes already imported (0 = none yet).
   Future<int> readSeedRecipesVersion();
   Future<void> saveSeedRecipesVersion(int version);

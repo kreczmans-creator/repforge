@@ -4,6 +4,8 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/daily_targets.dart';
 import 'package:repforge/domain/goals/goals.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/format.dart';
@@ -39,6 +41,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       k: TextEditingController(),
   };
   bool _seeded = false;
+  final Map<MealSlot, TextEditingController> _mealControllers = {
+    for (final m in MealSlot.values) m: TextEditingController(),
+  };
+  List<MealSlot> _mealOrder = List.of(MealSlot.values);
+  bool _mealsSeeded = false;
+  bool _savingMeals = false;
+  String? _mealError;
+  String? _mealErrorField;
   bool _savingTargets = false;
   String? _targetError;
   GoalKind? _targetErrorKind;
@@ -46,6 +56,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void dispose() {
     for (final c in _controllers.values) {
+      c.dispose();
+    }
+    for (final c in _mealControllers.values) {
       c.dispose();
     }
     super.dispose();
@@ -60,6 +73,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _controllers[GoalKind.carbs]!.text = s(t.carbsG);
     _controllers[GoalKind.fat]!.text = s(t.fatG);
     _controllers[GoalKind.fibre]!.text = s(t.fibreG);
+  }
+
+  void _seedMeals(MealLabels labels) {
+    if (_mealsSeeded) return;
+    _mealsSeeded = true;
+    _mealOrder = List.of(labels.order);
+    for (final m in MealSlot.values) {
+      _mealControllers[m]!.text = labels.labelOf(m);
+    }
+  }
+
+  void _moveMeal(int index, int delta) {
+    final to = index + delta;
+    if (to < 0 || to >= _mealOrder.length) return;
+    setState(() {
+      final item = _mealOrder.removeAt(index);
+      _mealOrder.insert(to, item);
+      _mealError = null;
+      _mealErrorField = null;
+    });
+  }
+
+  Future<void> _saveMeals() async {
+    if (_savingMeals) return;
+    setState(() {
+      _savingMeals = true;
+      _mealError = null;
+      _mealErrorField = null;
+    });
+    final result = await ref.read(saveMealLabelsProvider)(
+      labels: {for (final e in _mealControllers.entries) e.key: e.value.text},
+      order: _mealOrder,
+    );
+    if (!mounted) return;
+    setState(() => _savingMeals = false);
+    switch (result) {
+      case Ok():
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Meal names saved')));
+      case Err(:final error):
+        setState(() {
+          _mealError = userMessageFor(error);
+          _mealErrorField = error is ValidationError ? error.field : null;
+        });
+    }
   }
 
   Future<void> _saveTargets() async {
@@ -107,6 +165,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final targets = ref.watch(dailyTargetsProvider);
     final settings = ref.watch(settingsProvider);
     targets.whenData(_seed);
+    ref.watch(mealLabelsProvider).whenData(_seedMeals);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -172,6 +231,74 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: RfSpace.s4),
+          const RfSectionHeader(title: 'Meals'),
+          RfCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Rename your meals and choose their order. Existing '
+                  'entries follow the new names.',
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: RfSpace.s3),
+                for (var i = 0; i < _mealOrder.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: RfSpace.s2),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: RfTextField(
+                            key: Key('meal-label-${_mealOrder[i].name}'),
+                            controller: _mealControllers[_mealOrder[i]],
+                            label: 'Meal ${i + 1}',
+                            errorText: _mealErrorField == _mealOrder[i].name
+                                ? _mealError
+                                : null,
+                            onChanged: (_) => setState(() {
+                              _mealError = null;
+                              _mealErrorField = null;
+                            }),
+                          ),
+                        ),
+                        IconButton(
+                          key: Key('meal-up-${_mealOrder[i].name}'),
+                          tooltip: 'Move up',
+                          icon: const Icon(Icons.arrow_upward),
+                          onPressed: i == 0 ? null : () => _moveMeal(i, -1),
+                        ),
+                        IconButton(
+                          key: Key('meal-down-${_mealOrder[i].name}'),
+                          tooltip: 'Move down',
+                          icon: const Icon(Icons.arrow_downward),
+                          onPressed: i == _mealOrder.length - 1
+                              ? null
+                              : () => _moveMeal(i, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_mealError != null &&
+                    !MealSlot.values.any((m) => m.name == _mealErrorField))
+                  Text(
+                    _mealError!,
+                    key: const Key('meal-error'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: context.rf.alertText,
+                    ),
+                  ),
+                const SizedBox(height: RfSpace.s2),
+                RfButton(
+                  key: const Key('save-meals'),
+                  label: 'Save meal names',
+                  loading: _savingMeals,
+                  onPressed: _saveMeals,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: RfSpace.s4),

@@ -5,9 +5,9 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
-import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
+import 'package:repforge/features/settings/application/meal_label_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_text_field.dart';
 import 'package:repforge/ui/error_text.dart';
@@ -123,6 +123,7 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     final food = widget.food;
     final unit = food.profile.per100.symbol;
     final preview = _preview;
+    final labels = ref.watch(mealLabelsValueProvider);
     return Padding(
       padding: EdgeInsets.only(
         left: RfSpace.gutter,
@@ -199,8 +200,8 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
               key: const Key('portion-meal'),
               showSelectedIcon: false,
               segments: [
-                for (final m in FuelScreen.meals)
-                  ButtonSegment(value: m, label: Text(FuelScreen.mealLabel(m))),
+                for (final m in labels.order)
+                  ButtonSegment(value: m, label: Text(labels.labelOf(m))),
               ],
               selected: {_meal},
               onSelectionChanged: (s) => setState(() => _meal = s.first),
@@ -221,7 +222,7 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
             const SizedBox(height: RfSpace.s4),
             RfButton(
               key: const Key('portion-log'),
-              label: 'Log to ${FuelScreen.mealLabel(_meal)}',
+              label: 'Log to ${labels.labelOf(_meal)}',
               loading: _busy,
               onPressed: _log,
             ),

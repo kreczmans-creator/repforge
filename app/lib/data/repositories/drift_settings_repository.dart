@@ -19,6 +19,7 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _dayStart = 'dayStartHour';
   static const _weekStart = 'weekStartDay';
   static const _mealLabels = 'mealLabels';
+  static const _recipeFavouritesOnly = 'recipeFavouritesOnly';
   static const _seedRecipesVersion = 'seedRecipesVersion';
 
   @override
@@ -85,6 +86,18 @@ final class DriftSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveMealLabels(MealLabels labels) =>
       _writeValue(_mealLabels, labels.toJson());
+
+  @override
+  Stream<bool> watchRecipeFavouritesOnly() =>
+      (_db.select(_db.settings)
+            ..where((t) => t.key.equals(_recipeFavouritesOnly)))
+          .watchSingleOrNull()
+          .map((row) => row?.value == 'true')
+          .distinct();
+
+  @override
+  Future<void> saveRecipeFavouritesOnly({required bool value}) =>
+      _writeValue(_recipeFavouritesOnly, value.toString());
 
   @override
   Future<int> readSeedRecipesVersion() async =>

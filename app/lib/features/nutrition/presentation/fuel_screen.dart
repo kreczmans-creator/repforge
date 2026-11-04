@@ -13,6 +13,7 @@ import 'package:repforge/features/nutrition/presentation/entry_edit_sheet.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 import 'package:repforge/features/nutrition/presentation/saved_meals_screen.dart';
+import 'package:repforge/features/settings/application/meal_label_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_macro_bar.dart';
@@ -26,20 +27,6 @@ import 'package:repforge/ui/tokens.dart';
 class FuelScreen extends ConsumerWidget {
   const FuelScreen({super.key});
 
-  static const List<MealSlot> meals = [
-    MealSlot.breakfast,
-    MealSlot.lunch,
-    MealSlot.dinner,
-    MealSlot.snack,
-  ];
-
-  static String mealLabel(MealSlot m) => switch (m) {
-    MealSlot.breakfast => 'Breakfast',
-    MealSlot.lunch => 'Lunch',
-    MealSlot.dinner => 'Dinner',
-    MealSlot.snack => 'Snacks',
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final day = ref.watch(selectedDayProvider);
@@ -47,6 +34,7 @@ class FuelScreen extends ConsumerWidget {
     final summary = ref.watch(selectedDaySummaryProvider);
     final entries = ref.watch(selectedDayEntriesProvider);
     final theme = Theme.of(context);
+    final labels = ref.watch(mealLabelsValueProvider);
     final date = DateTime.parse(day);
 
     return ListView(
@@ -90,14 +78,23 @@ class FuelScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: RfSpace.s2),
+        RfButton(
+          key: const Key('open-recipes'),
+          label: 'Recipes',
+          icon: Icons.menu_book_outlined,
+          variant: RfButtonVariant.secondary,
+          onPressed: () => context.push(RfRoutes.fuelRecipes),
+        ),
+        const SizedBox(height: RfSpace.s2),
         entries.when(
           loading: () => const SizedBox.shrink(),
           error: (e, _) => const SizedBox.shrink(),
           data: (list) => Column(
             children: [
-              for (final meal in meals)
+              for (final meal in labels.order)
                 _MealSection(
                   meal: meal,
+                  label: labels.labelOf(meal),
                   entries: [
                     for (final e in list)
                       if (e.meal == meal) e,
@@ -265,9 +262,14 @@ class _Totals extends StatelessWidget {
 }
 
 class _MealSection extends ConsumerWidget {
-  const _MealSection({required this.meal, required this.entries});
+  const _MealSection({
+    required this.meal,
+    required this.label,
+    required this.entries,
+  });
 
   final MealSlot meal;
+  final String label;
   final List<FoodLogEntry> entries;
 
   @override
@@ -279,8 +281,8 @@ class _MealSection extends ConsumerWidget {
       children: [
         RfSectionHeader(
           title: entries.isEmpty
-              ? FuelScreen.mealLabel(meal)
-              : '${FuelScreen.mealLabel(meal)} · '
+              ? label
+              : '$label · '
                     '${formatNumber(kcal, maxDecimals: 0)} kcal',
           actionLabel: entries.isEmpty ? null : 'Save as meal',
           onAction: entries.isEmpty

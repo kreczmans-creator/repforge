@@ -60,6 +60,9 @@ void main() {
   });
 
   testWidgets('changing units and theme persists settings', (tester) async {
+    tester.view.physicalSize = const Size(600, 3600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(_harness(db));
     await tester.pumpAndSettle();
     Finder segment(String key, String label) =>

@@ -19,7 +19,11 @@ import 'package:repforge/ui/tokens.dart';
 /// Search the local food database and Open Food Facts; tap a result to
 /// choose a portion and log it. Works offline with local results only.
 class FoodSearchScreen extends ConsumerStatefulWidget {
-  const FoodSearchScreen({super.key});
+  const FoodSearchScreen({super.key, this.pickOnly = false});
+
+  /// Picker mode (recipe ingredients): choosing a food pops it instead of
+  /// opening the portion sheet, and nothing is logged.
+  final bool pickOnly;
 
   @override
   ConsumerState<FoodSearchScreen> createState() => _FoodSearchScreenState();
@@ -35,6 +39,10 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
   }
 
   Future<void> _pick(Food food) async {
+    if (widget.pickOnly) {
+      Navigator.of(context).pop(food);
+      return;
+    }
     final now = ref.read(clockProvider).now().toLocal();
     final entry = await showPortionSheet(
       context,
@@ -58,13 +66,15 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
     final state = ref.watch(foodSearchControllerProvider);
     final theme = Theme.of(context);
     final capability = ref.watch(scannerCapabilityProvider);
-    final scannerAvailable = capability.value == ScannerCapability.available;
+    final scannerAvailable =
+        !widget.pickOnly && capability.value == ScannerCapability.available;
     // While loading nothing is shown; an error counts as unavailable.
     final scannerUnavailable =
-        capability.hasError || (capability.hasValue && !scannerAvailable);
+        !widget.pickOnly &&
+        (capability.hasError || (capability.hasValue && !scannerAvailable));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Log food'),
+        title: Text(widget.pickOnly ? 'Choose a food' : 'Log food'),
         actions: [
           if (scannerAvailable)
             IconButton(

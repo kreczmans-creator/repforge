@@ -5,6 +5,7 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
+import 'package:repforge/features/settings/application/meal_label_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_text_field.dart';
 import 'package:repforge/ui/error_text.dart';
@@ -82,6 +83,7 @@ class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final e = widget.entry;
+    final labels = ref.watch(mealLabelsValueProvider);
     return Padding(
       padding: EdgeInsets.only(
         left: RfSpace.gutter,
@@ -115,8 +117,8 @@ class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
             key: const Key('edit-meal'),
             showSelectedIcon: false,
             segments: [
-              for (final m in FuelScreen.meals)
-                ButtonSegment(value: m, label: Text(FuelScreen.mealLabel(m))),
+              for (final m in labels.order)
+                ButtonSegment(value: m, label: Text(labels.labelOf(m))),
             ],
             selected: {_meal},
             onSelectionChanged: (s) => setState(() => _meal = s.first),

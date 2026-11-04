@@ -9,6 +9,9 @@ import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
 import 'package:repforge/features/nutrition/presentation/saved_meals_screen.dart';
 import 'package:repforge/features/nutrition/presentation/scan_screen.dart';
 import 'package:repforge/features/nutrition/presentation/weekly_summary_screen.dart';
+import 'package:repforge/features/recipes/presentation/recipe_detail_screen.dart';
+import 'package:repforge/features/recipes/presentation/recipe_editor_screen.dart';
+import 'package:repforge/features/recipes/presentation/recipe_list_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
 import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/ui/components/rf_brand_mark.dart';
@@ -21,10 +24,21 @@ abstract final class RfRoutes {
   static const train = '/train';
   static const fuel = '/fuel';
   static const fuelSearch = '/fuel/search';
+
+  /// Food picker for recipe ingredients (pops the chosen food).
+  static const fuelPickFood = '/fuel/search?pick=1';
   static const fuelNewFood = '/fuel/new-food';
   static const fuelScan = '/fuel/scan';
   static const fuelWeek = '/fuel/week';
   static const fuelSavedMeals = '/fuel/saved-meals';
+  static const fuelRecipes = '/fuel/recipes';
+  static const fuelRecipeNew = '/fuel/recipes/new';
+
+  /// Recipe detail for [id].
+  static String fuelRecipe(String id) => '/fuel/recipes/$id';
+
+  /// Recipe editor for [id].
+  static String fuelRecipeEdit(String id) => '/fuel/recipes/$id/edit';
   static const track = '/track';
   static const goals = '/goals';
 
@@ -79,7 +93,9 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                 GoRoute(
                   path: 'search',
                   parentNavigatorKey: _rootKey,
-                  builder: (context, state) => const FoodSearchScreen(),
+                  builder: (context, state) => FoodSearchScreen(
+                    pickOnly: state.uri.queryParameters['pick'] == '1',
+                  ),
                 ),
                 GoRoute(
                   path: 'new-food',
@@ -102,6 +118,35 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                   path: 'saved-meals',
                   parentNavigatorKey: _rootKey,
                   builder: (context, state) => const SavedMealsScreen(),
+                ),
+                GoRoute(
+                  path: 'recipes',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const RecipeListScreen(),
+                  routes: [
+                    // 'new' is declared before ':id' so it is not an id.
+                    GoRoute(
+                      path: 'new',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => const RecipeEditorScreen(),
+                    ),
+                    GoRoute(
+                      path: ':id',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => RecipeDetailScreen(
+                        recipeId: state.pathParameters['id']!,
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: 'edit',
+                          parentNavigatorKey: _rootKey,
+                          builder: (context, state) => RecipeEditorScreen(
+                            recipeId: state.pathParameters['id'],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -163,6 +163,81 @@ void main() {
     expect(find.text('83.2'), findsOneWidget);
   });
 
+  testWidgets('recipe logged earlier keeps its values after the recipe is '
+      'edited (in-memory db, RCP-013)', (tester) async {
+    final db = AppDatabase.inMemory();
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
+    await pumpApp(tester, db: db);
+
+    await tester.tap(find.byKey(const Key('nav-fuel')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-recipes')));
+    await pumpUntil(tester, find.byKey(const Key('new-recipe')));
+    await tester.tap(find.byKey(const Key('new-recipe')));
+    await pumpUntil(tester, find.byKey(const Key('recipe-name-field')));
+    await tester.enterText(
+      find.byKey(const Key('recipe-name-field')),
+      'IT stew',
+    );
+    await tester.enterText(find.byKey(const Key('recipe-portions-field')), '2');
+
+    // Ingredient: create a custom food from the picker (380 kcal/100 g).
+    await scrollTo(tester, find.byKey(const Key('add-ingredient')));
+    await tester.tap(find.byKey(const Key('add-ingredient')));
+    await pumpUntil(tester, find.byKey(const Key('new-food')));
+    await tester.tap(find.byKey(const Key('new-food')));
+    await pumpUntil(tester, find.byKey(const Key('food-name')));
+    await tester.enterText(find.byKey(const Key('food-name')), 'IT oats');
+    await tester.enterText(find.byKey(const Key('food-kcal')), '380');
+    await tester.enterText(find.byKey(const Key('food-protein')), '13');
+    await tester.enterText(find.byKey(const Key('food-carbs')), '60');
+    await tester.enterText(find.byKey(const Key('food-fat')), '7');
+    await scrollTo(tester, find.byKey(const Key('food-save')));
+    await tester.tap(find.byKey(const Key('food-save')));
+    await pumpUntil(tester, find.byKey(const Key('ingredient-amount')));
+    await tester.enterText(find.byKey(const Key('ingredient-amount')), '200');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('ingredient-save')));
+    await pumpUntil(tester, find.byKey(const Key('ingredient-0')));
+
+    await scrollTo(tester, find.byKey(const Key('recipe-save')));
+    await tester.tap(find.byKey(const Key('recipe-save')));
+    // Detail of the new recipe: 200 g x 3.8 / 2 = 380 kcal per portion.
+    await pumpUntil(tester, find.byKey(const Key('recipe-log')));
+
+    // Log 1.5 portions: 570 kcal.
+    await tester.tap(find.byKey(const Key('recipe-log')));
+    await pumpUntil(tester, find.byKey(const Key('log-portions-inc')));
+    await tester.tap(find.byKey(const Key('log-portions-inc')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('log-submit')));
+    await pumpUntil(tester, find.textContaining('Logged 1.5 portions'));
+
+    // Edit the recipe: 100 g instead of 200 g (190 kcal per portion).
+    await tester.tap(find.byKey(const Key('recipe-edit')));
+    await pumpUntil(tester, find.byKey(const Key('ingredient-0')));
+    await tester.tap(find.byKey(const Key('ingredient-0')));
+    await pumpUntil(tester, find.byKey(const Key('ingredient-amount')));
+    await tester.enterText(find.byKey(const Key('ingredient-amount')), '100');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('ingredient-save')));
+    await pumpUntil(tester, find.text('100 g'));
+    await scrollTo(tester, find.byKey(const Key('recipe-save')));
+    await tester.tap(find.byKey(const Key('recipe-save')));
+    await pumpUntilGone(tester, find.byKey(const Key('recipe-name-field')));
+
+    // The earlier diary entry is unchanged.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await pumpUntil(tester, find.text('IT stew'));
+    expect(find.text('570'), findsWidgets);
+    expect(find.textContaining('1.5 portions'), findsOneWidget);
+  });
+
   testWidgets('scan a known barcode and log it (fake scanner)', (tester) async {
     final db = AppDatabase.inMemory();
     addTearDown(

@@ -6,9 +6,9 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/nutrition/saved_meal.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
-import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/portion_sheet.dart';
+import 'package:repforge/features/settings/application/meal_label_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
@@ -35,7 +35,8 @@ class SavedMealsScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Logged ${value.length} item(s) to ${FuelScreen.mealLabel(slot)}',
+              'Logged ${value.length} item(s) to '
+              '${ref.read(mealLabelsValueProvider).labelOf(slot)}',
             ),
           ),
         );
