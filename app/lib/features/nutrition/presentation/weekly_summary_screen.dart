@@ -34,7 +34,6 @@ class WeeklySummaryScreen extends ConsumerWidget {
             const RfErrorState(message: 'Could not load the week.'),
         data: (w) {
           final avg = w.averagePerLoggedDay;
-          final totals = w.weekTotals;
           final days = lastSevenDays(DateTime.parse(w.toDay));
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: RfSpace.gutter),
@@ -68,7 +67,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     avg.proteinG,
                     'g',
                     targets.proteinG,
-                    totals.unknownCount(Nutrient.proteinG),
+                    w.unknownDays(Nutrient.proteinG),
                   ),
                 ),
                 const SizedBox(height: RfSpace.s3),
@@ -79,7 +78,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     avg.carbsG,
                     'g',
                     targets.carbsG,
-                    totals.unknownCount(Nutrient.carbsG),
+                    w.unknownDays(Nutrient.carbsG),
                   ),
                   right: _avgTile(
                     const Key('week-avg-fat'),
@@ -87,7 +86,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     avg.fatG,
                     'g',
                     targets.fatG,
-                    totals.unknownCount(Nutrient.fatG),
+                    w.unknownDays(Nutrient.fatG),
                   ),
                 ),
                 const SizedBox(height: RfSpace.s3),
@@ -98,7 +97,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     avg.fibreG,
                     'g',
                     targets.fibreG,
-                    totals.unknownCount(Nutrient.fibreG),
+                    w.unknownDays(Nutrient.fibreG),
                   ),
                 ),
                 const SizedBox(height: RfSpace.s4),
@@ -142,7 +141,7 @@ Widget _avgTile(
   double? value,
   String unit,
   double? target,
-  int unknown,
+  int unknown, // logged days excluded from the average
 ) {
   final parts = <String>[
     if (target != null && target > 0)
@@ -151,7 +150,10 @@ Widget _avgTile(
       'per logged day',
       'no target',
     ],
-    if (value == null) 'not available' else if (unknown > 0) '$unknown unknown',
+    if (value == null)
+      'not available'
+    else if (unknown > 0)
+      '$unknown ${unknown == 1 ? 'day' : 'days'} unknown',
   ];
   return RfStatTile(
     key: key,
@@ -220,10 +222,13 @@ class _DayRow extends StatelessWidget {
               Expanded(
                 child: a == null
                     ? Text('—', style: theme.textTheme.bodySmall)
+                    : fraction == null
+                    // No calorie target: a figure, but no bar against zero.
+                    ? const SizedBox.shrink()
                     : ClipRRect(
                         borderRadius: BorderRadius.circular(RfRadius.pill),
                         child: LinearProgressIndicator(
-                          value: fraction ?? 0,
+                          value: fraction,
                           minHeight: 6,
                           color: rf.accent,
                           backgroundColor: rf.track,

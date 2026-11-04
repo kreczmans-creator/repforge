@@ -45,10 +45,33 @@ abstract class WeeklySummary with _$WeeklySummary {
   /// Totals of the whole week with unknown counts per nutrient.
   NutrientTotals get weekTotals => NutrientTotals.combine(dayTotals.values);
 
-  /// Average of the known values over logged days; null when nothing was
-  /// logged. See [weekTotals] for how many entries were unknown.
-  NutrientAmounts? get averagePerLoggedDay =>
-      dayTotals.isEmpty ? null : total.scaled(1 / dayTotals.length);
+  /// Average per logged day; null when nothing was logged. Energy is
+  /// averaged over every logged day. Each other nutrient is averaged over
+  /// the logged days that KNOW it (a day with no known value is left out of
+  /// both numerator and denominator, never counted as 0) and is null when no
+  /// logged day knows it. See [unknownDays] for how many days were left out.
+  NutrientAmounts? get averagePerLoggedDay {
+    if (dayTotals.isEmpty) return null;
+    final known = dayTotals.values.map((t) => t.known).toList();
+    double? avg(Nutrient n) {
+      final values = known.map((a) => a.valueOf(n)).nonNulls.toList();
+      if (values.isEmpty) return null;
+      return values.fold<double>(0, (a, b) => a + b) / values.length;
+    }
+
+    return NutrientAmounts(
+      kcal: known.fold<double>(0, (a, b) => a + b.kcal) / known.length,
+      proteinG: avg(Nutrient.proteinG),
+      carbsG: avg(Nutrient.carbsG),
+      fatG: avg(Nutrient.fatG),
+      fibreG: avg(Nutrient.fibreG),
+    );
+  }
+
+  /// Logged days whose total for [nutrient] is unknown (no entry of that day
+  /// knew it); these days are excluded from [averagePerLoggedDay].
+  int unknownDays(Nutrient nutrient) =>
+      dayTotals.values.where((t) => t.known.valueOf(nutrient) == null).length;
 
   /// Sum of the known values over the week.
   NutrientAmounts get total => weekTotals.known;

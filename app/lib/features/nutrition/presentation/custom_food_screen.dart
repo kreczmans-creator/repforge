@@ -187,7 +187,7 @@ class _CustomFoodScreenState extends ConsumerState<CustomFoodScreen> {
                       child: RfTextField.number(
                         key: const Key('food-protein'),
                         controller: _protein,
-                        label: 'Protein',
+                        label: 'Protein (blank if unknown)',
                         unit: 'g',
                         errorText: _err('proteinG'),
                       ),
@@ -197,7 +197,7 @@ class _CustomFoodScreenState extends ConsumerState<CustomFoodScreen> {
                       child: RfTextField.number(
                         key: const Key('food-carbs'),
                         controller: _carbs,
-                        label: 'Carbs',
+                        label: 'Carbs (blank if unknown)',
                         unit: 'g',
                         errorText: _err('carbsG'),
                       ),
@@ -211,7 +211,7 @@ class _CustomFoodScreenState extends ConsumerState<CustomFoodScreen> {
                       child: RfTextField.number(
                         key: const Key('food-fat'),
                         controller: _fat,
-                        label: 'Fat',
+                        label: 'Fat (blank if unknown)',
                         unit: 'g',
                         errorText: _err('fatG'),
                       ),
@@ -221,7 +221,7 @@ class _CustomFoodScreenState extends ConsumerState<CustomFoodScreen> {
                       child: RfTextField.number(
                         key: const Key('food-fibre'),
                         controller: _fibre,
-                        label: 'Fibre (optional)',
+                        label: 'Fibre (blank if unknown)',
                         unit: 'g',
                         errorText: _err('fibreG'),
                       ),

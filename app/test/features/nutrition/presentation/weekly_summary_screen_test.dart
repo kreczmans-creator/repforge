@@ -205,11 +205,13 @@ void main() {
     await log.insert(_partial('b', '2026-11-03', kcal: 1000, protein: 90));
     await log.insert(_partial('c', '2026-11-03', kcal: 1000));
     await pump(tester);
-    // Average over the 2 logged days: (1000 + 2000) / 2 kcal, protein 90 / 2.
+    // Energy averages over the 2 logged days: (1000 + 2000) / 2. Protein is
+    // averaged over the ONE day that knows it (90), never over the day that
+    // knows nothing as if it were 0; that day is reported as unknown.
     expect(avgText('week-avg-kcal', '1500'), findsOneWidget);
-    expect(avgText('week-avg-protein', '45'), findsOneWidget);
+    expect(avgText('week-avg-protein', '90'), findsOneWidget);
     expect(
-      avgText('week-avg-protein', 'per logged day · no target · 2 unknown'),
+      avgText('week-avg-protein', 'per logged day · no target · 1 day unknown'),
       findsOneWidget,
     );
     expect(avgText('week-avg-carbs', 'n/a'), findsOneWidget);
