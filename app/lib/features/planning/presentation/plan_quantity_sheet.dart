@@ -79,13 +79,15 @@ class _PlanQuantitySheetState extends ConsumerState<_PlanQuantitySheet> {
   double? get _value =>
       double.tryParse(_amount.text.trim().replaceAll(',', '.'));
 
+  /// Two decimals for portion counts and multipliers, the unit's own (one)
+  /// for grams and millilitres (spec §2.1).
+  int get _decimals =>
+      widget.kind == PlannedKind.food ? widget.unit.decimals : 2;
+
   void _step(double delta) {
     final next = ((_value ?? 0) + delta).clamp(0.5, 1000).toDouble();
     setState(() {
-      _amount.text = formatNumber(
-        next,
-        maxDecimals: widget.kind == PlannedKind.savedMeal ? 2 : 1,
-      );
+      _amount.text = formatNumber(next, maxDecimals: _decimals);
       _error = null;
     });
   }
@@ -133,7 +135,7 @@ class _PlanQuantitySheetState extends ConsumerState<_PlanQuantitySheet> {
       controller: _amount,
       label: label,
       unit: widget.kind == PlannedKind.food ? widget.unit.symbol : null,
-      decimals: widget.kind == PlannedKind.savedMeal ? 2 : 1,
+      decimals: _decimals,
       errorText: _error,
       autofocus: !_stepped,
       onChanged: (_) => setState(() => _error = null),

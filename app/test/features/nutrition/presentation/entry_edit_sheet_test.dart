@@ -26,6 +26,21 @@ final _entry = FoodLogEntry(
   updatedAt: _now.toUtc(),
 );
 
+// 1.25 portions of a 400 kcal / P 30 per portion recipe.
+final _portionsEntry = FoodLogEntry(
+  id: 'e2',
+  day: '2026-11-03',
+  meal: MealSlot.dinner,
+  name: 'Chilli',
+  recipeId: 'r1',
+  quantity: Quantity.fromStored(1.25, ReferenceUnit.portions),
+  nutrients: const NutrientAmounts(kcal: 500, proteinG: 37.5),
+  provenance: DataProvenance.userEntered,
+  loggedAt: _now.toUtc(),
+  createdAt: _now.toUtc(),
+  updatedAt: _now.toUtc(),
+);
+
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
@@ -45,7 +60,8 @@ void main() {
     return db.close();
   });
 
-  Future<void> openSheet(WidgetTester tester) async {
+  Future<void> openSheet(WidgetTester tester, [FoodLogEntry? entry]) async {
+    final e = entry ?? _entry;
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -54,7 +70,7 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: TextButton(
-                onPressed: () => showEntryEditSheet(context, _entry),
+                onPressed: () => showEntryEditSheet(context, e),
                 child: const Text('edit'),
               ),
             ),
@@ -225,5 +241,50 @@ void main() {
       expect(find.text('This recipe no longer exists.'), findsOneWidget);
       expect(find.byKey(const Key('edit-save')), findsOneWidget);
     });
+  });
+
+  testWidgets('a portions entry shows 1.25 and rescales exactly to 1.75', (
+    tester,
+  ) async {
+    await container.read(foodLogRepositoryProvider).insert(_portionsEntry);
+    await openSheet(tester, _portionsEntry);
+    expect(find.textContaining('Logged as 1.25 portions'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '1.25',
+    );
+    await tester.enterText(find.byType(TextField), '1.75');
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '1.75',
+    );
+    await tester.tap(find.byKey(const Key('edit-save')));
+    await tester.pumpAndSettle();
+    final stored =
+        (await container
+                .read(foodLogRepositoryProvider)
+                .forDays('2026-11-03', '2026-11-03'))
+            .firstWhere((x) => x.id == 'e2');
+    expect(stored.quantity.amount, 1.75);
+    expect(stored.nutrients.kcal, closeTo(700, 1e-9));
+    expect(stored.nutrients.proteinG, closeTo(52.5, 1e-9));
+  });
+
+  testWidgets('a portions amount cannot take a third decimal; grams stop at '
+      'one', (tester) async {
+    await openSheet(tester, _portionsEntry);
+    await tester.enterText(find.byType(TextField), '1.255');
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '1.25',
+    );
+    await tester.pumpWidget(const SizedBox());
+    await openSheet(tester);
+    await tester.enterText(find.byType(TextField), '100.5');
+    await tester.enterText(find.byType(TextField), '100.55');
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '100.5',
+    );
   });
 }

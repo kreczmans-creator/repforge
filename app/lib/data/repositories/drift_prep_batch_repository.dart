@@ -73,10 +73,12 @@ final class DriftPrepBatchRepository implements PrepBatchRepository {
                 ..where((t) => t.id.equals(id) & t.deletedAt.isNull()))
               .getSingleOrNull();
       if (row == null) return ConsumeOutcome.notFound;
-      // Tolerance for binary rounding of 0.1 steps; never below 0.
-      final left = row.portionsRemaining - portions;
-      if (left < -1e-9) return ConsumeOutcome.insufficient;
-      final remaining = left < 1e-9 ? 0.0 : (left * 1e6).roundToDouble() / 1e6;
+      // Portion counts are exact to 0.01 (spec §2.1): count in integer
+      // hundredths so 0.75 then 1.25 from 2 leaves exactly 0, never below 0.
+      final left =
+          (row.portionsRemaining * 100).round() - (portions * 100).round();
+      if (left < 0) return ConsumeOutcome.insufficient;
+      final remaining = left / 100;
       await (_db.update(_db.prepBatches)..where((t) => t.id.equals(id))).write(
         PrepBatchesCompanion(
           portionsRemaining: Value(remaining),

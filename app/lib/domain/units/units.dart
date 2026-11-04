@@ -20,6 +20,10 @@ enum ReferenceUnit {
   /// True for [grams] and [millilitres], the only valid reference bases for
   /// foods and ingredients.
   bool get isMeasure => this != portions;
+
+  /// Decimal places a quantity in this unit is entered, stored and shown to
+  /// (spec §2.1): 0.01 for [portions], 0.1 for grams and millilitres.
+  int get decimals => this == portions ? 2 : 1;
 }
 
 /// Unit system for display. Storage is always metric.
@@ -40,7 +44,7 @@ final class Quantity {
   final double amount;
   final ReferenceUnit unit;
 
-  /// Validates like [of] but keeps [amount] as given (no rounding to 0.1).
+  /// Validates like [of] but keeps [amount] as given (no rounding).
   /// Only for derived values that must stay exact, such as a scaled recipe
   /// view (spec §9.4); a quantity the user enters goes through [of].
   static Result<Quantity> exact(double amount, ReferenceUnit unit) {
@@ -65,11 +69,15 @@ final class Quantity {
         ),
       );
     }
-    final rounded = (amount * 10).roundToDouble() / 10;
+    final scale = unit == ReferenceUnit.portions ? 100 : 10;
+    final rounded = (amount * scale).roundToDouble() / scale;
     return Ok(Quantity._(rounded, unit));
   }
 
-  String get label => '${formatNumber(amount)} ${unit.symbol}';
+  /// "150 g", "1.25 portions", "2 portions": up to the unit's precision with
+  /// no trailing zeros.
+  String get label =>
+      '${formatNumber(amount, maxDecimals: unit.decimals)} ${unit.symbol}';
 
   @override
   bool operator ==(Object other) =>

@@ -35,7 +35,7 @@ class _RecordBatchSheet extends ConsumerStatefulWidget {
 
 class _RecordBatchSheetState extends ConsumerState<_RecordBatchSheet> {
   late final TextEditingController _portions = TextEditingController(
-    text: formatNumber(widget.recipe.portions),
+    text: formatNumber(widget.recipe.portions, maxDecimals: 2),
   );
   String? _error;
   bool _busy = false;
@@ -100,6 +100,7 @@ class _RecordBatchSheetState extends ConsumerState<_RecordBatchSheet> {
             key: const Key('batch-portions'),
             controller: _portions,
             label: 'Portions made',
+            decimals: 2,
             errorText: _error,
             autofocus: true,
             onChanged: (_) => setState(() => _error = null),
@@ -191,8 +192,9 @@ class PrepBatchesSection extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            'Made ${formatNumber(b.portionsMade)} on '
-                            '${_date(b.preparedAt)}',
+                            'Made '
+                            '${formatNumber(b.portionsMade, maxDecimals: 2)}'
+                            ' on ${_date(b.preparedAt)}',
                             style: context.rfText.caption,
                           ),
                         ],

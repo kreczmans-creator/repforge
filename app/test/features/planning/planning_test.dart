@@ -341,6 +341,34 @@ void main() {
       expect(s.unresolvedCount, 0);
     });
 
+    test('1.25 planned portions are stored as 1.25 and the plan-day total '
+        'uses 1.25 (400 kcal per portion)', () async {
+      final item = ok(
+        await planItem(
+          day: _today,
+          meal: MealSlot.dinner,
+          kind: PlannedKind.recipe,
+          refId: 'r1',
+          quantity: 1.25,
+        ),
+      );
+      expect(item.quantity, 1.25);
+      expect((await plan.byId(item.id))!.quantity, 1.25);
+      final s = ((await summarise(_today)) as Ok<PlanDaySummary>).value;
+      expect(s.totals.known.kcal, closeTo(500, 1e-9));
+      expect(s.totals.known.proteinG, closeTo(100, 1e-9));
+      final third = ok(
+        await planItem(
+          day: _today,
+          meal: MealSlot.dinner,
+          kind: PlannedKind.recipe,
+          refId: 'r1',
+          quantity: 1.234,
+        ),
+      );
+      expect(third.quantity, 1.23);
+    });
+
     test('the same items logged give identical totals', () async {
       await planThree();
       final planned = ((await summarise(_today)) as Ok<PlanDaySummary>).value;
@@ -419,6 +447,53 @@ void main() {
       )) as Ok<List<FoodLogEntry>>).value;
       expect(entries.single.quantity.amount, 1);
       expect(entries.single.nutrients.kcal, closeTo(400, 1e-9));
+    });
+
+    test('an override of 0.75 portions logs 0.75 (300 kcal)', () async {
+      final item = ok(await planRecipe(_today));
+      final entries = ((await markEaten(
+        item.id,
+        overrideQuantity: 0.75,
+      )) as Ok<List<FoodLogEntry>>).value;
+      expect(entries.single.quantity.amount, 0.75);
+      expect(entries.single.nutrients.kcal, closeTo(300, 1e-9));
+      expect((await logged()).single.quantity.amount, 0.75);
+    });
+
+    test('a saved-meal multiplier of 1.25 scales the snapshot by 1.25 and '
+        'one of 1.234 is taken as 1.23', () async {
+      final item = ok(
+        await planItem(
+          day: _today,
+          meal: MealSlot.breakfast,
+          kind: PlannedKind.savedMeal,
+          refId: 's1',
+          quantity: 1,
+        ),
+      );
+      expect(
+        ((await markEaten(item.id, overrideQuantity: 1.25))
+                as Ok<List<FoodLogEntry>>)
+            .value
+            .fold<double>(0, (a, e) => a + e.nutrients.kcal),
+        closeTo(525, 1e-9), // 420 x 1.25
+      );
+      final second = ok(
+        await planItem(
+          day: _today,
+          meal: MealSlot.snack,
+          kind: PlannedKind.savedMeal,
+          refId: 's1',
+          quantity: 1,
+        ),
+      );
+      expect(
+        ((await markEaten(second.id, overrideQuantity: 1.234))
+                as Ok<List<FoodLogEntry>>)
+            .value
+            .fold<double>(0, (a, e) => a + e.nutrients.kcal),
+        closeTo(420 * 1.23, 1e-9),
+      );
     });
 
     test('food: planned 150 g logs 195 kcal', () async {
@@ -684,6 +759,51 @@ void main() {
         ((await consume(b.id, 0.5)) as Ok<PrepBatch>).value.portionsRemaining,
         0,
       );
+    });
+
+    test('E41 a batch of 2: 0.75 then 1.25 leaves exactly 0; 0.01 more is '
+        'refused', () async {
+      final b = await record(2);
+      expect(
+        ((await consume(b.id, 0.75)) as Ok<PrepBatch>).value.portionsRemaining,
+        1.25,
+      );
+      expect(
+        ((await consume(b.id, 1.25)) as Ok<PrepBatch>).value.portionsRemaining,
+        0,
+      );
+      expect((await consume(b.id, 0.01)).isErr, isTrue);
+      expect((await batches.byId(b.id))!.portionsRemaining, 0);
+    });
+
+    test('consume 0.01 works; more than remaining is refused', () async {
+      final b = await record(1.25);
+      expect(b.portionsMade, 1.25);
+      expect(
+        ((await consume(b.id, 0.01)) as Ok<PrepBatch>).value.portionsRemaining,
+        1.24,
+      );
+      final refused = await consume(b.id, 1.25);
+      expect(
+        ((refused as Err<PrepBatch>).error as ValidationError).field,
+        prepInsufficientField,
+      );
+      expect((await batches.byId(b.id))!.portionsRemaining, 1.24);
+    });
+
+    test(
+      '0.01 steps do not drift (100 x 0.01 from 1 reaches exactly 0)',
+      () async {
+        final b = await record(1);
+        for (var i = 0; i < 100; i++) {
+          expect((await consume(b.id, 0.01)).isOk, isTrue, reason: 'step $i');
+        }
+        expect((await batches.byId(b.id))!.portionsRemaining, 0);
+      },
+    );
+
+    test('a recorded count is stored to 0.01', () async {
+      expect((await record(1.234)).portionsMade, 1.23);
     });
 
     test(

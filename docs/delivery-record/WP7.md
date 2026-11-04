@@ -115,3 +115,9 @@ The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test:
 2. Implementation: portion counts stored and calculated at 0.01 everywhere (logging, plan, prep batches, saved-meal multipliers, diary edit); portion inputs accept two decimals; g/ml stay at 0.1.
 3. Regression tests: fractional portions, nutrient calculations, diary snapshots; E39–E41 executed.
 4. Fresh independent review; four workflows green on the final commit; this record and D06 updated with the commit and runs.
+
+### Closure condition — evidence
+- **Implementation** (closure commit, see CI table): `ReferenceUnit.decimals` (portions 2, g/ml 1); `Quantity.of` rounds portions to 0.01 and g/ml to 0.1; prep batches computed in integer hundredths; saved-meal multipliers to 0.01; every portion input accepts two decimals; labels show "1.25 portions".
+- **Tests**: E39–E41 executed against production code; regression tests re-read stored rows and snapshots after log, diary edit, plan, mark-eaten and batch operations; three existing tests updated where they encoded the 0.1 rule (judged legitimate by the reviewer). Proven to fail on the old code.
+- **Local**: 730 tests pass, analyzer and formatter clean, hand-written coverage 89.1 %.
+- **Fresh independent review** (new reviewer): **condition met**; probes: 1.25 portions → 500 kcal stored 1.25; edit to 1.75 → 700 kcal; plan 1.25 and mark eaten; batch 2 − 0.75 − 1.25 → exactly 0; saved meal ×1.25; g/ml still 0.1; old 0.1-step stored values unaffected. Low findings: spec §2.1 tie wording (corrected to the binary-value rule), TD-40 (saved-meal snapshot vs rounded quantity; unreachable repository edge).
