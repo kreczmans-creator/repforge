@@ -44,11 +44,13 @@ A reviewer with no part in the implementation read `fb6ead5..08800c2` against th
 | F6 | Adapter swallows plugin failures with `debugPrint` (standards §5). | Low | TD-35 (with TD-32). |
 | F7 | iOS shim's registrar guard fails silently. | Low | TD-35. |
 
+**Re-verification (same reviewer, commit 501dc6c):** F1, F2, F3 and F5 RESOLVED with probes repeated (`02345659` hinted/unhinted keys; dispose/cancel/manual-submit during a gated start → stopped exactly once; lifecycle and "Check again" paths; duplicate-barcode guard incl. edit and deleted-food cases). No new defect beyond one low-severity stop/start interleaving within the camera start window, recorded as TD-36. Noted for device verification: on Android the permission dialog pauses the activity, so the lifecycle re-check supersedes the in-flight request and correctness rests on the plugin's status report (checklist steps 3 and 13).
+
 Control status after the fixes: 1, 3, 4, 6, 8, 10, 11 met; 2 met (F3); 5 met (F5); 7 met (F1 tests, start/stop race tests); 9 met (F2). Integration test judged robust (every state change waited for with `pumpUntil`). Verified true by the reviewer: plugin imports confined to `lib/data/platform`; no second barcode lookup implementation; every lookup failure/not-found path creates and logs nothing; channel/method names, result types and threading of both shims correct; pins exact; adapter bound on Android/iOS only.
 
 ## Outstanding / debt
 - D05 **V-01** (WP 5 airplane-mode verification) and the WP 6 device checklist: owner-performed; both block WP 6 acceptance.
-- TD-32 (no `Logger`), TD-34 (EAN-8/UPC-E online key form), TD-35 (adapter failure visibility, iOS guard).
+- TD-32 (no `Logger`), TD-34 (EAN-8/UPC-E online key form), TD-35 (adapter failure visibility, iOS guard), TD-36 (stop/start interleaving in the camera start window).
 - iOS: scanning cannot run on the simulator; device verification needs a development-signed build (D07 §2.4).
 - ADR-0006 status Proposed; owner decision requested with acceptance.
 
