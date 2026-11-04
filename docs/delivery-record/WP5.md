@@ -15,9 +15,36 @@ Status: **delivered for owner acceptance**; acceptance audit completed 2026-11-0
 291 tests pass locally before the Fuel widget tests (see §CI for the final count); analyzer clean. New in WP 5: Open Food Facts mapping and client (15, fixtures captured from the live API), saved-meal repository (7), migration v2→v3 and v1→v3, use cases (log/update/delete/custom food/saved meals), weekly summary rules, and Fuel flow widget tests with a fake online service (search → portion → log → diary; offline keeps local results; day navigation).
 
 ## Acceptance criteria (D06 WP 5)
-- NUT P1 criteria: NUT-001..005, 006, 007, 010, 013, 020, 021 exercised by tests; provenance labels shown on every result and entry.
-- "Logging a searched food takes ≤ 4 taps after selection": tap result → (amount prefilled) → tap Log = 2 taps; changing meal adds 1.
-- Offline logging: local search and logging need no network; the online section reports offline without blocking (widget test).
+Corrected 2026-11-04 at owner direction (audit D8). The original text claimed "NUT-001..005, 006, 007, 010, 013, 020, 021 exercised by tests"; that claim is withdrawn. Status per NUT P1 requirement, in four states — **tested** (an automated test demonstrates the acceptance criterion), **implemented** (behaviour exists in code without a test of that criterion), **partial** (some criteria met), **not implemented**:
+
+| NUT | Status | Evidence / gap |
+|---|---|---|
+| 001 energy per day | tested | `daily_targets_test`, `unknown_macros_test` |
+| 002 macros per food and day | tested | `nutrition_rules_test`, `log_food_test` |
+| 003 fibre | tested after closure | tracked and summed; unknown fibre shown as n/a (D2 fix) |
+| 004 reference basis and servings | tested | `custom_food_screen_test`, `create_custom_food` tests |
+| 005 local offline database | tested (widget), device test pending R6 | `fuel_flow_test` "offline search still shows local foods" |
+| 006 barcode scanning | **not implemented — WP 6**; only the lookup-by-barcode service method exists (`open_food_facts_client_test`) | |
+| 007 custom food, optional macros | tested after closure | blank macros stored as unknown (D1 fix, `unknown_macros_test`) |
+| 008 edit/delete custom food | not implemented (never allocated to WP 5) | |
+| 009 custom serving sizes | partial | servings on custom foods only, not on any food |
+| 010 log by weight, volume, servings | tested | `fuel_flow_test`, `custom_food_screen_test` |
+| 011 named meals rename/reorder | not implemented → WP 7 | entries are shown under their meal |
+| 012 edit, move, copy, delete entry | partial | edit/move/delete tested (`entry_edit_sheet_test`); copy to another day not implemented |
+| 013 saved meals | tested | `saved_meals_test`, `saved_meals_screen_test` |
+| 014 recent/frequent foods | not implemented (never allocated to WP 5) | |
+| 015 daily summary vs targets | tested after closure | no-target and unknown states (D2 fix) |
+| 016 weekly summary, five measures | tested after closure | all five shown (D3 fix) |
+| 017 calculation specification | not implemented → WP 5 (owner allocation; before further calculation work) | rules are tested but no specification document exists |
+| 018 provenance labels | partial | labels on every food and entry; `crowdsourced` approved as a fourth label (D04 §7); part 3 retained in backlog |
+| 019 weakest provenance on totals | not implemented → WP 5 (owner allocation) | |
+| 020 estimated values only by documented action | not implemented | no estimation flow exists; the original "exercised by tests" claim was wrong |
+| 021 no invented data | tested after closure | D1 (unknown macros) and D2 (display) fixes with regression tests |
+| 022 unit conversion and imperial entry | partial → WP 5 (owner allocation) | metric conversions tested; imperial entry not offered |
+| 023 import source and date | partial → WP 14 | source stored; no import date |
+
+- "Logging a searched food takes ≤ 4 taps after selection": 1 tap (portion sheet opens prefilled; tap Log). Met.
+- Offline logging: widget test with a fake offline service only. The airplane-mode device test (R6) is the acceptance evidence and is recorded below when performed.
 
 ## Not in this package
 - Barcode scanning (WP 6) — the lookup-by-barcode service method exists and is tested.
