@@ -3,7 +3,7 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 
 part 'summaries.freezed.dart';
 
-/// Weekly nutrition summary (NUT-021): per-day totals and averages over the
+/// Weekly nutrition summary (NUT-016): per-day totals and averages over the
 /// days that have at least one entry, so an unlogged day does not drag the
 /// average down. Unknown macros are carried as counts, never as zeros.
 @freezed

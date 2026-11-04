@@ -7,6 +7,7 @@ import 'package:repforge/domain/nutrition/saved_meal.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
+import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/portion_sheet.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -105,9 +106,8 @@ class SavedMealsScreen extends ConsumerWidget {
                       Text(
                         '${m.items.length} item(s) · '
                         '${whole(m.totals.kcal)} kcal · '
-                        // TODO(D1-ui): unknown value rendered as 0
-                        // until the UI agent handles it
-                        'P ${whole(m.totals.proteinG ?? 0)} g',
+                        'P ${gramsOrNa(m.totals.proteinG)}'
+                        '${_unknownProtein(m)}',
                         style: theme.textTheme.bodySmall,
                       ),
                       const SizedBox(height: RfSpace.s2),
@@ -206,3 +206,8 @@ class _NameDialogState extends State<_NameDialog> {
     ],
   );
 }
+
+/// " · 1 unknown" when some items lack protein but others state it.
+String _unknownProtein(SavedMeal m) => m.totals.proteinG == null
+    ? ''
+    : unknownMarker(m.nutrientTotals.unknownCount(Nutrient.proteinG));

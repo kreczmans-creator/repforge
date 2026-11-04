@@ -58,7 +58,7 @@ User text scaling is always respected; no fixed-height text containers.
 | `RfSectionHeader` | H4 + optional amber text action | |
 | `RfCard` | Surface 1 panel, border, radius 18, soft shadow; optional amber leading edge; optional tap | Content padding 16 |
 | `RfStatTile` | Kicker, Plex Mono value + unit, optional amber progress, mono caption | Use for key figures |
-| `RfMacroBar` | Labelled progress against a target | Clamped 0–1; semantics value with percent |
+| `RfMacroBar` | Labelled progress against a target | Clamped 0–1; semantics value with percent. Three states: known amount ("30 / 50 g" + bar), no target ("30 g · no target", no bar), unknown amount ("n/a", no bar); optional `unknownCount` appends "· N unknown" |
 | `RfTrendChart` | Time-proportional line chart, value axis, first/last dates, multi-series legend | Handles 0/1/2/n points and flat series; semantics summary |
 | `RfButton` | primary (amber, slate label) / secondary (outlined) / tertiary (amber text) / danger; loading and disabled states | ≥ 48 dp; loading blocks taps |
 | `RfTextField` + `.number` + `.integer` | Inputs with unit suffix, decimal/integer formatters | Error text up to 3 lines |

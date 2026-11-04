@@ -226,4 +226,125 @@ void main() {
       await unmount(tester);
     });
   });
+
+  group('nutrition panel semantics', () {
+    Future<ProviderContainer> seed(
+      WidgetTester tester, {
+      Map<GoalKind, double> targets = const {},
+      List<NutrientAmounts> entries = const [],
+    }) async {
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          clockProvider.overrideWithValue(FixedClock(_now)),
+        ],
+      );
+      addTearDown(container.dispose);
+      var i = 0;
+      for (final t in targets.entries) {
+        await container
+            .read(goalRepositoryProvider)
+            .upsert(
+              Goal(
+                id: 'g${i++}',
+                kind: t.key,
+                target: t.value,
+                startDate: _now,
+                createdAt: _now,
+                updatedAt: _now,
+              ),
+            );
+      }
+      for (final n in entries) {
+        await container
+            .read(foodLogRepositoryProvider)
+            .insert(
+              FoodLogEntry(
+                id: 'e${i++}',
+                day: dayKey(_now),
+                meal: MealSlot.breakfast,
+                name: 'Food',
+                quantity: Quantity.fromStored(80, ReferenceUnit.grams),
+                nutrients: n,
+                provenance: DataProvenance.userEntered,
+                loggedAt: _now,
+                createdAt: _now,
+                updatedAt: _now,
+              ),
+            );
+      }
+      await tester.pumpWidget(_harness(db));
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('macros without targets show "no target", no zero target', (
+      tester,
+    ) async {
+      await seed(
+        tester,
+        targets: {GoalKind.protein: 150},
+        entries: [
+          const NutrientAmounts(
+            kcal: 300,
+            proteinG: 30,
+            carbsG: 50,
+            fatG: 6,
+            fibreG: 4,
+          ),
+        ],
+      );
+      expect(find.text('30 / 150 g'), findsOneWidget);
+      expect(find.text('50 g · no target'), findsOneWidget);
+      expect(find.text('6 g · no target'), findsOneWidget);
+      expect(find.text('4 g · no target'), findsOneWidget);
+      expect(find.textContaining('/ 0'), findsNothing);
+      // Only protein has a bar (plus the protein tile's progress).
+      expect(find.byType(LinearProgressIndicator), findsNWidgets(2));
+      await unmount(tester);
+    });
+
+    testWidgets('unknown fibre and protein read n/a, never 0', (tester) async {
+      await seed(
+        tester,
+        targets: {GoalKind.protein: 150, GoalKind.fibre: 30},
+        entries: [const NutrientAmounts(kcal: 300, carbsG: 50, fatG: 0)],
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('protein-tile')),
+          matching: find.text('n/a'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('n/a · target 150 g'), findsOneWidget);
+      expect(find.text('n/a · target 30 g'), findsOneWidget);
+      expect(find.text('0 g · no target'), findsOneWidget); // known zero fat
+      // No bars for unknown values, and no progress on the protein tile.
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('a partly unknown total carries the unknown marker', (
+      tester,
+    ) async {
+      await seed(
+        tester,
+        targets: {GoalKind.protein: 100},
+        entries: [
+          const NutrientAmounts(kcal: 100, proteinG: 80),
+          const NutrientAmounts(kcal: 100),
+        ],
+      );
+      expect(find.text('80 / 100 g · 1 unknown'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('protein-tile')),
+          matching: find.text('of 100 g · 1 unknown'),
+        ),
+        findsOneWidget,
+      );
+      await unmount(tester);
+    });
+  });
 }

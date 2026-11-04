@@ -10,6 +10,7 @@ import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/entry_edit_sheet.dart';
+import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 import 'package:repforge/features/nutrition/presentation/saved_meals_screen.dart';
 import 'package:repforge/ui/components/rf_button.dart';
@@ -230,31 +231,29 @@ class _Totals extends StatelessWidget {
             children: [
               RfMacroBar(
                 label: 'Protein',
-                // TODO(D1-ui): unknown value rendered as 0
-                // until the UI agent handles it
-                amount: s.intake.proteinG ?? 0,
-                target: t.proteinG ?? 0,
+                amount: s.intake.proteinG,
+                target: t.proteinG,
+                unknownCount: s.totals.unknownCount(Nutrient.proteinG),
               ),
               RfMacroBar(
                 label: 'Carbs',
-                // TODO(D1-ui): unknown value rendered as 0
-                // until the UI agent handles it
-                amount: s.intake.carbsG ?? 0,
-                target: t.carbsG ?? 0,
+                amount: s.intake.carbsG,
+                target: t.carbsG,
+                unknownCount: s.totals.unknownCount(Nutrient.carbsG),
                 color: context.rf.textSecondary,
               ),
               RfMacroBar(
                 label: 'Fat',
-                // TODO(D1-ui): unknown value rendered as 0
-                // until the UI agent handles it
-                amount: s.intake.fatG ?? 0,
-                target: t.fatG ?? 0,
+                amount: s.intake.fatG,
+                target: t.fatG,
+                unknownCount: s.totals.unknownCount(Nutrient.fatG),
                 color: context.rf.textSecondary,
               ),
               RfMacroBar(
                 label: 'Fibre',
-                amount: s.intake.fibreG ?? 0,
-                target: t.fibreG ?? 0,
+                amount: s.intake.fibreG,
+                target: t.fibreG,
+                unknownCount: s.totals.unknownCount(Nutrient.fibreG),
                 color: context.rf.textSecondary,
               ),
             ],
@@ -324,15 +323,9 @@ class _MealSection extends ConsumerWidget {
                         Flexible(
                           child: Text(
                             '${e.quantity.label} · '
-                            // TODO(D1-ui): unknown value rendered as 0
-                            // until the UI agent handles it
-                            'P ${whole(e.nutrients.proteinG ?? 0)} · '
-                            // TODO(D1-ui): unknown value rendered as 0
-                            // until the UI agent handles it
-                            'C ${whole(e.nutrients.carbsG ?? 0)} · '
-                            // TODO(D1-ui): unknown value rendered as 0
-                            // until the UI agent handles it
-                            'F ${whole(e.nutrients.fatG ?? 0)}',
+                            'P ${numberOrNa(e.nutrients.proteinG)} · '
+                            'C ${numberOrNa(e.nutrients.carbsG)} · '
+                            'F ${numberOrNa(e.nutrients.fatG)}',
                             style: context.rfText.caption,
                             overflow: TextOverflow.ellipsis,
                           ),

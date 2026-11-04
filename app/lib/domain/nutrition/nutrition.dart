@@ -33,8 +33,17 @@ abstract class NutrientAmounts with _$NutrientAmounts {
 
   const NutrientAmounts._();
 
-  /// All nutrients known and zero.
-  static const zero = NutrientAmounts(kcal: 0, proteinG: 0, carbsG: 0, fatG: 0);
+  /// All nutrients known and zero: the truthful total of an empty set
+  /// (nothing eaten means 0 g fibre, not unknown fibre). Not an additive
+  /// identity for unknown values: `zero + x` turns x's unknowns into 0, so
+  /// use [sum] or [NutrientTotals] instead of folding from [zero].
+  static const zero = NutrientAmounts(
+    kcal: 0,
+    proteinG: 0,
+    carbsG: 0,
+    fatG: 0,
+    fibreG: 0,
+  );
 
   /// Sum of the KNOWN values of each nutrient; a nutrient is null only when
   /// neither side knows it.

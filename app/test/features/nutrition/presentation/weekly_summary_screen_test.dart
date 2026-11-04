@@ -33,6 +33,24 @@ FoodLogEntry _entry(String id, String day, double kcal, double protein) =>
       updatedAt: _now.toUtc(),
     );
 
+FoodLogEntry _partial(
+  String id,
+  String day, {
+  double kcal = 500,
+  double? protein,
+  double? carbs,
+  double? fat,
+  double? fibre,
+}) => _entry(id, day, kcal, 0).copyWith(
+  nutrients: NutrientAmounts(
+    kcal: kcal,
+    proteinG: protein,
+    carbsG: carbs,
+    fatG: fat,
+    fibreG: fibre,
+  ),
+);
+
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
@@ -89,9 +107,14 @@ void main() {
       find.descendant(of: avg, matching: find.text('2000')),
       findsOneWidget,
     );
-    expect(find.text('per logged day'), findsNWidgets(2));
+    expect(find.text('per logged day · no target'), findsNWidgets(4));
+    expect(
+      find.text('per logged day · no target · not available'),
+      findsOneWidget,
+    );
     expect(find.text('not logged'), findsNWidgets(5));
-    expect(find.text('1800 kcal · P 120'), findsOneWidget);
+    expect(find.text('1800 kcal'), findsOneWidget);
+    expect(find.text('P 120 g · C 10 g · F 5 g · Fibre n/a'), findsOneWidget);
     expect(
       find.text('Averages use only the days with at least one entry.'),
       findsOneWidget,
@@ -123,6 +146,85 @@ void main() {
       find.byType(LinearProgressIndicator),
     );
     expect(bar.value, 0.5);
+    await unmount(tester);
+  });
+
+  Finder avgText(String key, String text) =>
+      find.descendant(of: find.byKey(Key(key)), matching: find.text(text));
+
+  testWidgets('shows all five measures as average and in each day row', (
+    tester,
+  ) async {
+    final log = container.read(foodLogRepositoryProvider);
+    await log.insert(
+      _partial(
+        'a',
+        '2026-11-01',
+        kcal: 1800,
+        protein: 100,
+        carbs: 200,
+        fat: 60,
+        fibre: 30,
+      ),
+    );
+    await log.insert(
+      _partial(
+        'b',
+        '2026-11-03',
+        kcal: 2200,
+        protein: 140,
+        carbs: 240,
+        fat: 80,
+        fibre: 20,
+      ),
+    );
+    await pump(tester);
+    expect(avgText('week-avg-kcal', '2000'), findsOneWidget);
+    expect(avgText('week-avg-protein', '120'), findsOneWidget);
+    expect(avgText('week-avg-carbs', '220'), findsOneWidget);
+    expect(avgText('week-avg-fat', '70'), findsOneWidget);
+    expect(avgText('week-avg-fibre', '25'), findsOneWidget);
+    expect(
+      find.text('P 100 g · C 200 g · F 60 g · Fibre 30 g'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('P 140 g · C 240 g · F 80 g · Fibre 20 g'),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('unknown values read n/a, not 0, and average logged days only', (
+    tester,
+  ) async {
+    final log = container.read(foodLogRepositoryProvider);
+    // Day 1: nothing but energy is known. Day 2: protein known, one entry
+    // without protein. Fibre is never known. 5 days are not logged.
+    await log.insert(_partial('a', '2026-11-01', kcal: 1000));
+    await log.insert(_partial('b', '2026-11-03', kcal: 1000, protein: 90));
+    await log.insert(_partial('c', '2026-11-03', kcal: 1000));
+    await pump(tester);
+    // Average over the 2 logged days: (1000 + 2000) / 2 kcal, protein 90 / 2.
+    expect(avgText('week-avg-kcal', '1500'), findsOneWidget);
+    expect(avgText('week-avg-protein', '45'), findsOneWidget);
+    expect(
+      avgText('week-avg-protein', 'per logged day · no target · 2 unknown'),
+      findsOneWidget,
+    );
+    expect(avgText('week-avg-carbs', 'n/a'), findsOneWidget);
+    expect(avgText('week-avg-fibre', 'n/a'), findsOneWidget);
+    expect(
+      avgText('week-avg-fibre', 'per logged day · no target · not available'),
+      findsOneWidget,
+    );
+    expect(avgText('week-avg-fibre', '0'), findsNothing);
+    expect(find.text('P n/a · C n/a · F n/a · Fibre n/a'), findsOneWidget);
+    expect(
+      find.text('P 90 g · 1 unknown · C n/a · F n/a · Fibre n/a'),
+      findsOneWidget,
+    );
+    expect(find.text('not logged'), findsNWidgets(5));
     await unmount(tester);
   });
 }

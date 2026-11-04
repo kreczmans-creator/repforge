@@ -19,30 +19,36 @@ final _now = DateTime(
   9,
 ); // local, so the default slot is breakfast
 
-SavedMeal _meal(String id, String name, {int items = 2, MealSlot? slot}) =>
-    SavedMeal(
-      id: id,
-      name: name,
-      defaultMeal: slot,
-      createdAt: _now.toUtc(),
-      updatedAt: _now.toUtc(),
-      items: [
-        for (var i = 0; i < items; i++)
-          SavedMealItem(
-            id: '$id-$i',
-            name: 'Item $i',
-            quantity: Quantity.fromStored(100, ReferenceUnit.grams),
-            nutrients: const NutrientAmounts(
-              kcal: 250,
-              proteinG: 20,
-              carbsG: 10,
-              fatG: 5,
-            ),
-            provenance: DataProvenance.userEntered,
-            sortOrder: i,
-          ),
-      ],
-    );
+SavedMeal _meal(
+  String id,
+  String name, {
+  int items = 2,
+  MealSlot? slot,
+  double? protein = 20,
+  bool lastUnknown = false,
+}) => SavedMeal(
+  id: id,
+  name: name,
+  defaultMeal: slot,
+  createdAt: _now.toUtc(),
+  updatedAt: _now.toUtc(),
+  items: [
+    for (var i = 0; i < items; i++)
+      SavedMealItem(
+        id: '$id-$i',
+        name: 'Item $i',
+        quantity: Quantity.fromStored(100, ReferenceUnit.grams),
+        nutrients: NutrientAmounts(
+          kcal: 250,
+          proteinG: lastUnknown && i == items - 1 ? null : protein,
+          carbsG: 10,
+          fatG: 5,
+        ),
+        provenance: DataProvenance.userEntered,
+        sortOrder: i,
+      ),
+  ],
+);
 
 void main() {
   late AppDatabase db;
@@ -91,6 +97,21 @@ void main() {
     expect(find.text('Box'), findsOneWidget);
     expect(find.text('2 item(s) · 500 kcal · P 40 g'), findsOneWidget);
     expect(find.text('Item 0, Item 1'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('unknown protein shows n/a; partial total shows the marker', (
+    tester,
+  ) async {
+    final repo = container.read(savedMealRepositoryProvider);
+    await repo.upsert(_meal('m1', 'Unknown', protein: null));
+    await repo.upsert(_meal('m2', 'Partial', lastUnknown: true));
+    await pump(tester, const SavedMealsScreen());
+    expect(find.text('2 item(s) · 500 kcal · P n/a'), findsOneWidget);
+    expect(
+      find.text('2 item(s) · 500 kcal · P 20 g · 1 unknown'),
+      findsOneWidget,
+    );
     await unmount(tester);
   });
 

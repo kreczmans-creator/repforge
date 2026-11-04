@@ -6,6 +6,7 @@ import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
+import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_text_field.dart';
@@ -211,17 +212,10 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _Figure('kcal', formatNumber(preview.kcal, maxDecimals: 0)),
-                  // TODO(D1-ui): unknown value rendered as 0
-                  // until the UI agent handles it
-                  _Figure('P', '${formatNumber(preview.proteinG ?? 0)} g'),
-                  // TODO(D1-ui): unknown value rendered as 0
-                  // until the UI agent handles it
-                  _Figure('C', '${formatNumber(preview.carbsG ?? 0)} g'),
-                  // TODO(D1-ui): unknown value rendered as 0
-                  // until the UI agent handles it
-                  _Figure('F', '${formatNumber(preview.fatG ?? 0)} g'),
-                  if (preview.fibreG != null)
-                    _Figure('Fibre', '${formatNumber(preview.fibreG!)} g'),
+                  _Figure('P', gramsOrNa(preview.proteinG, maxDecimals: 1)),
+                  _Figure('C', gramsOrNa(preview.carbsG, maxDecimals: 1)),
+                  _Figure('F', gramsOrNa(preview.fatG, maxDecimals: 1)),
+                  _Figure('Fibre', gramsOrNa(preview.fibreG, maxDecimals: 1)),
                 ],
               ),
             const SizedBox(height: RfSpace.s4),

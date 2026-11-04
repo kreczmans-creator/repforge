@@ -103,14 +103,70 @@ void main() {
       expect(find.text('250 / 200 g'), findsOneWidget);
     });
 
-    testWidgets('zero target renders empty bar without error', (tester) async {
+    testWidgets('known zero with a target is a real 0, with an empty bar', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        _wrap(const RfMacroBar(label: 'Fat', amount: 10, target: 0)),
+        _wrap(const RfMacroBar(label: 'Fat', amount: 0, target: 80)),
       );
+      expect(find.text('0 / 80 g'), findsOneWidget);
       final bar = tester.widget<LinearProgressIndicator>(
         find.byType(LinearProgressIndicator),
       );
       expect(bar.value, 0.0);
+    });
+
+    testWidgets('no target shows the amount and "no target", no bar', (
+      tester,
+    ) async {
+      for (final target in <double?>[null, 0]) {
+        await tester.pumpWidget(
+          _wrap(RfMacroBar(label: 'Fat', amount: 30, target: target)),
+        );
+        expect(find.text('30 g · no target'), findsOneWidget);
+        expect(find.textContaining('/ 0'), findsNothing);
+        expect(find.byType(LinearProgressIndicator), findsNothing);
+      }
+    });
+
+    testWidgets('unknown amount shows n/a, never 0, and no bar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(const RfMacroBar(label: 'Fibre', amount: null, target: 30)),
+      );
+      expect(find.text('n/a · target 30 g'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      await tester.pumpWidget(
+        _wrap(const RfMacroBar(label: 'Fibre', amount: null, target: null)),
+      );
+      expect(find.text('n/a · no target'), findsOneWidget);
+      expect(find.bySemanticsLabel('Fibre'), findsOneWidget);
+    });
+
+    testWidgets('unknown count is appended to a known amount', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const RfMacroBar(
+            label: 'Protein',
+            amount: 80,
+            target: 100,
+            unknownCount: 1,
+          ),
+        ),
+      );
+      expect(find.text('80 / 100 g · 1 unknown'), findsOneWidget);
+      await tester.pumpWidget(
+        _wrap(
+          const RfMacroBar(
+            label: 'Protein',
+            amount: 80,
+            target: null,
+            unknownCount: 2,
+          ),
+        ),
+      );
+      expect(find.text('80 g · no target · 2 unknown'), findsOneWidget);
     });
   });
 

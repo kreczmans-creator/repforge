@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/domain/goals/daily_targets.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/display.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
+import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_list_tile.dart';
 import 'package:repforge/ui/components/rf_macro_bar.dart';
@@ -90,18 +93,16 @@ class _NutritionPanel extends ConsumerWidget {
                     child: RfStatTile(
                       key: const Key('protein-tile'),
                       label: 'Protein',
-                      // TODO(D1-ui): unknown value rendered as 0
-                      // until the UI agent handles it
-                      value: _n(s.intake.proteinG ?? 0),
-                      unit: 'g',
-                      progress: t.proteinG == null || t.proteinG == 0
+                      value: numberOrNa(s.intake.proteinG),
+                      unit: s.intake.proteinG == null ? null : 'g',
+                      // Progress only for a known value and a usable target.
+                      progress:
+                          s.intake.proteinG == null ||
+                              t.proteinG == null ||
+                              t.proteinG == 0
                           ? null
-                          // TODO(D1-ui): unknown value rendered as 0
-                          // until the UI agent handles it
-                          : (s.intake.proteinG ?? 0) / t.proteinG!,
-                      caption: t.proteinG == null
-                          ? 'No target set'
-                          : 'of ${_n(t.proteinG!)} g',
+                          : s.intake.proteinG! / t.proteinG!,
+                      caption: _proteinCaption(s),
                     ),
                   ),
                 ],
@@ -122,34 +123,31 @@ class _NutritionPanel extends ConsumerWidget {
                   children: [
                     RfMacroBar(
                       label: 'Protein',
-                      // TODO(D1-ui): unknown value rendered as 0
-                      // until the UI agent handles it
-                      amount: s.intake.proteinG ?? 0,
-                      target: t.proteinG ?? 0,
+                      amount: s.intake.proteinG,
+                      target: t.proteinG,
+                      unknownCount: s.totals.unknownCount(Nutrient.proteinG),
                     ),
                     RfMacroBar(
                       label: 'Carbs',
-                      // TODO(D1-ui): unknown value rendered as 0
-                      // until the UI agent handles it
-                      amount: s.intake.carbsG ?? 0,
-                      target: t.carbsG ?? 0,
+                      amount: s.intake.carbsG,
+                      target: t.carbsG,
+                      unknownCount: s.totals.unknownCount(Nutrient.carbsG),
                       color: context.rf.textSecondary,
                     ),
                     RfMacroBar(
                       label: 'Fat',
-                      // TODO(D1-ui): unknown value rendered as 0
-                      // until the UI agent handles it
-                      amount: s.intake.fatG ?? 0,
-                      target: t.fatG ?? 0,
+                      amount: s.intake.fatG,
+                      target: t.fatG,
+                      unknownCount: s.totals.unknownCount(Nutrient.fatG),
                       color: context.rf.textSecondary,
                     ),
-                    if (t.fibreG != null)
-                      RfMacroBar(
-                        label: 'Fibre',
-                        amount: s.intake.fibreG ?? 0,
-                        target: t.fibreG!,
-                        color: context.rf.textSecondary,
-                      ),
+                    RfMacroBar(
+                      label: 'Fibre',
+                      amount: s.intake.fibreG,
+                      target: t.fibreG,
+                      unknownCount: s.totals.unknownCount(Nutrient.fibreG),
+                      color: context.rf.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -160,6 +158,17 @@ class _NutritionPanel extends ConsumerWidget {
   }
 
   static String _n(double v) => v.round().toString();
+
+  /// Target caption plus the unknown marker for a partly known total.
+  static String _proteinCaption(DailySummary s) {
+    final target = s.targets.proteinG == null
+        ? 'No target set'
+        : 'of ${_n(s.targets.proteinG!)} g';
+    final unknown = s.totals.unknownCount(Nutrient.proteinG);
+    return s.intake.proteinG == null || unknown == 0
+        ? target
+        : '$target · $unknown unknown';
+  }
 }
 
 class _TrainingPanel extends ConsumerWidget {
