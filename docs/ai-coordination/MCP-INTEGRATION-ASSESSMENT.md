@@ -1,6 +1,6 @@
 # Future option: direct model-to-model communication through MCP
 
-Status: Assessment only. Nothing in this document is built or deployed. The GitHub-file protocol works without it.
+Status: Assessment only. Nothing in this document is built or deployed. The GitHub-file protocol works without it. The owner's revised brief (2026-11-04 §2) excludes OpenAI API review, Anthropic API orchestration, paid orchestration services, a custom always-on model-to-model server and unnecessary MCP infrastructure; options C and D below are therefore recorded as **excluded**, and option B is the only future candidate.
 Date: 2026-11-04
 Author: Claude Code (research by two subagents; sources listed; unconfirmed items marked)
 
@@ -37,12 +37,12 @@ Sources (as retrieved 2026-11-04; dates mostly not visible): OpenAI developer-mo
 |---|---|---|---|---|
 | **A. Status quo (this protocol)** | Owner points ChatGPT at the handoff; owner commits the review file. | Nothing new. | Every record is a commit by the owner's account. | None. Two owner actions per cycle. |
 | **B. ChatGPT custom connector → GitHub MCP server** | In Developer mode, ChatGPT connects to `api.githubcopilot.com/mcp/` (or the owner's OAuth App) and commits `reviews/RV-NNNN.md` itself. | A ChatGPT plan with Developer mode; a GitHub fine-grained token or OAuth App scoped to this repository, **contents: write on the working branch only** (branch protection keeps `main` closed); the owner's confirmation click on each write. | Commits appear under the token's identity. Use a dedicated GitHub account or app so ChatGPT's commits are distinguishable from the owner's. | No infrastructure. Risk: prompt injection through repository content with write tools enabled; mitigate with the narrowest token and manual confirmation of writes. |
-| **C. Scheduled reviewer job (OpenAI API)** | A GitHub Actions workflow calls the OpenAI Responses API with the GitHub MCP tool whenever a new `HO-NNNN.md` lands, and opens a pull request with `RV-NNNN.md`. | An OpenAI API key and billing; a GitHub token; both as GitHub secrets (needs owner approval under protocol §8). | Fully logged in Actions; reviews arrive as pull requests the owner can inspect. | Paid API usage per review; code to maintain; the review model is not the owner's ChatGPT conversation, so context is lost unless the prompt rebuilds it. |
-| **D. Claude Code as MCP server exposed to ChatGPT** | Tunnel `claude mcp serve` to the internet. | A host, a tunnel, authentication in front of a stdio server. | Weak; not designed for it. | Not recommended. |
+| **C. Scheduled reviewer job (OpenAI API)** — excluded by owner brief §2 | A GitHub Actions workflow calls the OpenAI Responses API with the GitHub MCP tool whenever a new `HO-NNNN.md` lands, and opens a pull request with `RV-NNNN.md`. | An OpenAI API key and billing; a GitHub token; both as GitHub secrets (needs owner approval under protocol §8). | Fully logged in Actions; reviews arrive as pull requests the owner can inspect. | Paid API usage per review; code to maintain; the review model is not the owner's ChatGPT conversation, so context is lost unless the prompt rebuilds it. |
+| **D. Claude Code as MCP server exposed to ChatGPT** — excluded by owner brief §2 | Tunnel `claude mcp serve` to the internet. | A host, a tunnel, authentication in front of a stdio server. | Weak; not designed for it. | Not recommended. |
 
 ## 5. Recommendation
 
-Keep option A now. Trial option B when the owner confirms the plan supports Developer mode, with these conditions recorded as an owner decision first: a dedicated token scoped to one repository and the working branch, write confirmation left on, the first three reviews committed by B compared against the owner's own reading, and the result recorded in `DECISION-LOG.md`. Only after that may `CURRENT-STATE.md` describe the protocol as bidirectional. Option C is the fallback if B is unavailable and the owner accepts API cost and two secrets.
+Keep option A now. Trial option B when the owner confirms the plan supports Developer mode, with these conditions recorded as an owner decision first: a dedicated token scoped to one repository and the working branch, write confirmation left on, the first three reviews committed by B compared against the owner's own reading, and the result recorded in `DECISION-LOG.md`. Only after that may `CURRENT-STATE.md` describe the protocol as bidirectional. Option C is excluded by the owner's brief; if B is unavailable the evidence pack (`check_coordination.py --evidence`) keeps the owner's effort to one paste per review.
 
 ## 6. Message routing in options B and C
 

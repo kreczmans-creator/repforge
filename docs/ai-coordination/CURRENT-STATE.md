@@ -1,54 +1,41 @@
 # Current state
 
-Author: Claude Code. Updated: 2026-11-04. This file is loaded into every Claude Code session through `CLAUDE.md`. It summarises; the delivery records, D05 and D06 are authoritative. **Implementation complete** and **accepted by the owner** are different states and are never conflated here.
+Author: Claude Code. Updated: 2026-11-04. Imported into every Claude Code session through `CLAUDE.md`. Concise and authoritative for status; delivery records, D05, D06 and `PROGRAMME.md` hold the detail. Implementation delivered, technical approval and formal owner acceptance are different states and are never conflated here.
 
 ## Branch and commit
 - Branch: `claude/ai-coordination-infrastructure-pcf8bb` (based on `ccr-9fda2c32-wr163b`, the active development branch; `main` holds WP 0–1 only)
-- Commit: `e45e4f7a10b66ea78764551b580076b5e70e1aec`
-- If `git log -1` differs from the commit above, this file is stale: update it before relying on it.
+- Commit: `f1484a2ce22f520258e619d126d303be5d28998a`
+- The commit above is the implementation commit this state describes. The state is stale when `HEAD` is not a descendant of it, or when `app/` has changed since it (`git diff --stat <commit> HEAD -- app`). A newer commit that only adds coordination records does not make it stale.
 
-## Work package
-- Active engineering work: WP 7 closure condition (portion precision 0.01, spec rev 1.3) — not started on this branch.
-- Governance work on this branch: GOV 1 — AI coordination infrastructure (this system). Delivery record: `docs/delivery-record/GOV1.md`.
-- Next roadmap package after WP 6/7 closure: WP 8 (exercise library), per D06. WP 15 (nutrition entry units) added by owner allocation 2026-11-04.
+## Current implementation package
+- GOV 1 — AI coordination infrastructure (governance; this system). Delivery record `docs/delivery-record/GOV1.md`.
+- Engineering: none in progress. Next owed engineering work is the WP 7 closure condition (portion precision 0.01): step 1 of 4 done (spec rev 1.3 at e45e4f7); implementation, regression tests, fresh review and four green workflows outstanding.
 
-## Implementation status
-| Item | Implementation | Evidence |
-|---|---|---|
-| WP 6 barcode scanning | Complete at 501dc6c; four workflows green | `docs/delivery-record/WP6.md` |
-| WP 7 recipes and meal planning | Complete at 110b8bb; four workflows green. Closure condition (portion precision 0.01) **not yet implemented** | `docs/delivery-record/WP7.md` |
-| GOV 1 AI coordination | Files, checker and workflow written; first handoff HO-0001 pending the implementation commit | `docs/delivery-record/GOV1.md` |
+## Latest handoff
+- Pending: the handoff for GOV 1 is written in the commit after the implementation commit (two-commit submission, protocol §5 B–C).
 
-## Acceptance status
-| Item | Acceptance |
-|---|---|
-| WP 0–5 | Accepted by the owner (dates in D06) |
-| WP 6 | **Conditionally accepted** 2026-11-04. Not closed: owner device checklist (Android; iOS or approved deviation), D05 V-01, TD-34 device verification, TD-36 variant |
-| WP 7 | **Conditionally accepted** 2026-11-04. Not closed: portion precision 0.01 implementation, regression tests, fresh independent review, four workflows green on the final commit |
-| GOV 1 | **Not accepted**; delivered for review (HO-0001) |
-| Merge to `main` | **Not authorised** for any of the above |
+## Latest review status
+- No review on file under `reviews/`. The protocol has not yet carried a ChatGPT review; it is not reported as live or bidirectional until it has.
+
+## Outstanding corrections
+- None owed under `reviews/`. Pre-protocol items: WP 7 final review N3 → TD-38, N4 → TD-39; WP 6 F4/F6/F7 → TD-34/35/36 (owner-accepted debt).
 
 ## Outstanding owner decisions
-- DL-0001 adopt the coordination protocol; DL-0002 ChatGPT read path; DL-0003 confirm branch protection on `main` (`DECISION-LOG.md`).
-- WP 6 final acceptance after device verification (`docs/delivery-record/WP6.md` "Mandatory conditions").
-- WP 7 final acceptance after the portion-precision closure condition (`docs/delivery-record/WP7.md`).
-- NUT-017 specification revision 1.3 approval once revised.
-
-## Outstanding review findings
-- None in `reviews/` yet (system new). Findings recorded inside delivery records before this system: WP 7 final review N1–N4 (N3 → TD-38, N4 → TD-39, N1 and N2 fixed at 110b8bb); WP 6 F4/F6/F7 → TD-34/35/36 accepted as tracked debt.
+- DL-0001 adopt protocol v2; DL-0002 ChatGPT read path; DL-0003 branch protection on `main`; DL-0005 WP 15 wording; DL-0006 authorise WP 8 start (`DECISION-LOG.md`).
+- WP 6 final acceptance after device verification; WP 7 final acceptance after the precision closure; NUT-017 rev 1.3 approval (delivery records).
 
 ## Outstanding verification requirements
-- D05 V-01: WP 5 airplane-mode device verification (owner, physical Android device). Blocks WP 6 acceptance and R0.
-- WP 6 device checklist `docs/verification/wp6-device-checklist.md` steps 1–15 (owner). iOS: signed build or recorded "not testable".
-- TD-34 EAN-8/UPC-E lookup on real products (checklist step 5). TD-36 "Scan again" variant (step 12).
+- D05 V-01 airplane-mode verification (owner, physical Android). Blocks WP 6 acceptance and R0.
+- WP 6 device checklist steps 1–15 (owner); iOS signed build or recorded "not testable"; TD-34 step 5; TD-36 variant at step 12.
 - WP 7: four workflows green on the final closure commit; fresh independent review.
 
-## Blockers
-- WP 6 closure and R0 are blocked on owner device verification (not on Claude Code).
-- WP 7 closure is not blocked; it is unstarted implementation work.
-- The coordination protocol is not live: ChatGPT reads and writes only through the owner (DL-0002).
+## Next eligible package
+- WP 8 — Exercise library and training architecture (depends on WP 4, accepted). Start authorised by protocol §7 subject to DL-0006; corrections and the WP 7 closure condition come first.
+
+## Programme progress
+- Accepted or closed: WP 0–5. Conditionally accepted: WP 6, WP 7. Delivered awaiting review: GOV 1. Not started: WP 8–13, WP 15. Continuous: WP 14. Merge to `main`: not authorised for anything after WP 1. See `DASHBOARD.md`.
 
 ## Next recommended actions
-1. Owner: decide DL-0001..0003; perform the WP 6 device checklist and V-01 when a device session is possible.
-2. ChatGPT: review HO-0001 (this system) using `REVIEW-TEMPLATE.md`.
-3. Claude Code: implement the WP 7 portion-precision closure condition as the next engineering handoff, after the HO-0001 findings are addressed.
+1. Owner: decide DL-0001, DL-0002, DL-0003, DL-0005, DL-0006; start the ChatGPT review of the GOV 1 handoff using its review issue; perform the WP 6 device checklist and V-01 when a device session is possible.
+2. ChatGPT: review the GOV 1 handoff against the twelve dimensions; return the outcome and the complete review file for `reviews/`.
+3. Claude Code: on the next session, process any review on file; then implement the WP 7 portion-precision closure condition as the next handoff; then WP 8 if DL-0006 permits.

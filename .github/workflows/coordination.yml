@@ -1,25 +1,22 @@
 name: AI coordination checks
 
-# Structural validation of docs/ai-coordination: required files and sections,
-# statuses, cross-references, commit SHA format, relative links and CLAUDE.md
-# imports. Warnings (open findings, handoffs without a review, open messages)
-# go to the job summary, which doubles as the coordination index.
-# It uses no secrets, creates nothing, merges nothing, accepts nothing, and
-# cannot tell whether ChatGPT has actually reviewed anything.
+# Validates docs/ai-coordination (structure, statuses, handoff ↔ review ↔
+# commit consistency, programme table, links, dashboard freshness, append-only
+# history) and mirrors each handoff into one GitHub issue labelled `ai-review`
+# so the owner sees which reviews are outstanding. Uses only the Actions token.
+# It never records a review, never merges, never accepts anything.
 
 on:
   push:
     paths:
       - "docs/ai-coordination/**"
       - "CLAUDE.md"
-      - ".claude/skills/**"
       - "tools/coordination/**"
       - ".github/workflows/coordination.yml"
   pull_request:
     paths:
       - "docs/ai-coordination/**"
       - "CLAUDE.md"
-      - ".claude/skills/**"
       - "tools/coordination/**"
       - ".github/workflows/coordination.yml"
   workflow_dispatch:
@@ -38,9 +35,35 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history so commit SHAs and append-only history can be verified
 
       - name: Checker self-tests
         run: python3 -m unittest discover -s tools/coordination -p 'test_*.py'
 
-      - name: Validate records and write the index to the job summary
-        run: python3 tools/coordination/check_coordination.py --summary "$GITHUB_STEP_SUMMARY"
+      - name: Validate records, verify cited commits, write the index to the job summary
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          ARGS="--verify-commits --summary $GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            ARGS="$ARGS --append-only-since $BEFORE"
+          fi
+          python3 tools/coordination/check_coordination.py $ARGS
+
+  notify:
+    name: Mirror handoffs into review issues
+    needs: check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Create or update one issue per handoff (label ai-review)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/coordination/sync_review_issues.py

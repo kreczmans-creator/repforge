@@ -1,148 +1,162 @@
-# AI coordination protocol
+# AI coordination protocol — human-supervised autonomous engineering pipeline
 
-Status: Proposed (owner approval requested; see `DECISION-LOG.md`)
-Date: 2026-11-04
+Status: Proposed (owner approval requested: `DECISION-LOG.md` DL-0001)
+Version: 2 (2026-11-04; version 1 was the file-exchange protocol, superseded the same day by the owner's revised brief)
 Author: Claude Code (drafted); project owner (approves)
 
-## 1. Purpose
+## 1. Purpose and operating model
 
-Two AI systems work on RepForge. Claude Code implements. ChatGPT reviews independently. The project owner decides. This protocol lets the two systems exchange handoffs, reviews and decisions through files in this repository, so the owner no longer relays reports by hand. GitHub is the shared record. Nothing here changes application functionality or existing governance (`docs/engineering-standards.md`, `docs/adr/`, `docs/wp0/D05`, `docs/wp0/D06`). It adds a message layer on top of them.
+RepForge is built by a pipeline with one human gate:
+
+| Party | Role |
+|---|---|
+| Claude Code | Primary implementation and execution agent. Works autonomously inside approved scope. |
+| ChatGPT | Independent technical reviewer and engineering oversight. Initiated by the owner in the existing ChatGPT conversation. |
+| GitHub | Source of truth, communication channel and evidence store. |
+| Project owner | Final authority for owner-reserved decisions, formal acceptance and release control. |
+
+The owner makes engineering decisions. The owner does not relay reports, diffs, test results or findings between systems: every one of those is a file or a link in this repository.
+
+No OpenAI API, Anthropic API orchestration, paid orchestration service, always-on model-to-model server or automated merge or acceptance is used (owner brief 2026-11-04 §2). Everything runs on Claude Code, GitHub, GitHub Actions and the owner's existing ChatGPT with its GitHub connection.
 
 ## 2. Roles and boundaries
 
-### ChatGPT — independent technical oversight
-- Reviews implementation proposals, architecture and delivered work against the handoff evidence.
-- Challenges technical decisions and assumptions.
-- Identifies defects, risks, omissions and technical debt; classifies findings by severity.
-- Checks consistency with D03, the ADRs, the engineering standards and D06.
-- Reviews delivery records and states whether acceptance criteria are evidenced.
-- Recommends; proposes decisions for the owner; says when owner approval is required.
-- Writes reviews in the `REVIEW-TEMPLATE.md` format and messages in `INBOX.md`.
-- Does not approve or accept work. A review recommendation is never an acceptance. ChatGPT is never recorded as having approved anything.
+### Claude Code — autonomous implementation inside approved scope
+May, without asking: implement approved work packages in D06 order; start the next eligible package (§7); run format, analysis, tests and CI; fix defects; address review findings; update documentation, ADRs (as Proposed), D05, D06 statuses and delivery records; produce handoffs; resubmit corrected work; keep `CURRENT-STATE.md` and `PROGRAMME.md` accurate.
 
-### Claude Code — implementation and repository execution
-- Implements approved work on the working branch; maintains code, tests and documentation.
-- Runs local validation and CI; records run IDs and actual results.
-- Produces delivery records, handoffs (`HANDOFF-TEMPLATE.md`) and messages in `OUTBOX.md`.
-- Reads `INBOX.md` and the open reviews before starting or continuing work; addresses findings; reports resolution with evidence.
-- Maintains `CURRENT-STATE.md`, `DECISION-LOG.md`, D05 and the delivery records accurately.
-- Never fabricates test results, CI results, owner decisions, review results or acceptance evidence. Unverified means unverified.
-- Does not merge to `main`, does not accept work, does not close a finding that the reviewer or owner has not seen resolved.
+Must stop and queue an owner decision (§8) for anything owner-reserved. Must never: fabricate test, CI, device or review evidence; record a decision the owner did not state; merge to `main`; accept work; close a finding without evidence; change scope to make a package look complete; proceed through a known blocker; bypass a D06 dependency.
+
+### ChatGPT — independent technical review
+Reviews a specific commit against the twelve dimensions in §5 and returns exactly one outcome: `APPROVED_FOR_OWNER_ACCEPTANCE`, `CHANGES_REQUIRED`, `BLOCKED` or `REVIEW_INCOMPLETE`. Identifies defects, risks, omissions, debt; checks consistency with D03, ADRs, standards, D04 and D06; says what it could and could not verify. Recommends to the owner; never approves on the owner's behalf. Must not claim to have read code, run tests or checked CI unless it did; `REVIEW_INCOMPLETE` exists for that case.
 
 ### Project owner — final authority
-Exclusive authority over: work package acceptance; architecture decisions requiring approval (ADR status Accepted); scope changes; accepted deviations; risk acceptance; technical debt disposition where approval is required; merge to `main`; release approval.
+Exclusive over: work package acceptance; architecture decisions (ADR Accepted); scope changes; material requirement changes; accepted deviations; risk acceptance, including residual high-severity risk; technical debt disposition where approval is required; physical-device verification needing owner hardware; merge to `main`; release approval.
 
-Neither AI may treat silence, a green CI run, a passing test suite or a positive review as owner approval. An owner decision exists only when it is recorded in `DECISION-LOG.md` with the owner named as the decider, or in a delivery record's owner-decisions table, in the owner's words.
+Neither AI may treat silence, green CI, a passing test suite or a positive review as owner approval. An owner decision exists only when recorded in `DECISION-LOG.md` with `Decided by: Owner`, or in a delivery record's owner-decisions table, in the owner's words. Technical approval (`APPROVED_FOR_OWNER_ACCEPTANCE`) is not acceptance.
 
-## 3. Files
+## 3. Files and identifiers
 
-All under `docs/ai-coordination/`.
+All under `docs/ai-coordination/` unless stated.
 
 | File | Purpose | Written by |
 |---|---|---|
-| `AI-COORDINATION-PROTOCOL.md` | This document | Claude Code drafts; owner approves changes |
-| `CURRENT-STATE.md` | Snapshot of where the project is; loaded into every Claude Code session | Claude Code |
-| `INBOX.md` | Messages to Claude Code (from ChatGPT or the owner); loaded into every Claude Code session | ChatGPT via the owner; owner; Claude Code updates `Status` and adds responses only |
-| `OUTBOX.md` | Messages from Claude Code to ChatGPT and the owner | Claude Code; ChatGPT or owner update `Status` only |
-| `handoffs/HO-NNNN.md` | One handoff per meaningful unit of work (`HANDOFF-TEMPLATE.md`) | Claude Code |
-| `reviews/RV-NNNN.md` | One independent review per handoff (`REVIEW-TEMPLATE.md`) | ChatGPT via the owner; Claude Code updates finding `Status` and `Resolution` cells only |
-| `DECISION-LOG.md` | Every substantive decision, who made it, what it refers to | Claude Code records; owner decisions only in the owner's words |
-| `archive/` | Closed messages, moved verbatim when the live files grow | Claude Code |
-| `EXAMPLE-WALKTHROUGH.md` | A worked example of one full cycle | Reference only |
-| `MCP-INTEGRATION-ASSESSMENT.md` | Future direct model-to-model option | Reference only |
+| `AI-COORDINATION-PROTOCOL.md` | This document | Claude Code drafts; owner approves |
+| `CURRENT-STATE.md` | Authoritative concise status; imported into every Claude Code session | Claude Code |
+| `PROGRAMME.md` | Work package table: dependencies (from D06), implementation, review and acceptance state per package | Claude Code; D06 stays authoritative on scope and sequencing |
+| `DASHBOARD.md` | Owner dashboard, **generated** from the records by the checker; never hand-edited | Checker (`--write-dashboard`) |
+| `INBOX.md` | Messages to Claude Code; imported into every session | ChatGPT via the owner; owner; Claude Code updates status and responds |
+| `OUTBOX.md` | Messages from Claude Code | Claude Code |
+| `handoffs/HO-NNNN.md` | One handoff per submitted commit (`HANDOFF-TEMPLATE.md`) | Claude Code |
+| `reviews/RV-NNNN.md` | One independent review per handoff (`REVIEW-TEMPLATE.md`) | ChatGPT, committed by the owner; Claude Code updates finding `Status`/`Resolution` cells only |
+| `DECISION-LOG.md` | Every substantive decision and the owner-decision queue | Claude Code records; owner decisions in the owner's words |
+| `archive/` | Closed messages, moved verbatim | Claude Code |
+| `EXAMPLE-WALKTHROUGH.md`, `MCP-INTEGRATION-ASSESSMENT.md` | Reference | — |
+| `.github/workflows/coordination.yml`, `tools/coordination/` | Automation (§6) | Claude Code |
+| `CLAUDE.md`, `.claude/skills/` | Claude Code discovery and procedures (§9) | Claude Code |
 
-Identifiers: `HO-NNNN` handoffs, `RV-NNNN` reviews, `RV-NNNN-Fn` findings, `MSG-IN-NNNN` and `MSG-OUT-NNNN` messages, `DL-NNNN` decisions. Numbers are sequential and never reused. Every record names its authoring system in an `Author` field.
+Identifiers: `HO-NNNN`, `RV-NNNN`, `RV-NNNN-Fn` (findings), `MSG-IN-NNNN`, `MSG-OUT-NNNN`, `DL-NNNN`. Sequential, never reused. Every record names its authoring system (`Author:`).
 
-## 4. Statuses
+## 4. States
+
+**Handoff status** (the coordination state of a submitted commit):
 
 | Status | Meaning |
 |---|---|
-| `OPEN` | Created; nobody has started acting on it |
-| `IN_PROGRESS` | The responsible party is acting on it |
-| `BLOCKED` | Cannot proceed; the blocker is named in the record |
-| `RESOLVED` | The responsible party reports it done, with evidence; awaiting re-review or owner decision |
-| `ACCEPTED_BY_OWNER` | The owner has recorded a decision on it (`DL-NNNN` cited) |
-| `CLOSED` | No further action; the trail is complete |
+| `AWAITING_REVIEW` | Submitted; no review on file for this commit |
+| `CHANGES_REQUIRED` | Latest review outcome; corrections owed by Claude Code |
+| `APPROVED_FOR_OWNER_ACCEPTANCE` | Latest review outcome; technically approved at this exact commit; owner decision owed |
+| `BLOCKED` | Review or implementation cannot proceed; blocker named in the record |
+| `REVIEW_INCOMPLETE` | Reviewer could not obtain the evidence; owner action or a new handoff needed |
+| `ACCEPTED_BY_OWNER` | Owner recorded acceptance (`DL-NNNN` cited in the handoff) |
+| `SUPERSEDED` | A later handoff replaced it (new commit); its review results do not carry forward |
 
-A handoff is `RESOLVED` when its review has no open required corrections. It is `ACCEPTED_BY_OWNER` only when the owner records acceptance. A finding is `RESOLVED` by Claude Code with evidence, and `CLOSED` only by the reviewer (re-review) or by an owner decision. A finding may be `ACCEPTED_BY_OWNER` when the owner accepts it as tracked debt (then it also gets a D05 `TD-` entry).
+**Review outcome**: `APPROVED_FOR_OWNER_ACCEPTANCE`, `CHANGES_REQUIRED`, `BLOCKED`, `REVIEW_INCOMPLETE`. A review names exactly one commit; it applies to no other.
 
-## 5. Lifecycle
+**Finding, message and review-record status**: `OPEN`, `IN_PROGRESS`, `BLOCKED`, `RESOLVED` (Claude Code reports done, with evidence), `ACCEPTED_BY_OWNER` (owner accepted as debt or deviation; `DL-` and `TD-` cited), `CLOSED` (reviewer confirmed in re-review, or owner decision).
 
-1. Claude Code completes a meaningful unit of work (a work package stage, a fix set, a closure condition).
-2. Claude Code commits the implementation and supporting documentation on the working branch, with CI runs recorded.
-3. Claude Code creates `handoffs/HO-NNNN.md` from the template, citing the exact implementation commit SHA, and commits it (the handoff commit follows the implementation commit it describes).
-4. Claude Code appends a `MSG-OUT` to `OUTBOX.md` and updates `CURRENT-STATE.md`.
-5. The owner points ChatGPT at the handoff (link to the file on the branch, or pasted content; see §7). ChatGPT reviews the evidence independently: it reads the diff, the tests, the CI runs and the records, not the handoff's claims.
-6. ChatGPT writes `reviews/RV-NNNN.md` in the template format. The owner commits it to the working branch and, optionally, a `MSG-IN` in `INBOX.md`. If the owner commits only the review file, Claude Code adds the `MSG-IN` entry when it next reads the inbox, marked "indexed by Claude Code".
-7. Claude Code reads the review, sets each finding to `IN_PROGRESS`, fixes the required corrections, and sets each to `RESOLVED` with the fixing commit and the test that proves it in the `Resolution` cell. It appends a `MSG-OUT` reporting the resolution and the evidence.
-8. ChatGPT re-reviews where the review's "Re-review conditions" say so, and sets findings to `CLOSED` or reopens them in a new review (`RV-NNNN` referencing the earlier one).
-9. The owner makes any required decision (acceptance, deviation, debt disposition, merge).
-10. Claude Code records the owner's decision verbatim in `DECISION-LOG.md`, updates the delivery record, D05, D06 and `CURRENT-STATE.md`, and sets the affected records to `ACCEPTED_BY_OWNER` or `CLOSED`.
+**Programme states** (`PROGRAMME.md`): Implementation `NOT_STARTED | IN_PROGRESS | DELIVERED`; Review `NONE | LEGACY | <handoff status>`; Acceptance `NOT_ACCEPTED | CONDITIONALLY_ACCEPTED | ACCEPTED | CLOSED`. `LEGACY` marks packages reviewed inside their delivery record before this protocol existed.
 
-## 6. Rules that keep the trail honest
+The three axes are never merged: delivered ≠ approved ≠ accepted.
 
-- **Append, do not overwrite.** Messages and reviews are never deleted or rewritten. Status cells and resolution cells change; everything else stays. Corrections are new entries that reference the old ones.
-- **Findings survive commits.** A finding is tied to its review ID, not to a commit. A new commit does not close it; a `RESOLVED` entry with evidence does, after re-review or owner decision.
-- **Every record names its author system.** `Author: Claude Code`, `Author: ChatGPT (relayed by the owner)`, `Author: Owner`.
-- **Every substantive decision is traceable**: a `DL-NNNN` entry names the decider, the date, and the handoff, review, ADR, WP or TD it affects.
-- **No implied approval.** "Recommend accept" from ChatGPT and "ready for acceptance" from Claude Code are recommendations. Only `DL-` entries with `Decided by: Owner` change acceptance state.
-- **Evidence distinction** (owner direction, WP 6): CI and emulator results prove automated behaviour only. Device results are entered only when the owner supplies them.
-- **No secrets** in any coordination file. Run IDs, SHAs and file paths are the evidence; tokens are never.
-- **Lean.** A handoff for a trivial change is not required; a commit message suffices. A handoff is required for: a WP stage or closure, a fix set responding to a review, an architecture change, a scope conflict, or anything that needs an owner decision.
+## 5. Lifecycle (Stages A–F)
 
-## 7. How ChatGPT reaches the repository today
+**A — Implementation.** Claude Code implements an approved package or correction on its working branch, following D03, the standards and the D04 acceptance criteria. Local checks: `dart format`, `flutter analyze --fatal-infos`, `flutter test`, coverage gate.
 
-The repository is private. ChatGPT reads it one of two ways:
-1. **GitHub connector** (ChatGPT's built-in connector, read-only), if enabled on the owner's plan, pointed at `kreczmans-creator/repforge` and the working branch.
-2. **Owner relay**: the owner pastes the handoff file and any files it names, or shares the raw-file links, into the ChatGPT conversation.
+**B — Delivery submission.** Claude Code commits implementation, tests, delivery record and supporting documentation; waits for CI run IDs; then commits `handoffs/HO-NNNN.md` citing the exact implementation commit and its parent. Any later change to the submitted code is a new commit and therefore a new handoff; the earlier handoff becomes `SUPERSEDED`.
 
-ChatGPT writes back only through the owner: the owner commits the review file ChatGPT produces. One commit per review, through the GitHub web editor or any git client. This is the only manual step on the review path. Direct writes by ChatGPT are a future option; see `MCP-INTEGRATION-ASSESSMENT.md`. Until that is demonstrated and recorded in `DECISION-LOG.md`, this protocol is **not live and not bidirectional**: it is a filing system that both systems can read and that the owner can write to in one action.
+**C — Review requested.** The handoff is created with `Status: AWAITING_REVIEW`. Claude Code appends `MSG-OUT`, updates `CURRENT-STATE.md` and `PROGRAMME.md`, regenerates `DASHBOARD.md`, runs the checker and pushes. The workflow validates the records and opens or updates one GitHub issue per handoff, labelled `ai-review`, holding every evidence link (§6). GitHub does not notify ChatGPT; the owner starts the review by asking ChatGPT, in the existing conversation, to inspect the latest delivery.
 
-## 8. How Claude Code discovers the system
+**D — Review response.** ChatGPT retrieves the evidence through its GitHub connection (commit, compare view, files, tests, CI checks, D04, ADRs, D05, delivery record, all linked from the issue and the handoff), assesses the twelve dimensions below, and returns the complete `reviews/RV-NNNN.md`. The owner commits the file to the working branch. The review's `Outcome` becomes the handoff's status (Claude Code sets the `Review:` and `Status:` lines on its next session if the owner did not; the checker refuses any mismatch).
 
-- The root `CLAUDE.md` is loaded by Claude Code at the start of every session (CLI, cloud, GitHub Action) and imports `CURRENT-STATE.md` and `INBOX.md` into context. Keep both short; archive closed messages.
-- `CLAUDE.md` states the pre-task checklist (§9) and the handoff rules.
-- The skill `.claude/skills/handoff/SKILL.md` (`/handoff`) walks through creating a handoff and the matching outbox and state updates.
-- No hooks are installed: SessionStart hooks do not run in every session type and need folder trust, so they would be a false guarantee. `CLAUDE.md` content is advisory; the GitHub Actions check (§10) catches structural omissions after the fact.
+Review dimensions: 1 functional correctness; 2 architectural consistency; 3 domain model integrity; 4 data persistence and migration safety; 5 error handling; 6 security and privacy; 7 test coverage and quality; 8 regression risk; 9 requirements compliance; 10 documentation and governance accuracy; 11 technical debt; 12 acceptance evidence.
 
-## 9. Claude Code pre-task and post-task checklist
+**E — Correction.** On `CHANGES_REQUIRED`, Claude Code reads every finding, investigates the cause, implements corrections, adds regression tests, runs all relevant validation, updates the delivery evidence, commits, and submits a new handoff with `Responds to: RV-NNNN` and `Supersedes: HO-<previous>`. It sets each finding to `RESOLVED` with the fixing commit and the proving test in the `Resolution` cell. A finding is never marked resolved without that evidence.
 
-Before starting a task:
-1. Read `CURRENT-STATE.md` (in context) and compare its commit with `git log -1`. If they differ, the state is stale; update it before relying on it.
-2. Read `INBOX.md` (in context). Any message with status `OPEN` or `IN_PROGRESS` addressed to Claude Code is handled, or explicitly deferred with a reason in a `MSG-OUT`, before new work starts.
-3. Open every review in `reviews/` with findings not `CLOSED`/`ACCEPTED_BY_OWNER`; list the ones that touch the planned work.
-4. Identify dependencies: D06 ordering, open owner decisions in `CURRENT-STATE.md`, open verification items in D05 §C.
+**F — Re-review.** The corrected commit is reviewed again as a new review (`RV-<next>`), which closes or reopens the earlier findings. Approval of an earlier commit never carries forward: the checker rejects a handoff that claims an outcome from a review of a different commit.
 
-After meaningful implementation:
-1. Commit implementation; wait for CI run IDs.
-2. Create `handoffs/HO-NNNN.md` (`/handoff`), commit it.
-3. Append `MSG-OUT`; update `CURRENT-STATE.md`; update D05 and the delivery record if they changed.
-4. Run `python3 tools/coordination/check_coordination.py` and fix what it reports before pushing.
+**Acceptance.** When the handoff is `APPROVED_FOR_OWNER_ACCEPTANCE` and the package's acceptance conditions (D06, delivery record) are evidenced, the owner decides. Claude Code records the decision (`DL-NNNN`), sets the handoff to `ACCEPTED_BY_OWNER`, updates the delivery record, D05, D06, `PROGRAMME.md` and `CURRENT-STATE.md`.
 
-After addressing review findings:
-1. Update each finding's `Status` and `Resolution` in the review file (cells only).
-2. Append `MSG-OUT` listing each finding, the fixing commit, and the test or run that proves it.
+## 6. Automation (no API cost, no secrets)
 
-## 10. Automation (GitHub Actions)
+`.github/workflows/coordination.yml` runs on every push and pull request touching the coordination files, `CLAUDE.md`, the skills or the tools:
 
-`.github/workflows/coordination.yml` runs `tools/coordination/check_coordination.py` on every push and pull request that touches `docs/ai-coordination/**`, `CLAUDE.md` or the tool. It fails on: missing required files or sections, invalid statuses or severities, dangling references between handoffs, reviews, messages and decisions, duplicate IDs, malformed commit SHAs, broken relative links. It warns on: open findings, handoffs with no review, open messages, unarchived closed messages. The warnings are written to the run's job summary, which serves as the coordination index. It needs no secrets, creates no issues, merges nothing and accepts nothing. It cannot and does not say whether ChatGPT reviewed anything.
+1. **Validate** (`tools/coordination/check_coordination.py`): required files and sections; statuses, outcomes and severities; handoff ↔ review ↔ commit consistency (approval cannot carry across commits; a correction must be a new commit; a superseded handoff is marked so); findings table; programme table consistency and eligibility; decision log; message metadata and references; relative links; `CLAUDE.md` imports; `DASHBOARD.md` freshness. Errors fail the run. Warnings and the queues (review queue, open findings, owner-decision queue, next eligible packages) go to the job summary.
+2. **Notify** (`tools/coordination/sync_review_issues.py`, push events only, `issues: write` with the Actions token): one issue per handoff titled `[AI review] HO-NNNN — …`, body generated from the handoff: commit, compare-with-parent, raw diff and checks links, handoff and review links, delivery record, D05/D06, and the exact sentence the owner can paste into ChatGPT. On status change it comments and updates the body; when a handoff is superseded or owner-accepted it closes the issue (bookkeeping, not acceptance). It never writes "reviewed"; it reports "review on file" only when a review file exists in the repository.
+3. **Evidence pack** (`check_coordination.py --evidence HO-NNNN`, run locally by Claude Code or the owner): one Markdown bundle (handoff, links, diff stat, open findings) for the case where the ChatGPT connector cannot reach the repository and the owner pastes once.
 
-Changes to `main` are governed by branch protection (owner setting on GitHub: require a pull request, require the CI status checks, no force pushes, no direct pushes). The checker cannot enforce that; the owner confirms the setting (see `DECISION-LOG.md` DL-0003).
+Not automated, by design: review itself, acceptance, merge, closing findings, anything requiring a secret or a paid service.
+
+## 7. Autonomous work package progression
+
+D06 is the authoritative roadmap. `PROGRAMME.md` mirrors its dependency graph and the current state of each package. Claude Code maintains both.
+
+Eligibility: a package is eligible when its implementation is `NOT_STARTED` and every hard D06 dependency is owner-accepted (conditionally or fully) or technically approved (`APPROVED_FOR_OWNER_ACCEPTANCE`). Soft dependencies do not block. The checker lists eligible packages; `DASHBOARD.md` shows them.
+
+Order of work in a session:
+1. Corrections owed (`CHANGES_REQUIRED` handoffs, open findings touching current work).
+2. Closure conditions of conditionally accepted packages that are Claude Code's to do (for example the WP 7 portion-precision condition).
+3. The lowest-numbered eligible package.
+
+Rules: never bypass a dependency; never close a package without its acceptance conditions; never treat technical approval as acceptance; never proceed through a known blocker (a `BLOCKED` handoff, a failing required workflow, an unresolved Critical finding on the code being built on); never alter scope silently. Where a dependency is conditionally accepted with outstanding owner conditions (WP 6 device verification, WP 7 precision), the dependent handoff lists that inherited condition under "Outstanding findings" so the reviewer and owner see it.
+
+Preserved position (owner brief 2026-11-04): WP 0–5 accepted and closed; WP 6 delivered, physical-device verification and D05 V-01 outstanding; WP 7 delivered, NUT-017 revision 1.3 precision correction outstanding; WP 8 onwards is the pipeline; WP 15 is "Nutrition entry units and serving sizes", including recognised serving quantities such as biscuits, slices, eggs and millilitres (owner wording; D06 WP 15 text remains as approved until the owner confirms the wording change, DL-0005).
+
+## 8. Owner escalation and the decision queue
+
+Always owner-reserved: new features outside approved scope; material requirement changes; new architectural decisions (ADR acceptance); significant deviations; residual high-severity risks; physical-device verification needing owner hardware; formal package acceptance; production release; merge to `main`.
+
+Claude Code does not interrupt implementation for each item. It appends a `DL-NNNN` row with `Decided by: Pending owner decision`, states options and a recommendation in the relevant handoff §13, and continues unrelated eligible work. The pending rows are the owner-decision queue; `DASHBOARD.md` lists them. The owner answers by editing the row (or by a message in `INBOX.md`), and Claude Code records the answer in the owner's words.
+
+## 9. Claude Code discovery and session procedure
+
+`CLAUDE.md` (repository root) is loaded at the start of every Claude Code session and imports `CURRENT-STATE.md` and `INBOX.md` with `@path`, so both are in context in the CLI, cloud sessions and the GitHub Action without hooks or approvals. Hooks are deliberately not used: SessionStart hooks do not run in multi-repository or project-thread cloud sessions and require folder trust, so they would be a false guarantee. Skills: `/handoff` (Stage B–C), `/resolve-findings` (Stage E). The checker is the backstop that catches omissions after a push.
+
+Session start: compare the state commit with `git log -1`; process `INBOX.md`; open every review with non-closed findings; read `PROGRAMME.md`; pick work by §7. Session end: handoff if a unit of work was delivered; otherwise update `CURRENT-STATE.md` with where the work stands and push.
+
+## 10. Rules that keep the trail honest
+
+- Append, never overwrite. Status and resolution cells change; nothing else is rewritten. Corrections are new entries referencing old ones.
+- Findings belong to a review ID, not to a commit; they survive until closed by evidence and re-review or by an owner decision.
+- Every record names its author system. Every decision names its decider.
+- Evidence distinction (owner direction, WP 6): CI and emulator results prove automated behaviour only. Device results are entered only when the owner supplies them.
+- No credentials in any file. Run IDs, SHAs and paths are the evidence.
+- The protocol is not reported as bidirectional until a ChatGPT review has actually been committed and processed through it and the fact recorded in `DECISION-LOG.md`.
 
 ## 11. Relationship to existing governance
 
 | Existing mechanism | Relationship |
 |---|---|
-| Delivery records `docs/delivery-record/WP<n>.md` | Remain the acceptance record. A handoff points at the delivery record; it does not replace it. Owner decisions continue to be recorded there and are mirrored in `DECISION-LOG.md`. |
-| ADRs | Unchanged. A handoff that proposes an ADR lists it under "Decisions required from the project owner". |
-| D05 register | Unchanged. Findings accepted as debt get a `TD-` row; verification items stay in D05 §C. |
-| D06 roadmap | Unchanged. `CURRENT-STATE.md` summarises; D06 remains authoritative on sequencing and status. |
-| Engineering standards §9 (PR per WP, owner review, squash merge) | Unchanged. The protocol adds the independent-review step before the owner's PR review. |
-| "Fresh reviewer" sections inside delivery records | Superseded for new work by `reviews/RV-NNNN.md`; existing sections stay as history. |
+| Delivery records `docs/delivery-record/WP<n>.md` | Remain the acceptance record; a handoff points at them. Owner decisions continue to be recorded there and mirrored in `DECISION-LOG.md`. |
+| ADRs | Unchanged. A handoff proposing an ADR lists it in §13. |
+| D05 | Unchanged. Findings accepted as debt get a `TD-` row; verification items stay in §C. |
+| D06 | Authoritative on scope and sequencing; `PROGRAMME.md` mirrors state and must not contradict it. |
+| Engineering standards §9 | Unchanged. Independent review precedes the owner's PR review; squash merge by the owner only. |
+| "Fresh reviewer" sections in old delivery records | History; new work uses `reviews/`. `PROGRAMME.md` marks them `LEGACY`. |
 
 ## 12. Limitations
 
-- Not live: ChatGPT cannot write to the repository without the owner's action, and reading needs the connector or the owner's paste.
-- `CLAUDE.md` is context, not enforcement. Claude Code can fail to follow it; the checker catches structural gaps only after a push.
-- The checker validates structure, not truth. It cannot tell a real CI run ID from an invented one. Independent verification of evidence remains ChatGPT's and the owner's job.
-- Two live files are loaded into every Claude Code session. If they grow, context cost grows; archiving keeps them small.
+- The review is initiated by the owner in the ChatGPT conversation; GitHub cannot trigger ChatGPT. The owner also commits the review file (one action).
+- Whether the owner's ChatGPT plan can read a private repository through the connector is an owner-side fact (DL-0002). Without it, the evidence pack is pasted once.
+- `CLAUDE.md` is context, not enforcement. The checker catches structural omissions after a push, not behavioural ones.
+- The checker validates form and internal consistency, not truth. ChatGPT and the owner verify evidence.
+- Issue creation uses the Actions token; it works for pushes to this repository, not for pull requests from forks.

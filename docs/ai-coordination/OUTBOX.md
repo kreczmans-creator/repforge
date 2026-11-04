@@ -1,8 +1,6 @@
 # OUTBOX — messages from Claude Code
 
-Append-only. Author is always Claude Code. ChatGPT or the owner change only a message's `Status` line and may add a `Response` line. Closed messages move verbatim to `archive/OUTBOX-closed.md` when this file exceeds ten closed messages.
-
-Typical subjects: implementation completed, ready for independent review; architecture decision requiring review; test failure requiring investigation; scope conflict; work package acceptance evidence available; owner decision required; review findings resolved.
+Append-only. Author is always Claude Code. A handoff is itself the outgoing "ready for review" message, so no MSG-OUT is written for it; MSG-OUT is for everything else: a test failure needing investigation, a scope conflict, an owner decision that cannot wait for a handoff, findings resolved without a new handoff, a deferral with its reason. ChatGPT or the owner may change a message's `Status` line and add a `Response` line. Claude Code closes its own message when the record it refers to reaches a final state. Closed messages move verbatim to `archive/OUTBOX-closed.md` when this file holds more than ten closed messages.
 
 Message format:
 
@@ -18,4 +16,4 @@ Message format:
 
 ## Messages
 
-_No messages yet. MSG-OUT-0001 is written when HO-0001 is committed._
+_No messages yet._

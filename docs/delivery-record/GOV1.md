@@ -1,51 +1,53 @@
-# Delivery record — GOV 1: AI coordination infrastructure
+# Delivery record — GOV 1: AI coordination infrastructure (human-supervised autonomous pipeline)
 
 Date: 2026-11-04
 Branch: `claude/ai-coordination-infrastructure-pcf8bb` (based on `ccr-9fda2c32-wr163b` at e45e4f7; `main` untouched)
-Status: **delivered for independent review and owner decision; not accepted.** Governance work, not a D06 work package; no application code changed.
+Status: **delivered for independent review and owner decision; not accepted.** Governance work, not a D06 work package; no application code changed. Version 2 of the system (the owner's revised brief of 2026-11-04 superseded the first brief the same day; the version-1 files were extended in place).
 
 ## Scope
-Establish a GitHub-based coordination system so ChatGPT (independent review) and Claude Code (implementation) exchange handoffs, reviews and decisions through repository files, with the owner as final authority. Explicitly out of scope: application functionality, WP 6/7 implementation, existing owner decisions, roadmap sequencing, merge to `main`, any external service.
+Owner briefs of 2026-11-04 (original and revised): a GitHub-based coordination protocol between ChatGPT (independent review) and Claude Code (implementation) with the owner as final authority; autonomous work package progression under D06 with an owner-decision queue; GitHub Actions automation without secrets or API cost; a future MCP assessment; a demonstration. Out of scope and untouched: application code, WP 6/7 implementation, existing owner decisions, D06 sequencing, merge to `main`, any external or paid service.
 
 ## Assessment of existing arrangements (before changes)
-- Governance already present and reused: ADRs, delivery records with owner-decision tables and CI run IDs, D05 debt and risk register with owner dispositions, D06 statuses, engineering standards, D05 §C verification items, "fresh reviewer" sections in delivery records.
-- Gaps: no `CLAUDE.md` or `.claude/` configuration; no machine-checkable handoff or review format; review findings embedded in delivery records lose status tracking across commits; no message channel; `main` holds only WP 0–1 while all WP 2–7 work is on `ccr-9fda2c32-wr163b`.
+- Reused: ADRs, delivery records with owner-decision tables and CI run IDs, D05 register, D06 statuses, engineering standards, D05 §C verification items, "fresh reviewer" sections in delivery records (now `LEGACY` in `PROGRAMME.md`).
+- Gaps closed: no `CLAUDE.md` or `.claude/`; no machine-checkable handoff or review format; findings embedded in delivery records lost their status across commits; no message channel; no programme-level state; `main` holds WP 0–1 while all WP 2–7 work is on `ccr-9fda2c32-wr163b`.
 
-## Design (one page)
-- **Record layer**: `docs/ai-coordination/` with the protocol, a state snapshot, an inbox and outbox (append-only), one file per handoff (`handoffs/HO-NNNN.md`, 14 sections) and per review (`reviews/RV-NNNN.md`, 10 sections, findings table with per-finding status), a decision log (`DL-NNNN`, decider named), an archive for closed messages, a worked example and the MCP assessment.
-- **Discovery**: root `CLAUDE.md` imports `CURRENT-STATE.md` and `INBOX.md` with `@path` so both are in context in every Claude Code session type (CLI, cloud, GitHub Action) without hooks or approvals. A repository skill `/handoff` walks through the post-implementation steps. No hooks: SessionStart hooks do not run in multi-repository or project-thread cloud sessions and need folder trust, so they would be a false guarantee.
-- **Automation**: `.github/workflows/coordination.yml` runs a stdlib-only Python checker and its unit tests on changes to the coordination files. Errors fail the run (structure, statuses, cross-references, SHA format, links, imports); warnings (open findings, handoffs without review, open messages) go to the job summary, which is the coordination index. No secrets, no issue creation, no merge, no acceptance, no claim about ChatGPT.
-- **Boundaries**: ChatGPT never approves; Claude Code never decides; owner decisions exist only in the owner's words in `DECISION-LOG.md` or a delivery record.
-- **Traceability**: handoff → commit SHA → review → findings (`RV-NNNN-Fn`) → resolution commit and test → owner decision (`DL-NNNN`) → delivery record, D05, D06.
+## Design
+- **Records** (`docs/ai-coordination/`): protocol v2; `CURRENT-STATE.md` (authoritative concise status); `PROGRAMME.md` (D06 dependency graph with three independent axes: implementation, review, acceptance); generated `DASHBOARD.md`; `INBOX.md`/`OUTBOX.md`; `handoffs/HO-NNNN.md` (one per submitted commit, 14 sections, `Responds to`/`Supersedes` links); `reviews/RV-NNNN.md` (one per commit reviewed, 10 sections, outcome, findings with per-finding status); `DECISION-LOG.md` (owner decisions in the owner's words plus the pending owner-decision queue); templates, worked example, MCP assessment.
+- **Lifecycle** A–F: implement → submit (two-commit: implementation, then handoff) → review requested (issue) → review response (outcome) → correction (new commit, new handoff, old one superseded) → re-review. Approval never carries across commits; the checker enforces it.
+- **Discovery**: `CLAUDE.md` imports `CURRENT-STATE.md` and `INBOX.md` into every session; session-start procedure; `/handoff` and `/resolve-findings` skills. No hooks.
+- **Automation** (`.github/workflows/coordination.yml`): job 1 validates (54-test checker: structure, statuses, outcome ↔ status, commit consistency, programme table and eligibility, decision log, links, imports, dashboard freshness, cited commits exist in history, append-only history since the previous push); job 2 mirrors each handoff into one `ai-review` issue with every evidence link and the sentence the owner pastes into ChatGPT, comments on status changes, closes on supersede or acceptance. Actions token only; no secrets; never records a review; never merges or accepts.
+- **Evidence pack**: `check_coordination.py --evidence HO-NNNN` bundles handoff, links, diff stat and open findings for the no-connector case.
 
 ## Files created or modified
 | Path | Change |
 |---|---|
-| `CLAUDE.md` | New: session instructions and imports |
-| `.claude/skills/handoff/SKILL.md` | New: `/handoff` procedure |
-| `docs/ai-coordination/AI-COORDINATION-PROTOCOL.md` | New: roles, files, statuses, lifecycle, rules |
-| `docs/ai-coordination/CURRENT-STATE.md`, `INBOX.md`, `OUTBOX.md`, `DECISION-LOG.md` | New: live records |
-| `docs/ai-coordination/HANDOFF-TEMPLATE.md`, `REVIEW-TEMPLATE.md` | New: templates |
-| `docs/ai-coordination/EXAMPLE-WALKTHROUGH.md` | New: worked example (illustrative, IDs 0042 reserved) |
-| `docs/ai-coordination/MCP-INTEGRATION-ASSESSMENT.md` | New: future direct-integration option |
-| `docs/ai-coordination/handoffs/`, `reviews/`, `archive/README.md` | New directories |
-| `tools/coordination/check_coordination.py`, `test_check_coordination.py`, `README.md` | New: checker, 24 unit tests |
+| `CLAUDE.md` | New: operating model, imports, session procedure, never-rules |
+| `.claude/skills/handoff/SKILL.md`, `.claude/skills/resolve-findings/SKILL.md` | New skills |
+| `docs/ai-coordination/AI-COORDINATION-PROTOCOL.md` | New (v2) |
+| `docs/ai-coordination/CURRENT-STATE.md`, `PROGRAMME.md`, `DASHBOARD.md` (generated), `INBOX.md`, `OUTBOX.md`, `DECISION-LOG.md` | New live records |
+| `docs/ai-coordination/HANDOFF-TEMPLATE.md`, `REVIEW-TEMPLATE.md`, `EXAMPLE-WALKTHROUGH.md`, `MCP-INTEGRATION-ASSESSMENT.md` | New |
+| `docs/ai-coordination/handoffs/`, `reviews/`, `archive/` | New directories |
+| `tools/coordination/check_coordination.py` (+ tests), `sync_review_issues.py` (+ tests), `demo_cycle.py`, `README.md`, `.gitignore` | New tooling |
 | `.github/workflows/coordination.yml` | New workflow (path-filtered; Flutter workflows untouched) |
-| `docs/wp0/D05-technical-debt-and-risk-register.md` | R-13 added (coordination is manual relay; records can drift) |
-| `docs/README.md` | Index row added; delivery-record list corrected |
+| `docs/wp0/D05-technical-debt-and-risk-register.md` | R-13 added |
+| `docs/README.md` | Index rows; delivery-record list corrected |
 | `docs/delivery-record/GOV1.md` | This record |
 
 ## Validation evidence
-Recorded in the handoff `docs/ai-coordination/handoffs/HO-0001.md` §6–7 with commands, outputs and run IDs. Application tests and the four Flutter workflows were not run: no file under `app/` changed, and those workflows are path-filtered to `app/**`.
+Recorded in the GOV 1 handoff (`docs/ai-coordination/handoffs/`, §6–7) with commands, outputs and run IDs. Application tests and the four Flutter workflows were not run: no file under `app/` changed and those workflows are path-filtered to `app/**`.
 
-## Independent review
-A separate reviewer agent (not the author) assessed the design and the checker before delivery; its findings and their disposition are in HO-0001 §8–9. ChatGPT's independent review is requested through HO-0001 and has not happened.
+## Demonstration
+`tools/coordination/demo_cycle.py` builds a throwaway fixture repository and runs the checker through the cycle: handoff awaiting review → review on file with `CHANGES_REQUIRED` → checker refuses the stale handoff status → corrected commit as a new handoff → checker refuses any claim that the old review approves the new commit → re-review approves. Its output is recorded in the handoff. The live part demonstrated on this repository: the workflow validated the records and created the review issue for the GOV 1 handoff. **Not demonstrated**: a ChatGPT review retrieved and published through the system (steps 4–5 of the owner's demonstration list) — that requires the owner's ChatGPT conversation and has not happened; the protocol is therefore not reported as live.
+
+## Author-side pre-review (not independent review)
+Before delivery, a separate Claude subagent (not the author) reviewed the version-1 design and checker: 3 High, 8 Medium, 9 Low findings. Disposition is in the GOV 1 handoff §4. This is author-side quality control; the independent review is ChatGPT's and has not happened.
 
 ## Limitations (honest)
-- The protocol is not live or bidirectional: ChatGPT reads through its connector or the owner's paste and writes only through the owner's commit.
-- `CLAUDE.md` is advisory; the checker catches structural omissions only after a push.
-- The checker validates form, not truth; it cannot verify a run ID or a test count.
-- Plan facts for ChatGPT MCP support could not be confirmed from official pages inside the build container.
+- Review initiation and the commit of the review file are owner actions; GitHub cannot trigger ChatGPT.
+- Whether the owner's ChatGPT plan reads a private repository through the connector is unconfirmed (DL-0002); the evidence pack is the fallback.
+- `CLAUDE.md` is advisory; the checker catches structural omissions after a push.
+- The checker validates form and consistency, not truth; `--verify-commits` proves a SHA exists, not that the run IDs or counts are real.
+- Issue mirroring uses the Actions token: it works for pushes to this repository, not for pull requests from forks.
 
 ## Decisions requested from the owner
-DL-0001 adopt the protocol; DL-0002 choose the ChatGPT read path; DL-0003 confirm branch protection on `main`. No acceptance of GOV 1 is implied by this record.
+DL-0001 adopt protocol v2; DL-0002 ChatGPT read path; DL-0003 branch protection on `main`; DL-0005 WP 15 wording; DL-0006 authorise WP 8 start. No acceptance of GOV 1 is implied by this record.
