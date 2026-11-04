@@ -1,6 +1,6 @@
 # RepForge nutrition calculation specification (NUT-017)
 
-- Status: **Draft — §4 approved by the owner 2026-11-04; full approval pending revision 1.3** (portion precision, owner decision 2026-11-04). Written before WP 7 recipe calculation work, per the owner's allocation of NUT-017.
+- Status: **Revision 1.3 submitted for owner approval** (§4 approved 2026-11-04; §2.1 revised to the owner's portion-precision decision and implemented at 7c62e9c). Written before WP 7 recipe calculation work, per the owner's allocation of NUT-017.
 - Scope: every nutrition figure the app stores, totals, averages, labels or displays: foods, diary entries, day and week summaries, saved meals, recipes, meal plans.
 - Normative: code that calculates nutrition must follow this document. A change to a rule here needs a new revision of this document and updated worked examples. The worked examples in §10 are executed as automated tests (`app/test/domain/nutrition_spec_examples_test.dart`); test ids match the example ids.
 - Open decision: **§4 carbohydrate convention (D04 OQ-14)** is written as current behaviour with a recommendation; it needs the owner's decision.

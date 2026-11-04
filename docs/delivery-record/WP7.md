@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **conditionally accepted by the owner (2026-11-04)**, delivered at 110b8bb. **Closure condition (in progress):** portion counts stored to 0.01 (spec rev 1.3) with implementation, regression tests, a fresh independent review and four workflows green on the final commit. No merge to `main`. (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
+Status: **conditionally accepted by the owner (2026-11-04); closure condition met at 7c62e9c — presented for final acceptance.** Not formally closed until the owner records it. No merge to `main`. (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
 
 ## Scope (D06 WP 7)
 Recipe CRUD; ingredients with quantities linked to foods; per-portion nutrition computed from ingredients (not typed in); portion scaling; prep/cook/storage/freezing/reheating fields; favourites; substitutions; seed import of the 22 legacy recipes flagged `estimated`; log a portion to the diary; weekly meal plan and prep list (P2); NUT-011 meal rename/reorder (owner allocation 2026-11-04).
@@ -121,3 +121,13 @@ The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test:
 - **Tests**: E39–E41 executed against production code; regression tests re-read stored rows and snapshots after log, diary edit, plan, mark-eaten and batch operations; three existing tests updated where they encoded the 0.1 rule (judged legitimate by the reviewer). Proven to fail on the old code.
 - **Local**: 730 tests pass, analyzer and formatter clean, hand-written coverage 89.1 %.
 - **Fresh independent review** (new reviewer): **condition met**; probes: 1.25 portions → 500 kcal stored 1.25; edit to 1.75 → 700 kcal; plan 1.25 and mark eaten; batch 2 − 0.75 − 1.25 → exactly 0; saved meal ×1.25; g/ml still 0.1; old 0.1-step stored values unaffected. Low findings: spec §2.1 tie wording (corrected to the binary-value rule), TD-40 (saved-meal snapshot vs rounded quantity; unreachable repository edge).
+
+### Closure commit CI (7c62e9c)
+| Workflow | Run | Result |
+|---|---|---|
+| CI (format, analyze, tests, coverage gate) | 41916959323 | success |
+| Android build | 41916959074 | success |
+| iOS build | 41916959377 | success (attempt 1) |
+| Integration tests (Android emulator) | 41916959075 | success |
+
+All closure steps done: spec rev 1.3, implementation and regression tests, fresh independent review (condition met), four workflows green on 7c62e9c, this record and D06 updated.
