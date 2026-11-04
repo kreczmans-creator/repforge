@@ -37,8 +37,22 @@ NUT-019's day-total provenance badge and NUT-022 imperial/kg/l entry were alloca
 ## Tests
 Appended at delivery.
 
-## Independent review
-Appended at delivery (fresh reviewer).
+## Independent review (fresh reviewer, range aac5f15..ee97c17)
+Probes run in throwaway tests; 467 existing tests re-run. Findings:
+
+| ID | Finding (verified by probe) | Severity | Resolution |
+|---|---|---|---|
+| H1 | Linking one ingredient to a starter recipe replaced its declared estimate with that one ingredient's nutrition and labelled it verified (3 notes + 100 g oats → 95 kcal per portion, verified); NUT-021/RCP-007. | High | Fix in progress: a recipe with ingredient notes stays declared/estimated until the notes are removed; spec rev 1.2 §8.3 and example E38; editor text and note deletion. |
+| M1 | Planning an Open Food Facts food always fails; picked online foods are not cached locally. | Medium | Fix in progress: picker caches the food (`CacheFood`). |
+| M2 | Marking a future-day item eaten logs into the future diary. | Medium | Fix in progress: refused with a typed error; action hidden in the UI. |
+| M3 | Plan "today" ignores the day-start setting, so plan and diary disagree after midnight. | Medium | Fix in progress: one shared `diaryDayKey` rule. |
+| M4 | A prep batch loses a portion when recording the eaten link fails. | Medium | Fix in progress: mark-eaten runs in one transaction. |
+| M5 | Two concurrent mark-eaten calls log twice. | Medium | Fix in progress: eaten check inside the same transaction. |
+| M6 | A missing seed asset makes the importer throw (uncaught async error at startup). | Medium | Fix in progress: all failures become a typed error. |
+| L | Portion rounding undocumented; editor ignores the §9.3 default weight; scaling rounds quantities so per-portion values drift (§9.4); custom foods accept the portions unit; `eatenEntryId` docs; favourites setter not returning Result; E06/E07 compute in the test. | Low | Fix in progress. |
+| L | Deleting/editing a mark-eaten or batch-drawn diary entry does not update the plan item or batch. | Low | TD-37. |
+
+RCP P1 criteria the reviewer found not fully met: **RCP-003** (step delete untested), **RCP-007** (H1), **RCP-013(2)** (no navigation from a diary entry to its recipe). All three are in the fix set.
 
 ## CI evidence
 Appended at delivery.
