@@ -3,6 +3,7 @@ import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/food_repository.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/units/units.dart';
 
@@ -22,14 +23,22 @@ import 'package:repforge/domain/units/units.dart';
 ///
 /// Per-portion nutrients that the recipe cannot state completely (§7.5) are
 /// null in the snapshot. The provenance is the recipe's.
+///
+/// With `prepBatchId` (RCP-015(2)) the logged portions are taken from that
+/// prepared batch and the entry is written in the SAME transaction as the
+/// decrement: both happen or neither does. A batch with fewer portions
+/// remaining than requested is refused with a `ValidationError` and nothing
+/// is logged. Only portion logging can draw on a batch.
 final class LogRecipe {
   const LogRecipe({
     required this.recipes,
     required this.log,
     required this.clock,
     required this.newId,
+    this.prepBatches,
   });
 
+  final PrepBatchRepository? prepBatches;
   final RecipeRepository recipes;
   final FoodLogRepository log;
   final Clock clock;
@@ -43,7 +52,16 @@ final class LogRecipe {
     double? portions,
     double? grams,
     DateTime? loggedAt,
+    String? prepBatchId,
   }) async {
+    if (prepBatchId != null && (portions == null || grams != null)) {
+      return const Err(
+        ValidationError(
+          'A prepared batch is used by portions.',
+          field: 'quantity',
+        ),
+      );
+    }
     if ((portions == null) == (grams == null)) {
       return const Err(
         ValidationError('Log either portions or grams.', field: 'quantity'),
@@ -96,7 +114,34 @@ final class LogRecipe {
         createdAt: now,
         updatedAt: now,
       );
-      await log.insert(entry);
+      if (prepBatchId == null) {
+        await log.insert(entry);
+        return Ok(entry);
+      }
+      final batches = prepBatches;
+      if (batches == null) {
+        return const Err(
+          UnexpectedError('Prepared batches are not available.'),
+        );
+      }
+      final batch = await batches.byId(prepBatchId);
+      if (batch == null) return Err(consumeError(ConsumeOutcome.notFound));
+      if (batch.recipeId != recipe.id) {
+        return const Err(
+          ValidationError(
+            'That batch was prepared from a different recipe.',
+            field: 'prepBatch',
+          ),
+        );
+      }
+      final outcome = await batches.consume(
+        prepBatchId,
+        q.amount,
+        alongside: () => log.insert(entry),
+      );
+      if (outcome != ConsumeOutcome.consumed) {
+        return Err(consumeError(outcome));
+      }
       return Ok(entry);
     } on Exception catch (e) {
       return Err(StorageError('Could not log the recipe.', cause: e));

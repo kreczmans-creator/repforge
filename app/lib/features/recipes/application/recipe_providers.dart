@@ -36,6 +36,7 @@ final logRecipeProvider = Provider<LogRecipe>(
     log: ref.watch(foodLogRepositoryProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
+    prepBatches: ref.watch(prepBatchRepositoryProvider),
   ),
 );
 

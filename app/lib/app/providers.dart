@@ -8,7 +8,9 @@ import 'package:repforge/data/repositories/drift_exercise_repository.dart';
 import 'package:repforge/data/repositories/drift_food_log_repository.dart';
 import 'package:repforge/data/repositories/drift_food_repository.dart';
 import 'package:repforge/data/repositories/drift_goal_repository.dart';
+import 'package:repforge/data/repositories/drift_meal_plan_repository.dart';
 import 'package:repforge/data/repositories/drift_measurement_repository.dart';
+import 'package:repforge/data/repositories/drift_prep_batch_repository.dart';
 import 'package:repforge/data/repositories/drift_recipe_repository.dart';
 import 'package:repforge/data/repositories/drift_saved_meal_repository.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
@@ -24,6 +26,8 @@ import 'package:repforge/domain/measurements/weight_repository.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/food_repository.dart';
 import 'package:repforge/domain/nutrition/saved_meal_repository.dart';
+import 'package:repforge/domain/planning/meal_plan.dart';
+import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
 import 'package:repforge/domain/settings/meal_labels.dart';
@@ -200,4 +204,18 @@ final barcodeScannerProvider = Provider<BarcodeScanner>(
 /// action unless this resolves to [ScannerCapability.available].
 final scannerCapabilityProvider = FutureProvider<ScannerCapability>(
   (ref) => ref.watch(barcodeScannerProvider).capability(),
+);
+
+final mealPlanRepositoryProvider = Provider<MealPlanRepository>(
+  (ref) => DriftMealPlanRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final prepBatchRepositoryProvider = Provider<PrepBatchRepository>(
+  (ref) => DriftPrepBatchRepository(
+    ref.watch(databaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
