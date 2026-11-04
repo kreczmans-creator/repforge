@@ -116,6 +116,23 @@ void _v2ToV3() {
     await verifier.migrateAndValidate(db, 3);
   });
 
+  test('v2 upgrade can run again after a crash before user_version is '
+      'recorded', () async {
+    final schema = await verifier.schemaAt(2);
+    final first = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(first, 3);
+    await first.customStatement('PRAGMA user_version = 2');
+    await first.close();
+
+    final second = AppDatabase(schema.newConnection());
+    addTearDown(second.close);
+    expect(await second.select(second.savedMeals).get(), isEmpty);
+    final version = await second
+        .customSelect('PRAGMA user_version')
+        .getSingle();
+    expect(version.data.values.single, 3);
+  });
+
   test('v1 upgrade can run again after a crash before user_version is '
       'recorded', () async {
     // drift writes user_version after onUpgrade returns; a kill in that

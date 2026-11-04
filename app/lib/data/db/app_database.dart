@@ -99,10 +99,14 @@ class AppDatabase extends _$AppDatabase {
     return rows.isNotEmpty;
   }
 
-  /// v2 → v3: saved meals (two tables and one index). Additive only.
+  /// v2 → v3: saved meals (two tables and one index). Additive only, and
+  /// guarded like v1 → v2 so a re-run after a crash before `user_version`
+  /// is written is a no-op (WP 5 audit D4).
   Future<void> _migrateV2ToV3(Migrator m) => transaction(() async {
-    await m.createTable(savedMeals);
+    await m.createTable(savedMeals); // IF NOT EXISTS
     await m.createTable(savedMealItems);
-    await m.createIndex(idxSavedMealItemsMeal);
+    if (!await _schemaEntityExists('index', idxSavedMealItemsMeal.entityName)) {
+      await m.createIndex(idxSavedMealItemsMeal);
+    }
   });
 }
