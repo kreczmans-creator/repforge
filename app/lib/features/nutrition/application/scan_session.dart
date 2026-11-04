@@ -99,12 +99,26 @@ class ScanSession extends Notifier<ScanState> {
       _generation++;
       unawaited(_subscription?.cancel());
       _subscription = null;
-      unawaited(scanner.stop());
+      if (_running) {
+        _running = false;
+        unawaited(scanner.stop());
+      }
     });
     return const ScanChecking();
   }
 
   BarcodeScanner get _scanner => ref.read(barcodeScannerProvider);
+
+  /// Whether [BarcodeScanner.start] has been called without a matching stop,
+  /// so the hardware is stopped exactly once per start (cancel followed by
+  /// provider dispose must not stop it twice).
+  bool _running = false;
+
+  Future<void> _stopScanner() async {
+    if (!_running) return;
+    _running = false;
+    await _scanner.stop();
+  }
 
   /// Checks capability and permission, then starts scanning if possible.
   Future<void> begin() async {
@@ -154,7 +168,7 @@ class ScanSession extends Notifier<ScanState> {
     final sub = _subscription;
     _subscription = null;
     await sub?.cancel();
-    await _scanner.stop();
+    await _stopScanner();
     if (ref.mounted) state = const ScanChecking();
   }
 
@@ -167,6 +181,7 @@ class ScanSession extends Notifier<ScanState> {
     }
     _subscription ??= _scanner.codes.listen(_onCode);
     await _scanner.start();
+    _running = true;
     if (!_current(gen)) return;
     state = const ScanScanning();
   }
@@ -210,6 +225,6 @@ class ScanSession extends Notifier<ScanState> {
     _lastCode = code;
     _lastResultAt = ref.read(clockProvider).now();
     state = next;
-    await _scanner.stop();
+    await _stopScanner();
   }
 }

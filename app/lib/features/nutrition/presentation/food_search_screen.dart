@@ -5,6 +5,7 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/scanning/barcode_scanner.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/portion_sheet.dart';
@@ -45,14 +46,33 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
     if (nav.canPop()) nav.pop(entry);
   }
 
+  Future<void> _scan() async {
+    final entry = await context.push<FoodLogEntry>(RfRoutes.fuelScan);
+    if (!mounted || entry == null) return;
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop(entry);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(foodSearchControllerProvider);
     final theme = Theme.of(context);
+    final capability = ref.watch(scannerCapabilityProvider);
+    final scannerAvailable = capability.value == ScannerCapability.available;
+    // While loading nothing is shown; an error counts as unavailable.
+    final scannerUnavailable =
+        capability.hasError || (capability.hasValue && !scannerAvailable);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Log food'),
         actions: [
+          if (scannerAvailable)
+            IconButton(
+              key: const Key('scan-barcode'),
+              tooltip: 'Scan barcode',
+              icon: const Icon(Icons.qr_code_scanner),
+              onPressed: _scan,
+            ),
           TextButton(
             key: const Key('new-food'),
             onPressed: () async {
@@ -77,6 +97,14 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
             textInputAction: TextInputAction.search,
             onChanged: ref.read(foodSearchControllerProvider.notifier).setQuery,
           ),
+          if (scannerUnavailable) ...[
+            const SizedBox(height: RfSpace.s2),
+            Text(
+              'Barcode scanning is not available on this device',
+              key: const Key('scan-unavailable'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
           const SizedBox(height: RfSpace.s3),
           if (state.isEmptyQuery)
             Text(

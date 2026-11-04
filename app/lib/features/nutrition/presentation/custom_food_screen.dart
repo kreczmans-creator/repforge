@@ -15,7 +15,10 @@ import 'package:repforge/ui/tokens.dart';
 /// Create a user food with nutrients per 100 g/ml and optional servings
 /// (NUT-006, NUT-007). Pops with the created [Food].
 class CustomFoodScreen extends ConsumerStatefulWidget {
-  const CustomFoodScreen({super.key});
+  const CustomFoodScreen({super.key, this.initialBarcode});
+
+  /// Pre-fills the barcode field (NUT-006(2): created from a failed scan).
+  final String? initialBarcode;
 
   @override
   ConsumerState<CustomFoodScreen> createState() => _CustomFoodScreenState();
@@ -24,7 +27,7 @@ class CustomFoodScreen extends ConsumerStatefulWidget {
 class _CustomFoodScreenState extends ConsumerState<CustomFoodScreen> {
   final _name = TextEditingController();
   final _brand = TextEditingController();
-  final _barcode = TextEditingController();
+  late final _barcode = TextEditingController(text: widget.initialBarcode);
   final _kcal = TextEditingController();
   final _protein = TextEditingController();
   final _carbs = TextEditingController();

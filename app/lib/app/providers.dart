@@ -182,3 +182,9 @@ final foodLookupServiceProvider = Provider<FoodLookupService>(
 final barcodeScannerProvider = Provider<BarcodeScanner>(
   (_) => throw UnimplementedError('bound in main.dart by the platform adapter'),
 );
+
+/// Whether this device can scan barcodes (PLT-003). Features hide the scan
+/// action unless this resolves to [ScannerCapability.available].
+final scannerCapabilityProvider = FutureProvider<ScannerCapability>(
+  (ref) => ref.watch(barcodeScannerProvider).capability(),
+);

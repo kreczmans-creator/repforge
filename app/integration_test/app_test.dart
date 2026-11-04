@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/platform/fake_barcode_scanner.dart';
+import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/nutrition/food_lookup_service.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/units/units.dart';
+import 'package:repforge/features/nutrition/application/scanner_preview.dart';
 
 /// End-to-end flows on a real device or emulator. The first test uses an
 /// in-memory database so it leaves nothing behind; the last test uses the
@@ -13,10 +20,17 @@ import 'package:repforge/data/db/app_database.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<void> pumpApp(WidgetTester tester, {AppDatabase? db}) async {
+  Future<void> pumpApp(
+    WidgetTester tester, {
+    AppDatabase? db,
+    List<Override> overrides = const [],
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [if (db != null) databaseProvider.overrideWithValue(db)],
+        overrides: [
+          if (db != null) databaseProvider.overrideWithValue(db),
+          ...overrides,
+        ],
         child: const RepForgeApp(),
       ),
     );
@@ -149,6 +163,92 @@ void main() {
     expect(find.text('83.2'), findsOneWidget);
   });
 
+  testWidgets('scan a known barcode and log it (fake scanner)', (tester) async {
+    final db = AppDatabase.inMemory();
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
+    final now = DateTime.now();
+    final seeder = ProviderContainer(
+      overrides: [databaseProvider.overrideWithValue(db)],
+    );
+    await seeder
+        .read(foodRepositoryProvider)
+        .upsert(
+          Food(
+            id: 'it-hazelnut',
+            name: 'Scan test spread',
+            barcode: '3017624010701',
+            profile: const NutrientProfile(
+              per100: ReferenceUnit.grams,
+              per100Amounts: NutrientAmounts(kcal: 500),
+              provenance: DataProvenance.userEntered,
+            ),
+            source: FoodSource.userCreated,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    seeder.dispose();
+
+    final scanner = FakeBarcodeScanner();
+    await pumpApp(
+      tester,
+      db: db,
+      overrides: [
+        barcodeScannerProvider.overrideWithValue(scanner),
+        scannerPreviewBuilderProvider.overrideWithValue(
+          (_) => const ColoredBox(color: Colors.black),
+        ),
+        foodLookupServiceProvider.overrideWithValue(_NoMatchLookup()),
+      ],
+    );
+
+    Future<void> openScan() async {
+      await tester.tap(find.byKey(const Key('nav-fuel')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('log-food')));
+      await tester.pumpAndSettle();
+      await pumpUntil(tester, find.byKey(const Key('scan-barcode')));
+      await tester.tap(find.byKey(const Key('scan-barcode')));
+      await pumpUntil(tester, find.byKey(const Key('scan-cancel')));
+    }
+
+    await openScan();
+    scanner
+      ..emit('3017624010701')
+      ..emit('3017624010701'); // same label held in view
+    await pumpUntil(tester, find.byKey(const Key('portion-amount')));
+    await tester.enterText(find.byKey(const Key('portion-amount')), '25');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('portion-log')));
+    await pumpUntil(tester, find.text('Scan test spread'));
+    expect(find.text('Scan test spread'), findsOneWidget);
+    expect(find.text('125'), findsWidgets); // 500 kcal/100 g x 25 g
+
+    // A further emission shortly after must do nothing: the scanner is
+    // stopped, no sheet opens and no second entry appears.
+    scanner.emit('3017624010701');
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('portion-amount')), findsNothing);
+    expect(find.text('Scan test spread'), findsOneWidget);
+    expect(await db.select(db.foodLogEntries).get(), hasLength(1));
+
+    // Not-found path: nothing is created or logged.
+    await tester.tap(find.byKey(const Key('log-food')));
+    await tester.pumpAndSettle();
+    await pumpUntil(tester, find.byKey(const Key('scan-barcode')));
+    await tester.tap(find.byKey(const Key('scan-barcode')));
+    await pumpUntil(tester, find.byKey(const Key('scan-cancel')));
+    scanner.emit('2000000000008');
+    await pumpUntil(tester, find.byKey(const Key('scan-not-found')));
+    expect(find.byKey(const Key('scan-create-food')), findsOneWidget);
+    expect(find.byKey(const Key('scan-search-manually')), findsOneWidget);
+    expect(await db.select(db.foodLogEntries).get(), hasLength(1));
+    expect(await db.select(db.foods).get(), hasLength(1));
+  });
+
   testWidgets('real on-device database opens, migrates, persists a weight '
       'and a target across a fresh connection', (tester) async {
     await pumpApp(tester); // production providers: real file database
@@ -205,4 +305,14 @@ void main() {
     await pumpUntilGone(tester, find.textContaining('integration-test'));
     expect(find.textContaining('integration-test'), findsNothing);
   });
+}
+
+/// Online lookup that knows nothing, so unknown barcodes are "not found".
+final class _NoMatchLookup implements FoodLookupService {
+  @override
+  Future<Result<List<Food>>> search(String query, {int limit = 20}) async =>
+      const Ok([]);
+
+  @override
+  Future<Result<Food?>> byBarcode(String barcode) async => const Ok(null);
 }

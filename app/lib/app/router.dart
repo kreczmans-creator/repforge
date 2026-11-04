@@ -7,6 +7,7 @@ import 'package:repforge/features/nutrition/presentation/custom_food_screen.dart
 import 'package:repforge/features/nutrition/presentation/food_search_screen.dart';
 import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
 import 'package:repforge/features/nutrition/presentation/saved_meals_screen.dart';
+import 'package:repforge/features/nutrition/presentation/scan_screen.dart';
 import 'package:repforge/features/nutrition/presentation/weekly_summary_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
 import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
@@ -21,6 +22,7 @@ abstract final class RfRoutes {
   static const fuel = '/fuel';
   static const fuelSearch = '/fuel/search';
   static const fuelNewFood = '/fuel/new-food';
+  static const fuelScan = '/fuel/scan';
   static const fuelWeek = '/fuel/week';
   static const fuelSavedMeals = '/fuel/saved-meals';
   static const track = '/track';
@@ -82,7 +84,14 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                 GoRoute(
                   path: 'new-food',
                   parentNavigatorKey: _rootKey,
-                  builder: (context, state) => const CustomFoodScreen(),
+                  builder: (context, state) => CustomFoodScreen(
+                    initialBarcode: state.uri.queryParameters['barcode'],
+                  ),
+                ),
+                GoRoute(
+                  path: 'scan',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const ScanScreen(),
                 ),
                 GoRoute(
                   path: 'week',
