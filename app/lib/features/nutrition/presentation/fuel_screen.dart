@@ -78,12 +78,28 @@ class FuelScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: RfSpace.s2),
-        RfButton(
-          key: const Key('open-recipes'),
-          label: 'Recipes',
-          icon: Icons.menu_book_outlined,
-          variant: RfButtonVariant.secondary,
-          onPressed: () => context.push(RfRoutes.fuelRecipes),
+        Row(
+          children: [
+            Expanded(
+              child: RfButton(
+                key: const Key('open-recipes'),
+                label: 'Recipes',
+                icon: Icons.menu_book_outlined,
+                variant: RfButtonVariant.secondary,
+                onPressed: () => context.push(RfRoutes.fuelRecipes),
+              ),
+            ),
+            const SizedBox(width: RfSpace.s2),
+            Expanded(
+              child: RfButton(
+                key: const Key('open-plan'),
+                label: 'Meal plan',
+                icon: Icons.event_note_outlined,
+                variant: RfButtonVariant.secondary,
+                onPressed: () => context.push(RfRoutes.fuelPlan),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: RfSpace.s2),
         entries.when(

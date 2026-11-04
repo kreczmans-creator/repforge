@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/portion_sheet.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
+import 'package:repforge/features/planning/application/planning_providers.dart';
+import 'package:repforge/features/planning/presentation/plan_format.dart';
 import 'package:repforge/features/recipes/application/recipe_providers.dart';
 import 'package:repforge/features/settings/application/meal_label_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
@@ -40,6 +43,7 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
   final _grams = TextEditingController();
   bool _byGrams = false;
   late MealSlot _meal = defaultMealFor(ref.read(clockProvider).now().toLocal());
+  String? _batchId;
   String? _error;
   bool _busy = false;
 
@@ -89,6 +93,7 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
       day: ref.read(selectedDayProvider),
       portions: _byGrams ? null : v,
       grams: _byGrams ? v : null,
+      prepBatchId: _byGrams ? null : _batchId,
     );
     if (!mounted) return;
     switch (result) {
@@ -107,6 +112,12 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
     final theme = Theme.of(context);
     final labels = ref.watch(mealLabelsValueProvider);
     final preview = _preview;
+    final batches = [
+      for (final b
+          in ref.watch(prepBatchesForRecipeProvider(widget.recipe.id)).value ??
+              const <PrepBatch>[])
+        if (!b.isEmpty) b,
+    ];
     return Padding(
       padding: EdgeInsets.only(
         left: RfSpace.gutter,
@@ -135,6 +146,7 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
                 onSelectionChanged: (s) => setState(() {
                   _byGrams = s.first;
                   _error = null;
+                  _batchId = null;
                 }),
               ),
               const SizedBox(height: RfSpace.s3),
@@ -177,6 +189,35 @@ class _RecipeLogSheetState extends ConsumerState<_RecipeLogSheet> {
                   ),
                 ],
               ),
+            if (!_byGrams && batches.isNotEmpty) ...[
+              const SizedBox(height: RfSpace.s3),
+              Text('FROM PREPARED BATCH', style: context.rfText.kicker),
+              const SizedBox(height: RfSpace.s2),
+              Wrap(
+                spacing: RfSpace.s2,
+                children: [
+                  ChoiceChip(
+                    key: const Key('log-batch-none'),
+                    label: const Text('None'),
+                    selected: _batchId == null,
+                    onSelected: (_) => setState(() {
+                      _batchId = null;
+                      _error = null;
+                    }),
+                  ),
+                  for (final b in batches)
+                    ChoiceChip(
+                      key: Key('log-batch-${b.id}'),
+                      label: Text(portionsLeftLabel(b.portionsRemaining)),
+                      selected: _batchId == b.id,
+                      onSelected: (_) => setState(() {
+                        _batchId = b.id;
+                        _error = null;
+                      }),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: RfSpace.s3),
             Text('MEAL', style: context.rfText.kicker),
             const SizedBox(height: RfSpace.s2),

@@ -9,6 +9,7 @@ import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
 import 'package:repforge/features/nutrition/presentation/saved_meals_screen.dart';
 import 'package:repforge/features/nutrition/presentation/scan_screen.dart';
 import 'package:repforge/features/nutrition/presentation/weekly_summary_screen.dart';
+import 'package:repforge/features/planning/presentation/meal_plan_screen.dart';
 import 'package:repforge/features/recipes/presentation/recipe_detail_screen.dart';
 import 'package:repforge/features/recipes/presentation/recipe_editor_screen.dart';
 import 'package:repforge/features/recipes/presentation/recipe_list_screen.dart';
@@ -33,6 +34,9 @@ abstract final class RfRoutes {
   static const fuelSavedMeals = '/fuel/saved-meals';
   static const fuelRecipes = '/fuel/recipes';
   static const fuelRecipeNew = '/fuel/recipes/new';
+
+  /// Meal plan (RCP-014).
+  static const fuelPlan = '/fuel/plan';
 
   /// Recipe detail for [id].
   static String fuelRecipe(String id) => '/fuel/recipes/$id';
@@ -118,6 +122,11 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                   path: 'saved-meals',
                   parentNavigatorKey: _rootKey,
                   builder: (context, state) => const SavedMealsScreen(),
+                ),
+                GoRoute(
+                  path: 'plan',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const MealPlanScreen(),
                 ),
                 GoRoute(
                   path: 'recipes',

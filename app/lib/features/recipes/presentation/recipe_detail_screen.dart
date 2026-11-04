@@ -6,8 +6,10 @@ import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
+import 'package:repforge/features/planning/presentation/plan_format.dart';
 import 'package:repforge/features/recipes/application/recipe_list_providers.dart';
 import 'package:repforge/features/recipes/application/recipe_providers.dart';
+import 'package:repforge/features/recipes/presentation/prep_batches_section.dart';
 import 'package:repforge/features/recipes/presentation/recipe_format.dart';
 import 'package:repforge/features/recipes/presentation/recipe_log_sheet.dart';
 import 'package:repforge/ui/components/rf_button.dart';
@@ -78,6 +80,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     final entry = await showRecipeLogSheet(context, r);
     if (!mounted || entry == null) return;
     _snack('Logged ${entry.quantity.label} of ${entry.name}');
+  }
+
+  Future<void> _recordBatch(Recipe r) async {
+    final batch = await showRecordBatchSheet(context, r);
+    if (!mounted || batch == null) return;
+    _snack('Recorded a batch of ${portionsLabel(batch.portionsMade)}');
   }
 
   Future<void> _saveScaled(Recipe scaled, {required bool asNew}) async {
@@ -227,6 +235,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           icon: Icons.add,
           onPressed: () => _log(base),
         ),
+        const SizedBox(height: RfSpace.s2),
+        RfButton(
+          key: const Key('record-batch'),
+          label: 'Record batch',
+          icon: Icons.kitchen_outlined,
+          variant: RfButtonVariant.secondary,
+          onPressed: () => _recordBatch(base),
+        ),
         const SizedBox(height: RfSpace.s3),
         RfCard(
           child: Column(
@@ -318,6 +334,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             ],
           ),
         ),
+        PrepBatchesSection(recipeId: base.id),
         if (base.ingredients.isNotEmpty) ...[
           const SizedBox(height: RfSpace.s3),
           _scaleCard(context, base, scaled, scaleError, scaleByWeightPossible),
