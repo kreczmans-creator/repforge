@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `ccr-ac6db77c-jcnexo`
-Status: **delivered for owner acceptance**; acceptance audit completed 2026-11-04 (see “Acceptance audit” below). Not accepted until the owner records a decision.
+Status: **accepted by the owner on 2026-11-04** at e83a67d (closure evidence b5a7aa7); B3–B7a remain tracked debt TD-27..31. No merge to `main` authorised by the acceptance.
 
 ## What was built
 - **Settings screen** (`/settings`, gear icon in the app bar): daily calorie, protein, carbohydrate, fat and fibre targets persisted as active goals (blank clears a target; validation per `validateTarget`); units (metric/imperial display), theme (dark default / light / system), effort scale (RPE/RIR), week start; a plain statement of the local-first storage posture (ADR-0005).
@@ -99,4 +99,4 @@ Verified true: ten review findings applied as described (atomic `replaceActive`,
 Local at e83a67d: 334 tests pass, analyzer and formatter clean, hand-written coverage 87.7 %.
 
 ### Closure status
-All five closure conditions are met at e83a67d: B1 and B2 tests added and green on the emulator and in CI; B7b atomic with regression coverage; B8 corrected; D06 amended and TD-27..31 recorded; CI, Android, iOS and integration green. Awaiting the owner's formal acceptance decision. Not merged to `main`.
+All five closure conditions are met at e83a67d: B1 and B2 tests added and green on the emulator and in CI; B7b atomic with regression coverage; B8 corrected; D06 amended and TD-27..31 recorded; CI, Android, iOS and integration green. **Formally accepted by the owner 2026-11-04** after independent verification of the four runs. Not merged to `main`.
