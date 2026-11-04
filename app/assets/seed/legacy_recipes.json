@@ -1,0 +1,794 @@
+{
+  "source": "legacy/android/app/src/main/java/com/tempest/repforge/MainActivity.kt defaultStarterRecipes() at aac5f15",
+  "formatVersion": 1,
+  "recipes": [
+    {
+      "id": "starter-chicken-burrito-001",
+      "name": "Smoky Chicken Burrito Wrap",
+      "category": "Lunch",
+      "description": "Batch-cooked chicken, rice, black beans, peppers and reduced-fat cheddar in a wholemeal tortilla.",
+      "portions": 8,
+      "perPortion": {
+        "kcal": 460.0,
+        "proteinG": 43.0,
+        "carbsG": 48.0,
+        "fatG": 11.0
+      },
+      "ingredientLines": [
+        "1 kg chicken breast",
+        "8 large wholemeal tortillas",
+        "400 g cooked rice",
+        "240 g drained black beans",
+        "2 red peppers",
+        "1 large red onion",
+        "120 g reduced-fat mature cheddar",
+        "2 tbsp tomato purée",
+        "1 tbsp olive oil",
+        "Juice of 1 lime",
+        "2 tsp smoked paprika",
+        "2 tsp ground cumin",
+        "1 tsp garlic granules",
+        "1 tsp onion granules",
+        "½ tsp chilli powder",
+        "½ tsp oregano",
+        "Salt, black pepper and optional fresh coriander"
+      ],
+      "methodSteps": [
+        "Dice the chicken and coat with the tomato purée, smoked paprika, cumin, garlic, onion granules, chilli, oregano, salt and pepper.",
+        "Heat half the oil in a large pan and cook the chicken until golden and cooked through.",
+        "Slice the peppers and onion. Cook in the remaining oil until softened but still slightly firm.",
+        "Stir in the drained black beans, cooked rice, chicken and lime juice.",
+        "Cool the filling promptly, then divide evenly between the 8 tortillas.",
+        "Add the cheddar and optional coriander. Fold tightly into burritos.",
+        "Optionally toast the sealed wraps briefly in a dry pan. Cool completely, wrap individually and freeze.",
+        "Reheat from frozen after removing foil, or defrost overnight in the fridge and reheat until piping hot throughout."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Approximate starting estimate per wrap: 460 kcal, 43 g protein, 48 g carbohydrate, 11 g fat. Actual values depend on tortilla size, cooked rice weight, chicken yield and cheese brand. Recalculate when exact products/weights are known."
+    },
+    {
+      "id": "starter-brisket-lasagne-001",
+      "name": "Slow-Braised Brisket & Pork Lasagne",
+      "category": "Dinner",
+      "description": "Long-braised shredded beef brisket and pork mince ragù layered with Parmesan béchamel, pasta and mozzarella.",
+      "portions": 10,
+      "perPortion": {
+        "kcal": 600.0,
+        "proteinG": 44.0,
+        "carbsG": 50.0,
+        "fatG": 25.0
+      },
+      "ingredientLines": [
+        "1–1.2 kg beef brisket",
+        "400 g pork mince",
+        "2 onions",
+        "2 carrots",
+        "2 celery sticks",
+        "4 garlic cloves",
+        "2 tbsp tomato purée",
+        "2 × 400 g tins chopped tomatoes",
+        "300 ml beef stock",
+        "150 ml red wine",
+        "1 tbsp Worcestershire sauce",
+        "2 tsp dried oregano",
+        "2 bay leaves, rosemary and thyme",
+        "Salt, black pepper and olive oil",
+        "70 g butter",
+        "70 g plain flour",
+        "800 ml whole milk",
+        "60 g Parmesan, plus extra for topping",
+        "Lasagne sheets",
+        "150 g mozzarella",
+        "Pinch of nutmeg"
+      ],
+      "methodSteps": [
+        "Season the brisket generously. Sear in a hot pan with a little oil until deeply browned on all sides; set aside.",
+        "In the same pan, brown the pork mince. Add finely diced onion, carrot and celery and cook for 8–10 minutes.",
+        "Add garlic and tomato purée; cook for 2 minutes. Deglaze with red wine, scraping up the browned fond.",
+        "Transfer to the slow cooker. Add tomatoes, stock, Worcestershire sauce, oregano, bay leaves and herbs. Nestle in the brisket.",
+        "Cook on LOW for approximately 8–9 hours, until the brisket pulls apart easily. Check doneness rather than relying on time alone.",
+        "Remove brisket, shred it and discard large pieces of connective tissue or excess fat. Remove bay leaves and herb stalks; return shredded beef to the sauce.",
+        "If the ragù is loose, reduce it uncovered in a saucepan until thick. Cool promptly if not assembling immediately.",
+        "For the béchamel, melt butter, stir in flour and cook for 2 minutes. Gradually whisk in milk; simmer until thick. Add Parmesan, nutmeg, salt and white pepper.",
+        "Layer ragù, lasagne sheets and béchamel. Repeat, finishing with béchamel, mozzarella and extra Parmesan.",
+        "Bake at 180°C fan for approximately 40–45 minutes until golden and bubbling. Rest for 20 minutes before portioning.",
+        "For meal prep, cool promptly, divide into 10 portions and refrigerate or freeze. Reheat until piping hot throughout."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Approximate planning estimate per 1/10 batch: 600 kcal, 44 g protein, 50 g carbohydrate, 25 g fat. This is provisional: brisket trim, pork mince fat %, pasta quantity, cheese and final cooked yield will materially change the result. Recalculate from actual ingredient labels and weights."
+    },
+    {
+      "id": "starter-korean-sticky-beef-001",
+      "name": "Korean Sticky Beef Bowls",
+      "category": "Dinner",
+      "description": "Korean-inspired beef mince with gochujang, broccoli, edamame and jasmine rice.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 520.0,
+        "proteinG": 46.0,
+        "carbsG": 58.0,
+        "fatG": 12.0
+      },
+      "ingredientLines": [
+        "600 g 5% beef mince",
+        "240 g jasmine rice (dry)",
+        "200 g shelled edamame",
+        "300 g broccoli",
+        "30 g gochujang",
+        "30 ml reduced-salt soy sauce",
+        "20 g honey",
+        "2 garlic cloves, 20 g fresh ginger",
+        "5 ml sesame oil",
+        "Spring onions and sesame seeds"
+      ],
+      "methodSteps": [
+        "Cook the rice according to the packet instructions.",
+        "Brown the beef mince in a large non-stick pan, breaking it up as it cooks.",
+        "Add garlic and ginger; cook for 1 minute.",
+        "Mix gochujang, soy sauce and honey with 2 tbsp water. Add to the beef and simmer until glossy.",
+        "Steam broccoli and edamame until tender.",
+        "Divide rice, beef and vegetables between four containers. Finish with spring onion and sesame.",
+        "Refrigerate promptly; freeze the beef and rice portions if keeping longer. Reheat until piping hot."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-turkey-kofta-001",
+      "name": "Mediterranean Turkey Kofta Bowls",
+      "category": "Dinner",
+      "description": "Herby turkey koftas with wholewheat couscous, chopped salad, feta and lemon yoghurt.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 520.0,
+        "proteinG": 48.0,
+        "carbsG": 48.0,
+        "fatG": 14.0
+      },
+      "ingredientLines": [
+        "600 g lean turkey mince",
+        "200 g wholewheat couscous (dry)",
+        "150 g 0% Greek yoghurt",
+        "100 g reduced-fat feta",
+        "250 g tomatoes",
+        "½ cucumber",
+        "½ red onion",
+        "1 lemon",
+        "2 tsp cumin, 1 tsp ground coriander, 1 tsp paprika",
+        "Dried oregano, garlic and parsley"
+      ],
+      "methodSteps": [
+        "Heat the oven to 200°C fan.",
+        "Mix turkey with cumin, coriander, paprika, oregano, crushed garlic, parsley, salt and pepper.",
+        "Shape into 12 small koftas and place on a lined tray. Bake for 18–22 minutes until cooked through.",
+        "Prepare couscous with boiling water according to the packet.",
+        "Chop tomatoes, cucumber and onion. Mix yoghurt with lemon juice and garlic.",
+        "Divide couscous, koftas and salad between four bowls. Add feta and lemon yoghurt.",
+        "Keep salad and yoghurt separate for best meal-prep texture."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-thai-green-chicken-001",
+      "name": "Thai Green Curry Chicken",
+      "category": "Dinner",
+      "description": "Chicken breast simmered in green curry and light coconut milk with crisp vegetables and jasmine rice.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 550.0,
+        "proteinG": 48.0,
+        "carbsG": 62.0,
+        "fatG": 12.0
+      },
+      "ingredientLines": [
+        "700 g chicken breast",
+        "240 g jasmine rice (dry)",
+        "100 g Thai green curry paste",
+        "400 ml light coconut milk",
+        "300 g green beans",
+        "2 peppers",
+        "1 tbsp fish sauce",
+        "1 lime",
+        "Fresh basil"
+      ],
+      "methodSteps": [
+        "Cook rice separately.",
+        "Dice chicken. Heat a large pan and brown chicken in batches.",
+        "Add curry paste and cook for 1 minute until fragrant.",
+        "Pour in coconut milk and simmer gently until chicken is cooked through.",
+        "Add sliced peppers and green beans for the final 6–8 minutes.",
+        "Season with fish sauce and lime juice; finish with basil.",
+        "Cool promptly. Freeze curry separately from rice for best texture; reheat until piping hot."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-pork-carnitas-001",
+      "name": "Mexican Pork Carnitas Bowls",
+      "category": "Dinner",
+      "description": "Citrus, cumin and chipotle pulled pork with rice, black beans, corn and fresh salsa.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 550.0,
+        "proteinG": 45.0,
+        "carbsG": 60.0,
+        "fatG": 13.0
+      },
+      "ingredientLines": [
+        "700 g lean pork loin or trimmed pork shoulder",
+        "200 g rice (dry)",
+        "1 × 400 g tin black beans, drained",
+        "150 g sweetcorn",
+        "2 oranges",
+        "2 limes",
+        "2 tsp cumin, 2 tsp smoked paprika, 1 tsp oregano",
+        "2 garlic cloves",
+        "Chipotle paste to taste",
+        "Tomato, red onion and coriander for salsa"
+      ],
+      "methodSteps": [
+        "Put pork in a slow cooker with orange juice, lime juice, garlic, cumin, paprika, oregano and chipotle.",
+        "Cook on LOW for 6–8 hours (loin may cook sooner; shoulder generally needs longer) until tender and safely cooked.",
+        "Shred the pork and reduce the cooking liquid in a pan to make a glaze.",
+        "Cook rice. Warm beans and corn.",
+        "Make a fresh salsa from chopped tomato, red onion, coriander and lime.",
+        "Divide rice, pork, beans and corn into four portions. Add salsa when serving.",
+        "Freeze pork, rice and beans; add fresh salsa after reheating."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-harissa-chicken-001",
+      "name": "Moroccan Harissa Chicken & Pearl Couscous",
+      "category": "Dinner",
+      "description": "Harissa-spiced chicken with chickpeas, roasted vegetables, pearl couscous and cooling yoghurt.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 530.0,
+        "proteinG": 50.0,
+        "carbsG": 55.0,
+        "fatG": 10.0
+      },
+      "ingredientLines": [
+        "700 g chicken breast",
+        "200 g pearl couscous (dry)",
+        "1 × 400 g tin chickpeas, drained",
+        "2 courgettes",
+        "1 aubergine",
+        "1 red onion",
+        "40 g harissa paste",
+        "150 g 0% Greek yoghurt",
+        "1 lemon",
+        "Cumin, cinnamon and garlic"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan. Chop courgette, aubergine and onion; toss with half the harissa and roast for 25–30 minutes.",
+        "Coat chicken with remaining harissa, cumin, garlic and lemon zest.",
+        "Roast chicken on a separate tray until cooked through, then rest and slice.",
+        "Cook pearl couscous according to packet instructions. Stir through drained chickpeas and lemon juice.",
+        "Mix yoghurt with lemon juice and a pinch of salt.",
+        "Divide couscous, vegetables and chicken between four portions. Serve with yoghurt.",
+        "Cool promptly and freeze without the yoghurt garnish."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-cajun-salmon-001",
+      "name": "Cajun Salmon & Sweet Potato",
+      "category": "Dinner",
+      "description": "Cajun-seasoned salmon with roasted sweet potato, broccoli and lemon-garlic yoghurt.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 550.0,
+        "proteinG": 43.0,
+        "carbsG": 48.0,
+        "fatG": 21.0
+      },
+      "ingredientLines": [
+        "600 g salmon fillets",
+        "800 g sweet potato",
+        "400 g broccoli",
+        "150 g 0% Greek yoghurt",
+        "Cajun seasoning",
+        "1 lemon",
+        "1 garlic clove",
+        "1 tsp olive oil"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan. Cube sweet potato, toss with olive oil and roast for 25–30 minutes.",
+        "Season salmon with Cajun seasoning and bake for 12–15 minutes, depending on thickness, until just cooked.",
+        "Steam broccoli until tender.",
+        "Mix yoghurt with lemon juice, grated garlic and black pepper.",
+        "Divide salmon, sweet potato and broccoli between four plates or containers.",
+        "Keep yoghurt dressing separate. Refrigerate cooked salmon promptly and use within 1–2 days; freezing is possible but may soften its texture."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-chicken-meatball-orzo-001",
+      "name": "Italian Chicken Meatball Orzo",
+      "category": "Dinner",
+      "description": "Lean chicken meatballs simmered with tomato, spinach and orzo, finished with Parmesan.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 540.0,
+        "proteinG": 49.0,
+        "carbsG": 58.0,
+        "fatG": 12.0
+      },
+      "ingredientLines": [
+        "600 g lean chicken mince",
+        "240 g orzo (dry)",
+        "1 egg",
+        "1 × 400 g tin chopped tomatoes",
+        "500 ml chicken stock",
+        "150 g spinach",
+        "40 g Parmesan",
+        "2 garlic cloves",
+        "Dried basil and oregano"
+      ],
+      "methodSteps": [
+        "Mix chicken mince with egg, half the garlic, basil, oregano, salt and pepper. Shape into 16 meatballs.",
+        "Brown meatballs in a large deep pan; remove temporarily.",
+        "Add remaining garlic and chopped tomatoes. Pour in stock and bring to a simmer.",
+        "Stir in orzo and return meatballs to the pan. Simmer, stirring regularly, until orzo is tender and meatballs are cooked through; add water if needed.",
+        "Fold in spinach and Parmesan.",
+        "Divide into four portions. This thickens as it stands; loosen with a splash of water when reheating."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-teriyaki-prawn-001",
+      "name": "Japanese Teriyaki Prawn Noodles",
+      "category": "Dinner",
+      "description": "King prawns and udon noodles tossed with edamame, pak choi and a ginger-teriyaki glaze.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 490.0,
+        "proteinG": 43.0,
+        "carbsG": 62.0,
+        "fatG": 7.0
+      },
+      "ingredientLines": [
+        "600 g raw king prawns, peeled",
+        "600 g fresh udon noodles",
+        "200 g shelled edamame",
+        "2 pak choi",
+        "2 carrots",
+        "50 ml reduced-salt soy sauce",
+        "30 ml mirin",
+        "20 g honey",
+        "2 garlic cloves and 20 g ginger",
+        "Lime juice"
+      ],
+      "methodSteps": [
+        "Mix soy sauce, mirin, honey, grated ginger, garlic and a squeeze of lime.",
+        "Stir-fry sliced carrots and pak choi in a large hot pan.",
+        "Add prawns and cook until pink and opaque.",
+        "Add edamame, udon noodles and sauce. Toss until hot and evenly coated.",
+        "Divide into four portions.",
+        "Refrigerate promptly and use within 1–2 days. Reheat thoroughly only once; prawns can become tough if overcooked."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-greek-stuffed-peppers-001",
+      "name": "Greek Beef Stuffed Peppers",
+      "category": "Dinner",
+      "description": "Lean beef, rice, tomato, spinach and oregano baked in peppers with a little feta.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 500.0,
+        "proteinG": 44.0,
+        "carbsG": 48.0,
+        "fatG": 14.0
+      },
+      "ingredientLines": [
+        "600 g 5% beef mince",
+        "160 g rice (dry)",
+        "4 large peppers",
+        "1 × 400 g tin chopped tomatoes",
+        "80 g reduced-fat feta",
+        "100 g spinach",
+        "1 onion",
+        "2 garlic cloves",
+        "Oregano, cinnamon, lemon and parsley"
+      ],
+      "methodSteps": [
+        "Heat oven to 190°C fan. Halve peppers lengthways and remove seeds.",
+        "Cook rice until just tender.",
+        "Brown beef with chopped onion and garlic. Add tomatoes, oregano and a small pinch of cinnamon; simmer for 10 minutes.",
+        "Stir in spinach and cooked rice.",
+        "Fill pepper halves, top with crumbled feta and bake for 25–30 minutes until peppers are tender and filling is piping hot.",
+        "Cool promptly and portion. Refrigerate or freeze."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-lighter-butter-chicken-001",
+      "name": "Lighter Indian Butter Chicken",
+      "category": "Dinner",
+      "description": "Yoghurt-marinated chicken in a gently spiced tomato, butter and light-cream sauce with spinach.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 550.0,
+        "proteinG": 50.0,
+        "carbsG": 55.0,
+        "fatG": 14.0
+      },
+      "ingredientLines": [
+        "700 g chicken breast",
+        "200 g basmati rice (dry)",
+        "1 × 400 g tin chopped tomatoes",
+        "150 g 0% Greek yoghurt",
+        "20 g butter",
+        "50 ml reduced-fat single cream",
+        "100 g spinach",
+        "Garam masala, cumin, paprika and dried fenugreek",
+        "Ginger and garlic"
+      ],
+      "methodSteps": [
+        "Coat chicken pieces in yoghurt, garam masala, cumin, paprika, garlic and ginger. Marinate for at least 30 minutes if time allows.",
+        "Brown chicken in a non-stick pan; remove.",
+        "Melt butter, add a little garlic and ginger, then tomatoes and fenugreek. Simmer for 10 minutes; blend if a smooth sauce is preferred.",
+        "Return chicken and simmer until cooked through.",
+        "Stir in cream and spinach. Adjust seasoning.",
+        "Cook rice separately and divide into four portions with the curry.",
+        "Freeze curry and rice in separate portions."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-sausage-egg-wraps-001",
+      "name": "Sausage, Egg & Cheese Breakfast Wraps",
+      "category": "Breakfast",
+      "description": "Freezer-friendly wholemeal breakfast burritos with lean turkey sausage, eggs, egg whites, potato, spinach and cheddar.",
+      "portions": 8,
+      "perPortion": {
+        "kcal": 430.0,
+        "proteinG": 38.0,
+        "carbsG": 37.0,
+        "fatG": 14.0
+      },
+      "ingredientLines": [
+        "8 wholemeal tortillas",
+        "400 g lean turkey sausages, casings removed",
+        "8 eggs",
+        "400 g liquid egg whites",
+        "100 g reduced-fat cheddar",
+        "200 g cottage cheese",
+        "300 g potatoes",
+        "100 g spinach",
+        "Spring onions and black pepper",
+        "1 tsp olive oil"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan. Dice potatoes into small cubes, toss with a little oil and roast for 20–25 minutes until golden and tender.",
+        "Remove sausage meat from casings if needed. Brown in a large non-stick pan, breaking it into small pieces.",
+        "Whisk eggs and egg whites. Scramble gently in a large pan until just set.",
+        "Fold cottage cheese, spinach and sliced spring onions through the eggs. Season with black pepper.",
+        "Divide sausage, egg mixture and roasted potato evenly between eight tortillas. Add cheddar.",
+        "Fold tightly into burritos. Toast seam-side down in a dry pan if desired.",
+        "Cool promptly, wrap individually and freeze. Defrost overnight in the fridge and reheat until piping hot, or reheat from frozen using a suitable microwave/oven method."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per wrap: 430 kcal, 38 g protein, 37 g carbohydrate, 14 g fat. Sausage, tortilla and cheese brands will materially affect the final macros; verify using product labels."
+    },
+    {
+      "id": "starter-berry-cheesecake-oats-001",
+      "name": "Berry Cheesecake Overnight Oats",
+      "category": "Breakfast",
+      "description": "Creamy high-protein oats with Greek yoghurt, vanilla whey, chia and mixed berries.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 400.0,
+        "proteinG": 35.0,
+        "carbsG": 48.0,
+        "fatG": 8.0
+      },
+      "ingredientLines": [
+        "160 g rolled oats",
+        "400 g 0% Greek yoghurt",
+        "400 ml semi-skimmed milk",
+        "80 g vanilla whey protein",
+        "200 g mixed berries",
+        "20 g chia seeds",
+        "Vanilla extract and lemon zest"
+      ],
+      "methodSteps": [
+        "Whisk yoghurt, milk, whey and vanilla until smooth.",
+        "Stir in oats and chia seeds.",
+        "Divide between four lidded jars.",
+        "Top with berries and a little lemon zest.",
+        "Refrigerate overnight (at least 6 hours).",
+        "Stir before eating; add a splash of milk if too thick. Keep refrigerated and consume within 3 days."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-choc-peanut-oats-001",
+      "name": "Chocolate Peanut Butter Overnight Oats",
+      "category": "Breakfast",
+      "description": "Chocolate protein oats with peanut butter and banana for a filling make-ahead breakfast.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 440.0,
+        "proteinG": 36.0,
+        "carbsG": 53.0,
+        "fatG": 12.0
+      },
+      "ingredientLines": [
+        "160 g rolled oats",
+        "400 g 0% Greek yoghurt",
+        "400 ml semi-skimmed milk",
+        "80 g chocolate whey protein",
+        "40 g peanut butter",
+        "2 medium bananas",
+        "10 g cocoa powder"
+      ],
+      "methodSteps": [
+        "Mix yoghurt, milk, whey and cocoa until smooth.",
+        "Stir in oats and divide between four jars.",
+        "Refrigerate overnight.",
+        "Before serving, top each jar with half a sliced banana and 10 g peanut butter.",
+        "For best texture, add banana on the morning of eating.",
+        "Keep refrigerated and consume within 3 days."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-apple-cinnamon-baked-oats-001",
+      "name": "Apple & Cinnamon Protein Baked Oats",
+      "category": "Breakfast",
+      "description": "Soft baked oatmeal squares with apple, cinnamon, Greek yoghurt and vanilla protein.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 390.0,
+        "proteinG": 32.0,
+        "carbsG": 48.0,
+        "fatG": 8.0
+      },
+      "ingredientLines": [
+        "200 g rolled oats",
+        "2 eggs",
+        "300 g 0% Greek yoghurt",
+        "60 g vanilla whey protein",
+        "2 medium apples, diced",
+        "200 ml semi-skimmed milk",
+        "1 tsp baking powder",
+        "Cinnamon and vanilla extract"
+      ],
+      "methodSteps": [
+        "Heat oven to 180°C fan and line a small baking dish.",
+        "Mix oats, eggs, yoghurt, whey, milk, baking powder, cinnamon and vanilla.",
+        "Fold through diced apple, reserving a little for the top.",
+        "Pour into the dish and bake for 30–35 minutes until set.",
+        "Cool fully and cut into four squares.",
+        "Refrigerate for up to 3 days or freeze individually. Reheat or eat cold."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-turkey-bacon-egg-muffins-001",
+      "name": "Turkey Bacon & Vegetable Egg Muffins",
+      "category": "Breakfast",
+      "description": "Portable baked egg muffins with turkey bacon, spinach, peppers, cottage cheese and cheddar.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 330.0,
+        "proteinG": 35.0,
+        "carbsG": 8.0,
+        "fatG": 17.0
+      },
+      "ingredientLines": [
+        "8 eggs",
+        "300 g liquid egg whites",
+        "200 g lean turkey bacon",
+        "100 g reduced-fat cheddar",
+        "1 pepper",
+        "100 g spinach",
+        "100 g cottage cheese",
+        "Spring onions and black pepper"
+      ],
+      "methodSteps": [
+        "Heat oven to 180°C fan. Lightly oil a 12-hole muffin tin.",
+        "Cook turkey bacon in a pan and chop into small pieces.",
+        "Whisk eggs, egg whites and cottage cheese. Stir in chopped pepper, spinach, spring onion and bacon.",
+        "Divide between 12 muffin holes and sprinkle with cheddar.",
+        "Bake for 18–22 minutes until fully set.",
+        "Three muffins make one of four portions. Refrigerate up to 3 days or freeze once cooled."
+      ],
+      "legacyFreezerFriendly": true,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-lemongrass-chicken-001",
+      "name": "Vietnamese Lemongrass Chicken Bowls",
+      "category": "Dinner",
+      "description": "Fragrant lemongrass chicken with jasmine rice, edamame, crunchy vegetables, mint and coriander.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 510.0,
+        "proteinG": 49.0,
+        "carbsG": 55.0,
+        "fatG": 9.0
+      },
+      "ingredientLines": [
+        "700 g chicken breast",
+        "200 g jasmine rice (dry)",
+        "2 lemongrass stalks, finely chopped",
+        "150 g shelled edamame",
+        "2 carrots",
+        "½ cucumber",
+        "30 ml fish sauce",
+        "20 g honey",
+        "2 garlic cloves",
+        "20 g ginger",
+        "2 limes",
+        "Mint and coriander"
+      ],
+      "methodSteps": [
+        "Pound or finely chop the tender inner lemongrass. Mix with fish sauce, honey, garlic, ginger and lime juice.",
+        "Slice chicken and marinate for at least 20 minutes.",
+        "Cook rice. Stir-fry or grill chicken until cooked through and lightly caramelised.",
+        "Cook edamame. Julienne carrots and cucumber.",
+        "Divide rice, chicken and edamame between four bowls. Add vegetables and herbs.",
+        "Store crunchy vegetables separately and add after reheating."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-pork-souvlaki-001",
+      "name": "Greek Pork Souvlaki Bowls",
+      "category": "Dinner",
+      "description": "Lemon-oregano pork with roasted potato wedges, Greek salad and homemade tzatziki.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 530.0,
+        "proteinG": 47.0,
+        "carbsG": 48.0,
+        "fatG": 16.0
+      },
+      "ingredientLines": [
+        "700 g lean pork loin",
+        "800 g potatoes",
+        "200 g 0% Greek yoghurt",
+        "½ cucumber",
+        "200 g tomatoes",
+        "½ red onion",
+        "1 lemon",
+        "2 tsp dried oregano",
+        "2 garlic cloves",
+        "1 tsp smoked paprika"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan. Cut potatoes into wedges, season and roast for 30–35 minutes, turning once.",
+        "Dice pork. Toss with lemon juice, oregano, paprika, garlic, salt and pepper.",
+        "Grill or pan-fry pork until browned and cooked through; rest briefly.",
+        "Grate cucumber, squeeze out excess liquid and mix with yoghurt, garlic and lemon to make tzatziki.",
+        "Serve pork with potatoes, chopped tomato, onion and tzatziki.",
+        "Keep tzatziki and salad separate from hot components for meal prep."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-tandoori-salmon-001",
+      "name": "Tandoori Salmon Bowls",
+      "category": "Dinner",
+      "description": "Yoghurt-marinated tandoori salmon with basmati rice, cucumber, tomatoes and mint yoghurt.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 550.0,
+        "proteinG": 43.0,
+        "carbsG": 48.0,
+        "fatG": 20.0
+      },
+      "ingredientLines": [
+        "600 g salmon fillets",
+        "200 g basmati rice (dry)",
+        "200 g 0% Greek yoghurt",
+        "1 cucumber",
+        "200 g cherry tomatoes",
+        "1 lemon",
+        "Tandoori spice blend",
+        "1 garlic clove",
+        "Fresh ginger and mint"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan.",
+        "Mix half the yoghurt with tandoori seasoning, grated garlic, ginger and lemon zest. Coat salmon and marinate for 15–30 minutes.",
+        "Bake salmon for 12–15 minutes, depending on thickness, until cooked to preference.",
+        "Cook basmati rice. Mix remaining yoghurt with chopped mint and lemon juice.",
+        "Serve salmon with rice, cucumber and tomatoes; add mint yoghurt.",
+        "Keep yoghurt and salad separate. Refrigerate promptly; freezing cooked salmon may soften its texture."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-moroccan-lamb-kofta-001",
+      "name": "Moroccan Lamb Kofta Bowls",
+      "category": "Dinner",
+      "description": "Spiced lamb koftas with couscous, roasted vegetables, yoghurt and a small hummus portion.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 560.0,
+        "proteinG": 44.0,
+        "carbsG": 48.0,
+        "fatG": 20.0
+      },
+      "ingredientLines": [
+        "600 g lean lamb mince",
+        "200 g couscous (dry)",
+        "200 g 0% Greek yoghurt",
+        "40 g hummus",
+        "1 red pepper",
+        "1 courgette",
+        "1 red onion",
+        "Cumin, ground coriander, cinnamon and paprika",
+        "2 garlic cloves",
+        "Parsley and lemon"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan. Chop pepper, courgette and onion; roast until tender.",
+        "Mix lamb with cumin, coriander, cinnamon, paprika, garlic and parsley.",
+        "Shape into 12 koftas and bake or grill until cooked through.",
+        "Prepare couscous according to packet instructions and fluff with lemon juice.",
+        "Divide couscous, vegetables and koftas between four bowls.",
+        "Serve with yoghurt and 10 g hummus per portion. Keep yoghurt separate for meal prep."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-chicken-katsu-001",
+      "name": "Lighter Chicken Katsu Curry",
+      "category": "Dinner",
+      "description": "Oven-crisp panko chicken with a Japanese-style carrot and onion curry sauce and rice.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 560.0,
+        "proteinG": 48.0,
+        "carbsG": 65.0,
+        "fatG": 10.0
+      },
+      "ingredientLines": [
+        "700 g chicken breast",
+        "200 g basmati rice (dry)",
+        "60 g panko breadcrumbs",
+        "1 egg",
+        "1 onion",
+        "2 carrots",
+        "500 ml chicken stock",
+        "30 g Japanese curry roux",
+        "10 g cornflour",
+        "Garlic and ginger"
+      ],
+      "methodSteps": [
+        "Heat oven to 200°C fan. Slice chicken breasts horizontally into even fillets.",
+        "Dip chicken in beaten egg, then coat in panko. Place on a wire rack over a tray and bake until golden and the thickest part reaches 75°C.",
+        "Cook rice separately.",
+        "Simmer finely chopped onion and grated carrot in chicken stock until soft.",
+        "Stir in curry roux until dissolved. Mix cornflour with cold water and add gradually to reach a coating consistency.",
+        "Slice chicken and serve over rice with curry sauce.",
+        "Keep chicken separate from sauce for best crispness; reheat chicken in an oven or air fryer."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    }
+  ]
+}
