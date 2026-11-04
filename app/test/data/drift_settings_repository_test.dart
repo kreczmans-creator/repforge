@@ -2,6 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
@@ -127,6 +130,79 @@ void main() {
       final t = await repo.read();
       expect(t.dayStartHour, 0);
       expect(t.weekStartDay, 1);
+    });
+
+    group('meal labels (NUT-011)', () {
+      MealLabels labels(String snack, [List<MealSlot>? order]) =>
+          (MealLabels.create(
+            labels: {
+              MealSlot.breakfast: 'Breakfast',
+              MealSlot.lunch: 'Lunch',
+              MealSlot.dinner: 'Dinner',
+              MealSlot.snack: snack,
+            },
+            order: order ?? MealSlot.values,
+          ) as Ok<MealLabels>).value;
+
+      test('defaults before anything is saved', () async {
+        expect(await repo.readMealLabels(), MealLabels.defaults);
+        expect(await repo.watchMealLabels().first, MealLabels.defaults);
+      });
+
+      test('save then read and watch round-trip, order included', () async {
+        final saved = labels('Pre-workout', [
+          MealSlot.snack,
+          MealSlot.breakfast,
+          MealSlot.lunch,
+          MealSlot.dinner,
+        ]);
+        final emitted = <MealLabels>[];
+        final sub = repo.watchMealLabels().listen(emitted.add);
+        await pumpEventQueue();
+        await repo.saveMealLabels(saved);
+        await pumpEventQueue();
+        await sub.cancel();
+        expect(await repo.readMealLabels(), saved);
+        expect(emitted.first, MealLabels.defaults);
+        expect(emitted.last, saved);
+      });
+
+      test('other settings changes do not re-emit the labels', () async {
+        final emitted = <MealLabels>[];
+        final sub = repo.watchMealLabels().listen(emitted.add);
+        await pumpEventQueue();
+        await repo.save(const AppSettings(dayStartHour: 4));
+        await pumpEventQueue();
+        await sub.cancel();
+        expect(emitted, hasLength(1));
+      });
+
+      test('saving app settings keeps the labels', () async {
+        final saved = labels('Pre-workout');
+        await repo.saveMealLabels(saved);
+        await repo.save(const AppSettings(dayStartHour: 4));
+        expect(await repo.readMealLabels(), saved);
+      });
+
+      test('corrupt stored labels fall back to the defaults', () async {
+        for (final raw in [
+          'not json',
+          '[]',
+          '{"order":["breakfast"],"labels":{}}',
+          '{"order":["breakfast","lunch","dinner","nope"],"labels":{}}',
+        ]) {
+          await putRaw('mealLabels', raw);
+          expect(await repo.readMealLabels(), MealLabels.defaults, reason: raw);
+        }
+      });
+    });
+
+    test('seed recipes version defaults to 0 and persists', () async {
+      expect(await repo.readSeedRecipesVersion(), 0);
+      await repo.saveSeedRecipesVersion(1);
+      expect(await repo.readSeedRecipesVersion(), 1);
+      await putRaw('seedRecipesVersion', 'junk');
+      expect(await repo.readSeedRecipesVersion(), 0);
     });
   });
 }

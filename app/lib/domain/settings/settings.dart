@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 
@@ -27,4 +28,13 @@ abstract interface class SettingsRepository {
   Stream<AppSettings> watch();
   Future<AppSettings> read();
   Future<void> save(AppSettings settings);
+
+  /// Live meal names and order (NUT-011); [MealLabels.defaults] until saved.
+  Stream<MealLabels> watchMealLabels();
+  Future<MealLabels> readMealLabels();
+  Future<void> saveMealLabels(MealLabels labels);
+
+  /// Version of the bundled seed recipes already imported (0 = none yet).
+  Future<int> readSeedRecipesVersion();
+  Future<void> saveSeedRecipesVersion(int version);
 }

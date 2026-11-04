@@ -1,5 +1,6 @@
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
@@ -17,6 +18,8 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _exertion = 'exertionScale';
   static const _dayStart = 'dayStartHour';
   static const _weekStart = 'weekStartDay';
+  static const _mealLabels = 'mealLabels';
+  static const _seedRecipesVersion = 'seedRecipesVersion';
 
   @override
   Stream<AppSettings> watch() =>
@@ -50,6 +53,46 @@ final class DriftSettingsRepository implements SettingsRepository {
       }
     });
   }
+
+  Future<String?> _readValue(String key) async {
+    final row = await (_db.select(
+      _db.settings,
+    )..where((t) => t.key.equals(key))).getSingleOrNull();
+    return row?.value;
+  }
+
+  Future<void> _writeValue(String key, String value) => _db
+      .into(_db.settings)
+      .insertOnConflictUpdate(
+        SettingsCompanion.insert(
+          key: key,
+          value: value,
+          updatedAt: _clock.now().toUtc(),
+        ),
+      );
+
+  @override
+  Stream<MealLabels> watchMealLabels() =>
+      (_db.select(_db.settings)..where((t) => t.key.equals(_mealLabels)))
+          .watchSingleOrNull()
+          .map((row) => MealLabels.fromJson(row?.value))
+          .distinct();
+
+  @override
+  Future<MealLabels> readMealLabels() async =>
+      MealLabels.fromJson(await _readValue(_mealLabels));
+
+  @override
+  Future<void> saveMealLabels(MealLabels labels) =>
+      _writeValue(_mealLabels, labels.toJson());
+
+  @override
+  Future<int> readSeedRecipesVersion() async =>
+      int.tryParse(await _readValue(_seedRecipesVersion) ?? '') ?? 0;
+
+  @override
+  Future<void> saveSeedRecipesVersion(int version) =>
+      _writeValue(_seedRecipesVersion, version.toString());
 
   static AppSettings _fromRows(List<SettingRow> rows) {
     final map = {for (final r in rows) r.key: r.value};

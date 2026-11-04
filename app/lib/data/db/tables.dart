@@ -127,27 +127,37 @@ class SavedMealItems extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-/// Recipes (RCP). Method steps are stored as a JSON array of strings.
+/// Recipes (RCP). Step lists and ingredient notes are JSON arrays of
+/// strings. Schema v5: `portions` is a real number (weight-derived portion
+/// counts are fractional), preparation and cooking steps are separate lists
+/// (`method_steps_json` became `cook_steps_json`), `freezing` replaces the
+/// boolean `freezer_friendly`, and total and portion weight are stored.
 @DataClassName('RecipeRow')
 class Recipes extends Table with SyncColumns {
   TextColumn get name => text()();
   TextColumn get category => text()();
   TextColumn get description => text().withDefault(const Constant(''))();
-  IntColumn get portions => integer()();
+  RealColumn get portions => real()();
   IntColumn get prepMinutes => integer().nullable()();
   IntColumn get cookMinutes => integer().nullable()();
   TextColumn get storage => text().nullable()();
-  BoolColumn get freezerFriendly =>
-      boolean().withDefault(const Constant(false))();
+
+  /// `FreezingSuitability` enum name: yes | no | unknown (default).
+  TextColumn get freezing => text().withDefault(const Constant('unknown'))();
   TextColumn get reheating => text().nullable()();
   BoolColumn get favourite => boolean().withDefault(const Constant(false))();
-  TextColumn get methodStepsJson => text()();
+  TextColumn get prepStepsJson => text().withDefault(const Constant('[]'))();
+  TextColumn get cookStepsJson => text().withDefault(const Constant('[]'))();
+  RealColumn get totalWeightG => real().nullable()();
+  RealColumn get portionWeightG => real().nullable()();
   RealColumn get declaredKcal => real().nullable()();
   RealColumn get declaredProteinG => real().nullable()();
   RealColumn get declaredCarbsG => real().nullable()();
   RealColumn get declaredFatG => real().nullable()();
   RealColumn get declaredFibreG => real().nullable()();
   TextColumn get nutritionNote => text().nullable()();
+  TextColumn get ingredientNotesJson =>
+      text().withDefault(const Constant('[]'))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -156,7 +166,9 @@ class Recipes extends Table with SyncColumns {
 /// Ingredient lines with an optional per-100 nutrient snapshot. The snapshot
 /// is always per 100 of the line's own `unit`; a food measured in a different
 /// reference unit is not calculable for that line (domain rule) and is stored
-/// without a snapshot.
+/// without a snapshot. `amount` and `unit` are the canonical g or ml quantity;
+/// `serving_label` and `serving_count` (schema v5) only record how it was
+/// entered.
 @DataClassName('RecipeIngredientRow')
 @TableIndex(name: 'idx_recipe_ingredients_recipe', columns: {#recipeId})
 class RecipeIngredients extends Table {
@@ -175,6 +187,74 @@ class RecipeIngredients extends Table {
   RealColumn get fatG => real().nullable()();
   RealColumn get fibreG => real().nullable()();
   TextColumn get provenance => text().nullable()();
+  TextColumn get servingLabel => text().nullable()();
+  RealColumn get servingCount => real().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Alternative foods for a recipe ingredient (RCP-010, schema v5). Nutrients
+/// are per 100 of `unit`, the unit of `amount`.
+@DataClassName('RecipeSubstituteRow')
+@TableIndex(
+  name: 'idx_recipe_substitutes_ingredient',
+  columns: {#recipeIngredientId},
+)
+class RecipeSubstitutes extends Table {
+  TextColumn get id => text()();
+  TextColumn get recipeIngredientId =>
+      text().references(RecipeIngredients, #id, onDelete: KeyAction.cascade)();
+  IntColumn get sortOrder => integer()();
+  TextColumn get name => text()();
+  TextColumn get foodId => text().nullable()();
+  RealColumn get amount => real()();
+  TextColumn get unit => text()();
+  RealColumn get kcal => real()();
+  RealColumn get proteinG => real().nullable()();
+  RealColumn get carbsG => real().nullable()();
+  RealColumn get fatG => real().nullable()();
+  RealColumn get fibreG => real().nullable()();
+  TextColumn get provenance => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Meal-plan items (RCP-014, schema v5; used from WP 7 stage 3). `day` is
+/// `YYYY-MM-DD`, `meal` a `MealSlot` name, `kind` recipe | food | savedMeal,
+/// `ref_id` the id of the referenced record, `unit` g | ml | portion.
+/// `eaten_entry_id` links the diary entry created when the item is marked
+/// eaten.
+@DataClassName('MealPlanItemRow')
+@TableIndex(name: 'idx_meal_plan_items_day', columns: {#day})
+class MealPlanItems extends Table with SyncColumns {
+  TextColumn get day => text()();
+  TextColumn get meal => text()();
+  TextColumn get kind => text()();
+  TextColumn get refId => text()();
+  TextColumn get name => text()();
+  RealColumn get amount => real()();
+  TextColumn get unit => text()();
+  TextColumn get eatenEntryId => text().nullable()();
+  IntColumn get sortOrder => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Meal-prep batches (RCP-015, schema v5; used from WP 7 stage 3): portions
+/// made and still remaining, never below 0.
+@DataClassName('PrepBatchRow')
+@TableIndex(name: 'idx_prep_batches_recipe', columns: {#recipeId})
+class PrepBatches extends Table with SyncColumns {
+  TextColumn get recipeId =>
+      text().references(Recipes, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get preparedAt => dateTime()();
+  RealColumn get portionsMade => real()();
+  RealColumn get portionsRemaining =>
+      // ignore: recursive_getters, drift's check() refers to its own column
+      real().check(portionsRemaining.isBiggerOrEqualValue(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

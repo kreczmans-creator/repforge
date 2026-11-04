@@ -18,6 +18,10 @@ part 'app_database.g.dart';
 /// 3. WP 5: saved_meals, saved_meal_items.
 /// 4. WP 5 audit D1: protein, carbs and fat become nullable on foods,
 ///    food_log_entries and saved_meal_items (unknown is never stored as 0).
+/// 5. WP 7: recipes get real portions, separate prep and cook steps, a
+///    freezing enum, total and portion weight and ingredient notes;
+///    recipe_ingredients get a serving label and count; new recipe_substitutes,
+///    meal_plan_items and prep_batches.
 @DriftDatabase(
   tables: [
     Measurements,
@@ -28,6 +32,9 @@ part 'app_database.g.dart';
     SavedMealItems,
     Recipes,
     RecipeIngredients,
+    RecipeSubstitutes,
+    MealPlanItems,
+    PrepBatches,
     Exercises,
     WorkoutPlans,
     PlanExercises,
@@ -44,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +68,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await _migrateV3ToV4(m);
+      }
+      if (from < 5) {
+        await _migrateV4ToV5(m);
       }
     },
     beforeOpen: (details) async {
@@ -137,6 +147,86 @@ class AppDatabase extends _$AppDatabase {
         await m.alterTable(TableMigration(foods));
         await m.alterTable(TableMigration(foodLogEntries));
         await m.alterTable(TableMigration(savedMealItems));
+      });
+    } finally {
+      if (keysOn) await customStatement('PRAGMA foreign_keys = ON');
+    }
+  });
+
+  Future<bool> _columnExists(String table, String column) async {
+    final rows = await customSelect('PRAGMA table_info("$table")').get();
+    return rows.any((r) => r.read<String>('name') == column);
+  }
+
+  /// v4 → v5 (WP 7). All inside one transaction, with foreign keys off
+  /// around it (dropping `recipes` with keys on would cascade-delete
+  /// `recipe_ingredients`):
+  /// - `recipes` is rebuilt with [Migrator.alterTable]: `portions` becomes
+  ///   REAL; `method_steps_json` moves into `cook_steps_json` (a v4 recipe
+  ///   has one step list, which was the method, i.e. the cooking steps);
+  ///   `prep_steps_json` starts as `[]`; `freezer_friendly` becomes
+  ///   `freezing`.
+  /// - `recipe_ingredients` gets `serving_label` and `serving_count`.
+  /// - `recipe_substitutes`, `meal_plan_items` and `prep_batches` are
+  ///   created with their indexes (the plan and prep tables are used by a
+  ///   later stage; one migration creates all of v5).
+  ///
+  /// Freezer flag: in v4 `freezer_friendly` was a plain boolean defaulting to
+  /// false, so FALSE meant "not stated", not "not suitable". Mapping 0 to
+  /// `no` would assert a safety claim the user never made (D04 RCP-005,
+  /// OQ-13). Hence 1 → 'yes' and 0 → 'unknown'.
+  ///
+  /// Idempotent: each part is guarded by what already exists (a recipes
+  /// table that has `cook_steps_json` is already v5), so a re-run after a
+  /// crash before `user_version` is written changes nothing.
+  Future<void> _migrateV4ToV5(Migrator m) => exclusively(() async {
+    final keysOn = (await customSelect(
+      'PRAGMA foreign_keys',
+    ).getSingle()).read<bool>('foreign_keys');
+    if (keysOn) await customStatement('PRAGMA foreign_keys = OFF');
+    try {
+      await transaction(() async {
+        if (!await _columnExists('recipes', 'cook_steps_json')) {
+          await m.alterTable(
+            TableMigration(
+              recipes,
+              columnTransformer: {
+                recipes.portions: const CustomExpression<double>(
+                  'CAST(portions AS REAL)',
+                ),
+                recipes.cookStepsJson: const CustomExpression<String>(
+                  'method_steps_json',
+                ),
+                recipes.freezing: const CustomExpression<String>(
+                  'CASE WHEN freezer_friendly = 1 '
+                  "THEN 'yes' ELSE 'unknown' END",
+                ),
+              },
+              newColumns: [
+                recipes.prepStepsJson,
+                recipes.totalWeightG,
+                recipes.portionWeightG,
+                recipes.ingredientNotesJson,
+              ],
+            ),
+          );
+        }
+        if (!await _columnExists('recipe_ingredients', 'serving_label')) {
+          await m.addColumn(recipeIngredients, recipeIngredients.servingLabel);
+          await m.addColumn(recipeIngredients, recipeIngredients.servingCount);
+        }
+        await m.createTable(recipeSubstitutes); // IF NOT EXISTS
+        await m.createTable(mealPlanItems);
+        await m.createTable(prepBatches);
+        for (final index in [
+          idxRecipeSubstitutesIngredient,
+          idxMealPlanItemsDay,
+          idxPrepBatchesRecipe,
+        ]) {
+          if (!await _schemaEntityExists('index', index.entityName)) {
+            await m.createIndex(index);
+          }
+        }
       });
     } finally {
       if (keysOn) await customStatement('PRAGMA foreign_keys = ON');

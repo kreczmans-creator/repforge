@@ -52,6 +52,7 @@ flutter:
     - assets/brand/logo/2.0x/
     - assets/brand/logo/3.0x/
     - assets/brand/icons/
+    - assets/seed/
 
   # Brand typography (SIL OFL; see assets/fonts/LICENSE.md).
   fonts:

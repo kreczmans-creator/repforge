@@ -82,7 +82,11 @@ final class DriftBackupRepository implements BackupRepository {
           var n = 0;
           for (final r in rows) {
             if (r is! Map<String, Object?>) continue;
-            await _insertRaw(table.actualTableName, allowed, r);
+            await _insertRaw(
+              table.actualTableName,
+              allowed,
+              _fromOlderSchema(table.actualTableName, r),
+            );
             n++;
           }
           counts[entry.key] = n;
@@ -97,6 +101,27 @@ final class DriftBackupRepository implements BackupRepository {
       );
     }
     return Ok(BackupSummary(formatVersion: version, rowCounts: counts));
+  }
+
+  /// Maps a row exported by an older schema onto the current columns, so a
+  /// backup made before schema v5 restores without losing recipe data: the
+  /// single v4 step list (`method_steps_json`) becomes the cooking steps and
+  /// the v4 boolean `freezer_friendly` becomes `freezing` (true is 'yes';
+  /// false only ever meant "not stated", so 'unknown').
+  static Map<String, Object?> _fromOlderSchema(
+    String table,
+    Map<String, Object?> row,
+  ) {
+    if (table != 'recipes' || !row.containsKey('method_steps_json')) {
+      return row;
+    }
+    final flag = row['freezer_friendly'];
+    return {
+      ...row,
+      'cook_steps_json': row['cook_steps_json'] ?? row['method_steps_json'],
+      'freezing':
+          row['freezing'] ?? (flag == 1 || flag == true ? 'yes' : 'unknown'),
+    };
   }
 
   Future<void> _insertRaw(

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
@@ -19,6 +19,9 @@ const _tableNames = [
   'saved_meal_items',
   'recipes',
   'recipe_ingredients',
+  'recipe_substitutes',
+  'meal_plan_items',
+  'prep_batches',
   'exercises',
   'workout_plans',
   'plan_exercises',
@@ -115,6 +118,82 @@ Future<void> _seed(AppDatabase db, {String suffix = ''}) async {
           type: 'weightReps',
         ),
       );
+  await db
+      .into(db.recipes)
+      .insert(
+        RecipesCompanion.insert(
+          id: 'r$suffix',
+          name: 'Chilli',
+          category: 'dinner',
+          portions: 2.5,
+          freezing: const Value('yes'),
+          prepStepsJson: const Value('["Chop"]'),
+          cookStepsJson: const Value('["Cook"]'),
+          totalWeightG: const Value(900),
+          portionWeightG: const Value(360),
+          ingredientNotesJson: const Value('["1 tin beans"]'),
+          createdAt: _t,
+          updatedAt: _t,
+        ),
+      );
+  await db
+      .into(db.recipeIngredients)
+      .insert(
+        RecipeIngredientsCompanion.insert(
+          id: 'ri$suffix',
+          recipeId: 'r$suffix',
+          name: 'Mince',
+          amount: 400,
+          unit: 'grams',
+          sortOrder: 0,
+          servingLabel: const Value('pack'),
+          servingCount: const Value(0.8),
+        ),
+      );
+  await db
+      .into(db.recipeSubstitutes)
+      .insert(
+        RecipeSubstitutesCompanion.insert(
+          id: 'rs$suffix',
+          recipeIngredientId: 'ri$suffix',
+          sortOrder: 0,
+          name: 'Turkey mince',
+          amount: 400,
+          unit: 'grams',
+          kcal: 140,
+          provenance: 'verified',
+        ),
+      );
+  await db
+      .into(db.mealPlanItems)
+      .insert(
+        MealPlanItemsCompanion.insert(
+          id: 'mp$suffix',
+          day: '2026-11-05',
+          meal: 'dinner',
+          kind: 'recipe',
+          refId: 'r$suffix',
+          name: 'Chilli',
+          amount: 1.5,
+          unit: 'portion',
+          sortOrder: 0,
+          createdAt: _t,
+          updatedAt: _t,
+        ),
+      );
+  await db
+      .into(db.prepBatches)
+      .insert(
+        PrepBatchesCompanion.insert(
+          id: 'pb$suffix',
+          recipeId: 'r$suffix',
+          preparedAt: _t,
+          portionsMade: 6,
+          portionsRemaining: 4,
+          createdAt: _t,
+          updatedAt: _t,
+        ),
+      );
 }
 
 Map<String, Object?> _decode(String json) =>
@@ -143,7 +222,7 @@ void main() {
 
       expect(doc['app'], 'repforge');
       expect(doc['formatVersion'], 1);
-      expect(doc['schemaVersion'], 4);
+      expect(doc['schemaVersion'], 5);
       expect(DateTime.tryParse(doc['exportedAt']! as String), isNotNull);
       final tables = doc['tables']! as Map<String, Object?>;
       expect(tables.keys, containsAll(_tableNames));
@@ -156,10 +235,14 @@ void main() {
         'settings',
         'workout_sessions',
         'session_sets',
+        'recipes',
+        'recipe_ingredients',
+        'recipe_substitutes',
+        'meal_plan_items',
+        'prep_batches',
       ]) {
         expect(tables[name], hasLength(1), reason: name);
       }
-      expect(tables['recipes'], isEmpty);
     });
 
     test('export then import into a fresh database round-trips', () async {
@@ -180,6 +263,71 @@ void main() {
       final again = _decode(await freshRepo.exportJson());
       expect(again['tables'], _decode(json)['tables']);
       expect((await fresh.select(fresh.measurements).get()).single.value, 80.5);
+      // Recipe data added in schema v5 survives.
+      final recipe = (await fresh.select(fresh.recipes).get()).single;
+      expect(recipe.portions, 2.5);
+      expect(recipe.freezing, 'yes');
+      expect(recipe.cookStepsJson, '["Cook"]');
+      expect(recipe.totalWeightG, 900);
+      final ing = (await fresh.select(fresh.recipeIngredients).get()).single;
+      expect([ing.servingLabel, ing.servingCount], ['pack', 0.8]);
+      expect(
+        (await fresh.select(fresh.recipeSubstitutes).get()).single.name,
+        'Turkey mince',
+      );
+      expect(
+        (await fresh.select(fresh.mealPlanItems).get()).single.unit,
+        'portion',
+      );
+      expect(
+        (await fresh.select(fresh.prepBatches).get()).single.portionsRemaining,
+        4,
+      );
+    });
+
+    test('a schema v4 backup restores its recipe: method steps become cook '
+        'steps and the freezer flag maps', () async {
+      Map<String, Object?> v4Recipe(String id, int freezer) => {
+        'id': id,
+        'name': 'Old $id',
+        'category': 'dinner',
+        'description': '',
+        'portions': 4,
+        'prep_minutes': null,
+        'cook_minutes': 30,
+        'storage': null,
+        'freezer_friendly': freezer,
+        'reheating': null,
+        'favourite': 0,
+        'method_steps_json': '["Simmer"]',
+        'declared_kcal': null,
+        'declared_protein_g': null,
+        'declared_carbs_g': null,
+        'declared_fat_g': null,
+        'declared_fibre_g': null,
+        'nutrition_note': null,
+        'created_at': '2026-11-01T08:00:00.000Z',
+        'updated_at': '2026-11-01T08:00:00.000Z',
+        'deleted_at': null,
+      };
+      final result = await repo.importJson(
+        jsonEncode({
+          'app': 'repforge',
+          'formatVersion': 1,
+          'schemaVersion': 4,
+          'tables': {
+            'recipes': [v4Recipe('a', 1), v4Recipe('b', 0)],
+          },
+        }),
+      );
+      expect(result.isOk, isTrue);
+      final rows = await (db.select(
+        db.recipes,
+      )..orderBy([(r) => OrderingTerm.asc(r.id)])).get();
+      expect(rows.map((r) => r.cookStepsJson), ['["Simmer"]', '["Simmer"]']);
+      expect(rows.map((r) => r.freezing), ['yes', 'unknown']);
+      expect(rows.first.portions, 4.0);
+      expect(rows.first.prepStepsJson, '[]');
     });
 
     test('import replaces existing rows', () async {

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/mappers/group_by.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
@@ -69,7 +70,9 @@ Food? foodFromRow(FoodRow row, List<FoodServingRow> servingRows) {
   final unit = _unit(row.per100Unit);
   final provenance = _prov(row.provenance);
   final source = FoodSource.values.asNameMap()[row.source];
-  if (unit == null || provenance == null || source == null) return null;
+  if (unit == null || !unit.isMeasure || provenance == null || source == null) {
+    return null;
+  }
   final amounts = switch (validateNutrientsPer100(
     kcal: row.kcal,
     proteinG: row.proteinG,
@@ -187,22 +190,39 @@ FoodLogEntriesCompanion logEntryToRow(FoodLogEntry e) =>
 
 // ------------------------------------------------------------- recipes
 
-Recipe? recipeFromRow(RecipeRow row, List<RecipeIngredientRow> ingredientRows) {
-  List<String> steps;
+List<String>? _stringList(String json) {
   try {
-    final decoded = jsonDecode(row.methodStepsJson);
+    final decoded = jsonDecode(json);
     if (decoded is! List) return null;
-    steps = [for (final s in decoded) s as String];
+    return [for (final s in decoded) s as String];
   } on Object {
     return null;
   }
+}
+
+/// Maps a recipe row with its ingredient and substitute rows; null when the
+/// row is invalid (corrupt JSON in a list column).
+Recipe? recipeFromRow(
+  RecipeRow row,
+  List<RecipeIngredientRow> ingredientRows, [
+  List<RecipeSubstituteRow> substituteRows = const [],
+]) {
+  final prepSteps = _stringList(row.prepStepsJson);
+  final cookSteps = _stringList(row.cookStepsJson);
+  final notes = _stringList(row.ingredientNotesJson);
+  if (prepSteps == null || cookSteps == null || notes == null) return null;
+  final subsByIngredient = groupByParent<RecipeSubstituteRow>(
+    substituteRows,
+    (s) => s.recipeIngredientId,
+  );
   final sorted = [...ingredientRows]
     ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   final ingredients = <RecipeIngredient>[];
   // Lenient like the training mappers: a bad ingredient line is skipped, the
   // recipe itself is still returned.
   for (final r in sorted) {
-    if (_ingredientFromRow(r) case final i?) ingredients.add(i);
+    final i = _ingredientFromRow(r, subsByIngredient[r.id] ?? const []);
+    if (i != null) ingredients.add(i);
   }
   final declared = row.declaredKcal == null
       ? null
@@ -222,19 +242,28 @@ Recipe? recipeFromRow(RecipeRow row, List<RecipeIngredientRow> ingredientRows) {
     prepMinutes: row.prepMinutes,
     cookMinutes: row.cookMinutes,
     storage: row.storage,
-    freezerFriendly: row.freezerFriendly,
+    freezing:
+        FreezingSuitability.values.asNameMap()[row.freezing] ??
+        FreezingSuitability.unknown,
     reheating: row.reheating,
     favourite: row.favourite,
     ingredients: ingredients,
-    methodSteps: steps,
+    prepSteps: prepSteps,
+    cookSteps: cookSteps,
+    totalWeightG: row.totalWeightG,
+    portionWeightG: row.portionWeightG,
     declaredPerPortion: declared,
     nutritionNote: row.nutritionNote,
+    ingredientNotes: notes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   );
 }
 
-RecipeIngredient? _ingredientFromRow(RecipeIngredientRow r) {
+RecipeIngredient? _ingredientFromRow(
+  RecipeIngredientRow r,
+  List<RecipeSubstituteRow> substituteRows,
+) {
   final q = _quantity(r.amount, r.unit);
   if (q == null) return null;
   NutrientProfile? profile;
@@ -248,6 +277,8 @@ RecipeIngredient? _ingredientFromRow(RecipeIngredientRow r) {
       provenance: prov,
     );
   }
+  final subs = [...substituteRows]
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   return RecipeIngredient(
     id: r.id,
     name: r.name,
@@ -256,6 +287,25 @@ RecipeIngredient? _ingredientFromRow(RecipeIngredientRow r) {
     sortOrder: r.sortOrder,
     note: r.note,
     per100: profile,
+    servingLabel: r.servingLabel,
+    servingCount: r.servingCount,
+    substitutes: [for (final s in subs) ?_substituteFromRow(s)],
+  );
+}
+
+RecipeSubstitute? _substituteFromRow(RecipeSubstituteRow r) {
+  final q = _quantity(r.amount, r.unit);
+  final prov = _prov(r.provenance);
+  if (q == null || prov == null) return null;
+  return RecipeSubstitute(
+    name: r.name,
+    foodId: r.foodId,
+    quantity: q,
+    per100: NutrientProfile(
+      per100: q.unit,
+      per100Amounts: _amounts(r.kcal, r.proteinG, r.carbsG, r.fatG, r.fibreG),
+      provenance: prov,
+    ),
   );
 }
 
@@ -268,16 +318,20 @@ RecipesCompanion recipeToRow(Recipe r) => RecipesCompanion.insert(
   prepMinutes: Value(r.prepMinutes),
   cookMinutes: Value(r.cookMinutes),
   storage: Value(r.storage),
-  freezerFriendly: Value(r.freezerFriendly),
+  freezing: Value(r.freezing.name),
   reheating: Value(r.reheating),
   favourite: Value(r.favourite),
-  methodStepsJson: jsonEncode(r.methodSteps),
+  prepStepsJson: Value(jsonEncode(r.prepSteps)),
+  cookStepsJson: Value(jsonEncode(r.cookSteps)),
+  totalWeightG: Value(r.totalWeightG),
+  portionWeightG: Value(r.portionWeightG),
   declaredKcal: Value(r.declaredPerPortion?.kcal),
   declaredProteinG: Value(r.declaredPerPortion?.proteinG),
   declaredCarbsG: Value(r.declaredPerPortion?.carbsG),
   declaredFatG: Value(r.declaredPerPortion?.fatG),
   declaredFibreG: Value(r.declaredPerPortion?.fibreG),
   nutritionNote: Value(r.nutritionNote),
+  ingredientNotesJson: Value(jsonEncode(r.ingredientNotes)),
   createdAt: r.createdAt,
   updatedAt: r.updatedAt,
 );
@@ -304,6 +358,30 @@ List<RecipeIngredientsCompanion> ingredientRows(Recipe r) => [
         fatG: Value(p?.per100Amounts.fatG),
         fibreG: Value(p?.per100Amounts.fibreG),
         provenance: Value(p?.provenance.name),
+        servingLabel: Value(i.servingLabel),
+        servingCount: Value(i.servingCount),
       );
     }(),
+];
+
+/// Substitute rows of every ingredient of [r], in order. Ids are derived
+/// from the ingredient id and position, like food servings.
+List<RecipeSubstitutesCompanion> substituteRows(Recipe r) => [
+  for (final i in r.ingredients)
+    for (var n = 0; n < i.substitutes.length; n++)
+      RecipeSubstitutesCompanion.insert(
+        id: '${i.id}:sub:$n',
+        recipeIngredientId: i.id,
+        sortOrder: n,
+        name: i.substitutes[n].name,
+        foodId: Value(i.substitutes[n].foodId),
+        amount: i.substitutes[n].quantity.amount,
+        unit: i.substitutes[n].quantity.unit.name,
+        kcal: i.substitutes[n].per100.per100Amounts.kcal,
+        proteinG: Value(i.substitutes[n].per100.per100Amounts.proteinG),
+        carbsG: Value(i.substitutes[n].per100.per100Amounts.carbsG),
+        fatG: Value(i.substitutes[n].per100.per100Amounts.fatG),
+        fibreG: Value(i.substitutes[n].per100.per100Amounts.fibreG),
+        provenance: i.substitutes[n].per100.provenance.name,
+      ),
 ];

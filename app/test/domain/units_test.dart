@@ -143,4 +143,14 @@ void main() {
       }
     });
   });
+
+  group('ReferenceUnit.portions', () {
+    test('is a count of portions, not a measure', () {
+      expect(ReferenceUnit.grams.isMeasure, isTrue);
+      expect(ReferenceUnit.millilitres.isMeasure, isTrue);
+      expect(ReferenceUnit.portions.isMeasure, isFalse);
+      final q = Quantity.of(1.5, ReferenceUnit.portions);
+      expect((q as Ok<Quantity>).value.label, '1.5 portions');
+    });
+  });
 }

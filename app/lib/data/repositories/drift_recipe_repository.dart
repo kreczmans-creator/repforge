@@ -19,8 +19,15 @@ final class DriftRecipeRepository implements RecipeRepository {
       _db.recipeIngredients,
     )..where((i) => i.recipeId.isIn(rows.map((r) => r.id)))).get();
     final byRecipe = groupByParent(ingredients, (i) => i.recipeId);
+    final substitutes = ingredients.isEmpty
+        ? const <RecipeSubstituteRow>[]
+        : await (_db.select(_db.recipeSubstitutes)..where(
+                (s) => s.recipeIngredientId.isIn(ingredients.map((i) => i.id)),
+              ))
+              .get();
     return [
-      for (final row in rows) ?recipeFromRow(row, byRecipe[row.id] ?? const []),
+      for (final row in rows)
+        ?recipeFromRow(row, byRecipe[row.id] ?? const [], substitutes),
     ];
   }
 
@@ -32,7 +39,11 @@ final class DriftRecipeRepository implements RecipeRepository {
     return _db
         .customSelect(
           'SELECT 1',
-          readsFrom: {_db.recipes, _db.recipeIngredients},
+          readsFrom: {
+            _db.recipes,
+            _db.recipeIngredients,
+            _db.recipeSubstitutes,
+          },
         )
         .watch()
         .asyncMap((_) async {
@@ -55,10 +66,18 @@ final class DriftRecipeRepository implements RecipeRepository {
     await (_db.delete(
       _db.recipeIngredients,
     )..where((i) => i.recipeId.equals(recipe.id))).go();
-    await _db.batch(
-      (b) => b.insertAll(_db.recipeIngredients, ingredientRows(recipe)),
-    );
+    // Deleting the ingredients cascades to their substitutes.
+    await _db.batch((b) {
+      b
+        ..insertAll(_db.recipeIngredients, ingredientRows(recipe))
+        ..insertAll(_db.recipeSubstitutes, substituteRows(recipe));
+    });
   });
+
+  @override
+  Future<bool> exists(String id) async => (await (_db.select(
+    _db.recipes,
+  )..where((t) => t.id.equals(id))).get()).isNotEmpty;
 
   @override
   Future<void> delete(String id) async {

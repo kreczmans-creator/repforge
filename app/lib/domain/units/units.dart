@@ -2,13 +2,24 @@ import 'package:meta/meta.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/units/format.dart';
 
-/// Reference basis for nutrient values: per 100 g or per 100 ml.
+/// Unit of a [Quantity]: grams or millilitres (the reference basis of a
+/// food's nutrients, per 100 g or per 100 ml) or, for a recipe logged by
+/// portions (RCP-012), [portions].
+///
+/// [portions] is a count of a recipe's portions, not a measure: it is never
+/// a food's reference unit, never an ingredient unit, and cannot be converted
+/// to grams or millilitres without the recipe.
 enum ReferenceUnit {
   grams('g'),
-  millilitres('ml');
+  millilitres('ml'),
+  portions('portions');
 
   ReferenceUnit(this.symbol);
   final String symbol;
+
+  /// True for [grams] and [millilitres], the only valid reference bases for
+  /// foods and ingredients.
+  bool get isMeasure => this != portions;
 }
 
 /// Unit system for display. Storage is always metric.

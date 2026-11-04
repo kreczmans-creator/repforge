@@ -26,11 +26,13 @@ import 'package:repforge/domain/nutrition/food_repository.dart';
 import 'package:repforge/domain/nutrition/saved_meal_repository.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
+import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training_repository.dart';
 import 'package:repforge/features/measurements/application/delete_weight_entry.dart';
 import 'package:repforge/features/measurements/application/record_body_weight.dart';
 import 'package:repforge/features/settings/application/save_daily_targets.dart';
+import 'package:repforge/features/settings/application/save_meal_labels.dart';
 import 'package:repforge/features/settings/application/save_settings.dart';
 import 'package:uuid/uuid.dart';
 
@@ -99,6 +101,17 @@ final backupRepositoryProvider = Provider<BackupRepository>(
 /// Live settings; defaults until the first save.
 final settingsProvider = StreamProvider<AppSettings>(
   (ref) => ref.watch(settingsRepositoryProvider).watch(),
+);
+
+/// Live meal names and order (NUT-011); the defaults until the user renames
+/// or reorders. Entries store the slot key, so a rename relabels existing
+/// entries too.
+final mealLabelsProvider = StreamProvider<MealLabels>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchMealLabels(),
+);
+
+final saveMealLabelsProvider = Provider<SaveMealLabels>(
+  (ref) => SaveMealLabels(repository: ref.watch(settingsRepositoryProvider)),
 );
 
 final foodRepositoryProvider = Provider<FoodRepository>(

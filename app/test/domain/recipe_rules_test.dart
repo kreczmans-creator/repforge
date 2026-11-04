@@ -34,7 +34,7 @@ RecipeIngredient _ing(
 
 Recipe _recipe(
   List<RecipeIngredient> ings, {
-  int portions = 2,
+  double portions = 2,
   NutrientAmounts? declared,
 }) => Recipe(
   id: 'r',
@@ -42,7 +42,6 @@ Recipe _recipe(
   category: 'c',
   portions: portions,
   ingredients: ings,
-  methodSteps: const [],
   declaredPerPortion: declared,
   createdAt: _t,
   updatedAt: _t,

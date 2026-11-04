@@ -97,7 +97,7 @@ RecipeIngredient _ing(String id, Food f, double amount) => RecipeIngredient(
 
 Recipe _recipe({
   required List<RecipeIngredient> ingredients,
-  required int portions,
+  required double portions,
   NutrientAmounts? declared,
 }) => Recipe(
   id: 'r',
@@ -105,7 +105,6 @@ Recipe _recipe({
   category: 'dinner',
   portions: portions,
   ingredients: ingredients,
-  methodSteps: const [],
   createdAt: _now,
   updatedAt: _now,
   declaredPerPortion: declared,
@@ -406,12 +405,12 @@ void main() {
       expect(pp.proteinG, closeTo(16.5, 1e-9));
       expect(pp.fibreG, isNull);
 
-      // The recipe view's "partial 5 g, incomplete" value has no dedicated
-      // API yet; the intended value is documented via NutrientTotals.
-      final totals = NutrientTotals.of(r.ingredients.map((i) => i.nutrients!));
-      expect(totals.known.fibreG, closeTo(10, 1e-9));
-      expect(totals.known.fibreG! / r.portions, closeTo(5, 1e-9));
-      expect(totals.unknownFibreCount, 1);
+      // The recipe view shows the partial sum, labelled incomplete.
+      final view = r.perPortionTotals!;
+      expect(view.known.fibreG, closeTo(5, 1e-9));
+      expect(view.unknownFibreCount, 1);
+      expect(view.known.proteinG, closeTo(16.5, 1e-9));
+      expect(view.unknownProteinCount, 0);
     });
 
     test('E29 an unlinked ingredient falls back to declared 460 kcal', () {
@@ -449,37 +448,42 @@ void main() {
       expect(computed.forPortions(1.5)!.kcal, closeTo(600, 1e-9));
     });
 
-    test(
-      'E31 scaling 4 to 6 portions gives chicken 600 g, per portion unchanged',
-      () {
-        // Intended assertions (spec §9.4), for the next stage to enable:
-        //   final r = _recipe(ingredients: [_ing('i1', chicken, 400)],
-        //       portions: 4);
-        //   final scaled = r.scaledToPortions(6);   // factor f = 6 / 4
-        //   expect(scaled.ingredients.single.quantity.amount, 600);
-        //   expect(scaled.perPortion!.proteinG, closeTo(20, 1e-9));
-        //   expect(r.ingredients.single.quantity.amount, 400); // a view only
-      },
-      skip:
-          'WP 7 stage 1 adds recipe scaling and portion-by-weight '
-          '(spec §9.3–9.4)',
-    );
+    test('E31 scaling 4 to 6 portions gives chicken 600 g, per portion '
+        'unchanged', () {
+      final r = _recipe(ingredients: [_ing('i1', chicken, 400)], portions: 4);
+      final scaled = (r.scaleToPortions(6) as Ok<Recipe>).value;
+      expect(scaled.ingredients.single.quantity.amount, 600);
+      expect(scaled.portions, 6);
+      expect(scaled.perPortion!.proteinG, closeTo(20, 1e-9));
+      expect(scaled.perPortion!.kcal, closeTo(r.perPortion!.kcal, 1e-9));
+      // A view only: the original recipe is untouched.
+      expect(r.ingredients.single.quantity.amount, 400);
+      expect(r.portions, 4);
+    });
 
-    test(
-      'E32 recipe total 1200 g and portion 300 g is 4 portions; 450 g logs '
-      '450 kcal',
-      () {
-        // Intended assertions (spec §9.3, §9.5), for the next stage:
-        //   total 1200 kcal, W = 1200 g, portion weight w = 300 g
-        //   expect(portionsByWeight(totalWeightG: 1200, portionG: 300), 4);
-        //   logging 450 g -> total * 450 / W:
-        //   expect(logByWeight(450).kcal, closeTo(450, 1e-9));
-        //   and that equals 1.5 portions (450 / 300).
-      },
-      skip:
-          'WP 7 stage 1 adds recipe scaling and portion-by-weight '
-          '(spec §9.3–9.4)',
-    );
+    test('E32 recipe total 1200 g and portion 300 g is 4 portions; 450 g logs '
+        '450 kcal', () {
+      // 1200 g of a 100 kcal per 100 g food: total 1200 kcal, W = 1200 g.
+      final f = _food(
+        'e32',
+        'E32',
+        ReferenceUnit.grams,
+        const NutrientAmounts(kcal: 100),
+        DataProvenance.userEntered,
+      );
+      final base = _recipe(ingredients: [_ing('i1', f, 1200)], portions: 1);
+      expect(base.effectiveTotalWeightG, 1200);
+      final r = base.copyWith(
+        portionWeightG: 300,
+        portions: portionsByWeight(1200, 300)!,
+      );
+      expect(r.portions, 4);
+      expect(r.derivedPortions, 4);
+      expect(r.nutritionForWeight(450)!.kcal, closeTo(450, 1e-9));
+      // 450 g is 450 / 300 = 1.5 portions, and the same energy.
+      expect(r.portionsForWeight(450), closeTo(1.5, 1e-9));
+      expect(r.nutritionForPortions(1.5)!.kcal, closeTo(450, 1e-9));
+    });
 
     test('E33 week of 1000 kcal P 90 and 2000 kcal P unknown averages', () {
       final w = WeeklySummary.fromEntries(
