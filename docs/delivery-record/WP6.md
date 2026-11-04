@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **in progress** (authorised by the owner 2026-11-04 after WP 5 acceptance; V-01 open and owner-owned, due at WP 6 acceptance).
+Status: **delivered for owner acceptance at 501dc6c (2026-11-04)**; implementation complete, fresh independent review done with all high/medium findings fixed and re-verified, four workflows green. Acceptance is blocked, by the owner's rule, on the physical-device checklist (both platforms) and on D05 V-01; both are owner-performed.
 
 ## Scope (D06 WP 6, owner authorisation 2026-11-04)
 `BarcodeScanner` interface and `mobile_scanner` adapter; Android and iOS camera permission handling with rationale and denial/retry paths; camera capability detection and unavailable-device behaviour; cached product table and persistence; scan → barcode lookup → portion → log; not-found path into custom food creation; integration tests with a fake scanner adapter; physical-device checklist for both platforms; fresh independent review before delivery. Engineering controls: reuse the WP 5 lookup contract; hardware and permissions behind the adapter boundary; test cancellation, permission denial, repeated scans, malformed barcodes, unknown products, offline lookup and duplicate submission; never create or log a product when lookup fails; coverage gate and four-workflow CI; ADRs, traceability, debt and this record updated.
@@ -55,7 +55,33 @@ Control status after the fixes: 1, 3, 4, 6, 8, 10, 11 met; 2 met (F3); 5 met (F5
 - ADR-0006 status Proposed; owner decision requested with acceptance.
 
 ## CI evidence
-Appended at delivery.
+| Commit | What | CI (gate) | Android build | iOS build | Integration tests |
+|---|---|---|---|---|---|
+| e26e761 | stages 1–2 (domain, session, adapter, platform) | 41841805085 success | 41841805057 **failure** (permission_handler_android 14.1.1 needs compileSdk 37) | 41841805077 success | 41841805125 failure (same build error) |
+| a8ac6a9 | permission_handler pinned to 12.0.1 | 41843728744 success | 41843728753 success | 41843728782 success | 41843728721 success |
+| 08800c2 | stage 3 (scan UI, tests, emulator scan test) | 41847545849 success | 41847545919 success | 41847545914 success | 41847545864 success |
+| 501dc6c | review fixes F1, F2, F3, F5 | 41850957414 success (87.5 %) | 41850957506 success | 41850957965 success | 41850957656 success |
+
+Local at 501dc6c: 458 tests pass, analyzer and formatter clean, hand-written coverage 87.5 % (gate 80 %).
+
+## Acceptance criteria (D06 WP 6) against evidence
+| Criterion | Status | Evidence / gap |
+|---|---|---|
+| Scan of a known EAN logs a correctly scaled entry on Android and iOS physical devices | **Owner device verification pending** (checklist steps 5–6); fake-adapter flow proven on the emulator (25 g → 125 kcal) | run 41850957656 |
+| Unavailable camera hides the scan action with explanation | tested (`scan_screen_test` "unavailable camera hides the action and explains"); device step 14 pending | |
+| Integration test with fake adapter | met | `app_test.dart` "scan a known barcode and log it (fake scanner)" |
+| Manual device checklist for both platforms recorded with device models | **pending — owner** | `docs/verification/wp6-device-checklist.md` |
+| Owner controls 1–11 | met (reviewer's control table after re-verification) | "Independent review" |
+| D05 V-01 (WP 5 airplane mode) | **open — owner** | blocks WP 6 acceptance and R0 |
+
+## Deviations from approved requirements
+1. PLT-002(1) "recognised in under 3 seconds on the reference devices" and NUT-006 on physical devices can only be shown by the owner's checklist; CI proves the flow with a fake adapter.
+2. iOS scanning cannot run on the simulator; iOS device evidence needs a development-signed build (D07 §2.4), otherwise recorded as "not testable".
+3. `permission_handler` 12.0.1 instead of the latest 13.0.2 (compileSdk 37 unsupported by AGP 9.1.0); recorded in D03.
+4. ADR-0006 is Proposed pending the owner's decision.
+
+## Recommendation
+**Conditionally accept, subject to the owner's device verification**: the implementation, tests, review and CI conditions are met; the physical-device checklist (both platforms, or iOS recorded as not testable) and V-01 are the remaining conditions and are the owner's to perform. Decisions requested: ADR-0006 approval; TD-34/35/36 accepted as tracked debt with their owning packages.
 
 ## Physical-device verification
 `docs/verification/wp6-device-checklist.md` (15 steps; step 15 is D05 V-01). Owner-performed; results recorded there and summarised here. iOS requires a development-signed build; if unavailable, recorded as "not testable", never as passed.
