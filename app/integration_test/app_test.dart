@@ -59,13 +59,22 @@ void main() {
 
   /// Forms are lazy `ListView`s: on a phone-sized screen the save button is
   /// not built until scrolled into view, so `ensureVisible` cannot find it.
+  /// The soft keyboard is dismissed first: its inset animation re-lays the
+  /// list after the scroll and can unbuild the target again (run
+  /// 41818013580 found `food-save` and then lost it before the tap).
   Future<void> scrollTo(WidgetTester tester, Finder finder) async {
-    await tester.scrollUntilVisible(
-      finder,
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
+    FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
+    for (var attempt = 0; attempt < 3; attempt++) {
+      await tester.scrollUntilVisible(
+        finder,
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      if (finder.evaluate().isNotEmpty) return;
+    }
+    fail('Could not keep $finder in view');
   }
 
   Future<void> restart(WidgetTester tester, {AppDatabase? db}) async {
