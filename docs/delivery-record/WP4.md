@@ -90,5 +90,13 @@ Verified true: ten review findings applied as described (atomic `replaceActive`,
 - **C3: approved.** D06 WP 4 scope line amended to the five approved tabs.
 - **B8: record corrected** in place above.
 
-### CI evidence for the closure commit
-Appended when the runs complete.
+### CI evidence for the closure commits
+| Commit | What | CI (gate) | Android build | iOS build | Integration tests |
+|---|---|---|---|---|---|
+| 288956c | atomic target save + tests, B1/B2 tests, record/D05/D06 updates | 41818013416 success (87.7 %) | 41818013447 success | 41818013553 success | 41818013580 failure: the new on-device target-persistence test passed; the in-memory flow lost the lazily built `food-save` button between scroll and tap (keyboard inset) |
+| e83a67d | integration helper dismisses the keyboard before scrolling | 41819053445 success | 41819053076 success | 41819052853 success | **41819053519 success** (both tests) |
+
+Local at e83a67d: 334 tests pass, analyzer and formatter clean, hand-written coverage 87.7 %.
+
+### Closure status
+All five closure conditions are met at e83a67d: B1 and B2 tests added and green on the emulator and in CI; B7b atomic with regression coverage; B8 corrected; D06 amended and TD-27..31 recorded; CI, Android, iOS and integration green. Awaiting the owner's formal acceptance decision. Not merged to `main`.
