@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `ccr-ac6db77c-jcnexo`
-Status: **rejected as delivered 2026-11-04; closure actions complete at df0f6d9 (record 1aa11bc+); re-presented for the owner's acceptance decision.** The airplane-mode device verification (R6) is the one condition only the owner can satisfy.
+Status: **accepted by the owner on 2026-11-04** at df0f6d9 (closure conditions table below). The owner's acceptance statement records the airplane-mode device test (R6) as passed; the device model, Android version, test date and per-step results have not yet been supplied and the results table below is still blank — the auditor did not perform or confirm that test (no device access) and has not entered results on the owner's behalf. No merge to `main` authorised.
 
 ## What was built
 - **Food lookup**: `FoodLookupService` interface with an Open Food Facts client (dio) behind it. Search uses the search-a-licious endpoint (the legacy `search.pl` and `api/v2/search` endpoints were returning an HTML "temporarily unavailable" page on the day of implementation); barcode lookup uses `api/v2/product`. Typed failures (offline, rate-limited, unavailable, not found); the client never throws. Community data is labelled `crowdsourced`.
@@ -177,9 +177,12 @@ Local at df0f6d9 (Flutter 3.47.9): **372 tests pass**, analyzer and formatter cl
 | D6/D7 recorded as debt | done (TD-32, TD-33, TD-26) |
 | WP 5 record and system check corrected | done (e0efce6, this section) |
 | NUT P1 ownership recorded in D04/D06 | done (82a4670) |
-| Airplane-mode device verification | **pending — owner to perform** (procedure above; build from the final closure commit) |
+| Airplane-mode device verification | **owner-reported as passed (acceptance statement 2026-11-04)**; device model, Android version, date and per-step results still to be entered in the R6 table by the owner. The auditor did not perform or confirm the test. |
 | Coverage gate ≥ 80 % on the final head | done (88.1 %) |
 | Four workflows green on the final closure commit | done (df0f6d9, table above) |
 | Fresh independent review with findings resolved | done (F1–F3 fixed, F4 recorded) |
 
-Not merged to `main`. Formal acceptance remains the owner's decision.
+Not merged to `main`.
+
+## Owner acceptance (2026-11-04)
+WP 5 formally accepted and closed at df0f6d9: D1–D5 resolved and regression-tested; D6/D7 recorded as TD-32/TD-33; requirements and roadmap allocations corrected; fresh independent review completed with F4 documented; coverage gate 88.1 %; four workflows green on df0f6d9; airplane-mode device verification reported passed by the owner (data for the R6 table outstanding, see Status). No merge to `main` authorised. Next package: WP 6 — Barcode scanning and food logging.

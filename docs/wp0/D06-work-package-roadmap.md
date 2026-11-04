@@ -69,7 +69,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: widget tests; integration test "change target, restart, verify".
 
 ### WP 5 — Nutrition and food database
-- Status: **Rejected as delivered by the owner 2026-11-04** (`docs/delivery-record/WP5.md`, acceptance audit D1–D8); closure in progress under the owner's conditions R1–R6.
+- Status: **Rejected as delivered 2026-11-04, then accepted by the owner 2026-11-04 at df0f6d9** after the closure actions (`docs/delivery-record/WP5.md`): unknown nutrients never shown as 0 (schema v4), distinct no-target/unknown states, five-measure weekly summary, search 404 handling, record corrections; R6 device-test data to be entered by the owner.
 - Owner allocation of NUT P1 items not delivered by WP 5 (2026-11-04): **NUT-017** (calculation specification) and **NUT-019** (weakest provenance on totals) and **NUT-022** (imperial portion entry) stay in **WP 5** — NUT-017 before any further nutrition-calculation work; **NUT-011** (meal rename/reorder) → **WP 7**; **NUT-023** (import date) → **WP 14** alongside import/export; **NUT-018 part 3** stays in the requirements backlog with its original wording until its scope and owner are clarified (D04 §7). NUT-006 is WP 6; NUT-008 and NUT-014 were never allocated to WP 5.
 - Objective: fast, correct food logging.
 - Scope: food search (Open Food Facts client with typed errors, debounce, caching), custom foods, custom serving sizes, portion entry in g/ml/servings, meal assignment, daily diary with edit/delete, date navigation, fibre, saved meals, provenance labels, daily and weekly summaries.
