@@ -23,7 +23,7 @@ The owner allocated NUT-017 to be done "before further nutrition calculation wor
 NUT-019's day-total provenance badge and NUT-022 imperial/kg/l entry were allocated to WP 5, which is now accepted. WP 7 implements the shared NUT-019 rule (needed by RCP-007) but not the day-total badge or NUT-022 entry. They need a new owner.
 
 ## What was built
-Appended per stage.
+- **Seed asset** (266d4a2): `app/assets/seed/legacy_recipes.json`, 22 recipes extracted by `app/tool/extract_legacy_recipes.dart`, cross-checked by an independent parser (0 mismatches) and spot-checked by the auditor. Correction to the commit message: the legacy freezer flags are **9 true and 13 false** (the message says 10/12, copied from the extraction agent's summary); the asset itself matches the source for all 22 recipes, verified flag by flag. Under decision 3 every seed imports as freezing **unknown** regardless.
 
 ## Tests
 Appended at delivery.
