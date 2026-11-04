@@ -20,7 +20,7 @@ Author: Claude Code. Updated: 2026-11-04. Mirrors D06 (`docs/wp0/D06-work-packag
 | WP 13 | Health platform integrations | WP 10, WP 9 | NOT_STARTED | NONE | NOT_ACCEPTED | | none |
 | WP 14 | Quality assurance and release engineering (continuous) | WP 1 (soft) | IN_PROGRESS | NONE | NOT_ACCEPTED | Continuous from WP 1 (D06); signed release process not started | none |
 | WP 15 | Nutrition entry units and serving sizes | WP 5, WP 7 | NOT_STARTED | NONE | NOT_ACCEPTED | Scope wording per owner brief 2026-11-04 pending DL-0005 | none |
-| GOV 1 | AI coordination infrastructure | none | DELIVERED | NONE | NOT_ACCEPTED | DL-0001..0003, DL-0005, DL-0006; handoff follows the implementation commit | none |
+| GOV 1 | AI coordination infrastructure | none | DELIVERED | AWAITING_REVIEW | NOT_ACCEPTED | DL-0001..0003, DL-0005, DL-0006 | HO-0001 |
 
 Notes:
 - WP 0 and WP 1 closed with the merge of pull request #1 to `main` (30e51b0). WP 2–7 are accepted on the development branch; merge to `main` not authorised.

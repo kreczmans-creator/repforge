@@ -37,7 +37,48 @@ Owner briefs of 2026-11-04 (original and revised): a GitHub-based coordination p
 Recorded in the GOV 1 handoff (`docs/ai-coordination/handoffs/`, §6–7) with commands, outputs and run IDs. Application tests and the four Flutter workflows were not run: no file under `app/` changed and those workflows are path-filtered to `app/**`.
 
 ## Demonstration
-`tools/coordination/demo_cycle.py` builds a throwaway fixture repository and runs the checker through the cycle: handoff awaiting review → review on file with `CHANGES_REQUIRED` → checker refuses the stale handoff status → corrected commit as a new handoff → checker refuses any claim that the old review approves the new commit → re-review approves. Its output is recorded in the handoff. The live part demonstrated on this repository: the workflow validated the records and created the review issue for the GOV 1 handoff. **Not demonstrated**: a ChatGPT review retrieved and published through the system (steps 4–5 of the owner's demonstration list) — that requires the owner's ChatGPT conversation and has not happened; the protocol is therefore not reported as live.
+`tools/coordination/demo_cycle.py` builds a throwaway fixture repository and runs the checker through the cycle: handoff awaiting review → review on file with `CHANGES_REQUIRED` → checker refuses the stale handoff status → corrected commit as a new handoff → checker refuses any claim that the old review approves the new commit → re-review approves. Its output (2026-11-04, tree 04d44a7):
+
+```
+=== 1. Handoff submitted: awaiting review
+--- checker exit 0 (as expected)
+WARN docs/ai-coordination/handoffs/HO-0101.md: HO-0101 is AWAITING_REVIEW (in the review queue)
+0 error(s), 1 warning(s)
+
+=== 2a. Review on file but handoff not updated: checker refuses the stale status
+--- checker exit 1 (as expected)
+ERROR docs/ai-coordination/reviews/RV-0101.md: RV-0101 is not listed in HO-0101's Review field
+WARN docs/ai-coordination/reviews/RV-0101.md: open finding RV-0101-F1 (High, OPEN)
+WARN docs/ai-coordination/handoffs/HO-0101.md: HO-0101 is AWAITING_REVIEW (in the review queue)
+1 error(s), 2 warning(s)
+
+=== 2b. Handoff reflects CHANGES_REQUIRED; open finding is listed
+--- checker exit 0 (as expected)
+WARN docs/ai-coordination/reviews/RV-0101.md: open finding RV-0101-F1 (High, OPEN)
+0 error(s), 1 warning(s)
+
+=== 3. Corrected commit submitted as HO-0102 (supersedes HO-0101, responds to RV-0101)
+--- checker exit 0 (as expected)
+WARN docs/ai-coordination/handoffs/HO-0102.md: HO-0102 is AWAITING_REVIEW (in the review queue)
+0 error(s), 1 warning(s)
+
+=== 4. Attempt to carry RV-0101 over to the new commit: refused
+--- checker exit 1 (as expected)
+ERROR docs/ai-coordination/handoffs/HO-0102.md: RV-0101 says Handoff: HO-0101
+ERROR docs/ai-coordination/handoffs/HO-0102.md: review RV-0101 reviewed aaaaaaa but handoff commit is bbbbbbb; approval or findings do not carry across commits
+ERROR docs/ai-coordination/handoffs/HO-0102.md: Status APPROVED_FOR_OWNER_ACCEPTANCE does not match RV-0101 Outcome CHANGES_REQUIRED
+3 error(s), 0 warning(s)
+
+=== 5. Re-review RV-0102 of the corrected commit approves; owner decision now owed
+--- checker exit 0 (as expected)
+0 error(s), 0 warning(s)
+
+--- dashboard excerpt: HO-0102 listed under 'Approved, awaiting owner acceptance'
+
+DEMO RESULT: all stages behaved as the protocol specifies
+```
+
+The live part demonstrated on this repository: the workflow validated the records and created the review issue for the GOV 1 handoff. **Not demonstrated**: a ChatGPT review retrieved and published through the system (steps 4–5 of the owner's demonstration list) — that requires the owner's ChatGPT conversation and has not happened; the protocol is therefore not reported as live.
 
 ## Author-side pre-review (not independent review)
 Before delivery, a separate Claude subagent (not the author) reviewed the version-1 design and checker: 3 High, 8 Medium, 9 Low findings. Disposition is in the GOV 1 handoff §4. This is author-side quality control; the independent review is ChatGPT's and has not happened.

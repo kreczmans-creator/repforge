@@ -4,7 +4,7 @@ Author: Claude Code. Updated: 2026-11-04. Imported into every Claude Code sessio
 
 ## Branch and commit
 - Branch: `claude/ai-coordination-infrastructure-pcf8bb` (based on `ccr-9fda2c32-wr163b`, the active development branch; `main` holds WP 0–1 only)
-- Commit: `f1484a2ce22f520258e619d126d303be5d28998a`
+- Commit: `04d44a748c189aee0fea73e68ec29101d22fc271`
 - The commit above is the implementation commit this state describes. The state is stale when `HEAD` is not a descendant of it, or when `app/` has changed since it (`git diff --stat <commit> HEAD -- app`). A newer commit that only adds coordination records does not make it stale.
 
 ## Current implementation package
@@ -12,7 +12,7 @@ Author: Claude Code. Updated: 2026-11-04. Imported into every Claude Code sessio
 - Engineering: none in progress. Next owed engineering work is the WP 7 closure condition (portion precision 0.01): step 1 of 4 done (spec rev 1.3 at e45e4f7); implementation, regression tests, fresh review and four green workflows outstanding.
 
 ## Latest handoff
-- Pending: the handoff for GOV 1 is written in the commit after the implementation commit (two-commit submission, protocol §5 B–C).
+- HO-0001 — GOV 1 (this system) at 04d44a7, status AWAITING_REVIEW. The workflow mirrors it into the issue `[AI review] HO-0001`; the owner starts the ChatGPT review from there.
 
 ## Latest review status
 - No review on file under `reviews/`. The protocol has not yet carried a ChatGPT review; it is not reported as live or bidirectional until it has.
@@ -33,7 +33,7 @@ Author: Claude Code. Updated: 2026-11-04. Imported into every Claude Code sessio
 - WP 8 — Exercise library and training architecture (depends on WP 4, accepted). Start authorised by protocol §7 subject to DL-0006; corrections and the WP 7 closure condition come first.
 
 ## Programme progress
-- Accepted or closed: WP 0–5. Conditionally accepted: WP 6, WP 7. Delivered awaiting review: GOV 1. Not started: WP 8–13, WP 15. Continuous: WP 14. Merge to `main`: not authorised for anything after WP 1. See `DASHBOARD.md`.
+- Accepted or closed: WP 0–5. Conditionally accepted: WP 6, WP 7. Delivered awaiting review: GOV 1 (HO-0001). Not started: WP 8–13, WP 15. Continuous: WP 14. Merge to `main`: not authorised for anything after WP 1. See `DASHBOARD.md`.
 
 ## Next recommended actions
 1. Owner: decide DL-0001, DL-0002, DL-0003, DL-0005, DL-0006; start the ChatGPT review of the GOV 1 handoff using its review issue; perform the WP 6 device checklist and V-01 when a device session is possible.
