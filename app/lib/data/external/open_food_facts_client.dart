@@ -62,7 +62,7 @@ class OpenFoodFactsClient implements FoodLookupService {
     if (code.isEmpty) return const Ok(null);
     final body = await _get('$_productUrl/${Uri.encodeComponent(code)}.json', {
       'fields': _fields,
-    });
+    }, notFoundIsBody: true);
     return switch (body) {
       Ok(:final value) => Ok(
         mapOffProductResponse({
@@ -76,8 +76,9 @@ class OpenFoodFactsClient implements FoodLookupService {
 
   Future<Result<Map<String, dynamic>>> _get(
     String url,
-    Map<String, Object?> query,
-  ) async {
+    Map<String, Object?> query, {
+    bool notFoundIsBody = false,
+  }) async {
     try {
       final res = await _dio.get<Object?>(
         url,
@@ -90,9 +91,11 @@ class OpenFoodFactsClient implements FoodLookupService {
           lookupError(const LookupRateLimited(), 'Open Food Facts rate limit.'),
         );
       }
-      // OFF answers an unknown barcode with 404 and a status-0 body; let the
-      // body mapping report "not found" rather than an outage.
-      if ((status < 200 || status >= 300) && status != 404) {
+      // OFF answers an unknown barcode with 404 and a status-0 body; the
+      // barcode lookup lets the body mapping report "not found". For search a
+      // 404 means the endpoint moved or is down, so it stays unavailable.
+      final okStatus = status >= 200 && status < 300;
+      if (!okStatus && !(notFoundIsBody && status == 404)) {
         return Err(_unavailable('HTTP $status'));
       }
       final type = res.headers.value('content-type') ?? '';

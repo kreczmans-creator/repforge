@@ -91,3 +91,20 @@ Conducted after WP 4 acceptance. A fresh reviewer read the WP 5 range `7e892e1..
 - R4. Correct WP5.md and the system-check document (D8).
 - R5. Owner decision on the unassigned NUT P1 items (011, 017, 019, 022, 023, 018(3)): assign to packages or formally descope with a D04 amendment.
 - R6. Airplane-mode offline logging recorded by the owner on a device at closure, or accepted on the widget-test evidence.
+
+## Owner decision (2026-11-04): rejected as delivered
+Closure conditions R1–R6 recorded verbatim in effect; progress is tracked in "Closure" below.
+
+### R6 — Airplane-mode device verification (owner to perform; results recorded here)
+Build: the debug APK from the rolling `debug-latest` release built from the final closure commit (named in "Closure"). Device: owner's Android phone (record model and Android version).
+
+| Step | Action | Expected | Result |
+|---|---|---|---|
+| 1 | With network on, open Fuel → Log food, search an online food (for example "greek yogurt"), log one portion. | Entry appears in today's diary; the food is now cached locally. | |
+| 2 | Enable airplane mode (Wi-Fi and mobile data off). Open Fuel → Log food, search the same name. | The cached food appears under local results immediately; the online section shows the offline state; the screen does not block. | |
+| 3 | Log the cached food again from the offline search. | Second entry appears in the diary with correct nutrients; no spinner persists. | |
+| 4 | Kill the app from recents and reopen while still offline. Open Fuel. | Both entries still listed; dashboard totals match. | |
+| 5 | Disable airplane mode, return to the app, pull the diary (navigate away and back). | No duplicate entries, no changed values. | |
+| 6 | Delete the two test entries. | Diary and dashboard return to the previous state. | |
+
+Record: device model, Android version, build commit, date, and the result column. Any deviation is a defect against GEN-004/NUT-005 and reopens R1.

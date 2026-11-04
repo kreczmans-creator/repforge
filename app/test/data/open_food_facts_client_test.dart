@@ -109,6 +109,13 @@ void main() {
     expect((r as Ok<Food?>).value, isNull);
   });
 
+  test('search 404 is unavailable, not an empty result', () async {
+    final (c, _) = _client(
+      (_) => _json(_fixture('product_missing.json'), status: 404),
+    );
+    expect(_failure(await c.search('greek yogurt')), isA<LookupUnavailable>());
+  });
+
   test('missing product is Ok(null)', () async {
     final (c, _) = _client((_) => _json(_fixture('product_missing.json')));
     final r = await c.byBarcode('00000000');

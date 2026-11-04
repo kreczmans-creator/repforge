@@ -279,3 +279,12 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-16 | Should Health Connect and HealthKit integrations be read-only, or also write workouts, weight and nutrition back? | Write access widens the permission scope and the privacy review. | PLT-005, PLT-006 |
 | OQ-17 | On restore, should the default be replace-all or merge? How are duplicates handled? | Affects data-loss risk and the complexity of the restore flow. | DAT-004 |
 | OQ-18 | What are the day boundary and week start rules (local midnight, Monday start)? Should users be able to change them? | Affects every daily and weekly total and the consistency of comparisons. | NUT-001, NUT-016, TRN-028 |
+
+## 7. Amendments (owner decisions)
+
+### 2026-11-04 — WP 5 acceptance decisions
+- **Provenance labels: fourth category `crowdsourced` approved as a deviation** from GEN-005 / NUT-018 (which list verified, user-entered, estimated). It labels community-maintained data from Open Food Facts, which is neither verified by a curated source nor entered by this user. Order of strength for NUT-019 aggregate totals, weakest last: verified › crowdsourced › userEntered › estimated; a total carries the weakest label among its inputs (implementation: WP 5 closure, NUT-019).
+- **NUT-018 part 3** ("editing a verified food creates a user-entered copy" per the original acceptance text) is retained with its original wording. It is not descoped and not assigned until its intended behaviour and owner are clarified by the owner.
+- **Allocation of P1 nutrition items not delivered by WP 5**: NUT-017, NUT-019, NUT-022 → WP 5 closure; NUT-011 → WP 7; NUT-023 → WP 14. Recorded in D06.
+- **NUT-021 interpretation**: an unknown nutrient value is stored and shown as unavailable, never as 0; a total built from inputs with unknown values states how many inputs were unknown.
+
