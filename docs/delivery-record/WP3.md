@@ -77,3 +77,22 @@ Audit commit: 300 tests pass locally (`flutter test`), analyzer and formatter cl
 - C1. A1 and A2 fixes (this audit) are reviewed by the owner as part of the acceptance; they are the only implementation changes made.
 - C2. Owner decides on the coverage gate: enforce 80 % on hand-written code now (one CI step) or record the deferral to WP 14 in an ADR, since engineering standards §7 require a threshold from WP 1.
 - C3. TD-22 to TD-26 remain tracked and are not blockers.
+
+## Owner decision (2026-11-04)
+Conditional acceptance granted. Decisions recorded verbatim in effect:
+- **C1 audit fixes: approved.** A1 (migration idempotency) and A2 (recipe provenance) stay in the delivery history; no rollback.
+- **C2 coverage gate: enforce 80 % now.** CI fails below 80 % line coverage of hand-written code; generated code excluded; the lcov report stays a CI artefact; the threshold is not lowered without an ADR and owner approval. Recorded in `docs/engineering-standards.md` §7. Implemented in `app/tool/coverage_gate.dart` (unit-tested) and the "Coverage gate" step of `ci.yml`; the upload step now runs `if: always()` so the report is available when the gate fails.
+- **C3 TD-22 to TD-26: accepted as tracked debt**, not blockers. Each now carries a risk classification and a resolution work package in D05; TD-22 (silent loss on restore, user data integrity) raised to P1 before WP 10 acceptance. TD-24 closed by this decision.
+- **Rep/exertion validation**: deferral to WP 9 accepted provided the rules stay explicit and no exposed use case can persist invalid sets. Verified and recorded in `docs/data-model.md`.
+- **Date/time storage**: current implementation retained; `docs/data-model.md` reconciled (text with `Z` or offset, not UTC-normalised); no stored data changed.
+
+### Acceptance conditions and evidence
+| Condition | Evidence |
+|---|---|
+| 80 % coverage gate implemented | `ci.yml` "Coverage gate (80 % of hand-written code)"; local run of the gate at the closing commit below |
+| Audit fixes in place | c899fe4 on the branch |
+| Full CI green including Android, iOS and integration | CI table below |
+| Documentation reflects the owner decisions | this section; standards §7; D05; `docs/data-model.md`; D06 |
+
+### CI evidence for the closing commits
+Appended when the runs complete.

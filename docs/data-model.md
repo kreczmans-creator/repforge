@@ -4,7 +4,7 @@ Source of truth: `app/lib/data/db/tables.dart` (drift tables) and `app/lib/domai
 
 ## Principles
 - Local-first SQLite (ADR-0004). Every user-record table carries `id` (UUID v4), `created_at`, `updated_at`, `deleted_at` (soft delete) so a sync layer can be added without a rewrite.
-- Dates are stored as ISO-8601 UTC text. Enums are stored by name.
+- Dates are stored as ISO-8601 text (drift `store_date_time_values_as_text`): a UTC `DateTime` is stored with a `Z` suffix, a local `DateTime` with its offset (`+01:00`). Values read back as the same instant. Reconciled 2026-11-04 (WP 3 acceptance): the earlier wording "UTC text" was inaccurate; the stored data is retained as is, and no existing rows are rewritten. Sync ordering (WP 12) must compare instants, not strings. Enums are stored by name.
 - Units are explicit: nutrients per 100 g or per 100 ml (`per100_unit`), quantities as `amount` + `unit`, loads in kg (0.25 kg steps), body weight in kg (0.1), lengths in cm (0.1).
 - Nutrition logged to the diary is a **snapshot** (NUT-010): editing a food later never rewrites history.
 - Provenance (`verified` / `userEntered` / `estimated`) travels with every nutrient value.
@@ -66,6 +66,6 @@ Adding a version: bump `schemaVersion`, add the step in `onUpgrade`, run `dart r
 `DriftBackupRepository` exports every table's raw rows as JSON (`formatVersion` 1, `schemaVersion`, `exportedAt`) and restores by replacing all data in one transaction. A file from a newer format version is refused; a malformed file changes nothing.
 
 ## Known limitations (tracked in D05)
-- `validReps` / `validExertion` are rules, not yet enforced by a use case (WP 9 enforces them at the session-logging boundary).
+- `validReps` (1–100) / `validExertion` (RPE 1–10, RIR 0–10, half steps) are explicit domain rules with tests (`test/domain/training_rules_test.dart`), not yet enforced on write. Owner decision 2026-11-04: deferral to WP 9 accepted on the condition that no exposed use case can persist a set until WP 9 adds the validating session-logging use case. Verified at WP 3 acceptance: no code under `lib/features` references `SessionSet` or `WorkoutSessionRepository`; the repository is reachable only from tests.
 - Reading a stored load rounds to 0.25 kg; stored quantities round to 0.1. Values are validated on write, so this only matters for rows written outside the app.
 - Upserting a soft-deleted id keeps it deleted (intentional: restore is explicit).

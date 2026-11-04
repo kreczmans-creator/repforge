@@ -34,7 +34,7 @@ Status: Proposed (applies from WP 1). Enforced by CI where a tool exists; otherw
 - Unit tests for every domain rule and use case; widget tests for every screen state; integration tests for each P1 user flow.
 - Tests mirror `lib/` paths under `test/`. Test names describe behaviour: `'scales protein by portion weight'`.
 - Fakes over mocks for adapters; `mocktail` where a mock is clearer.
-- Coverage threshold set in WP 1 and never lowered without an ADR.
+- Coverage threshold: **80 % line coverage of hand-written code**, enforced in CI by `app/tool/coverage_gate.dart` (generated `*.g.dart`, `*.freezed.dart` and `generated_migrations/` excluded; the lcov report stays available as a CI artefact). Set by owner decision at WP 3 acceptance (2026-11-04; proposed in WP 1). Never lowered without an ADR and owner approval.
 
 ## 8. Documentation
 - Public domain types and use cases carry doc comments.
