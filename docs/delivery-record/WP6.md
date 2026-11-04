@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **delivered for owner acceptance at 501dc6c (2026-11-04)**; implementation complete, fresh independent review done with all high/medium findings fixed and re-verified, four workflows green. Acceptance is blocked, by the owner's rule, on the physical-device checklist (both platforms) and on D05 V-01; both are owner-performed.
+Status: **implementation accepted for conditional acceptance by the owner (2026-11-04) at 501dc6c; NOT formally accepted or closed.** Physical-device verification and D05 V-01 are outstanding and owner-performed. No merge to `main` authorised.
 
 ## Scope (D06 WP 6, owner authorisation 2026-11-04)
 `BarcodeScanner` interface and `mobile_scanner` adapter; Android and iOS camera permission handling with rationale and denial/retry paths; camera capability detection and unavailable-device behaviour; cached product table and persistence; scan → barcode lookup → portion → log; not-found path into custom food creation; integration tests with a fake scanner adapter; physical-device checklist for both platforms; fresh independent review before delivery. Engineering controls: reuse the WP 5 lookup contract; hardware and permissions behind the adapter boundary; test cancellation, permission denial, repeated scans, malformed barcodes, unknown products, offline lookup and duplicate submission; never create or log a product when lookup fails; coverage gate and four-workflow CI; ADRs, traceability, debt and this record updated.
@@ -85,3 +85,29 @@ Local at 501dc6c: 458 tests pass, analyzer and formatter clean, hand-written cov
 
 ## Physical-device verification
 `docs/verification/wp6-device-checklist.md` (15 steps; step 15 is D05 V-01). Owner-performed; results recorded there and summarised here. iOS requires a development-signed build; if unavailable, recorded as "not testable", never as passed.
+
+## Owner review and decisions (2026-11-04)
+| Decision | Status |
+|---|---|
+| Implementation scope | Accepted for conditional acceptance |
+| ADR-0006 (incl. `permission_handler` 12.0.1 pin) | **Approved**; plugin isolation retained as a standing constraint |
+| TD-34 / TD-35 / TD-36 | Accepted as tracked debt (TD-36 classified as a known concurrency risk; closure needs a gated-start regression test and device evidence) |
+| Independent review | Accepted |
+| CI and coverage (501dc6c: 41850957414, 41850957506, 41850957965, 41850957656; 87.5 %) | Passed |
+| Physical-device verification | **Outstanding** |
+| D05 V-01 | **Open** (if it fails, WP 5 reopens) |
+| WP 6 formal closure | **Pending** |
+| Merge to `main` | Not authorised |
+
+### Mandatory conditions for final acceptance
+1. Physical Android checklist (`docs/verification/wp6-device-checklist.md`), recorded with device model, OS version, build commit, tester and date.
+2. Physical iOS checklist, or an explicit owner-approved deviation if signing makes it impossible.
+3. D05 V-01: the six WP 5 airplane-mode steps.
+4. TD-34: EAN-8 and UPC-E lookup verified against real products (checklist step 5).
+5. Camera permission, denial, recovery and start/stop behaviour on physical devices (checklist steps 2–4, 12–13, plus TD-36 variant: tap "Scan again" immediately after a result).
+
+### Evidence distinction (owner direction)
+CI and emulator evidence prove the flow with the fake adapter only. They do not prove camera hardware, recognition time or platform permission behaviour. No device result is entered in this record unless the owner supplies it.
+
+### Direction for remaining work
+No further feature scope in WP 6. Fixes arising from device testing are narrowly scoped, independently reviewed, and rerun all four workflows before WP 6 returns for final acceptance.

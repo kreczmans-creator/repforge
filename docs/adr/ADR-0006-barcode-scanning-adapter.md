@@ -1,6 +1,6 @@
 # ADR-0006: Barcode scanning through a platform adapter (mobile_scanner, permission_handler, minimal native capability shim)
 
-- Status: Proposed (WP 6, 2026-11-04); owner decision requested with the WP 6 acceptance
+- Status: **Accepted** (owner approval 2026-11-04, WP 6 review)
 - Date: 2026-11-04
 
 ## Context
@@ -25,4 +25,6 @@ Option 1. Feature code depends only on the Flutter-free domain interface `Barcod
 - TD-32 (no `Logger`) applies to adapter failures until resolved.
 
 ## Approval
-Pending owner decision at WP 6 acceptance.
+Approved by the owner on 2026-11-04: `mobile_scanner` for detection, `permission_handler` for permission state, the minimal native capability channel, the Flutter-free domain interface, the fake adapter for tests, and reuse of the WP 5 lookup service and `foods` table. The pin `permission_handler` 12.0.1 is approved (13.x requires compileSdk 37, unsupported by AGP 9.1.0).
+
+**Standing constraint:** plugin isolation is retained. No feature-level code may depend on plugin APIs in later work; plugin imports stay in `lib/data/platform/`.

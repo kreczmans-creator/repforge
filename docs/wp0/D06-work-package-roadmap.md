@@ -78,7 +78,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for nutrition maths; widget tests; integration test for log/edit/delete; manual offline test.
 
 ### WP 6 — Barcode scanning and food logging
-- Status: **Delivered for acceptance 2026-11-04 at 501dc6c** (`docs/delivery-record/WP6.md`); owner device checklist and D05 V-01 pending.
+- Status: **Implementation accepted for conditional acceptance 2026-11-04 at 501dc6c** (`docs/delivery-record/WP6.md`); ADR-0006 approved. **Not closed:** physical-device checklist (Android, iOS or approved deviation), D05 V-01 and TD-34 device verification outstanding.
 - Objective: scan → lookup → portion → log, on both platforms.
 - Scope: `BarcodeScanner` adapter with `mobile_scanner`, permission flow with rationale, capability detection, cached product table, not-found path leading to custom food creation.
 - Dependencies: WP 5.
