@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `ccr-ac6db77c-jcnexo`
-Status: **accepted by the owner on 2026-11-04** at df0f6d9 (closure conditions table below). The owner's acceptance statement records the airplane-mode device test (R6) as passed; the device model, Android version, test date and per-step results have not yet been supplied and the results table below is still blank — the auditor did not perform or confirm that test (no device access) and has not entered results on the owner's behalf. No merge to `main` authorised.
+Status: **accepted by owner decision on 2026-11-04** at df0f6d9 (closure conditions table below). **The airplane-mode device verification (R6) is unconfirmed and open**: no device, Android version, date or per-step result has been supplied; the auditor has no device access and did not perform the test. The owner's first acceptance statement attributed a confirmation to the auditor that was never given; the owner corrected this on 2026-11-04. Acceptance by owner decision does not make the missing evidence exist. Disposition of the open condition: see "R6 disposition" below. No merge to `main` authorised.
 
 ## What was built
 - **Food lookup**: `FoodLookupService` interface with an Open Food Facts client (dio) behind it. Search uses the search-a-licious endpoint (the legacy `search.pl` and `api/v2/search` endpoints were returning an HTML "temporarily unavailable" page on the day of implementation); barcode lookup uses `api/v2/product`. Typed failures (offline, rate-limited, unavailable, not found); the client never throws. Community data is labelled `crowdsourced`.
@@ -177,7 +177,7 @@ Local at df0f6d9 (Flutter 3.47.9): **372 tests pass**, analyzer and formatter cl
 | D6/D7 recorded as debt | done (TD-32, TD-33, TD-26) |
 | WP 5 record and system check corrected | done (e0efce6, this section) |
 | NUT P1 ownership recorded in D04/D06 | done (82a4670) |
-| Airplane-mode device verification | **owner-reported as passed (acceptance statement 2026-11-04)**; device model, Android version, date and per-step results still to be entered in the R6 table by the owner. The auditor did not perform or confirm the test. |
+| Airplane-mode device verification | **OPEN — unconfirmed.** Result fields blank; no device, version or date supplied; not performed or confirmed by the auditor. Must not be represented as passed. See "R6 disposition". |
 | Coverage gate ≥ 80 % on the final head | done (88.1 %) |
 | Four workflows green on the final closure commit | done (df0f6d9, table above) |
 | Fresh independent review with findings resolved | done (F1–F3 fixed, F4 recorded) |
@@ -185,4 +185,12 @@ Local at df0f6d9 (Flutter 3.47.9): **372 tests pass**, analyzer and formatter cl
 Not merged to `main`.
 
 ## Owner acceptance (2026-11-04)
-WP 5 formally accepted and closed at df0f6d9: D1–D5 resolved and regression-tested; D6/D7 recorded as TD-32/TD-33; requirements and roadmap allocations corrected; fresh independent review completed with F4 documented; coverage gate 88.1 %; four workflows green on df0f6d9; airplane-mode device verification reported passed by the owner (data for the R6 table outstanding, see Status). No merge to `main` authorised. Next package: WP 6 — Barcode scanning and food logging.
+WP 5 accepted and closed by owner decision at df0f6d9: D1–D5 resolved and regression-tested; D6/D7 recorded as TD-32/TD-33; requirements and roadmap allocations corrected; fresh independent review completed with F4 documented; coverage gate 88.1 %; four workflows green on df0f6d9. The airplane-mode device verification is **not** among the satisfied conditions: it is unconfirmed and open (owner correction, 2026-11-04). No merge to `main` authorised.
+
+### R6 disposition (auditor decision, 2026-11-04)
+The test can only be performed by the owner on a physical Android device; the auditor cannot supply or invent the evidence. Disposition:
+1. **Status: open verification item, owner-owned**, tracked as D05 V-01 (not technical debt: nothing in the code is known to be wrong; the evidence is missing).
+2. **Due: at WP 6 acceptance**, in the same owner device session as the WP 6 physical-device checklist (D06 WP 6 verification requires device tests on both platforms anyway). The six-step procedure above is the test; results, device model, Android version, build commit and date are entered in the table above by the owner.
+3. **Blocking:** not a blocker to *starting* WP 6 implementation (WP 6 depends on WP 5's accepted code, not on this evidence). It **is** a blocker to WP 6 acceptance and to the R0 internal release point (D06), because offline-first behaviour is a core architectural promise (GEN-004, NUT-005).
+4. **If the test fails**, the failure is a WP 5 defect, reopens WP 5 under the owner's rule "a demonstrated defect", and is fixed before WP 6 acceptance.
+5. Until the data is entered, every document that mentions R6 says "unconfirmed, open".

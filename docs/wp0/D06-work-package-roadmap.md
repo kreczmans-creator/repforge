@@ -69,7 +69,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: widget tests; integration test "change target, restart, verify".
 
 ### WP 5 — Nutrition and food database
-- Status: **Rejected as delivered 2026-11-04, then accepted by the owner 2026-11-04 at df0f6d9** after the closure actions (`docs/delivery-record/WP5.md`): unknown nutrients never shown as 0 (schema v4), distinct no-target/unknown states, five-measure weekly summary, search 404 handling, record corrections; R6 device-test data to be entered by the owner.
+- Status: **Rejected as delivered 2026-11-04, then accepted by owner decision 2026-11-04 at df0f6d9** after the closure actions (`docs/delivery-record/WP5.md`): unknown nutrients never shown as 0 (schema v4), distinct no-target/unknown states, five-measure weekly summary, search 404 handling, record corrections. **Open: airplane-mode device verification (R6) is unconfirmed** — owner-owned verification item D05 V-01, due at WP 6 acceptance, blocks WP 6 acceptance and R0.
 - Owner allocation of NUT P1 items not delivered by WP 5 (2026-11-04): **NUT-017** (calculation specification) and **NUT-019** (weakest provenance on totals) and **NUT-022** (imperial portion entry) stay in **WP 5** — NUT-017 before any further nutrition-calculation work; **NUT-011** (meal rename/reorder) → **WP 7**; **NUT-023** (import date) → **WP 14** alongside import/export; **NUT-018 part 3** stays in the requirements backlog with its original wording until its scope and owner are clarified (D04 §7). NUT-006 is WP 6; NUT-008 and NUT-014 were never allocated to WP 5.
 - Objective: fast, correct food logging.
 - Scope: food search (Open Food Facts client with typed errors, debounce, caching), custom foods, custom serving sizes, portion entry in g/ml/servings, meal assignment, daily diary with edit/delete, date navigation, fibre, saved meals, provenance labels, daily and weekly summaries.
@@ -81,7 +81,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Objective: scan → lookup → portion → log, on both platforms.
 - Scope: `BarcodeScanner` adapter with `mobile_scanner`, permission flow with rationale, capability detection, cached product table, not-found path leading to custom food creation.
 - Dependencies: WP 5.
-- Acceptance: scan of a known EAN logs a correctly scaled entry on Android and iOS physical devices; unavailable camera hides the scan action with explanation.
+- Acceptance: scan of a known EAN logs a correctly scaled entry on Android and iOS physical devices; unavailable camera hides the scan action with explanation; **the WP 5 airplane-mode device verification (D05 V-01) is performed and recorded in the same owner device session** (added 2026-11-04).
 - Verification: integration test with fake adapter; manual device checklist for both platforms recorded with device models.
 
 ### WP 7 — Recipe management and meal planning

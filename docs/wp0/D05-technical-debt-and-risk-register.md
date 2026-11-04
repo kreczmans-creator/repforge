@@ -58,3 +58,10 @@ Scales: Severity and Impact: Low / Medium / High / Critical. Likelihood: Low / M
 | R-10 | Legacy ZIP workflow keeps running and keeps failing, creating noise and confusion about project health. | Low | High | Low | Disable automatic trigger in WP 1 (D07 §4). | — | P2 |
 | R-11 | Recipe nutrition seeds are estimates presented as numbers; users may treat them as facts. | Medium | High | Medium | Store with `estimated` provenance and show the label in UI. | — | P2 |
 | R-12 | No documented product decisions (units, markets, food database licence). | Medium | High | Medium | D04 open questions answered before WP 5. | Owner | P2 |
+
+## C. Open verification items (evidence missing, not defects)
+
+| ID | Item | Owner | Due | Blocks | Status |
+|---|---|---|---|---|---|
+| V-01 | WP 5 airplane-mode device verification (six-step procedure in `docs/delivery-record/WP5.md`, R6): cached foods searchable and loggable offline, diary updates, no hang, no duplication on reconnect. Opened 2026-11-04 after the owner's acceptance statement attributed an unperformed confirmation to the auditor; corrected the same day. | Owner (physical Android device) | WP 6 acceptance, same device session as the WP 6 checklist | WP 6 acceptance; R0 internal release | **Open — unconfirmed** |
+
