@@ -86,7 +86,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: integration test with fake adapter; manual device checklist for both platforms recorded with device models.
 
 ### WP 7 — Recipe management and meal planning
-- Status: **Delivered for owner acceptance 2026-11-04 at 110b8bb** (`docs/delivery-record/WP7.md`); not accepted. Prerequisite NUT-017 specification (`docs/nutrition-calculation-spec.md`) is a draft for owner approval; OQ-14 decision pending.
+- Status: **Conditionally accepted by the owner 2026-11-04** (delivered at 110b8bb, `docs/delivery-record/WP7.md`). Closure condition: NUT-017 revision 1.3 (portion counts to 0.01), its implementation and regression tests, a fresh independent review, and four workflows green on the final commit. OQ-14 decided (UK/EU available carbohydrate).
 - Objective: recipes as first-class, calculable entities.
 - Scope: recipe CRUD, ingredients with quantities linked to foods, per-portion nutrition computed from ingredients (not typed in), portion scaling, prep/cook/storage/freezing/reheating fields, favourites, substitutions, seed import of the 22 legacy recipes flagged `estimated`, log a portion to the diary, weekly meal plan and prep list (P2).
 - Added 2026-11-04 (owner allocation from WP 5): **NUT-011** named meals rename/reorder, with its D04 acceptance criteria.
@@ -118,6 +118,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 ### WP 11 — Analytics and progress visualisation
 - Objective: goals and weekly insight without automated coaching.
 - Scope: calorie/macro/weight/measurement/training goals, weekly summary screen, progress indicators, historical comparison; explicit gate recorded that no recommendations ship until data-quality criteria (GOL) are met.
+- Added 2026-11-04 (owner allocation from WP 7 review): **NUT-019** day-total provenance badge (weakest provenance shown on daily and weekly nutrition totals; the shared rule already exists, spec §8).
 - Dependencies: WP 5, WP 9, WP 10.
 - Acceptance: GOL P1 criteria pass; summaries match fixture data.
 
@@ -138,6 +139,13 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Scope: coverage thresholds, nightly integration runs, release workflow, signing, store listings, manual device checklist, crash reporting decision (opt-in), beta distribution (Play internal testing, TestFlight).
 - Added 2026-11-04 (owner allocation from WP 5): **NUT-023** import source and date, alongside the import/export capability.
 - Acceptance: a tagged release produces signed artefacts and a changelog without manual steps beyond approval.
+
+### WP 15 — Nutrition entry units (added 2026-11-04, owner allocation)
+- Objective: enter food quantities in the units people use, with exact canonical storage.
+- Scope: **NUT-022** — kg, l (and mg where meaningful) entry with conversion to canonical g/ml (spec §2.3, GEN-004 table); explicit decision on which imperial input units are supported (OQ-02) and their entry; validation and display conversion; applies to food logging, portion sheets and recipe ingredients; no mass↔volume conversion without a stated density (NUT-022(2)).
+- Dependencies: WP 5 (accepted), WP 7.
+- Acceptance: NUT-022 criteria pass (0.25 kg stored and shown as 250 g; 1 kg = 1000 g and 1 l = 1000 ml exactly; round-trip within 0.001); spec §2.3 worked examples executed as tests; the chosen imperial units documented.
+- Verification: unit tests for conversions; widget tests for entry in each unit; spec examples.
 
 ## Sizing guidance
 

@@ -288,3 +288,9 @@ These questions need an owner decision. Until answered, the linked requirements 
 - **Allocation of P1 nutrition items not delivered by WP 5**: NUT-017, NUT-019, NUT-022 → WP 5 closure; NUT-011 → WP 7; NUT-023 → WP 14. Recorded in D06.
 - **NUT-021 interpretation**: an unknown nutrient value is stored and shown as unavailable, never as 0; a total built from inputs with unknown values states how many inputs were unknown.
 
+### 2026-11-04 — WP 7 acceptance decisions
+- **OQ-14 decided**: UK/EU convention — carbohydrate is available carbohydrate; fibre separate, never added or subtracted; energy as stated. Limitation accepted for US-labelled products (calculation specification §4).
+- **Portion precision**: portion counts are stored to at least 0.01 (calculation specification §2.1 rev 1.3); gram/ml quantities stay at 0.1.
+- **Allocation**: NUT-019 day-total provenance badge → WP 11; NUT-022 kg/l/imperial entry → new WP 15 (Nutrition entry units). Accepted WP 5 is not reopened.
+- **Seed recipes**: imported with freezing "unknown" regardless of legacy flags; declared nutrition kept as estimated until every ingredient note is replaced by a linked ingredient.
+

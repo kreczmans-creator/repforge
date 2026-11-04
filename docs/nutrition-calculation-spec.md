@@ -1,6 +1,6 @@
 # RepForge nutrition calculation specification (NUT-017)
 
-- Status: **Draft for owner approval** (written 2026-11-04 before WP 7 recipe calculation work, per the owner's allocation of NUT-017).
+- Status: **Draft — §4 approved by the owner 2026-11-04; full approval pending revision 1.3** (portion precision, owner decision 2026-11-04). Written before WP 7 recipe calculation work, per the owner's allocation of NUT-017.
 - Scope: every nutrition figure the app stores, totals, averages, labels or displays: foods, diary entries, day and week summaries, saved meals, recipes, meal plans.
 - Normative: code that calculates nutrition must follow this document. A change to a rule here needs a new revision of this document and updated worked examples. The worked examples in §10 are executed as automated tests (`app/test/domain/nutrition_spec_examples_test.dart`); test ids match the example ids.
 - Open decision: **§4 carbohydrate convention (D04 OQ-14)** is written as current behaviour with a recommendation; it needs the owner's decision.
@@ -13,7 +13,7 @@
 5. A named serving (for example "1 slice = 35 g") is a quantity in the reference unit. *n* servings = *n* × the serving's quantity, then rule 1.3.
 
 ## 2. Quantities and storage precision
-1. Quantities are stored in canonical metric units (g, ml) as entered, **rounded to 0.1** of the unit at entry (half away from zero). Amounts must be greater than 0 to be logged. Portion counts (recipe portions logged, planned portions, prepared-batch portions) are entered and stored in the same 0.1 steps; a finer value (for example 1.25) is rounded to 0.1 at entry, and the input fields offer one decimal only.
+1. Quantities are stored in canonical metric units (g, ml) as entered, **rounded to 0.1** of the unit at entry (half away from zero). Amounts must be greater than 0 to be logged. **Portion counts** (recipe portions logged, planned recipe portions, prepared-batch portions made and remaining, saved-meal multipliers) are stored to **0.01** (half away from zero) and never to a coarser step: 1.25 portions is stored and calculated as 1.25, not 1.3; 1.234 becomes 1.23. Portion inputs accept two decimals. Recipe portion counts (§9.2) and derived portions (§9.3) are numbers in their own right and are not rounded for calculation. (Revision 1.3, owner decision 2026-11-04: a 0.1 step would introduce up to 4 % error into logged nutrition.)
 2. Nutrient values are calculated from the stored quantity and stored at **full double precision**. There is **no intermediate rounding** in any calculation.
 3. Unit conversions (GEN-004): 1 kg = 1000 g, 1 l = 1000 ml, 1 mg = 0.001 g, exactly. **Not yet implemented:** no entry path accepts kg, l or mg today (NUT-022 entry is open), so these rules have no code and no executed example; they bind the first package that adds such entry. Imperial units are display-only (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); imperial entry is not offered.
 
@@ -22,10 +22,10 @@
 2. Totals, tiles and diary rows show energy and grams as whole numbers. Entry details and previews may show one decimal for grams.
 3. Rounding a displayed total never changes the stored values or the totals built from them; the sum of displayed parts may differ from the displayed total by rounding.
 
-## 4. Carbohydrate convention (D04 OQ-14 — owner decision required)
+## 4. Carbohydrate convention (D04 OQ-14 — **approved by the owner 2026-11-04**)
 **Current behaviour:** carbohydrate is stored **exactly as stated by the source**, and fibre is a separate nutrient. The app never adds fibre to, or subtracts fibre from, carbohydrate. Open Food Facts supplies `carbohydrates_100g`, which for EU/UK labels is *available* carbohydrate (fibre listed separately); a custom food stores what the user types from the label.
 
-**Recommendation:** adopt the EU/UK convention formally — carbohydrate means available carbohydrate, fibre is listed separately — because it is what the main data source supplies and what UK labels print. Consequence to accept: US-labelled products state *total* carbohydrate (fibre included); the app cannot detect this, so their carbohydrate is overstated by their fibre. Energy is not affected (§5).
+**Decision (owner, 2026-11-04):** the UK/EU convention. Carbohydrate means **available carbohydrate**; fibre is recorded and displayed separately and is **never added to or subtracted from** carbohydrate; energy is the stated source energy (§5), never recalculated from macros. Accepted limitation: US-labelled products state total carbohydrate (fibre included) and the app cannot detect this, so their carbohydrate is overstated by their fibre.
 
 ## 5. Energy
 1. Energy is the **stated kcal value** of the source. If only kJ is stated, `kcal = kJ ÷ 4.184`. If both are stated, kcal is used as stated.
@@ -100,6 +100,9 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | E36 | 3.1 | display 19.5, 2.25 (1 dp), 131.25 (1 dp) | "20", "2.3", "131.3" |
 | E37 | 8.2, 9 | recipe: 100 g Oats (verified) + 250 ml Milk (crowdsourced) | recipe provenance crowdsourced |
 | E38 | 8.3 | recipe: 4 portions, 3 ingredient notes, declared 460 kcal per portion, plus one linked 100 g Oats | 460 kcal per portion, estimated (not computed from the oats alone) |
+| E39 | 2.1, 9.5 | log 1.25 portions of a recipe at 400 kcal and P 30 per portion | stored 1.25 portions (not 1.3); 500 kcal, P 37.5; diary row "1.25 portions" |
+| E40 | 2.1 | log 1.234 portions of the E39 recipe | stored 1.23 portions; 492 kcal |
+| E41 | 2.1 | prepared batch of 2 portions; consume 0.75, then 1.25 | 1.25 left, then 0 left (never below 0) |
 
 ## 11. Change history
 | Revision | Date | Change |
@@ -107,3 +110,4 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | 1 | 2026-11-04 | First version, describing behaviour at commit 3111812 plus the approved crowdsourced ordering; §4 pending owner decision. |
 | 1.1 | 2026-11-04 | §2.3 and E35 narrowed: metric multiple conversions have no code path yet (found while implementing the examples). Results: 35 examples pass, E31–E32 pending WP 7 stage 1, none fail. |
 | 1.2 | 2026-11-04 | §8.3: a recipe with any ingredient note is not computed; it uses its declared values (estimated), or has no per-portion nutrition when none are declared (review finding H1). Example E38 added. §2.1: portion counts are entered and stored in 0.1 steps. §9.4: scaled quantities are not rounded, so per-portion values are exactly unchanged. E06/E07 use `ServingSize.quantityFor`. |
+| 1.3 | 2026-11-04 | §2.1: portion counts stored to 0.01, not 0.1 (owner decision); examples E39–E41. §4: UK/EU carbohydrate convention approved by the owner. |

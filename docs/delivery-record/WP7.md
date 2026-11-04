@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **delivered for owner acceptance at 110b8bb (2026-11-04)** — all owner gates met: both fix agents complete, combined diff reviewed, emulator failure reproduced and fixed, full local suite, independent review of the final diff, four workflows green on 110b8bb. **Not accepted** until the owner records a decision. No merge to `main`. (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
+Status: **conditionally accepted by the owner (2026-11-04)**, delivered at 110b8bb. **Closure condition (in progress):** portion counts stored to 0.01 (spec rev 1.3) with implementation, regression tests, a fresh independent review and four workflows green on the final commit. No merge to `main`. (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
 
 ## Scope (D06 WP 7)
 Recipe CRUD; ingredients with quantities linked to foods; per-portion nutrition computed from ingredients (not typed in); portion scaling; prep/cook/storage/freezing/reheating fields; favourites; substitutions; seed import of the 22 legacy recipes flagged `estimated`; log a portion to the diary; weekly meal plan and prep list (P2); NUT-011 meal rename/reorder (owner allocation 2026-11-04).
@@ -97,3 +97,21 @@ Local evidence on the verification commit's tree: 709 tests pass, analyzer and f
 | **110b8bb** (delivery commit) | **41896530147 success** | **41896530145 success** | **41896530323 success** (attempt 2; attempt 1 was cancelled after 15 min in the macOS runner queue with no step run) | **41896530253 success** (all four integration tests incl. RCP-013 and the scan test) |
 
 The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test: the shared `scrollTo` helper picked the last `Scrollable` on screen, which in the recipe editor is a text field's horizontal scroller, so it never reached the Save button. Being fixed with the review fixes; the delivery commit must show all four green.
+
+## Owner decisions (2026-11-04)
+| Item | Decision |
+|---|---|
+| CI evidence at 110b8bb | Independently verified by the owner against the full SHA; iOS attempt 2 is the relevant result |
+| NUT-017 §4 carbohydrate convention (OQ-14) | **Approved**: UK/EU available carbohydrate, fibre separate, energy as stated; US-label limitation accepted |
+| NUT-017 §2.1 portion rounding | **Not approved as written**: portion counts must be stored to at least 0.01 (1.25 stays 1.25); revision 1.3 required |
+| Seed recipes: freezing unknown; estimate kept until all notes replaced | **Approved** |
+| NUT-019 day-total badge | → WP 11 |
+| NUT-022 kg/l/imperial entry | → new WP 15 (Nutrition entry units) |
+| WP 7 | **Conditionally accepted**, pending the portion-precision condition |
+| Physical-device testing of recipe screens | Noted; not an acceptance gate (D06 does not specify one) |
+
+### Closure condition — portion precision
+1. NUT-017 revision 1.3 (§2.1; examples E39–E41).
+2. Implementation: portion counts stored and calculated at 0.01 everywhere (logging, plan, prep batches, saved-meal multipliers, diary edit); portion inputs accept two decimals; g/ml stay at 0.1.
+3. Regression tests: fractional portions, nutrient calculations, diary snapshots; E39–E41 executed.
+4. Fresh independent review; four workflows green on the final commit; this record and D06 updated with the commit and runs.
