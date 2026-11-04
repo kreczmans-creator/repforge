@@ -55,4 +55,10 @@ Probes run in throwaway tests; 467 existing tests re-run. Findings:
 RCP P1 criteria the reviewer found not fully met: **RCP-003** (step delete untested), **RCP-007** (H1), **RCP-013(2)** (no navigation from a diary entry to its recipe). All three are in the fix set.
 
 ## CI evidence
-Appended at delivery.
+| Commit | CI (gate) | Android build | iOS build | Integration tests |
+|---|---|---|---|---|
+| 77540ae (stage 1) | 41865491318 success | 41865491359 | 41865491400 | 41865491278 |
+| ae338e0 (stage 2) | 41874764235 success | 41874764297 success | 41874764245 success | 41874764486 **failure** |
+| ee97c17 (stage 4) | 41880049018 success | 41880049553 success | 41880049296 success | 41880049338 **failure** |
+
+The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test: the shared `scrollTo` helper picked the last `Scrollable` on screen, which in the recipe editor is a text field's horizontal scroller, so it never reached the Save button. Being fixed with the review fixes; the delivery commit must show all four green.
