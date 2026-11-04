@@ -12,7 +12,7 @@ Author: Claude Code. Updated: 2026-11-04. Imported into every Claude Code sessio
 - Engineering: none in progress. Next owed engineering work is the WP 7 closure condition (portion precision 0.01): step 1 of 4 done (spec rev 1.3 at e45e4f7); implementation, regression tests, fresh review and four green workflows outstanding.
 
 ## Latest handoff
-- HO-0001 — GOV 1 (this system) at 04d44a7, status AWAITING_REVIEW. The workflow mirrors it into the issue `[AI review] HO-0001`; the owner starts the ChatGPT review from there.
+- HO-0001 — GOV 1 (this system) at 04d44a7, status AWAITING_REVIEW. Handoff commit 8ac106d: workflow run 41916119691 success (validate and notify); review issue #2 `[AI review] HO-0001` created by the workflow with the evidence links and the sentence the owner pastes into ChatGPT.
 
 ## Latest review status
 - No review on file under `reviews/`. The protocol has not yet carried a ChatGPT review; it is not reported as live or bidirectional until it has.
