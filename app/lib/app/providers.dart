@@ -25,6 +25,7 @@ import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/food_repository.dart';
 import 'package:repforge/domain/nutrition/saved_meal_repository.dart';
 import 'package:repforge/domain/recipes/recipe_repository.dart';
+import 'package:repforge/domain/scanning/barcode_scanner.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training_repository.dart';
 import 'package:repforge/features/measurements/application/delete_weight_entry.dart';
@@ -173,4 +174,11 @@ final foodLookupServiceProvider = Provider<FoodLookupService>(
     dio: ref.watch(dioProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Camera and barcode scanning (PLT-001, PLT-002). The default throws: the
+/// platform adapter is bound in `main.dart` by overriding this provider, and
+/// tests override it with `FakeBarcodeScanner`.
+final barcodeScannerProvider = Provider<BarcodeScanner>(
+  (_) => throw UnimplementedError('bound in main.dart by the platform adapter'),
 );

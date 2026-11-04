@@ -11,7 +11,9 @@ import 'package:repforge/domain/nutrition/summaries.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/nutrition/application/create_custom_food.dart';
 import 'package:repforge/features/nutrition/application/log_food.dart';
+import 'package:repforge/features/nutrition/application/lookup_barcode.dart';
 import 'package:repforge/features/nutrition/application/saved_meals.dart';
+import 'package:repforge/features/nutrition/application/scan_session.dart';
 
 /// The diary day the Fuel tab is showing. Defaults to today and follows the
 /// day rollover until the user navigates away from today.
@@ -245,3 +247,14 @@ foodSearchControllerProvider =
     NotifierProvider.autoDispose<FoodSearchController, FoodSearchState>(
       FoodSearchController.new,
     );
+
+final lookupBarcodeProvider = Provider<LookupBarcode>(
+  (ref) => LookupBarcode(
+    foods: ref.watch(foodRepositoryProvider),
+    lookup: ref.watch(foodLookupServiceProvider),
+  ),
+);
+
+/// State machine behind the barcode scan screen.
+final NotifierProvider<ScanSession, ScanState> scanSessionProvider =
+    NotifierProvider.autoDispose<ScanSession, ScanState>(ScanSession.new);
