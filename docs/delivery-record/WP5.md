@@ -135,3 +135,51 @@ Build: the debug APK from the rolling `debug-latest` release built from the fina
 | 6 | Delete the two test entries. | Diary and dashboard return to the previous state. | |
 
 Record: device model, Android version, build commit, date, and the result column. Any deviation is a defect against GEN-004/NUT-005 and reopens R1.
+
+## Closure (2026-11-04)
+Scope kept to the owner's instruction: the three nutrition defects, the search 404 handling, the migration re-run guard, documentation accuracy and the agreed verification. No other feature work.
+
+### What changed
+| Condition | Commit | Change | Regression tests |
+|---|---|---|---|
+| D1 unknown macros stay unknown | 864065f | `NutrientAmounts` macros nullable; sums add known values and are null only when no input knows; `NutrientTotals` carries unknown counts; Open Food Facts mapper passes null through; `CreateCustomFood` accepts blank macros as unknown; schema v4 makes the snapshot columns of `foods`, `food_log_entries`, `saved_meal_items` nullable via `TableMigration` with foreign keys off around the rebuild, idempotent on re-run | `open_food_facts_mapper_test` (energy-only → null, explicit 0 stays 0), `unknown_macros_test` (day protein total unchanged with one unknown entry; only-unknown day → null; rescale preserves null; blank custom-food macros → null), `nutrition_rules_test` "unknown nutrients" (9), `migration_test` (v3→v4 keeps food, servings child row, log entry, saved-meal item; v3 re-run after crash; v1/v2→v4) |
+| D2 known / unknown / no-target states | ca90c49, df0f6d9 | `RfMacroBar` nullable amount and target with unknown-count marker; "n/a" and "no target", no bar without a target; Fuel screen, dashboard (closes TD-28), portion sheet, diary subtitles, saved-meal totals share the semantics; weekly day row draws no bar without a calorie target; custom-food form labels "blank if unknown" | `components_test` RfMacroBar (4), `fuel_screen_test` (4), `home_screen_test` "nutrition panel semantics" (3), `portion_sheet_test`, `saved_meals_screen_test` (2 new) |
+| D3 weekly summary, five measures | ca90c49, df0f6d9 | all five measures per day and as averages; a nutrient's average is over the logged days that know it (a day with no known value is excluded, never counted as 0) and the tile says how many days were left out; reference corrected to NUT-016 | `weekly_summary_screen_test` (2 new), `summaries_test` "average leaves out days that do not know a nutrient" |
+| D4 migration re-run guard | a216fc2 | retained as approved | `migration_test` "v2 upgrade can run again…" |
+| D5 search 404 | 82a4670 | search 404 → unavailable; barcode 404 → not found | `open_food_facts_client_test` "search 404 is unavailable, not an empty result" |
+| D6/D7 debt | 82a4670 | TD-32 (no Logger in the lookup layer), TD-33 (search normalisation, untested client paths); TD-26 extended; `tables.dart` saved-meal comment corrected | — |
+| R4 documents | e0efce6 | this record (per-requirement NUT table) and the system check corrected | — |
+| R5 allocations | 82a4670 | D06 and D04 §7: NUT-011 → WP 7; NUT-017, 019, 022 → WP 5; NUT-023 → WP 14; NUT-018(3) retained verbatim; `crowdsourced` approved as a fourth label with aggregate ordering | — |
+
+### Fresh independent review of the fixes (owner condition)
+A reviewer with no part in the fixes read `d40690a..ca90c49`. Outcome: D1, D2, D5 and the v4 migration **resolved** (atomicity, data preservation incl. `food_servings`, re-runnability and snapshot consistency confirmed; every remaining `?? 0` in `lib` judged and none converts a nutrient null to 0). Findings:
+- **F1 (medium, fixed in df0f6d9):** the weekly average divided the known sum by all logged days, so a day with no known protein counted as 0 g; the widget test encoded it. Averages now exclude days that do not know the nutrient; both tests corrected.
+- **F2 (low, fixed in df0f6d9):** weekly day row drew a 0 % bar when no calorie target was set.
+- **F3 (low, fixed in df0f6d9):** custom-food form did not say that a blank macro means unknown.
+- **F4 (low, recorded):** `LookupNotFound` is never produced (barcode not-found is `Ok(null)` by contract) — folded into TD-33; "n/a"/"no target" strings exist in both `RfMacroBar` and the feature helper — acceptable (the component cannot import feature code), noted for the design-system glossary.
+
+### Test, coverage and CI evidence
+Local at df0f6d9 (Flutter 3.47.9): **372 tests pass**, analyzer and formatter clean, hand-written coverage **88.1 %** (gate 80 %).
+
+| Commit | CI (gate) | Android build | iOS build | Integration tests |
+|---|---|---|---|---|
+| 82a4670 (D5, allocations) | 41825207117 success | 41825207142 success | 41825207147 success | 41825207345 success |
+| 864065f (D1, schema v4) | 41827033870 success | 41827033764 success | 41827033864 success | 41827033811 success |
+| ca90c49 (D2/D3 UI) | 41828763729 success | 41828763777 success | 41828764033 success | 41828763827 success |
+| df0f6d9 (review F1–F3) | pending | pending | pending | pending |
+
+### Closure conditions
+| Condition | Status |
+|---|---|
+| D1, D2, D3 fixed with regression tests | done (864065f, ca90c49, df0f6d9) |
+| D4 retained | done |
+| D5 fixed | done (82a4670) |
+| D6/D7 recorded as debt | done (TD-32, TD-33, TD-26) |
+| WP 5 record and system check corrected | done (e0efce6, this section) |
+| NUT P1 ownership recorded in D04/D06 | done (82a4670) |
+| Airplane-mode device verification | **pending — owner to perform** (procedure above; build from the final closure commit) |
+| Coverage gate ≥ 80 % on the final head | done (88.1 %) |
+| Four workflows green on the final closure commit | pending df0f6d9 (table above) |
+| Fresh independent review with findings resolved | done (F1–F3 fixed, F4 recorded) |
+
+Not merged to `main`. Formal acceptance remains the owner's decision.
