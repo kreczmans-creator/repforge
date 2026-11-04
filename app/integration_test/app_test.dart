@@ -140,9 +140,8 @@ void main() {
     expect(find.text('83.2'), findsOneWidget);
   });
 
-  testWidgets('real on-device database opens, migrates and persists', (
-    tester,
-  ) async {
+  testWidgets('real on-device database opens, migrates, persists a weight '
+      'and a target across a fresh connection', (tester) async {
     await pumpApp(tester); // production providers: real file database
     await tester.tap(find.byKey(const Key('nav-track')));
     await tester.pumpAndSettle();
@@ -155,7 +154,33 @@ void main() {
     await pumpUntil(tester, find.text('77.7 kg'));
     expect(find.text('77.7 kg'), findsOneWidget);
 
+    // WP 4 B1: a target written through Settings must survive a restart.
+    // restart() disposes the ProviderScope, which closes the file database
+    // (databaseProvider.onDispose) and the rebuilt app opens a FRESH
+    // connection to the same persisted file.
+    await tester.tap(find.byKey(const Key('nav-home')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('target-calories')), '2345');
+    await scrollTo(tester, find.byKey(const Key('save-targets')));
+    await tester.tap(find.byKey(const Key('save-targets')));
+    await pumpUntil(tester, find.text('Targets saved'));
+
     await restart(tester);
+    await pumpUntil(tester, find.text('0 of 2345'));
+    expect(find.text('0 of 2345'), findsOneWidget);
+
+    // Clean up the target so repeated runs on one device start clean.
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('target-calories')), '');
+    await scrollTo(tester, find.byKey(const Key('save-targets')));
+    await tester.tap(find.byKey(const Key('save-targets')));
+    await pumpUntil(tester, find.text('Targets saved'));
+    await tester.pageBack();
+    await pumpUntilGone(tester, find.text('0 of 2345'));
+
     await tester.tap(find.byKey(const Key('nav-track')));
     await pumpUntil(tester, find.textContaining('integration-test'));
     expect(find.textContaining('integration-test'), findsOneWidget);

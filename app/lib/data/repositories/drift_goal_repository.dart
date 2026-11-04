@@ -34,7 +34,31 @@ final class DriftGoalRepository implements GoalRepository {
     GoalKind kind,
     Goal? next, {
     MeasurementSite? site,
-  }) => _db.transaction(() async {
+  }) => _db.transaction(() => _replaceActiveInTransaction(kind, next, site));
+
+  @override
+  Future<void> replaceActiveAll(Map<GoalKind, Goal?> changes) =>
+      _db.transaction(() async {
+        for (final entry in changes.entries) {
+          final next = entry.value;
+          if (next != null && next.kind != entry.key) {
+            throw ArgumentError.value(
+              next,
+              'changes',
+              'goal kind ${next.kind.name} under key ${entry.key.name}',
+            );
+          }
+          await _replaceActiveInTransaction(entry.key, next, null);
+        }
+      });
+
+  /// Body shared by [replaceActive] and [replaceActiveAll]; the caller owns
+  /// the transaction.
+  Future<void> _replaceActiveInTransaction(
+    GoalKind kind,
+    Goal? next,
+    MeasurementSite? site,
+  ) async {
     final now = _clock.now().toUtc();
     final target = _db.update(_db.goals)
       ..where(
@@ -50,7 +74,7 @@ final class DriftGoalRepository implements GoalRepository {
     if (next != null) {
       await _db.into(_db.goals).insertOnConflictUpdate(toRow(next));
     }
-  });
+  }
 
   @override
   Future<void> upsert(Goal goal) =>

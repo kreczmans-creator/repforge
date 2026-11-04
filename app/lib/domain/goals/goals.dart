@@ -44,5 +44,11 @@ abstract interface class GoalRepository {
     Goal? next, {
     MeasurementSite? site,
   });
+
+  /// Applies [changes] (kind → replacement goal, or null to clear) in ONE
+  /// transaction: either every kind is replaced or none is. Site-less kinds
+  /// only. Throws [ArgumentError] (after rolling back) when a goal's kind
+  /// does not match its key.
+  Future<void> replaceActiveAll(Map<GoalKind, Goal?> changes);
   Future<void> delete(String id);
 }

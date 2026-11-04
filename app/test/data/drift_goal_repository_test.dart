@@ -216,4 +216,56 @@ void _replaceActiveTests() {
       expect(active.map((g) => g.id), unorderedEquals(['w2', 'c']));
     });
   });
+
+  group('DriftGoalRepository.replaceActiveAll', () {
+    late AppDatabase db;
+    late DriftGoalRepository repo;
+    final t0 = DateTime.utc(2026, 11, 4, 8);
+    Goal goal(String id, GoalKind kind, double target) => Goal(
+      id: id,
+      kind: kind,
+      target: target,
+      startDate: t0,
+      createdAt: t0,
+      updatedAt: t0,
+    );
+
+    setUp(() async {
+      db = AppDatabase.inMemory();
+      repo = DriftGoalRepository(db, clock: FixedClock(t0));
+      await repo.upsert(goal('c0', GoalKind.calories, 2000));
+      await repo.upsert(goal('p0', GoalKind.protein, 150));
+    });
+    tearDown(() => db.close());
+
+    test('replaces several kinds and clears one in a single call', () async {
+      await repo.replaceActiveAll({
+        GoalKind.calories: goal('c1', GoalKind.calories, 2100),
+        GoalKind.protein: null,
+        GoalKind.fat: goal('f1', GoalKind.fat, 70),
+      });
+      final active = await repo.active();
+      expect(active.map((g) => g.id).toSet(), {'c1', 'f1'});
+    });
+
+    test('rolls back every kind when a later entry fails', () async {
+      await expectLater(
+        repo.replaceActiveAll({
+          GoalKind.calories: goal('c1', GoalKind.calories, 2100),
+          // Mismatched kind under the protein key: rejected inside the
+          // transaction after calories was already rewritten.
+          GoalKind.protein: goal('x', GoalKind.fat, 70),
+        }),
+        throwsArgumentError,
+      );
+      final active = await repo.active();
+      expect(active.map((g) => g.id).toSet(), {'c0', 'p0'});
+      expect(
+        active.firstWhere((g) => g.kind == GoalKind.calories).target,
+        2000,
+      );
+      final all = await db.select(db.goals).get();
+      expect(all.where((r) => r.id == 'c1'), isEmpty);
+    });
+  });
 }

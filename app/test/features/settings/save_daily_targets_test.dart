@@ -5,6 +5,7 @@ import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/daily_targets.dart';
 import 'package:repforge/domain/goals/goals.dart';
+import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/settings/application/save_daily_targets.dart';
 
 void main() {
@@ -76,4 +77,64 @@ void main() {
     );
     expect(await repo.watchActive().first, isEmpty);
   });
+
+  test('applies all changed kinds in one repository transaction', () async {
+    await useCase(input: {GoalKind.calories: '2400', GoalKind.protein: '180'});
+    final recording = _Recording(repo);
+    final atomic = SaveDailyTargets(
+      repository: recording,
+      clock: FixedClock(DateTime.utc(2026, 11, 3, 10)),
+      newId: () => 'a${++ids}',
+    );
+    final r = await atomic(
+      input: {
+        GoalKind.calories: '2000',
+        GoalKind.protein: '180', // unchanged: not part of the call
+        GoalKind.fat: '70',
+      },
+    );
+    expect(r, isA<Ok<DailyTargets>>());
+    // Atomicity is the repository's guarantee (see
+    // drift_goal_repository_test "rolls back every kind when a later entry
+    // fails"); the use case must hand it every change in a single call.
+    expect(recording.batches.length, 1);
+    expect(recording.batches.single.keys.toSet(), {
+      GoalKind.calories,
+      GoalKind.fat,
+    });
+    expect(recording.singleCalls, isEmpty);
+  });
+}
+
+/// Delegates to the real repository and records how changes were applied.
+final class _Recording implements GoalRepository {
+  _Recording(this.inner);
+  final GoalRepository inner;
+  final batches = <Map<GoalKind, Goal?>>[];
+  final singleCalls = <GoalKind>[];
+
+  @override
+  Future<void> replaceActiveAll(Map<GoalKind, Goal?> changes) {
+    batches.add(Map.of(changes));
+    return inner.replaceActiveAll(changes);
+  }
+
+  @override
+  Future<List<Goal>> active() => inner.active();
+  @override
+  Future<void> delete(String id) => inner.delete(id);
+  @override
+  Future<void> replaceActive(
+    GoalKind kind,
+    Goal? next, {
+    MeasurementSite? site,
+  }) {
+    singleCalls.add(kind);
+    return inner.replaceActive(kind, next, site: site);
+  }
+
+  @override
+  Future<void> upsert(Goal goal) => inner.upsert(goal);
+  @override
+  Stream<List<Goal>> watchActive() => inner.watchActive();
 }

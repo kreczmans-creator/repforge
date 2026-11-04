@@ -15,16 +15,17 @@ Status: **delivered for owner acceptance**; acceptance audit completed 2026-11-0
 251 tests pass locally; analyzer clean. New: `daily_targets_test` (goal selection, validation ranges, summary maths), `save_daily_targets_test` (create, replace, keep-unchanged, deactivate, reject), `settings_screen_test` (targets persisted to the goals table, field-level error, units and theme persisted), `home_screen_test` (empty states; intake against targets rendered from the database). The on-device integration test now also sets a calorie target in Settings, rebuilds the whole app on the same database (simulated restart) and verifies the dashboard shows the target and the earlier weight.
 
 ## Acceptance criteria (D06 WP 4)
-- Dashboard reflects database changes live: covered by `home_screen_test` and the integration test.
-- Targets persist across restart: covered by the integration test's rebuild on the same database.
-- Widget tests for each panel state: empty and populated nutrition/training/activity states covered; error states are rendered by the shared `RfErrorState` (component test).
+Corrected 2026-11-04 at owner direction (audit B8). "Implemented" means the behaviour exists in code; "tested" names the test that demonstrates it.
+- Dashboard reflects database changes live: implemented (every dashboard provider is a drift `watch()` stream). Tested since the WP 4 closure by `home_screen_test` group "updates live while mounted" (weigh-ins appear, change and disappear; a target and a food entry update the nutrition panel) without remounting.
+- Targets persist across restart: implemented (goals table). Tested at the goal-repository and use-case level (`save_daily_targets_test`, `drift_goal_repository_test`), and since the WP 4 closure on the device by the integration test "real on-device database …": a target saved in Settings is shown by the dashboard after the ProviderScope is disposed (file database closed) and the app is rebuilt on a fresh connection to the same file.
+- Widget tests for each panel state: tested for all-empty and nutrition-populated (`home_screen_test`) and, since the closure, for body/activity-populated and live changes. Not tested: training-populated, loading and error states of the panels. No test exercises `RfErrorState` directly; the earlier claim of a component test was wrong and is withdrawn.
 
 ## Review
 Independent review produced ten findings, all applied: the day key now rolls over while the app is open (minute tick), target replacement is atomic in the goal repository and the use case reads current goals itself, the units preference is applied to every body-weight display, the activity panel has explicit loading and error states, the training panel no longer presents an arbitrary plan as "next", one shared number formatter and a shared `IdGenerator` typedef, settings watched with `select`, and upstream stack traces preserved.
 
 ## Outstanding
 - Food logging and plans do not exist yet, so the nutrition and training panels show empty states until WP 5 and WP 8/9.
-- Imperial display conversion is stored as a preference but not yet applied to screens (first consumer is WP 5's portion entry).
+- ~~Imperial display conversion is stored as a preference but not yet applied to screens.~~ Corrected 2026-11-04: the units preference is applied to every body-weight display (dashboard tiles, activity rows, Track history) and tested in `weight_screen_test`/`home_screen_test`; input stays in kg (stated in the UI). Imperial *entry* is not offered (D04 NUT-022 partial).
 - Day-start hour has no UI control yet (stored, default midnight).
 
 ## CI evidence
@@ -82,3 +83,12 @@ Verified true: ten review findings applied as described (atomic `replaceActive`,
 - C1. B1/B2 evidence: either accept the unit tests plus remount as sufficient for "persist across restart" and "live", or require the two small test additions before acceptance.
 - C2. B3–B7 are tracked as debt with resolution packages (B3 → WP 9; B4, B5, B6 → next dashboard change, WP 10 at the latest; B7 → WP 6 as the next package touching settings and use cases). None risks user data.
 - C3. D06 WP 4 scope line amended to the approved tab set.
+
+## Owner decision on the audit (2026-11-04) and closure actions
+- **C1 (B1, B2): changes required.** Both evidence gaps closed with tests, no implementation change: integration test extended (target saved in Settings, ProviderScope disposed so the file database closes, app rebuilt on a fresh connection, dashboard shows the target; target then cleared); `home_screen_test` group "updates live while mounted" (two tests).
+- **C2: deferrals approved** with B7 split. B3 → WP 9 (TD-27), B4 → WP 10 at latest (TD-28), B5 → WP 10 at latest (TD-29), B6 → WP 10 at latest (TD-30), B7a → WP 6 (TD-31). **B7b fixed before acceptance**: `GoalRepository.replaceActiveAll` applies every kind in one transaction and `SaveDailyTargets` issues a single call; regression tests "rolls back every kind when a later entry fails" (repository) and "applies all changed kinds in one repository transaction" (use case).
+- **C3: approved.** D06 WP 4 scope line amended to the five approved tabs.
+- **B8: record corrected** in place above.
+
+### CI evidence for the closure commit
+Appended when the runs complete.

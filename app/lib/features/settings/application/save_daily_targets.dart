@@ -6,8 +6,9 @@ import 'package:repforge/domain/goals/goals.dart';
 
 /// Use case: validate and persist the daily nutrition targets as active
 /// goals. Blank input for a kind removes that target. Reads the current
-/// goals itself and replaces each kind atomically, so a stale UI snapshot
-/// or a mid-way failure cannot leave duplicates or a missing target.
+/// goals itself and applies every change in ONE repository transaction, so
+/// a stale UI snapshot or a mid-way failure cannot leave duplicates, a
+/// missing target, or a partially updated set of targets (WP 4 audit B7b).
 final class SaveDailyTargets {
   const SaveDailyTargets({
     required this.repository,
@@ -51,27 +52,26 @@ final class SaveDailyTargets {
     final now = clock.now().toUtc();
     try {
       final existing = await repository.active();
+      final changes = <GoalKind, Goal?>{};
       for (final k in kinds) {
         final current = existing.where((g) => g.kind == k).toList();
         final v = parsed[k];
         if (v == null) {
-          if (current.isNotEmpty) await repository.replaceActive(k, null);
+          if (current.isNotEmpty) changes[k] = null;
         } else if (current.length == 1 && current.single.target == v) {
           continue;
         } else {
-          await repository.replaceActive(
-            k,
-            Goal(
-              id: newId(),
-              kind: k,
-              target: v,
-              startDate: now,
-              createdAt: now,
-              updatedAt: now,
-            ),
+          changes[k] = Goal(
+            id: newId(),
+            kind: k,
+            target: v,
+            startDate: now,
+            createdAt: now,
+            updatedAt: now,
           );
         }
       }
+      if (changes.isNotEmpty) await repository.replaceActiveAll(changes);
     } on Exception catch (e) {
       return Err(StorageError('Could not save targets.', cause: e));
     }
