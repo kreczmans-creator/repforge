@@ -87,7 +87,7 @@ class ScanSession extends Notifier<ScanState> {
   /// How long a code is ignored after it produced a result.
   static const repeatWindow = Duration(seconds: 3);
 
-  StreamSubscription<String>? _subscription;
+  StreamSubscription<ScannedCode>? _subscription;
   String? _lastCode;
   DateTime? _lastResultAt;
   int _generation = 0;
@@ -99,10 +99,7 @@ class ScanSession extends Notifier<ScanState> {
       _generation++;
       unawaited(_subscription?.cancel());
       _subscription = null;
-      if (_running) {
-        _running = false;
-        unawaited(scanner.stop());
-      }
+      unawaited(_stopScanner(scanner));
     });
     return const ScanChecking();
   }
@@ -114,10 +111,17 @@ class ScanSession extends Notifier<ScanState> {
   /// provider dispose must not stop it twice).
   bool _running = false;
 
-  Future<void> _stopScanner() async {
+  /// The `start()` call in flight, so a stop requested meanwhile waits for it
+  /// instead of racing it and leaving the camera running.
+  Future<void>? _starting;
+
+  Future<void> _stopScanner([BarcodeScanner? scanner]) async {
     if (!_running) return;
     _running = false;
-    await _scanner.stop();
+    final target = scanner ?? _scanner;
+    final starting = _starting;
+    if (starting != null) await starting;
+    await target.stop();
   }
 
   /// Checks capability and permission, then starts scanning if possible.
@@ -152,7 +156,7 @@ class ScanSession extends Notifier<ScanState> {
   Future<void> submitManual(String text) async {
     if (state is ScanLookingUp) return;
     final gen = ++_generation;
-    await _lookup(text, gen);
+    await _lookup(ScannedCode(text), gen);
   }
 
   /// Returns to scanning after a result and restarts the scanner.
@@ -180,14 +184,26 @@ class ScanSession extends Notifier<ScanState> {
       return;
     }
     _subscription ??= _scanner.codes.listen(_onCode);
-    await _scanner.start();
+    // Mark running before awaiting: a cancel or dispose that lands while a
+    // real camera is still starting must find it running and stop it.
     _running = true;
-    if (!_current(gen)) return;
+    final starting = _starting = _scanner.start();
+    await starting;
+    if (identical(_starting, starting)) _starting = null;
+    if (!_current(gen)) {
+      // Cancelled, disposed or superseded while starting. Stop the camera
+      // unless a newer start now owns it.
+      if (!ref.mounted || (_starting == null && state is! ScanScanning)) {
+        await _stopScanner();
+      }
+      return;
+    }
     state = const ScanScanning();
   }
 
-  void _onCode(String code) {
+  void _onCode(ScannedCode scanned) {
     if (state is! ScanScanning) return;
+    final code = scanned.raw;
     final at = _lastResultAt;
     if (code == _lastCode &&
         at != null &&
@@ -195,19 +211,22 @@ class ScanSession extends Notifier<ScanState> {
       return;
     }
     final gen = ++_generation;
-    unawaited(_lookup(code, gen));
+    unawaited(_lookup(scanned, gen));
   }
 
-  Future<void> _lookup(String code, int gen) async {
-    final trimmed = code.trim();
+  Future<void> _lookup(ScannedCode scanned, int gen) async {
+    final trimmed = scanned.raw.trim();
     state = ScanLookingUp(trimmed);
-    final validated = validateBarcode(trimmed);
+    final validated = validateBarcode(trimmed, hint: scanned.format);
     if (validated case Err(:final error)) {
       await _finish(ScanFailed(error, code: trimmed), trimmed, gen);
       return;
     }
     final barcode = (validated as Ok<Barcode>).value;
-    final result = await ref.read(lookupBarcodeProvider)(barcode.raw);
+    final result = await ref.read(lookupBarcodeProvider)(
+      barcode.raw,
+      format: scanned.format,
+    );
     if (!_current(gen)) return;
     final next = switch (result) {
       Ok(value: BarcodeFound(:final food, :final source)) => ScanFound(

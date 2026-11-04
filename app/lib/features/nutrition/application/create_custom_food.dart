@@ -91,14 +91,27 @@ final class CreateCustomFood {
       );
     }
 
+    final cleanBarcode = (barcode == null || barcode.trim().isEmpty)
+        ? null
+        : barcode.trim();
+    if (cleanBarcode != null) {
+      final clash = await foods.byBarcode(cleanBarcode);
+      if (clash != null && clash.id != existing?.id) {
+        return const Err(
+          ValidationError(
+            'A food with this barcode already exists.',
+            field: 'barcode',
+          ),
+        );
+      }
+    }
+
     final now = clock.now().toUtc();
     final food = Food(
       id: existing?.id ?? newId(),
       name: trimmed,
       brand: (brand == null || brand.trim().isEmpty) ? null : brand.trim(),
-      barcode: (barcode == null || barcode.trim().isEmpty)
-          ? null
-          : barcode.trim(),
+      barcode: cleanBarcode,
       profile: NutrientProfile(
         per100: per100,
         per100Amounts: (amounts as Ok<NutrientAmounts>).value,

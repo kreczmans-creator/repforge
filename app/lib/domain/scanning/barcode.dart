@@ -13,6 +13,7 @@ final class Barcode {
     required this.raw,
     required this.lookupKey,
     required this.format,
+    this.alternativeLookupKeys = const [],
   });
 
   /// The digits as scanned or typed (trimmed).
@@ -25,27 +26,55 @@ final class Barcode {
   /// The symbology [raw] was classified as.
   final BarcodeFormat format;
 
+  /// Other 13-digit keys the same digits may be stored under. Only set for an
+  /// 8-digit code read without a format hint that is valid both as EAN-8 and
+  /// as UPC-E: [lookupKey] is then the EAN-8 key and this holds the UPC-E
+  /// expansion key.
+  final List<String> alternativeLookupKeys;
+
+  /// Every key to try, [lookupKey] first.
+  List<String> get lookupKeys => [lookupKey, ...alternativeLookupKeys];
+
   @override
   bool operator ==(Object other) =>
       other is Barcode &&
       other.raw == raw &&
       other.lookupKey == lookupKey &&
-      other.format == format;
+      other.format == format &&
+      _listEquals(other.alternativeLookupKeys, alternativeLookupKeys);
 
   @override
-  int get hashCode => Object.hash(raw, lookupKey, format);
+  int get hashCode => Object.hash(
+    raw,
+    lookupKey,
+    format,
+    Object.hashAll(alternativeLookupKeys),
+  );
 
   @override
   String toString() => 'Barcode($raw, $format)';
 }
 
+bool _listEquals(List<String> a, List<String> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 /// Validates [input] as an EAN-13, EAN-8, UPC-A or UPC-E code.
 ///
 /// Surrounding whitespace is trimmed. Anything but 8, 12 or 13 digits is
-/// rejected, as is a wrong modulo-10 check digit. Eight digits are read as
-/// EAN-8 when the check digit fits, otherwise as UPC-E (number system 0 or 1)
-/// when its expansion to UPC-A has a valid check digit.
-Result<Barcode> validateBarcode(String input) {
+/// rejected, as is a wrong modulo-10 check digit.
+///
+/// [hint] is the symbology the scanner hardware reported. When it fits the
+/// digit count it is authoritative: `upcE` expands and verifies as UPC-E,
+/// `ean8` verifies as EAN-8. A hint that does not fit the length is ignored.
+/// Without a hint, eight digits are read as EAN-8 when the check digit fits,
+/// otherwise as UPC-E (number system 0 or 1); when both readings are valid
+/// the UPC-E expansion key is exposed in [Barcode.alternativeLookupKeys].
+Result<Barcode> validateBarcode(String input, {BarcodeFormat? hint}) {
   final raw = input.trim();
   if (!RegExp(r'^\d+$').hasMatch(raw) ||
       (raw.length != 8 && raw.length != 12 && raw.length != 13)) {
@@ -68,26 +97,29 @@ Result<Barcode> validateBarcode(String input) {
             )
           : const Err(invalid);
     default:
-      if (_hasValidCheckDigit(raw)) {
-        return Ok(
-          Barcode(
-            raw: raw,
-            lookupKey: raw.padLeft(13, '0'),
-            format: BarcodeFormat.ean8,
-          ),
-        );
-      }
       final expanded = expandUpcE(raw);
-      if (expanded != null && _hasValidCheckDigit(expanded)) {
-        return Ok(
-          Barcode(
-            raw: raw,
-            lookupKey: expanded.padLeft(13, '0'),
-            format: BarcodeFormat.upcE,
-          ),
-        );
+      final upcEKey = expanded != null && _hasValidCheckDigit(expanded)
+          ? expanded.padLeft(13, '0')
+          : null;
+      final ean8Valid = _hasValidCheckDigit(raw);
+      Barcode asUpcE(String key) =>
+          Barcode(raw: raw, lookupKey: key, format: BarcodeFormat.upcE);
+      Barcode asEan8({List<String> alternatives = const []}) => Barcode(
+        raw: raw,
+        lookupKey: raw.padLeft(13, '0'),
+        format: BarcodeFormat.ean8,
+        alternativeLookupKeys: alternatives,
+      );
+      if (hint == BarcodeFormat.upcE) {
+        return upcEKey != null ? Ok(asUpcE(upcEKey)) : const Err(invalid);
       }
-      return const Err(invalid);
+      if (hint == BarcodeFormat.ean8) {
+        return ean8Valid ? Ok(asEan8()) : const Err(invalid);
+      }
+      if (ean8Valid) {
+        return Ok(asEan8(alternatives: [?upcEKey]));
+      }
+      return upcEKey != null ? Ok(asUpcE(upcEKey)) : const Err(invalid);
   }
 }
 

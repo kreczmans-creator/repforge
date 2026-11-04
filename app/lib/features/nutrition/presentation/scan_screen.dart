@@ -32,7 +32,8 @@ class ScanScreen extends ConsumerStatefulWidget {
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends ConsumerState<ScanScreen> {
+class _ScanScreenState extends ConsumerState<ScanScreen>
+    with WidgetsBindingObserver {
   final _manual = TextEditingController();
   late final ScanSession _session;
   bool _sheetOpen = false;
@@ -40,6 +41,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _session = ref.read(scanSessionProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(_session.begin());
@@ -48,10 +50,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Leaving the screen (back or cancel) disposes the autoDispose session,
     // whose onDispose cancels the subscription and stops the scanner.
     _manual.dispose();
     super.dispose();
+  }
+
+  /// Coming back from the system settings (or any background) while the
+  /// permission screen is showing re-checks the permission, so a user who
+  /// just allowed the camera lands in the scanner without leaving the screen.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !mounted) return;
+    if (ref.read(scanSessionProvider) is ScanPermissionNeeded) {
+      unawaited(_session.resume());
+    }
   }
 
   Future<void> _cancel() async {
@@ -88,7 +102,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       ).toString(),
     );
     if (!mounted || food == null) return;
-    await _logFood(food, resumeOnDismiss: false);
+    // The food now exists with this barcode; whether or not a portion is
+    // logged, scanning resumes instead of staying on the stale not-found
+    // state (which would allow a duplicate creation).
+    await _logFood(food, resumeOnDismiss: true);
   }
 
   void _searchManually() {
@@ -174,6 +191,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               icon: Icons.settings_outlined,
               onPressed: () => unawaited(_session.openSettings()),
             ),
+          if (!denied) ...[
+            gap,
+            RfButton(
+              key: const Key('scan-check-again'),
+              label: 'Check again',
+              icon: Icons.refresh,
+              variant: RfButtonVariant.secondary,
+              onPressed: () => unawaited(_session.resume()),
+            ),
+          ],
           gap,
           _manualEntry(),
         ];

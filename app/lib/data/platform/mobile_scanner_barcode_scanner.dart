@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:repforge/data/platform/camera_capability_channel.dart';
+import 'package:repforge/domain/scanning/barcode.dart' as domain;
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
 
 /// Camera permission operations, behind a seam so tests need no plugin.
@@ -43,6 +44,17 @@ class PermissionHandlerFacade implements CameraPermissionFacade {
   }
 }
 
+/// Maps a `mobile_scanner` symbology to the domain enum; `null` for anything
+/// the app does not use.
+domain.BarcodeFormat? mapScannerFormat(BarcodeFormat format) =>
+    switch (format) {
+      BarcodeFormat.ean13 => domain.BarcodeFormat.ean13,
+      BarcodeFormat.ean8 => domain.BarcodeFormat.ean8,
+      BarcodeFormat.upcA => domain.BarcodeFormat.upcA,
+      BarcodeFormat.upcE => domain.BarcodeFormat.upcE,
+      _ => null,
+    };
+
 /// [BarcodeScanner] on top of `mobile_scanner` and `permission_handler`.
 ///
 /// This file and `camera_capability_channel.dart` are the only places that
@@ -81,7 +93,8 @@ class MobileScannerBarcodeScanner implements BarcodeScanner {
   /// The underlying controller (used by [preview]).
   final MobileScannerController controller;
 
-  final StreamController<String> _codes = StreamController<String>.broadcast();
+  final StreamController<ScannedCode> _codes =
+      StreamController<ScannedCode>.broadcast();
   StreamSubscription<BarcodeCapture>? _subscription;
   bool _disposed = false;
 
@@ -90,7 +103,9 @@ class MobileScannerBarcodeScanner implements BarcodeScanner {
     for (final barcode in capture.barcodes) {
       final value = barcode.rawValue;
       if (value != null && value.isNotEmpty) {
-        _codes.add(value);
+        _codes.add(
+          ScannedCode(value, format: mapScannerFormat(barcode.format)),
+        );
         // One code per frame batch is enough; the first valid one wins.
         return;
       }
@@ -110,7 +125,7 @@ class MobileScannerBarcodeScanner implements BarcodeScanner {
   Future<bool> openAppSettings() => permissions.openSettings();
 
   @override
-  Stream<String> get codes => _codes.stream;
+  Stream<ScannedCode> get codes => _codes.stream;
 
   @override
   Future<void> start() async {

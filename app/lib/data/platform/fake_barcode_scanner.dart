@@ -1,16 +1,22 @@
 import 'dart:async';
 
+import 'package:repforge/domain/scanning/barcode.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
 
 /// Test double for [BarcodeScanner], used by unit, widget and integration
 /// tests so flows run without a camera (PLT-001(2)). Fakes over mocks.
 final class FakeBarcodeScanner implements BarcodeScanner {
   FakeBarcodeScanner({
+    this.onStart,
     this.capabilityAnswer = ScannerCapability.available,
     this.permission = CameraPermission.granted,
     List<CameraPermission> requestResults = const [],
     this.settingsOpens = true,
   }) : _requestResults = List.of(requestResults);
+
+  /// Optional gate awaited inside [start] (after it is counted), to simulate
+  /// a slow camera start.
+  Future<void> Function()? onStart;
 
   /// Answer of [capability].
   ScannerCapability capabilityAnswer;
@@ -22,7 +28,8 @@ final class FakeBarcodeScanner implements BarcodeScanner {
   bool settingsOpens;
 
   final List<CameraPermission> _requestResults;
-  final StreamController<String> _codes = StreamController<String>.broadcast();
+  final StreamController<ScannedCode> _codes =
+      StreamController<ScannedCode>.broadcast();
 
   /// Times [start] was called.
   int started = 0;
@@ -48,8 +55,8 @@ final class FakeBarcodeScanner implements BarcodeScanner {
 
   /// Simulates the hardware detecting [code]. Like a real camera it only
   /// reports while started.
-  void emit(String code) {
-    if (_running) _codes.add(code);
+  void emit(String code, {BarcodeFormat? format}) {
+    if (_running) _codes.add(ScannedCode(code, format: format));
   }
 
   @override
@@ -74,11 +81,12 @@ final class FakeBarcodeScanner implements BarcodeScanner {
   }
 
   @override
-  Stream<String> get codes => _codes.stream;
+  Stream<ScannedCode> get codes => _codes.stream;
 
   @override
   Future<void> start() async {
     started++;
+    await onStart?.call();
     _running = true;
   }
 

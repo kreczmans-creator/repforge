@@ -1,3 +1,29 @@
+import 'package:meta/meta.dart';
+import 'package:repforge/domain/scanning/barcode.dart';
+
+/// A string detected by the hardware together with the symbology it reported.
+@immutable
+final class ScannedCode {
+  const ScannedCode(this.raw, {this.format});
+
+  /// The digits as detected.
+  final String raw;
+
+  /// The symbology the hardware reported, or `null` when unknown (manual
+  /// entry, or a symbology the app does not use).
+  final BarcodeFormat? format;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ScannedCode && other.raw == raw && other.format == format;
+
+  @override
+  int get hashCode => Object.hash(raw, format);
+
+  @override
+  String toString() => 'ScannedCode($raw, $format)';
+}
+
 /// Whether this device can scan barcodes at all (PLT-003).
 enum ScannerCapability {
   /// A camera and a scanning engine are present.
@@ -47,9 +73,10 @@ abstract interface class BarcodeScanner {
   /// Opens the system settings page for this app. `false` if it could not.
   Future<bool> openAppSettings();
 
-  /// Raw strings as detected by the hardware. The same label may be reported
-  /// many times in a row, and a string may not be a valid barcode.
-  Stream<String> get codes;
+  /// Codes as detected by the hardware, with the reported symbology. The same
+  /// label may be reported many times in a row, and a string may not be a
+  /// valid barcode.
+  Stream<ScannedCode> get codes;
 
   /// Starts the camera and detection. Idempotent.
   Future<void> start();

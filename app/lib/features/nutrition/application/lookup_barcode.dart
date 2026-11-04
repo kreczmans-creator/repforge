@@ -3,6 +3,7 @@ import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/food_repository.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/scanning/barcode.dart';
+import 'package:repforge/domain/scanning/barcode_scanner.dart';
 
 /// Where a found product came from.
 enum BarcodeLookupSource { local, online }
@@ -42,8 +43,13 @@ final class LookupBarcode {
   final FoodRepository foods;
   final FoodLookupService lookup;
 
-  Future<Result<BarcodeLookup>> call(String input) async {
-    final validated = validateBarcode(input);
+  /// Looks up [input]. [format] is the symbology the scanner hardware
+  /// reported (null for manual entry); it disambiguates 8-digit codes.
+  Future<Result<BarcodeLookup>> call(
+    String input, {
+    BarcodeFormat? format,
+  }) async {
+    final validated = validateBarcode(input, hint: format);
     final Barcode barcode;
     switch (validated) {
       case Err(:final error):
@@ -52,23 +58,41 @@ final class LookupBarcode {
         barcode = value;
     }
 
-    var local = await foods.byBarcode(barcode.lookupKey);
-    if (local == null && barcode.raw != barcode.lookupKey) {
-      local = await foods.byBarcode(barcode.raw);
-    }
-    if (local != null) {
-      return Ok(BarcodeFound(local, source: BarcodeLookupSource.local));
+    // Every candidate key locally first (primary, then alternatives), then
+    // the raw digits for foods saved before normalisation.
+    final keys = barcode.lookupKeys;
+    for (final key in [...keys, if (!keys.contains(barcode.raw)) barcode.raw]) {
+      final local = await foods.byBarcode(key);
+      if (local != null) {
+        return Ok(BarcodeFound(local, source: BarcodeLookupSource.local));
+      }
     }
 
-    final online = await lookup.byBarcode(barcode.lookupKey);
-    switch (online) {
-      case Err(:final error):
-        return Err(error);
-      case Ok(value: null):
-        return Ok(BarcodeNotFound(barcode));
-      case Ok(:final value!):
-        await foods.upsert(value);
-        return Ok(BarcodeFound(value, source: BarcodeLookupSource.online));
+    // Online, in order. Open Food Facts stores EAN-8 as 8 digits, so the
+    // padded key is followed by the raw digits for an EAN-8. (Not verifiable
+    // against the live service from the development proxy.)
+    final onlineKeys = [
+      keys.first,
+      if (barcode.format == BarcodeFormat.ean8 && barcode.raw != keys.first)
+        barcode.raw,
+      ...keys.skip(1),
+    ];
+    for (final key in onlineKeys) {
+      final online = await lookup.byBarcode(key);
+      switch (online) {
+        case Err(:final error):
+          return Err(error);
+        case Ok(value: null):
+          continue;
+        case Ok(:final value!):
+          await foods.upsert(value);
+          return Ok(BarcodeFound(value, source: BarcodeLookupSource.online));
+      }
     }
+    return Ok(BarcodeNotFound(barcode));
   }
+
+  /// Looks up a scanned code, passing its reported symbology as the hint.
+  Future<Result<BarcodeLookup>> scanned(ScannedCode code) =>
+      call(code.raw, format: code.format);
 }

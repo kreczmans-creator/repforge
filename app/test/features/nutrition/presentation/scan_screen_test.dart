@@ -161,6 +161,44 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('returning from settings with the camera allowed starts '
+      'scanning without leaving the screen', (tester) async {
+    scanner = FakeBarcodeScanner(
+      permission: CameraPermission.permanentlyDenied,
+    );
+    await pumpApp(tester);
+    await openScan(tester);
+    expect(find.byKey(const Key('scan-open-settings')), findsOneWidget);
+    // The user allows the camera in system settings and comes back.
+    scanner.permission = CameraPermission.granted;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('scan-cancel')), findsOneWidget);
+    expect(scanner.isRunning, isTrue);
+    await unmount(tester);
+  });
+
+  testWidgets('check again re-checks a permanently denied permission', (
+    tester,
+  ) async {
+    scanner = FakeBarcodeScanner(
+      permission: CameraPermission.permanentlyDenied,
+    );
+    await pumpApp(tester);
+    await openScan(tester);
+    await tester.tap(find.byKey(const Key('scan-check-again')));
+    await tester.pumpAndSettle();
+    // Still denied: the same guidance stays, nothing starts.
+    expect(find.byKey(const Key('scan-open-settings')), findsOneWidget);
+    expect(scanner.isRunning, isFalse);
+    scanner.permission = CameraPermission.granted;
+    await tester.tap(find.byKey(const Key('scan-check-again')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('scan-cancel')), findsOneWidget);
+    expect(scanner.isRunning, isTrue);
+    await unmount(tester);
+  });
+
   testWidgets('known code opens the portion sheet, logs and pops', (
     tester,
   ) async {
@@ -295,7 +333,7 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
     await tester.pumpAndSettle();
-    expect(scanner.stopped, greaterThanOrEqualTo(1));
+    expect(scanner.stopped, 1); // exactly once per start (owner control)
     expect(scanner.isRunning, isFalse);
     expect(scanner.hasListener, isFalse);
     expect(find.byKey(const Key('scan-cancel')), findsNothing);

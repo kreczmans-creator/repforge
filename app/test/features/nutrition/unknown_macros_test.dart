@@ -196,4 +196,42 @@ void main() {
       expect(((r as Err<Food>).error as ValidationError).field, 'kcal');
     });
   });
+
+  group('CreateCustomFood barcode guard', () {
+    CreateCustomFood create() =>
+        CreateCustomFood(foods: foods, clock: clock, newId: () => 'b${++ids}');
+
+    Future<Result<Food>> make(String name, String barcode, {Food? existing}) =>
+        create()(
+          name: name,
+          per100: ReferenceUnit.grams,
+          kcal: '100',
+          proteinG: '',
+          carbsG: '',
+          fatG: '',
+          barcode: barcode,
+          existing: existing,
+        );
+
+    test('a second food with the same barcode is rejected', () async {
+      final first = (await make('A', '3017624010701') as Ok<Food>).value;
+      final r = await make('B', ' 3017624010701 ');
+      final e = (r as Err<Food>).error as ValidationError;
+      expect(e.message, 'A food with this barcode already exists.');
+      expect(e.field, 'barcode');
+      expect((await foods.byBarcode('3017624010701'))!.id, first.id);
+    });
+
+    test('editing a food keeps its own barcode', () async {
+      final first = (await make('A', '3017624010701') as Ok<Food>).value;
+      final r = await make('A2', '3017624010701', existing: first);
+      expect(r, isA<Ok<Food>>());
+    });
+
+    test('a deleted food does not block the barcode', () async {
+      final first = (await make('A', '3017624010701') as Ok<Food>).value;
+      await foods.delete(first.id);
+      expect(await make('B', '3017624010701'), isA<Ok<Food>>());
+    });
+  });
 }

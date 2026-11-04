@@ -71,4 +71,76 @@ void main() {
       expect(_err('   '), 'Enter 8, 12 or 13 digits.');
     });
   });
+
+  group('validateBarcode format hint', () {
+    // 02345659 expands to UPC-A 023456000059 and its EAN-8 check digit is
+    // also correct, so the digits alone are ambiguous.
+    Barcode hinted(String input, BarcodeFormat? hint) =>
+        (validateBarcode(input, hint: hint) as Ok<Barcode>).value;
+
+    test('upcE hint classifies an ambiguous code as UPC-E', () {
+      final b = hinted('02345659', BarcodeFormat.upcE);
+      expect(b.format, BarcodeFormat.upcE);
+      expect(b.lookupKey, '0023456000059');
+      expect(b.alternativeLookupKeys, isEmpty);
+    });
+
+    test('no hint keeps EAN-8 first and exposes the UPC-E expansion', () {
+      final b = hinted('02345659', null);
+      expect(b.format, BarcodeFormat.ean8);
+      expect(b.lookupKey, '0000002345659');
+      expect(b.alternativeLookupKeys, ['0023456000059']);
+      expect(b.lookupKeys, ['0000002345659', '0023456000059']);
+    });
+
+    test('ean8 hint keeps EAN-8 without alternatives', () {
+      final b = hinted('02345659', BarcodeFormat.ean8);
+      expect(b.format, BarcodeFormat.ean8);
+      expect(b.alternativeLookupKeys, isEmpty);
+    });
+
+    test('an unambiguous UPC-E is unchanged with or without a hint', () {
+      for (final h in [null, BarcodeFormat.upcE]) {
+        final b = hinted('04252614', h);
+        expect(b.format, BarcodeFormat.upcE);
+        expect(b.lookupKey, '0042100005264');
+        expect(b.alternativeLookupKeys, isEmpty);
+      }
+    });
+
+    test('an unambiguous EAN-8 has no alternative', () {
+      expect(hinted('96385074', null).alternativeLookupKeys, isEmpty);
+    });
+
+    test('ean8 hint with a bad EAN-8 check digit is rejected', () {
+      // 04252614 is a valid UPC-E but not a valid EAN-8.
+      final r = validateBarcode('04252614', hint: BarcodeFormat.ean8);
+      expect((r as Err<Barcode>).error, isA<ValidationError>());
+    });
+
+    test('upcE hint with an invalid UPC-A check digit is rejected', () {
+      // 96385074 is a valid EAN-8 but not UPC-E (number system 9).
+      final r = validateBarcode('96385074', hint: BarcodeFormat.upcE);
+      expect((r as Err<Barcode>).error, isA<ValidationError>());
+    });
+
+    test('ean13 and upcA hints verify their check digits', () {
+      expect(
+        validateBarcode('3017624010701', hint: BarcodeFormat.ean13),
+        isA<Ok<Barcode>>(),
+      );
+      expect(
+        validateBarcode('3017624010702', hint: BarcodeFormat.ean13),
+        isA<Err<Barcode>>(),
+      );
+      expect(
+        validateBarcode('042100005264', hint: BarcodeFormat.upcA),
+        isA<Ok<Barcode>>(),
+      );
+      expect(
+        validateBarcode('042100005265', hint: BarcodeFormat.upcA),
+        isA<Err<Barcode>>(),
+      );
+    });
+  });
 }

@@ -9,6 +9,7 @@ import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/scanning/barcode.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/lookup_barcode.dart';
@@ -319,5 +320,87 @@ void main() {
     scanner.permission = CameraPermission.denied;
     await session().resume();
     expect(state(), isA<ScanPermissionNeeded>());
+  });
+
+  group('stop during start', () {
+    late Completer<void> startGate;
+    setUp(() {
+      startGate = Completer<void>();
+      setUpWith(FakeBarcodeScanner(onStart: () => startGate.future));
+    });
+
+    test('dispose during start stops the scanner exactly once', () async {
+      final begun = session().begin();
+      await _pump();
+      expect(scanner.started, 1);
+      container.dispose();
+      startGate.complete();
+      await begun;
+      await _pump();
+      expect(scanner.stopped, 1);
+      expect(scanner.isRunning, isFalse);
+    });
+
+    test('cancel during start stops the scanner exactly once', () async {
+      final s = session();
+      final begun = s.begin();
+      await _pump();
+      final cancelled = s.cancel();
+      startGate.complete();
+      await begun;
+      await cancelled;
+      await _pump();
+      expect(scanner.stopped, 1);
+      expect(scanner.isRunning, isFalse);
+      expect(state(), isA<ScanChecking>());
+    });
+
+    test(
+      'manual submit during start leaves the scanner stopped once',
+      () async {
+        final s = session();
+        final begun = s.begin();
+        await _pump();
+        final manual = s.submitManual('3017624010701');
+        startGate.complete();
+        await begun;
+        await manual;
+        await _pump();
+        expect(scanner.stopped, 1);
+        expect(scanner.isRunning, isFalse);
+        expect(state(), isA<ScanFound>());
+      },
+    );
+
+    test('a start that finishes normally keeps scanning', () async {
+      final begun = session().begin();
+      await _pump();
+      startGate.complete();
+      await begun;
+      expect(state(), isA<ScanScanning>());
+      expect(scanner.isRunning, isTrue);
+      expect(scanner.stopped, 0);
+    });
+  });
+
+  group('format hint', () {
+    test('a hardware upcE format is used for classification', () async {
+      lookup.food = null;
+      await session().begin();
+      scanner.emit('02345659', format: BarcodeFormat.upcE);
+      await _pump();
+      final nf = (state() as ScanNotFound).barcode;
+      expect(nf.format, BarcodeFormat.upcE);
+      expect(nf.lookupKey, '0023456000059');
+      expect(lookup.asked, ['0023456000059']);
+    });
+
+    test('manual entry has no hint', () async {
+      lookup.food = null;
+      await session().submitManual('02345659');
+      final nf = (state() as ScanNotFound).barcode;
+      expect(nf.format, BarcodeFormat.ean8);
+      expect(nf.alternativeLookupKeys, ['0023456000059']);
+    });
   });
 }
