@@ -23,6 +23,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// On a device, `pumpAndSettle` returns as soon as no frame is scheduled,
+  /// which happens while the app awaits a database write (no frame is
+  /// pending during I/O). Pump until [finder] matches or [timeout] elapses.
+  Future<void> pumpUntil(
+    WidgetTester tester,
+    Finder finder, {
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    final end = DateTime.now().add(timeout);
+    while (finder.evaluate().isEmpty) {
+      if (DateTime.now().isAfter(end)) {
+        fail('Timed out waiting for $finder');
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pumpAndSettle();
+  }
+
   Future<void> restart(WidgetTester tester, {AppDatabase? db}) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
@@ -45,7 +63,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('weight-input')), '83.2');
     await tester.tap(find.byKey(const Key('save-weight')));
-    await tester.pumpAndSettle();
+    await pumpUntil(tester, find.text('83.2 kg'));
     expect(find.text('83.2 kg'), findsOneWidget);
 
     // Settings: calorie target.
@@ -54,7 +72,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('target-calories')), '2100');
     await tester.ensureVisible(find.byKey(const Key('save-targets')));
     await tester.tap(find.byKey(const Key('save-targets')));
-    await tester.pumpAndSettle();
+    await pumpUntil(tester, find.text('Targets saved'));
     expect(find.text('Targets saved'), findsOneWidget);
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -73,19 +91,20 @@ void main() {
     await tester.enterText(find.byKey(const Key('food-fat')), '7');
     await tester.ensureVisible(find.byKey(const Key('food-save')));
     await tester.tap(find.byKey(const Key('food-save')));
-    await tester.pumpAndSettle();
-    // Portion sheet opens for the new food.
+    // Portion sheet opens for the new food once the insert completes.
+    await pumpUntil(tester, find.byKey(const Key('portion-amount')));
     expect(find.byKey(const Key('portion-amount')), findsOneWidget);
     await tester.enterText(find.byKey(const Key('portion-amount')), '150');
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('portion-log')));
-    await tester.pumpAndSettle();
     // Back on the diary: 380 × 1.5 = 570 kcal.
+    await pumpUntil(tester, find.text('Test oats'));
     expect(find.text('Test oats'), findsOneWidget);
     expect(find.text('570'), findsWidgets);
 
     // Dashboard reflects both after a simulated restart on the same db.
     await restart(tester, db: db);
+    await pumpUntil(tester, find.text('570 of 2100'));
     expect(find.text('570 of 2100'), findsOneWidget);
     expect(find.text('83.2'), findsOneWidget);
   });
@@ -102,12 +121,12 @@ void main() {
       'integration-test',
     );
     await tester.tap(find.byKey(const Key('save-weight')));
-    await tester.pumpAndSettle();
+    await pumpUntil(tester, find.text('77.7 kg'));
     expect(find.text('77.7 kg'), findsOneWidget);
 
     await restart(tester);
     await tester.tap(find.byKey(const Key('nav-track')));
-    await tester.pumpAndSettle();
+    await pumpUntil(tester, find.textContaining('integration-test'));
     expect(find.textContaining('integration-test'), findsOneWidget);
 
     // Clean up so repeated runs on one device do not accumulate rows.

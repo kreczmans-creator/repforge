@@ -22,7 +22,7 @@ jobs:
   android-emulator:
     name: integration_test on API 34 emulator
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 40 # emulator boot + build take ~8 min; a hung test must not cost an hour
     steps:
       - uses: actions/checkout@v5
 
