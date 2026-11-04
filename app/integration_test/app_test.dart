@@ -41,6 +41,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Counterpart of [pumpUntil] for a widget that must disappear.
+  Future<void> pumpUntilGone(
+    WidgetTester tester,
+    Finder finder, {
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    final end = DateTime.now().add(timeout);
+    while (finder.evaluate().isNotEmpty) {
+      if (DateTime.now().isAfter(end)) {
+        fail('Timed out waiting for $finder to disappear');
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pumpAndSettle();
+  }
+
   /// Forms are lazy `ListView`s: on a phone-sized screen the save button is
   /// not built until scrolled into view, so `ensureVisible` cannot find it.
   Future<void> scrollTo(WidgetTester tester, Finder finder) async {
@@ -152,7 +168,7 @@ void main() {
     await tester.tap(
       find.descendant(of: tile, matching: find.byTooltip('Delete entry')),
     );
-    await tester.pumpAndSettle();
+    await pumpUntilGone(tester, find.textContaining('integration-test'));
     expect(find.textContaining('integration-test'), findsNothing);
   });
 }
