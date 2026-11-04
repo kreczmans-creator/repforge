@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **fixes in progress — verification commit pending CI; NOT delivered, NOT accepted.** (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
+Status: **delivered for owner acceptance at 110b8bb (2026-11-04)** — all owner gates met: both fix agents complete, combined diff reviewed, emulator failure reproduced and fixed, full local suite, independent review of the final diff, four workflows green on 110b8bb. **Not accepted** until the owner records a decision. No merge to `main`. (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
 
 ## Scope (D06 WP 7)
 Recipe CRUD; ingredients with quantities linked to foods; per-portion nutrition computed from ingredients (not typed in); portion scaling; prep/cook/storage/freezing/reheating fields; favourites; substitutions; seed import of the 22 legacy recipes flagged `estimated`; log a portion to the diary; weekly meal plan and prep list (P2); NUT-011 meal rename/reorder (owner allocation 2026-11-04).
@@ -35,7 +35,28 @@ NUT-019's day-total provenance badge and NUT-022 imperial/kg/l entry were alloca
 - **Seed asset** (266d4a2): `app/assets/seed/legacy_recipes.json`, 22 recipes extracted by `app/tool/extract_legacy_recipes.dart`, cross-checked by an independent parser (0 mismatches) and spot-checked by the auditor. Correction to the commit message: the legacy freezer flags are **9 true and 13 false** (the message says 10/12, copied from the extraction agent's summary); the asset itself matches the source for all 22 recipes, verified flag by flag. Under decision 3 every seed imports as freezing **unknown** regardless.
 
 ## Tests
-Appended at delivery.
+At 110b8bb: **709 tests pass**, analyzer and formatter clean, hand-written coverage **89.1 %** (gate 80 %). WP 7 added about 230 tests: the 38 NUT-017 worked examples (E31/E32 enabled, E38 added); recipe rules and validation; schema v5 migration incl. crash re-run and pre-v5 backup restore; recipe repository, use cases, logging (portions, weight, prep batch), starter import (incl. missing asset); meal labels; planning window, plan totals equal to the log, mark-eaten atomicity and concurrency; prep batches never below 0; widget tests for the list, detail, scaling, substitutions, log sheet, editor (incl. step delete, notes), meal labels, plan and prep screens, the phone-size scroll regression; one emulator integration test (RCP-013).
+
+## Acceptance criteria (D06 WP 7) against evidence
+| Criterion | Status | Evidence |
+|---|---|---|
+| Computed per-portion nutrition matches hand-calculated fixtures | Met | spec examples E26–E32, E37, E38; `recipe_stage1_test`; editor test (170 kcal, 8.5 g P, 17 g C, 6.4 g F) |
+| Seed recipes visible with the `estimated` label | Met | list widget test imports the real asset; import tests |
+| RCP P1 criteria pass | Met (final review: none unmet) | RCP-001/002/004 validation tests; 003 add/edit/reorder/delete both sections; 006/008/009 domain and widget tests; 007 incomplete nutrients and H1 rule; 011 favourites filter across restart; 012 by portions/weight; 013 snapshot unchanged after edit (unit, widget, emulator) and diary entry opens its recipe |
+| P2: RCP-005, 010, 014, 015 | Met | freezing tri-state; substitution view with kcal difference; plan window, totals, mark eaten; prep batches |
+| NUT-011 rename/reorder | Met | `save_meal_labels_test`, `meal_labels_screen_test` |
+| Verification: unit tests for recipe maths; widget tests | Met | above |
+
+## Deviations and decisions for the owner
+1. **NUT-017 specification** is a draft for approval; §4 carbohydrate convention (OQ-14) needs a decision (recommendation: EU/UK available carbohydrate, fibre separate).
+2. **Seed recipes**: freezing imported as "unknown" (not the legacy flag) under RCP-005/OQ-13; ingredient lists kept as notes; nutrition stays the legacy estimate until every note is replaced by a linked ingredient (H1 rule).
+3. **RCP-002 interpretation**: text-only ingredient notes exist only on imported recipes with declared nutrition.
+4. **Portion counts** are stored in 0.1 steps (spec §2.1 rev 1.2); 1.25 portions becomes 1.3; inputs offer one decimal.
+5. **Unowned requirements**: NUT-019's day-total provenance badge and NUT-022 imperial/kg/l entry were allocated to WP 5 (now accepted) and have no package.
+6. **Debt opened**: TD-37 (diary edits do not update plan/prep), TD-38 (plan day-start fallback before settings load), TD-39 (entry sheet reads the recipe repository directly).
+
+## Recommendation
+**Accept, subject to the owner's decisions 1 and 5.** Implementation, review, local and CI evidence are complete at 110b8bb. Physical-device verification is not a WP 7 acceptance criterion (D06), but the recipe and plan screens have only been exercised on the emulator and in widget tests.
 
 ## Independent review (fresh reviewer, range aac5f15..ee97c17)
 Probes run in throwaway tests; 467 existing tests re-run. Findings:
@@ -73,5 +94,6 @@ Local evidence on the verification commit's tree: 709 tests pass, analyzer and f
 | ae338e0 (stage 2) | 41874764235 success | 41874764297 success | 41874764245 success | 41874764486 **failure** |
 | ee97c17 (stage 4) | 41880049018 success | 41880049553 success | 41880049296 success | 41880049338 **failure** |
 | c009b2c (verification commit: review fixes) | 41894402169 success | 41894402183 success | 41894402174 success | 41894402215 **failure** — scroll steps now pass; the final assertion matched both the diary row and the still-visible "Logged 1.5 portions" snackbar (device real time). Assertion fixed to wait for the snackbar and match the exact diary row; reviewed before commit. |
+| **110b8bb** (delivery commit) | **41896530147 success** | **41896530145 success** | **41896530323 success** (attempt 2; attempt 1 was cancelled after 15 min in the macOS runner queue with no step run) | **41896530253 success** (all four integration tests incl. RCP-013 and the scan test) |
 
 The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test: the shared `scrollTo` helper picked the last `Scrollable` on screen, which in the recipe editor is a text field's horizontal scroller, so it never reached the Save button. Being fixed with the review fixes; the delivery commit must show all four green.
