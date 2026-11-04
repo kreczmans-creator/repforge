@@ -15,7 +15,7 @@
 ## 2. Quantities and storage precision
 1. Quantities are stored in canonical metric units (g, ml) as entered, **rounded to 0.1** of the unit at entry (half away from zero). Amounts must be greater than 0 to be logged.
 2. Nutrient values are calculated from the stored quantity and stored at **full double precision**. There is **no intermediate rounding** in any calculation.
-3. Unit conversions (GEN-004): 1 kg = 1000 g, 1 l = 1000 ml, 1 mg = 0.001 g, exactly. Imperial units are display-only (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); imperial entry is not offered (NUT-022 partial, allocated to WP 5).
+3. Unit conversions (GEN-004): 1 kg = 1000 g, 1 l = 1000 ml, 1 mg = 0.001 g, exactly. **Not yet implemented:** no entry path accepts kg, l or mg today (NUT-022 entry is open), so these rules have no code and no executed example; they bind the first package that adds such entry. Imperial units are display-only (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); imperial entry is not offered.
 
 ## 3. Display rounding
 1. Rounding happens only for display. The stored value is rounded to the displayed number of decimals; an exact tie in the stored binary value rounds away from zero (for example 2.5 → 3, 131.25 → 131.3 at one decimal).
@@ -96,7 +96,7 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | E32 | 9.3, 9.5 | recipe total 1200 kcal, *W* 1200 g, portion 300 g; log 450 g | 4 portions; 450 g → 450 kcal (1.5 portions) |
 | E33 | 7.6 | week: day A 1000 kcal P 90; day B 2000 kcal P unknown | avg 1500 kcal; avg P 90 (1 day unknown) |
 | E34 | 7.6 | week with 2 logged days out of 7, 1800 and 2200 kcal | avg 2000 kcal (5 unlogged days excluded) |
-| E35 | 2.3 | 1 kg; 1 l; 100 lb | 1000 g; 1000 ml; 45.359237 kg ± 0.001 |
+| E35 | 2.3 | 100 lb (display conversion) | 45.359237 kg ± 0.001 (kg/l/mg entry not implemented, see §2.3) |
 | E36 | 3.1 | display 19.5, 2.25 (1 dp), 131.25 (1 dp) | "20", "2.3", "131.3" |
 | E37 | 8.2, 9 | recipe: 100 g Oats (verified) + 250 ml Milk (crowdsourced) | recipe provenance crowdsourced |
 
@@ -104,3 +104,4 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | Revision | Date | Change |
 |---|---|---|
 | 1 | 2026-11-04 | First version, describing behaviour at commit 3111812 plus the approved crowdsourced ordering; §4 pending owner decision. |
+| 1.1 | 2026-11-04 | §2.3 and E35 narrowed: metric multiple conversions have no code path yet (found while implementing the examples). Results: 35 examples pass, E31–E32 pending WP 7 stage 1, none fail. |
