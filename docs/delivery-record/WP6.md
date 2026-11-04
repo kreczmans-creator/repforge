@@ -31,11 +31,26 @@ Local at 08800c2 (Flutter 3.47.9): **429 tests pass**, analyzer and formatter cl
 - `test/features/nutrition/presentation/scan_screen_test.dart` (11, through the real router): action hidden and explained without a camera; manual entry without a camera; rationale → allow → scanning; permanently denied → open settings; known code → portion sheet → logged and popped; dismissed sheet resumes; unknown → not found → custom food pre-filled, created and logged; offline → retry, nothing stored; malformed manual entry; repeated emission → one lookup; cancel stops the scanner.
 - `integration_test/app_test.dart` "scan a known barcode and log it (fake scanner)": seeded barcode scanned twice, 25 g logged (125 kcal), later emission does nothing, not-found path creates and logs nothing.
 
-## Independent review
-Appended at delivery (fresh reviewer, owner condition).
+## Independent review (fresh reviewer, owner condition)
+A reviewer with no part in the implementation read `fb6ead5..08800c2` against the eleven owner controls, re-derived the UPC-E expansion against the standard, brute-forced the EAN-8/UPC-E check-digit collision, probed the session with gated fakes, and read both native shims. Findings and resolution:
+
+| ID | Finding (verified) | Severity | Resolution |
+|---|---|---|---|
+| F1 | 58 % of valid UPC-E codes also satisfy the EAN-8 check digit; `validateBarcode` tried EAN-8 first and the adapter forwarded only the digits, so e.g. `02345659` got lookup key `0000002345659` instead of `0023456000059`. PLT-002 UPC-E effectively broken for lookup. | High | **Fixed (501dc6c)**: the hardware format crosses the boundary (`ScannedCode{raw, format?}`); hinted validation; unhinted ambiguous codes expose both keys, tried locally and online; raw 8 digits also tried online for EAN-8. Regression tests fail on the old logic. |
+| F2 | `_running` was set after `await start()`, so cancel/dispose/manual submit during a real camera start skipped `stop()` and left the camera on. | High | **Fixed (501dc6c)**: `_running` set before the await; a stop waits for the in-flight start and runs after it; stop exactly once per start (scan-screen test tightened from `>= 1` to `1`). |
+| F3 | No permission re-check after returning from system settings: a user who allowed the camera stayed on the dead screen. | Medium | **Fixed (501dc6c)**: lifecycle observer re-checks on resume while the permission screen is showing; "Check again" button; widget tests. |
+| F4 | EAN-8 online key form could not be verified against live Open Food Facts (proxy). | Medium (unverified) | TD-34; checklist step 5 extended. |
+| F5 | Re-scan of a custom food created from not-found untested; stale not-found state allowed creating a second food with the same barcode. | Low | **Fixed (501dc6c)**: `CreateCustomFood` rejects an existing barcode; the screen resumes scanning after creation. |
+| F6 | Adapter swallows plugin failures with `debugPrint` (standards §5). | Low | TD-35 (with TD-32). |
+| F7 | iOS shim's registrar guard fails silently. | Low | TD-35. |
+
+Control status after the fixes: 1, 3, 4, 6, 8, 10, 11 met; 2 met (F3); 5 met (F5); 7 met (F1 tests, start/stop race tests); 9 met (F2). Integration test judged robust (every state change waited for with `pumpUntil`). Verified true by the reviewer: plugin imports confined to `lib/data/platform`; no second barcode lookup implementation; every lookup failure/not-found path creates and logs nothing; channel/method names, result types and threading of both shims correct; pins exact; adapter bound on Android/iOS only.
 
 ## Outstanding / debt
-Appended at delivery.
+- D05 **V-01** (WP 5 airplane-mode verification) and the WP 6 device checklist: owner-performed; both block WP 6 acceptance.
+- TD-32 (no `Logger`), TD-34 (EAN-8/UPC-E online key form), TD-35 (adapter failure visibility, iOS guard).
+- iOS: scanning cannot run on the simulator; device verification needs a development-signed build (D07 §2.4).
+- ADR-0006 status Proposed; owner decision requested with acceptance.
 
 ## CI evidence
 Appended at delivery.

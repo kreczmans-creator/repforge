@@ -10,7 +10,7 @@ Record for each device: model, OS version, app build commit, tester, date.
 | 2 | Tap Scan. | Permission rationale shown before the system prompt. | | |
 | 3 | Deny the system prompt. | Screen explains the camera is needed, offers Retry and manual code entry; nothing crashes. | | |
 | 4 | Tap Retry and grant. | Live camera preview appears within 2 s. | | |
-| 5 | Scan a printed EAN-13 you know is in Open Food Facts (e.g. 3017624010701, Nutella) with network on. | Product found within 3 s (PLT-002); portion sheet opens with the product name and per-100 values. | | |
+| 5 | Scan a printed EAN-13 you know is in Open Food Facts (e.g. 3017624010701, Nutella) with network on. Then an EAN-8 product and a UPC-E product (small packs; note the printed digits). | Each found within 3 s (PLT-002); portion sheet opens with the product name and per-100 values. Record which digits were printed and whether the product resolved (TD-34). | | |
 | 6 | Log 25 g. | Diary entry shows 25 g with nutrients scaled from per-100; dashboard total updated. | | |
 | 7 | Scan the same label again immediately (hold it in view). | One detection only; no duplicate lookup or duplicate entry (duplicate-submission prevention). | | |
 | 8 | Enable airplane mode; scan the same barcode. | Found from the local cache without network; portion sheet opens. | | |
