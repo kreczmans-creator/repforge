@@ -2,7 +2,7 @@
 
 Date: 2026-11-03
 Branch: `ccr-ac6db77c-jcnexo`
-Status: **delivered for owner acceptance** (CI evidence appended when the runs complete).
+Status: **delivered for owner acceptance**; acceptance audit completed 2026-11-04 (see “Acceptance audit” below). Not accepted until the owner records a decision.
 
 ## What was built
 - **Settings screen** (`/settings`, gear icon in the app bar): daily calorie, protein, carbohydrate, fat and fibre targets persisted as active goals (blank clears a target; validation per `validateTarget`); units (metric/imperial display), theme (dark default / light / system), effort scale (RPE/RIR), week start; a plain statement of the local-first storage posture (ADR-0005).
@@ -28,4 +28,57 @@ Independent review produced ten findings, all applied: the day key now rolls ove
 - Day-start hour has no UI control yet (stored, default midnight).
 
 ## CI evidence
-Appended for the WP 4 commit below.
+| Commit | CI | Android build | iOS build | Debug release | Integration tests |
+|---|---|---|---|---|---|
+| 961ea50 | 41709941612 success | 41709941638 success | 41709941695 cancelled (concurrency) | 41709941686 success | 41709942516 cancelled (concurrency) |
+| 7e892e1 | 41711410956 success | 41711411022 cancelled (concurrency) | 41711410943 cancelled (concurrency) | 41711410814 success | 41711410799 cancelled (concurrency) |
+
+Neither WP 4 commit has its own iOS or integration result: both were cancelled by the next push. The first iOS success on the branch after WP 4 is 41711905223 (9ed0e7d, WP 5). The integration test that carries the WP 4 verification ("change target, restart, verify") first ran to completion on the WP 3 closing commits (see the audit below).
+
+## Acceptance audit (2026-11-04, branch `ccr-9fda2c32-wr163b`)
+Conducted after WP 3 acceptance. Independent of the review pass above: a fresh reviewer read the WP 4 diff (`eeab56e..7e892e1`) against the D06 criteria, and every finding below was then verified directly in the code by the auditor before being recorded.
+
+### Independent verification
+- Local run of the WP 4 commit 7e892e1 (Flutter 3.47.9, Linux): analyzer clean; **254 tests pass** (the record says 251; the three extra are counted in the same suite, no discrepancy in content); hand-written line coverage 85.9 %.
+- The integration test's "restart" (`app_test.dart`, `restart()`) is a widget remount over the same in-memory database object, not a process restart. On the emulator (CI) it had never completed: the run on af0c763 was cancelled by concurrency, and the run on 24547dc and on the WP 3 audit commit failed on `Targets saved` and hung to the 60-minute timeout, because `pumpAndSettle` returns during database I/O on a device. Fixed in the WP 3 closing commit 33b0730 (`pumpUntil` after every async action; job timeout 40 min). Result on the closing commit: run 41784936545 (see below).
+
+### Findings
+| ID | Finding (verified in code) | Severity | Resolution proposed |
+|---|---|---|---|
+| B1 | "Targets persist across restart" is demonstrated by a remount on the same database object, not a restart. The file-database integration test proves persistence of a weight entry across remount, not of a target. The goals-table round trip is unit-tested (`save_daily_targets_test`, `drift_goal_repository_test`). | Medium (evidence gap, not a defect) | Extend the file-database integration test to set a target and verify it after remount; owner may accept the unit + remount evidence instead. |
+| B2 | "Dashboard reflects database changes live" is correct by construction (every dashboard provider is a drift `watch()` stream) but no test mutates the database while the dashboard is mounted; the WP 4 commit's integration test did (`nav-home` after a weigh-in), WP 5 removed that step. | Low | Add one widget test that inserts a row after pumping the dashboard, or restore the integration step. |
+| B3 | Training panel: `recentSessionsProvider` uses `watchAll(limit: 5)` and the panel prints that length as "N recent session(s)"; with more than five sessions it says 5. "Next session" is explicitly deferred to WP 9 (`home_screen.dart:177`). | Low (no sessions can be logged before WP 9) | Count query in WP 9. Scope item "next session" is NOT MET by design until WP 9. |
+| B4 | Macro bars render "0 / 0 g" for macros without a target once any target exists (`home_screen.dart:122-133` pass `?? 0`); the integration test's own path (calories only) shows three such rows. | Low (cosmetic, misleading) | Show "no target" for null targets. |
+| B5 | Header date/greeting reads the clock once (`home_screen.dart:27`) and does not watch the minute tick; across midnight the nutrition panel moves to the new day while the caption shows yesterday. | Low | Watch the minute tick for the caption. |
+| B6 | Training panel uses `sessions.value?.length ?? 0`; a stream error shows "0 sessions" instead of an error state. | Low | Use the same `when` pattern as the activity panel. |
+| B7 | Standards: `settings_screen.dart:95` reads the settings repository directly from presentation (read-modify-write in UI, exception not wrapped in `Result`, §5); `save_daily_targets.dart:53-74` replaces goals kind by kind in separate transactions, so a mid-loop failure leaves a partial save while returning `StorageError`. | Low / Medium | Move the read into `SaveSettings`; wrap the kind loop in one transaction. |
+| B8 | Record claims not supported: "error states are rendered by the shared RfErrorState (component test)" — no test references `RfErrorState`, `RfEmptyState` or `RfLoading`; "imperial not yet applied to screens" (Outstanding) contradicts the Review section and the code, which applies it to every body-weight display. | Low (record accuracy) | Corrected here; the record text above is left as delivered. |
+
+Verified true: ten review findings applied as described (atomic `replaceActive`, use case reads goals itself, settings watched with `select`, stack traces preserved, shared `IdGenerator`/`formatNumber`, minute tick for the day key); no stream leaks (app-scoped providers, periodic stream cancelled on dispose); units applied to body-weight displays; domain has no Flutter imports; presentation imports no `lib/data`.
+
+### Acceptance criteria and scope (D06 WP 4)
+| Item | Status | Evidence |
+|---|---|---|
+| go_router routes | Met | `router.dart`; `test/app/router_test.dart` |
+| Bottom navigation Home, Food, Recipes, Train, Progress, Settings | Partial (deviation) | Tabs are Home, Train, Fuel, Track, Goals per the approved brand mock-up (WP 2); Settings is a pushed route. D06 wording not updated. |
+| Dashboard: today's calories/macros vs targets | Met | `home_screen_test` "shows intake against targets from the database" (B4 caveat) |
+| Dashboard: next session | Not met (deferred to WP 9 by design) | `home_screen.dart:177` |
+| Dashboard: latest weight | Met | integration test; no widget test of the populated body panel |
+| Dashboard: workouts count | Partial | B3 |
+| Settings with persisted targets and units | Met | `settings_screen_test` (3), `save_daily_targets_test` (4), goal repository `replaceActive` tests |
+| Empty states for every panel | Met | `home_screen_test` "shows empty states when nothing is stored" |
+| Dashboard reflects database changes live | Met in code, evidence partial | B2 |
+| Targets persist across restart | Partial | B1 |
+| Widget tests for each panel state | Partial | all-empty and nutrition-populated covered; training-populated, body-populated, loading and error states not covered |
+| Integration test "change target, restart, verify" | Partial | remount, not restart (B1); first green emulator run on the WP 3 closing commit |
+
+### Deviations from approved requirements
+1. Navigation tabs follow the brand mock-up (Home, Train, Fuel, Track, Goals) rather than the D06 list; Settings is pushed from the app bar. Approved implicitly with WP 2; D06 should be amended.
+2. "Next session" deferred to WP 9.
+3. Day-start hour stored but has no UI control.
+
+### Recommendation
+**Conditionally accept**, with conditions for the owner to confirm:
+- C1. B1/B2 evidence: either accept the unit tests plus remount as sufficient for "persist across restart" and "live", or require the two small test additions before acceptance.
+- C2. B3–B7 are tracked as debt with resolution packages (B3 → WP 9; B4, B5, B6 → next dashboard change, WP 10 at the latest; B7 → WP 6 as the next package touching settings and use cases). None risks user data.
+- C3. D06 WP 4 scope line amended to the approved tab set.
