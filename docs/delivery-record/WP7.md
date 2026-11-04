@@ -23,6 +23,15 @@ The owner allocated NUT-017 to be done "before further nutrition calculation wor
 NUT-019's day-total provenance badge and NUT-022 imperial/kg/l entry were allocated to WP 5, which is now accepted. WP 7 implements the shared NUT-019 rule (needed by RCP-007) but not the day-total badge or NUT-022 entry. They need a new owner.
 
 ## What was built
+| Stage | Commit | Content |
+|---|---|---|
+| 0 — NUT-017 | 2d735a7, 07d9caa, aac5f15 | Calculation specification (draft), shared weakest-provenance rule, 37 worked examples as tests |
+| 1 — domain, schema v5, use cases | 77540ae | Recipe model (real portions, prep/cook steps, freezing tri-state, weights, servings, substitutes, notes), scaling and logging functions, `validateRecipe`, schema v5 migration (idempotent), `SaveRecipe`/`DeleteRecipe`/`ToggleFavourite`/`LogRecipe`, `MealLabels`, `ImportLegacyRecipes` |
+| 1b — seed asset | 266d4a2 | 22 legacy recipes as JSON |
+| 2 — recipe screens | ae338e0 | List, detail (incomplete nutrients, scaling, substitutions), log sheet, editor, Settings → Meals; every meal label reads the user's labels |
+| 3 — plan and prep domain | 2474b56 | Meal plan (28-day window, plan-day totals with the log calculations, mark eaten via the log use cases), prep batches (never below 0), `LogRecipe` with a prep batch in one transaction |
+| 4 — plan and prep screens | pending | |
+
 - **Seed asset** (266d4a2): `app/assets/seed/legacy_recipes.json`, 22 recipes extracted by `app/tool/extract_legacy_recipes.dart`, cross-checked by an independent parser (0 mismatches) and spot-checked by the auditor. Correction to the commit message: the legacy freezer flags are **9 true and 13 false** (the message says 10/12, copied from the extraction agent's summary); the asset itself matches the source for all 22 recipes, verified flag by flag. Under decision 3 every seed imports as freezing **unknown** regardless.
 
 ## Tests
