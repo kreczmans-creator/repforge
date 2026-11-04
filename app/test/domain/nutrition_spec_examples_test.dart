@@ -511,7 +511,7 @@ void main() {
       expect(w.averagePerLoggedDay!.kcal, closeTo(2000, 1e-9));
     });
 
-    test('E35 unit conversions: 1 kg, 1 l and 100 lb', () {
+    test('E35 100 lb converts to 45.359237 kg for display', () {
       // GAP: no kg->g or l->ml conversion function exists in lib yet, so
       // 1 kg = 1000 g and 1 l = 1000 ml (spec §2.3) cannot be exercised
       // against real code; only the imperial display conversion is.
