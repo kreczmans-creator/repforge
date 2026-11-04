@@ -72,5 +72,6 @@ Local evidence on the verification commit's tree: 709 tests pass, analyzer and f
 | 77540ae (stage 1) | 41865491318 success | 41865491359 | 41865491400 | 41865491278 |
 | ae338e0 (stage 2) | 41874764235 success | 41874764297 success | 41874764245 success | 41874764486 **failure** |
 | ee97c17 (stage 4) | 41880049018 success | 41880049553 success | 41880049296 success | 41880049338 **failure** |
+| c009b2c (verification commit: review fixes) | 41894402169 success | 41894402183 success | 41894402174 success | 41894402215 **failure** — scroll steps now pass; the final assertion matched both the diary row and the still-visible "Logged 1.5 portions" snackbar (device real time). Assertion fixed to wait for the snackbar and match the exact diary row; reviewed before commit. |
 
 The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test: the shared `scrollTo` helper picked the last `Scrollable` on screen, which in the recipe editor is a text field's horizontal scroller, so it never reached the Save button. Being fixed with the review fixes; the delivery commit must show all four green.

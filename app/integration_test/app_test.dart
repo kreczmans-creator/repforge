@@ -239,8 +239,12 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
     await pumpUntil(tester, find.text('IT stew'));
+    // On a device the "Logged 1.5 portions" snackbar can still be showing
+    // (run 41894402215 matched it as a second "1.5 portions"); let it clear,
+    // then assert on the diary row itself, including the logged snapshot.
+    await pumpUntilGone(tester, find.textContaining('Logged 1.5 portions'));
     expect(find.text('570'), findsWidgets);
-    expect(find.textContaining('1.5 portions'), findsOneWidget);
+    expect(find.text('1.5 portions · P 20 · C 90 · F 11'), findsOneWidget);
   });
 
   testWidgets('scan a known barcode and log it (fake scanner)', (tester) async {
