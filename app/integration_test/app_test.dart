@@ -41,6 +41,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Forms are lazy `ListView`s: on a phone-sized screen the save button is
+  /// not built until scrolled into view, so `ensureVisible` cannot find it.
+  Future<void> scrollTo(WidgetTester tester, Finder finder) async {
+    await tester.scrollUntilVisible(
+      finder,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+  }
+
   Future<void> restart(WidgetTester tester, {AppDatabase? db}) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
@@ -51,7 +62,11 @@ void main() {
     tester,
   ) async {
     final db = AppDatabase.inMemory();
-    addTearDown(db.close);
+    // A close that never completes (streams still open after a failed
+    // assertion) must not hang the whole emulator job.
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
     await pumpApp(tester, db: db);
 
     // Dashboard starts empty.
@@ -70,7 +85,7 @@ void main() {
     await tester.tap(find.byKey(const Key('open-settings')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('target-calories')), '2100');
-    await tester.ensureVisible(find.byKey(const Key('save-targets')));
+    await scrollTo(tester, find.byKey(const Key('save-targets')));
     await tester.tap(find.byKey(const Key('save-targets')));
     await pumpUntil(tester, find.text('Targets saved'));
     expect(find.text('Targets saved'), findsOneWidget);
@@ -89,7 +104,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('food-protein')), '13');
     await tester.enterText(find.byKey(const Key('food-carbs')), '60');
     await tester.enterText(find.byKey(const Key('food-fat')), '7');
-    await tester.ensureVisible(find.byKey(const Key('food-save')));
+    await scrollTo(tester, find.byKey(const Key('food-save')));
     await tester.tap(find.byKey(const Key('food-save')));
     // Portion sheet opens for the new food once the insert completes.
     await pumpUntil(tester, find.byKey(const Key('portion-amount')));
