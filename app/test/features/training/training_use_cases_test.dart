@@ -653,6 +653,73 @@ void main() {
       );
     });
 
+    test('TD-42: re-saving a plan whose exercise was archived later is '
+        'allowed for a rename and a reorder', () async {
+      await seedExercises();
+      final plan = _ok(
+        await savePlan(
+          name: 'P',
+          planExercises: [pe('bench'), pe('plank', min: null, max: null)],
+        ),
+      );
+      expect(await exercises.archive('bench', archived: true), isTrue);
+
+      final renamed = _ok(
+        await savePlan(
+          id: plan.id,
+          name: 'Renamed',
+          planExercises: plan.exercises,
+        ),
+      );
+      expect(renamed.name, 'Renamed');
+      expect(renamed.exercises.map((e) => e.exerciseId), ['bench', 'plank']);
+
+      final reordered = _ok(
+        await savePlan(
+          id: plan.id,
+          name: 'Renamed',
+          planExercises: renamed.exercises.reversed.toList(),
+        ),
+      );
+      expect(reordered.exercises.map((e) => e.exerciseId), ['plank', 'bench']);
+      expect((await plans.byId(plan.id))!.exercises.map((e) => e.exerciseId), [
+        'plank',
+        'bench',
+      ]);
+    });
+
+    test('TD-42: a newly added archived exercise is still refused when '
+        'editing an existing plan; the stored plan is unchanged', () async {
+      await seedExercises();
+      final plan = _ok(await savePlan(name: 'P', planExercises: [pe('bench')]));
+      await exercises.upsert(
+        Exercise(
+          id: 'old',
+          name: 'Old',
+          type: ExerciseType.weighted,
+          category: ExerciseCategory.push,
+          primaryMuscle: MuscleGroup.chest,
+          createdAt: _t,
+          updatedAt: _t,
+          archived: true,
+        ),
+      );
+      final error = _err(
+        await savePlan(
+          id: plan.id,
+          name: 'P',
+          planExercises: [...plan.exercises, pe('old')],
+        ),
+      ) as ValidationError;
+      expect(error.field, 'exerciseId');
+      expect(error.message, contains('Old'));
+      expect((await plans.byId(plan.id))!.exercises, hasLength(1));
+      // An exercise the plan did not have is "new" even if the plan once had
+      // another archived one: a different plan is not exempt.
+      final other = await savePlan(name: 'Q', planExercises: [pe('old')]);
+      expect(_err(other), isA<ValidationError>());
+    });
+
     test('an unknown plan id is not found', () async {
       expect(
         _err(await savePlan(id: 'nope', name: 'P', planExercises: const [])),

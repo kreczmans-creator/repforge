@@ -17,7 +17,11 @@ mixin _$AppSettings {
 
  UnitSystem get units; ThemePreference get theme; ExertionScale get exertionScale;/// Hour (0–23) at which a new diary day starts; 0 = local midnight.
  int get dayStartHour;/// 1 = Monday … 7 = Sunday.
- int get weekStartDay;
+ int get weekStartDay;/// Rest-timer length in seconds when the exercise plans none (TRN-021),
+/// 0 to 3600.
+ int get defaultRestSeconds;/// Whether the rest timer may post a local notification when it ends
+/// (TRN-022, PLT-007). Off until the user opts in.
+ bool get restTimerNotifications;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +33,20 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 @override
 bool operator ==(Object other) {
   final _this = this as AppSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.units, _this.units) || other.units == _this.units)&&(identical(other.theme, _this.theme) || other.theme == _this.theme)&&(identical(other.exertionScale, _this.exertionScale) || other.exertionScale == _this.exertionScale)&&(identical(other.dayStartHour, _this.dayStartHour) || other.dayStartHour == _this.dayStartHour)&&(identical(other.weekStartDay, _this.weekStartDay) || other.weekStartDay == _this.weekStartDay));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.units, _this.units) || other.units == _this.units)&&(identical(other.theme, _this.theme) || other.theme == _this.theme)&&(identical(other.exertionScale, _this.exertionScale) || other.exertionScale == _this.exertionScale)&&(identical(other.dayStartHour, _this.dayStartHour) || other.dayStartHour == _this.dayStartHour)&&(identical(other.weekStartDay, _this.weekStartDay) || other.weekStartDay == _this.weekStartDay)&&(identical(other.defaultRestSeconds, _this.defaultRestSeconds) || other.defaultRestSeconds == _this.defaultRestSeconds)&&(identical(other.restTimerNotifications, _this.restTimerNotifications) || other.restTimerNotifications == _this.restTimerNotifications));
 }
 
 
 @override
 int get hashCode {
   final _this = this as AppSettings;
-  return Object.hash(runtimeType,_this.units,_this.theme,_this.exertionScale,_this.dayStartHour,_this.weekStartDay);
+  return Object.hash(runtimeType,_this.units,_this.theme,_this.exertionScale,_this.dayStartHour,_this.weekStartDay,_this.defaultRestSeconds,_this.restTimerNotifications);
 }
 
 @override
 String toString() {
   final _this = this as AppSettings;
-  return 'AppSettings(units: ${_this.units}, theme: ${_this.theme}, exertionScale: ${_this.exertionScale}, dayStartHour: ${_this.dayStartHour}, weekStartDay: ${_this.weekStartDay})';
+  return 'AppSettings(units: ${_this.units}, theme: ${_this.theme}, exertionScale: ${_this.exertionScale}, dayStartHour: ${_this.dayStartHour}, weekStartDay: ${_this.weekStartDay}, defaultRestSeconds: ${_this.defaultRestSeconds}, restTimerNotifications: ${_this.restTimerNotifications})';
 }
 
 
@@ -53,7 +57,7 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- UnitSystem units, ThemePreference theme, ExertionScale exertionScale, int dayStartHour, int weekStartDay
+ UnitSystem units, ThemePreference theme, ExertionScale exertionScale, int dayStartHour, int weekStartDay, int defaultRestSeconds, bool restTimerNotifications
 });
 
 
@@ -70,14 +74,16 @@ class _$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? units = null,Object? theme = null,Object? exertionScale = null,Object? dayStartHour = null,Object? weekStartDay = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? units = null,Object? theme = null,Object? exertionScale = null,Object? dayStartHour = null,Object? weekStartDay = null,Object? defaultRestSeconds = null,Object? restTimerNotifications = null,}) {
   return _then(AppSettings(
 units: null == units ? _self.units : units // ignore: cast_nullable_to_non_nullable
 as UnitSystem,theme: null == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
 as ThemePreference,exertionScale: null == exertionScale ? _self.exertionScale : exertionScale // ignore: cast_nullable_to_non_nullable
 as ExertionScale,dayStartHour: null == dayStartHour ? _self.dayStartHour : dayStartHour // ignore: cast_nullable_to_non_nullable
 as int,weekStartDay: null == weekStartDay ? _self.weekStartDay : weekStartDay // ignore: cast_nullable_to_non_nullable
-as int,
+as int,defaultRestSeconds: null == defaultRestSeconds ? _self.defaultRestSeconds : defaultRestSeconds // ignore: cast_nullable_to_non_nullable
+as int,restTimerNotifications: null == restTimerNotifications ? _self.restTimerNotifications : restTimerNotifications // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -162,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UnitSystem units,  ThemePreference theme,  ExertionScale exertionScale,  int dayStartHour,  int weekStartDay)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UnitSystem units,  ThemePreference theme,  ExertionScale exertionScale,  int dayStartHour,  int weekStartDay,  int defaultRestSeconds,  bool restTimerNotifications)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_that.weekStartDay);case _:
+return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_that.weekStartDay,_that.defaultRestSeconds,_that.restTimerNotifications);case _:
   return orElse();
 
 }
@@ -183,10 +189,10 @@ return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UnitSystem units,  ThemePreference theme,  ExertionScale exertionScale,  int dayStartHour,  int weekStartDay)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UnitSystem units,  ThemePreference theme,  ExertionScale exertionScale,  int dayStartHour,  int weekStartDay,  int defaultRestSeconds,  bool restTimerNotifications)  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings():
-return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_that.weekStartDay);case _:
+return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_that.weekStartDay,_that.defaultRestSeconds,_that.restTimerNotifications);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +209,10 @@ return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UnitSystem units,  ThemePreference theme,  ExertionScale exertionScale,  int dayStartHour,  int weekStartDay)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UnitSystem units,  ThemePreference theme,  ExertionScale exertionScale,  int dayStartHour,  int weekStartDay,  int defaultRestSeconds,  bool restTimerNotifications)?  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_that.weekStartDay);case _:
+return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_that.weekStartDay,_that.defaultRestSeconds,_that.restTimerNotifications);case _:
   return null;
 
 }
@@ -218,7 +224,7 @@ return $default(_that.units,_that.theme,_that.exertionScale,_that.dayStartHour,_
 
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({this.units = UnitSystem.metric, this.theme = ThemePreference.dark, this.exertionScale = ExertionScale.rpe, this.dayStartHour = 0, this.weekStartDay = 1});
+  const _AppSettings({this.units = UnitSystem.metric, this.theme = ThemePreference.dark, this.exertionScale = ExertionScale.rpe, this.dayStartHour = 0, this.weekStartDay = 1, this.defaultRestSeconds = 90, this.restTimerNotifications = false});
   
 
 @override@JsonKey() final  UnitSystem units;
@@ -228,6 +234,12 @@ class _AppSettings implements AppSettings {
 @override@JsonKey() final  int dayStartHour;
 /// 1 = Monday … 7 = Sunday.
 @override@JsonKey() final  int weekStartDay;
+/// Rest-timer length in seconds when the exercise plans none (TRN-021),
+/// 0 to 3600.
+@override@JsonKey() final  int defaultRestSeconds;
+/// Whether the rest timer may post a local notification when it ends
+/// (TRN-022, PLT-007). Off until the user opts in.
+@override@JsonKey() final  bool restTimerNotifications;
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -239,18 +251,18 @@ _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.units, units) || other.units == units)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.exertionScale, exertionScale) || other.exertionScale == exertionScale)&&(identical(other.dayStartHour, dayStartHour) || other.dayStartHour == dayStartHour)&&(identical(other.weekStartDay, weekStartDay) || other.weekStartDay == weekStartDay));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.units, units) || other.units == units)&&(identical(other.theme, theme) || other.theme == theme)&&(identical(other.exertionScale, exertionScale) || other.exertionScale == exertionScale)&&(identical(other.dayStartHour, dayStartHour) || other.dayStartHour == dayStartHour)&&(identical(other.weekStartDay, weekStartDay) || other.weekStartDay == weekStartDay)&&(identical(other.defaultRestSeconds, defaultRestSeconds) || other.defaultRestSeconds == defaultRestSeconds)&&(identical(other.restTimerNotifications, restTimerNotifications) || other.restTimerNotifications == restTimerNotifications));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,units,theme,exertionScale,dayStartHour,weekStartDay);
+    return Object.hash(runtimeType,units,theme,exertionScale,dayStartHour,weekStartDay,defaultRestSeconds,restTimerNotifications);
 }
 
 @override
 String toString() {
-    return 'AppSettings(units: $units, theme: $theme, exertionScale: $exertionScale, dayStartHour: $dayStartHour, weekStartDay: $weekStartDay)';
+    return 'AppSettings(units: $units, theme: $theme, exertionScale: $exertionScale, dayStartHour: $dayStartHour, weekStartDay: $weekStartDay, defaultRestSeconds: $defaultRestSeconds, restTimerNotifications: $restTimerNotifications)';
 }
 
 
@@ -261,7 +273,7 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- UnitSystem units, ThemePreference theme, ExertionScale exertionScale, int dayStartHour, int weekStartDay
+ UnitSystem units, ThemePreference theme, ExertionScale exertionScale, int dayStartHour, int weekStartDay, int defaultRestSeconds, bool restTimerNotifications
 });
 
 
@@ -278,14 +290,16 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? units = null,Object? theme = null,Object? exertionScale = null,Object? dayStartHour = null,Object? weekStartDay = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? units = null,Object? theme = null,Object? exertionScale = null,Object? dayStartHour = null,Object? weekStartDay = null,Object? defaultRestSeconds = null,Object? restTimerNotifications = null,}) {
   return _then(_AppSettings(
 units: null == units ? _self.units : units // ignore: cast_nullable_to_non_nullable
 as UnitSystem,theme: null == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
 as ThemePreference,exertionScale: null == exertionScale ? _self.exertionScale : exertionScale // ignore: cast_nullable_to_non_nullable
 as ExertionScale,dayStartHour: null == dayStartHour ? _self.dayStartHour : dayStartHour // ignore: cast_nullable_to_non_nullable
 as int,weekStartDay: null == weekStartDay ? _self.weekStartDay : weekStartDay // ignore: cast_nullable_to_non_nullable
-as int,
+as int,defaultRestSeconds: null == defaultRestSeconds ? _self.defaultRestSeconds : defaultRestSeconds // ignore: cast_nullable_to_non_nullable
+as int,restTimerNotifications: null == restTimerNotifications ? _self.restTimerNotifications : restTimerNotifications // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

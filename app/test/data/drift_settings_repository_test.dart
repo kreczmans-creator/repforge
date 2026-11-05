@@ -43,10 +43,37 @@ void main() {
         exertionScale: ExertionScale.rir,
         dayStartHour: 4,
         weekStartDay: 7,
+        defaultRestSeconds: 150,
+        restTimerNotifications: true,
       );
       await repo.save(s);
       expect(await repo.read(), s);
-      expect(await db.select(db.settings).get(), hasLength(5));
+      expect(await db.select(db.settings).get(), hasLength(7));
+    });
+
+    test('rest timer settings default to 90 s and notifications off '
+        '(PLT-007 opt-in); existing defaults are unchanged', () async {
+      const d = AppSettings();
+      expect(d.defaultRestSeconds, 90);
+      expect(d.restTimerNotifications, isFalse);
+      expect(d.exertionScale, ExertionScale.rpe);
+      expect(d.weekStartDay, 1);
+      expect(d.dayStartHour, 0);
+      expect(await repo.read(), d);
+    });
+
+    test('an invalid stored rest value falls back to 90; boundaries 0 and '
+        '3600 are accepted', () async {
+      for (final bad in ['-1', '3601', 'abc', '']) {
+        await putRaw('defaultRestSeconds', bad);
+        expect((await repo.read()).defaultRestSeconds, 90, reason: bad);
+      }
+      for (final ok in [0, 3600]) {
+        await repo.save(AppSettings(defaultRestSeconds: ok));
+        expect((await repo.read()).defaultRestSeconds, ok);
+      }
+      await putRaw('restTimerNotifications', 'yes');
+      expect((await repo.read()).restTimerNotifications, isFalse);
     });
 
     test('every enum value round-trips', () async {
@@ -83,7 +110,7 @@ void main() {
       expect(s.theme, ThemePreference.dark);
       expect(s.dayStartHour, 2);
       expect(s.weekStartDay, 3);
-      expect(await db.select(db.settings).get(), hasLength(5));
+      expect(await db.select(db.settings).get(), hasLength(7));
     });
 
     test('save stamps updatedAt from the clock', () async {

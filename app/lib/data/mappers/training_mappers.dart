@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart' show DataProvenance;
+import 'package:repforge/domain/training/scheduled_workout.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 
@@ -220,6 +221,8 @@ abstract final class TrainingMappers {
   static SessionSet? sessionSetToEntity(SessionSetRow r) {
     final data = setDataToEntity(r);
     if (data == null) return null;
+    final kind = SetKind.values.asNameMap()[r.setKind];
+    if (kind == null) return null;
     final scale = ExertionScale.values.asNameMap()[r.exertionScale];
     final value = r.exertionValue;
     return SessionSet(
@@ -235,6 +238,8 @@ abstract final class TrainingMappers {
           : null,
       restSeconds: r.restSeconds,
       note: r.note,
+      kind: kind,
+      sessionExerciseId: r.sessionExerciseId,
     );
   }
 
@@ -291,18 +296,47 @@ abstract final class TrainingMappers {
       exertionValue: Value(s.exertion?.value),
       restSeconds: Value(s.restSeconds),
       note: Value(s.note),
+      setKind: Value(s.kind.name),
+      sessionExerciseId: Value(s.sessionExerciseId),
     );
   }
 
+  static SessionExercise sessionExerciseToEntity(SessionExerciseRow r) =>
+      SessionExercise(
+        id: r.id,
+        sessionId: r.sessionId,
+        exerciseId: r.exerciseId,
+        position: r.position,
+        note: r.note,
+      );
+
+  static SessionExercisesCompanion sessionExerciseToRow(SessionExercise e) =>
+      SessionExercisesCompanion.insert(
+        id: e.id,
+        sessionId: e.sessionId,
+        position: e.position,
+        exerciseId: e.exerciseId,
+        note: Value(e.note),
+      );
+
+  /// Maps a session with its sets and exercise entries. Entries are in
+  /// stored order; sets follow their entry's position, then their set order
+  /// (a set without an entry follows by its own `exercise_order`).
   static WorkoutSession sessionToEntity(
     WorkoutSessionRow row,
-    List<SessionSetRow> setRows,
-  ) {
+    List<SessionSetRow> setRows, [
+    List<SessionExerciseRow> entryRows = const [],
+  ]) {
+    final position = {for (final e in entryRows) e.id: e.position};
+    int orderOf(SessionSetRow r) =>
+        position[r.sessionExerciseId] ?? r.exerciseOrder;
     final sorted = [...setRows]
       ..sort((a, b) {
-        final c = a.exerciseOrder.compareTo(b.exerciseOrder);
+        final c = orderOf(a).compareTo(orderOf(b));
         return c != 0 ? c : a.setOrder.compareTo(b.setOrder);
       });
+    final entries = [...entryRows]
+      ..sort((a, b) => a.position.compareTo(b.position));
     return WorkoutSession(
       id: row.id,
       name: row.name,
@@ -311,6 +345,7 @@ abstract final class TrainingMappers {
       endedAt: row.endedAt,
       notes: row.notes,
       sets: [for (final r in sorted) ?sessionSetToEntity(r)],
+      exercises: [for (final e in entries) sessionExerciseToEntity(e)],
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     );
@@ -364,4 +399,41 @@ abstract final class TrainingMappers {
         planId: Value(s.days[i].planId),
       ),
   ];
+}
+
+/// Row <-> domain mapping for scheduled workouts.
+abstract final class ScheduleMappers {
+  static ScheduledWorkout? toEntity(ScheduledWorkoutRow r) {
+    final day = parseScheduleDayKey(r.day);
+    final source = parseScheduleDayKey(r.sourceDay);
+    final origin = ScheduleOrigin.values.asNameMap()[r.origin];
+    final status = ScheduleStatus.values.asNameMap()[r.status];
+    if (day == null || source == null || origin == null || status == null) {
+      return null;
+    }
+    return ScheduledWorkout(
+      id: r.id,
+      day: day,
+      sourceDay: source,
+      planId: r.planId,
+      origin: origin,
+      status: status,
+      sessionId: r.sessionId,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    );
+  }
+
+  static ScheduledWorkoutsCompanion toRow(ScheduledWorkout w) =>
+      ScheduledWorkoutsCompanion.insert(
+        id: w.id,
+        day: scheduleDayKey(w.day),
+        sourceDay: scheduleDayKey(w.sourceDay),
+        planId: w.planId,
+        origin: w.origin.name,
+        status: w.status.name,
+        sessionId: Value(w.sessionId),
+        createdAt: w.createdAt,
+        updatedAt: w.updatedAt,
+      );
 }

@@ -18,6 +18,8 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _exertion = 'exertionScale';
   static const _dayStart = 'dayStartHour';
   static const _weekStart = 'weekStartDay';
+  static const _defaultRest = 'defaultRestSeconds';
+  static const _restNotifications = 'restTimerNotifications';
   static const _mealLabels = 'mealLabels';
   static const _recipeFavouritesOnly = 'recipeFavouritesOnly';
   static const _availableEquipment = 'availableEquipment';
@@ -42,6 +44,8 @@ final class DriftSettingsRepository implements SettingsRepository {
       _exertion: s.exertionScale.name,
       _dayStart: s.dayStartHour.toString(),
       _weekStart: s.weekStartDay.toString(),
+      _defaultRest: s.defaultRestSeconds.toString(),
+      _restNotifications: s.restTimerNotifications.toString(),
     };
     await _db.transaction(() async {
       for (final e in values.entries) {
@@ -155,6 +159,7 @@ final class DriftSettingsRepository implements SettingsRepository {
     const defaults = AppSettings();
     final dayStart = int.tryParse(map[_dayStart] ?? '');
     final weekStart = int.tryParse(map[_weekStart] ?? '');
+    final defaultRest = int.tryParse(map[_defaultRest] ?? '');
     return AppSettings(
       units: UnitSystem.values.asNameMap()[map[_units]] ?? defaults.units,
       theme: ThemePreference.values.asNameMap()[map[_theme]] ?? defaults.theme,
@@ -167,6 +172,11 @@ final class DriftSettingsRepository implements SettingsRepository {
       weekStartDay: (weekStart != null && weekStart >= 1 && weekStart <= 7)
           ? weekStart
           : defaults.weekStartDay,
+      defaultRestSeconds:
+          (defaultRest != null && defaultRest >= 0 && defaultRest <= 3600)
+          ? defaultRest
+          : defaults.defaultRestSeconds,
+      restTimerNotifications: map[_restNotifications] == 'true',
     );
   }
 }

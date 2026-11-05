@@ -2,7 +2,7 @@
 
 Date: 2026-11-05
 Branch: `ccr-9fda2c32-wr163b`
-Status: **in progress** (started by owner instruction on 2026-11-05. WP 8, its dependency, is delivered and awaiting owner acceptance; its decisions 1–5 are open. WP 6 device verification and D05 V-01 stay open and owner-owned.)
+Status: **in progress, stage 1 built** (started by owner instruction on 2026-11-05. WP 8, its dependency, is delivered and awaiting owner acceptance; its decisions 1–5 are open. WP 6 device verification and D05 V-01 stay open and owner-owned.)
 
 ## Scope (D06 WP 9)
 Plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
@@ -51,7 +51,32 @@ WP 9 builds on the WP 8 implementation and must not settle WP 8 decisions 1–5 
 3. **Rest timer runs on wall-clock end time**, so it survives the app being backgrounded; correctness never depends on a background task (PLT-008(2)).
 
 ## What was built
-Appended per stage.
+| Stage | Commit | Content |
+|---|---|---|
+| 1 — domain, schema v7, use cases (no UI) | (this commit) | set kind; session exercise entries with notes; start, finish, edit and delete session use cases; personal-record and volume rules; scheduled workouts; rest-timer rules and settings; TD-42; schema v7 (additive); providers |
+
+### Stage 1 — domain, schema v7, use cases (no UI)
+- **TRN-019 set kind**: `SetKind` warm-up / working / failure on `SessionSet`, stored in `session_sets.set_kind` (existing rows `working`); `RecordSet` and `EditSet` take it.
+- **TRN-017/023 session exercises**: `session_exercises` (ordered entries with a note of at most 4000 characters), created by the migration from each session's distinct (exercise order, exercise) of its sets. Sets link to their entry (`session_exercise_id`); `position` is authoritative and `exercise_order` mirrors it. Use cases `AddSessionExercise`, `RemoveSessionExercise`, `ReplaceSessionExercise`, `ReorderSessionExercises`, `SetSessionExerciseNote`, `SetSessionNote`.
+- **TRN-016/024 sessions**: `StartEmptySession`, `StartSessionFromPlan` (pre-fill returned as data: plan targets and `lastPerformance`; no set stored), `StartSessionFromPast`, `FinishSession`, `EditSessionDetails`, `EditSet`, `DeleteSet`, `DeleteSession` (soft delete) and `RestoreSession`.
+- **TRN-026 / TRN-027** pure rules `personal_records.dart` and `volume.dart`, derived from history and never stored; use cases `GetExerciseRecords`, `GetWeeklyVolume`.
+- **TRN-015 scheduling**: `scheduled_workouts` rows; `ScheduleOnDate`, `ScheduleWeekdays`, `ScheduleSplitCycle`, `MoveScheduledWorkout`, `SkipScheduledWorkout`, `ScheduledWorkoutsInRange`; starting from a plan links the occurrence to the session.
+- **TRN-021** pure `RestTimer` (wall-clock end); settings `defaultRestSeconds` (90) and `restTimerNotifications` (off). The notification itself and the alert are stage 2 or later (UI and platform).
+- **TD-42** resolved: `SavePlan` refuses only newly added archived exercises.
+- **Schema v7** is additive (see `docs/data-model.md`, Migrations 6 → 7); the v6 migration, the legacy taxonomy mapping and `legacy_quarantine` are unchanged in behaviour (the one edit to the v5 → v6 step lists the two new `session_sets` columns in `newColumns`, because drift copies into the current table shape). Pre-v7 backups restore with entries created by the same backfill.
+
+Assumptions and decisions for the owner to confirm (none touches WP 8 decisions 1–5):
+1. **Archived or deleted exercise when starting from a plan or past session**: skipped with a reported warning, the session still starts, the plan is unchanged. (Alternative: refuse.)
+2. **One entry per exercise per session**: adding or replacing with an exercise already in the session is refused; recorded sets of a replaced exercise stay with the original entry and the new exercise gets a new entry right after it (an entry with no sets is changed in place).
+3. **Note limit 4000 characters** for session, exercise and set notes (TRN-023 asks for at least 2000).
+4. **PR definitions**: weighted = heaviest at each exact rep count 1–12; bodyweight = most reps and timed = longest duration, both ignoring any added load; assisted and cardio have **no PR** (D04 defines none, recorded as a gap, nothing invented). The first set in a slot is a PR; ties are not. The older `TrainingRules.isPersonalRecord` and `volumeKg` remain but are not used by the app.
+5. **Volume**: bodyweight added load is not kg volume (D04 TRN-027(2)); a session counts in the week of its start (set times are not stored); secondary muscle volume is reported separately and never added to primary.
+6. **Delete**: a session delete is soft and restorable any time (no purge exists); deleting a set or an exercise entry removes the rows (the confirmation is the screen's); a scheduled occurrence stays `done` if its session is later deleted.
+7. **Scheduling**: duplicate rule by (plan, source date, origin), skipped and moved occurrences are not regenerated; only a planned occurrence can be moved or skipped; the same plan cannot be scheduled twice on one date; archived plans cannot be scheduled or started.
+8. **Backup**: `formatVersion` stays 1 (layout unchanged); `schemaVersion` in the file is 7.
+9. **Entry ids** created by the backfill are `legacy:<session>:<position>`; ids made by the app are UUIDs.
+
+Local gate for stage 1: `dart format` clean, `flutter analyze --fatal-infos` clean, 1005 tests pass, coverage gate 90.9 % (minimum 80 %). CI is run at commit.
 
 ## Independent review
 Appended after review.

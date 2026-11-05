@@ -8,14 +8,6 @@ mixin SyncColumns on Table {
   DateTimeColumn get deletedAt => dateTime().nullable()();
 }
 
-const _heartRateCheck =
-    'CHECK (average_heart_rate IS NULL '
-    'OR average_heart_rate BETWEEN 30 AND 250)';
-
-const _energyProvenanceCheck =
-    'CHECK (energy_provenance IS NULL '
-    "OR energy_provenance IN ('userEntered', 'estimated'))";
-
 /// Body measurements: one row per site per reading (BCM). `site` is the
 /// `MeasurementSite` enum name; `value` is kg for weight, cm otherwise.
 @DataClassName('MeasurementRow')
@@ -351,6 +343,56 @@ class WorkoutSessions extends Table with SyncColumns {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// An exercise within a session, in order (TRN-017, TRN-023; schema v7). It
+/// exists before any set does, so an exercise can be added to a session first.
+/// `position` is the authoritative order (0..n-1). `note` is the exercise note
+/// of the session (at most 4000 characters).
+@DataClassName('SessionExerciseRow')
+@TableIndex(name: 'idx_session_exercises_session', columns: {#sessionId})
+class SessionExercises extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(WorkoutSessions, #id, onDelete: KeyAction.cascade)();
+  IntColumn get position => integer()();
+  TextColumn get exerciseId => text()();
+  TextColumn get note => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+    'CHECK (position >= 0)',
+    'CHECK (note IS NULL OR length(note) <= 4000)',
+  ];
+}
+
+/// A workout scheduled on a local date (TRN-015; schema v7). Dated rows, so
+/// moving or skipping one never changes the plan. `day` and `source_day` are
+/// local dates as `YYYY-MM-DD`; `source_day` is the date the occurrence was
+/// generated for and never changes, so regenerating a schedule can tell a
+/// moved occurrence from a missing one. `plan_id` and `session_id` are loose
+/// references.
+@DataClassName('ScheduledWorkoutRow')
+@TableIndex(name: 'idx_scheduled_workouts_day', columns: {#day})
+class ScheduledWorkouts extends Table with SyncColumns {
+  TextColumn get day => text()();
+  TextColumn get sourceDay => text()();
+  TextColumn get planId => text()();
+  TextColumn get origin => text()();
+  TextColumn get status => text()();
+  TextColumn get sessionId => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+    "CHECK (origin IN ('date', 'weekday', 'split'))",
+    "CHECK (status IN ('planned', 'skipped', 'done'))",
+  ];
+}
+
 /// One performed set. `type` selects which nullable columns are meaningful
 /// (the domain `SetData` sealed class enforces the combinations). `load_kg`
 /// is the lifted load of a weighted set and the added load of a bodyweight or
@@ -359,6 +401,7 @@ class WorkoutSessions extends Table with SyncColumns {
 @DataClassName('SessionSetRow')
 @TableIndex(name: 'idx_session_sets_session', columns: {#sessionId})
 @TableIndex(name: 'idx_session_sets_exercise', columns: {#exerciseId})
+@TableIndex(name: 'idx_session_sets_entry', columns: {#sessionExerciseId})
 class SessionSets extends Table {
   TextColumn get id => text()();
   TextColumn get sessionId =>
@@ -384,6 +427,24 @@ class SessionSets extends Table {
   IntColumn get restSeconds => integer().nullable()();
   TextColumn get note => text().nullable()();
 
+  /// Warm-up, working or failure (TRN-019, schema v7). Existing rows are
+  /// `working`.
+  TextColumn get setKind => text()
+      .clientDefault(() => 'working')
+      .customConstraint(
+        "NOT NULL DEFAULT 'working' "
+        "CHECK (set_kind IN ('warmUp', 'working', 'failure'))",
+      )();
+
+  /// The session exercise entry this set belongs to (schema v7). Null only
+  /// transiently for rows written before v7; the migration and restore give
+  /// every such set an entry. `exercise_order` mirrors the entry's position.
+  TextColumn get sessionExerciseId => text().nullable().references(
+    SessionExercises,
+    #id,
+    onDelete: KeyAction.cascade,
+  )();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 
@@ -394,9 +455,11 @@ class SessionSets extends Table {
     'CHECK (assistance_kg IS NULL OR assistance_kg BETWEEN 0 AND 1000)',
     'CHECK (duration_sec IS NULL OR duration_sec > 0)',
     'CHECK (metres IS NULL OR metres > 0)',
-    _heartRateCheck,
+    // ignore: lines_longer_than_80_chars, drift needs a single literal
+    'CHECK (average_heart_rate IS NULL OR average_heart_rate BETWEEN 30 AND 250)',
     'CHECK (energy_kcal IS NULL OR energy_kcal >= 0)',
-    _energyProvenanceCheck,
+    // ignore: lines_longer_than_80_chars, drift needs a single literal
+    "CHECK (energy_provenance IS NULL OR energy_provenance IN ('userEntered', 'estimated'))",
     'CHECK ((energy_kcal IS NULL) = (energy_provenance IS NULL))',
     'CHECK (exertion_value IS NULL OR exertion_value BETWEEN 0 AND 10)',
     'CHECK (rest_seconds IS NULL OR rest_seconds BETWEEN 0 AND 3600)',

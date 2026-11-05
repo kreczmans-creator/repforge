@@ -11,6 +11,10 @@ enum ExerciseType { weighted, bodyweight, assisted, timed, distance, cardio }
 /// Exertion scale recorded on a set.
 enum ExertionScale { rpe, rir }
 
+/// Kind of a set (TRN-019). Warm-up sets are excluded from volume and
+/// personal records; working and failure sets count.
+enum SetKind { warmUp, working, failure }
+
 /// Exercise category (TRN-009), exactly one per exercise. The identifiers are
 /// the enum names and are normative (`docs/training-taxonomy.md`); labels are
 /// display text.
@@ -177,8 +181,32 @@ abstract class SessionSet with _$SessionSet {
     Exertion? exertion,
     int? restSeconds,
     String? note,
+    @Default(SetKind.working) SetKind kind,
+
+    /// The session exercise entry the set belongs to (schema v7). Null on a
+    /// set not yet stored: the repository then joins or creates the entry
+    /// for [exerciseId].
+    String? sessionExerciseId,
   }) = _SessionSet;
 }
+
+/// An exercise within a session (TRN-017, TRN-023). It exists before any set
+/// does. [position] is the stored order (0..n-1) and the authoritative one;
+/// a session holds an exercise at most once.
+@freezed
+abstract class SessionExercise with _$SessionExercise {
+  const factory SessionExercise({
+    required String id,
+    required String sessionId,
+    required String exerciseId,
+    required int position,
+    String? note,
+  }) = _SessionExercise;
+}
+
+/// Longest session note or session exercise note (TRN-023(1) asks for at
+/// least 2000 characters).
+const maxSessionNoteLength = 4000;
 
 /// A performed (or in-progress) workout (TRN-015..).
 @freezed
@@ -193,6 +221,9 @@ abstract class WorkoutSession with _$WorkoutSession {
     DateTime? endedAt,
     @Default('') String notes,
     @Default(<SessionSet>[]) List<SessionSet> sets,
+
+    /// Exercise entries in stored order (schema v7).
+    @Default(<SessionExercise>[]) List<SessionExercise> exercises,
   }) = _WorkoutSession;
 }
 

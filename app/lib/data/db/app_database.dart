@@ -30,6 +30,9 @@ part 'app_database.g.dart';
 ///    provenance; plan_exercises get a rep range and a distance target;
 ///    new training_splits, split_days and legacy_quarantine; CHECK
 ///    constraints on the training tables (TD-25).
+/// 7. WP 9: session_sets get `set_kind` and `session_exercise_id`; new
+///    session_exercises (ordered exercises of a session, with notes) and
+///    scheduled_workouts. Additive only.
 @DriftDatabase(
   tables: [
     Measurements,
@@ -47,7 +50,9 @@ part 'app_database.g.dart';
     WorkoutPlans,
     PlanExercises,
     WorkoutSessions,
+    SessionExercises,
     SessionSets,
+    ScheduledWorkouts,
     TrainingSplits,
     SplitDays,
     LegacyQuarantine,
@@ -62,7 +67,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -85,6 +90,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 6) {
         await _migrateV5ToV6(m);
+      }
+      if (from < 7) {
+        await _migrateV6ToV7(m);
       }
     },
     beforeOpen: (details) async {
@@ -313,9 +321,20 @@ class AppDatabase extends _$AppDatabase {
           await m.alterTable(
             TableMigration(
               sessionSets,
+              columnTransformer: {
+                sessionSets.setKind: const CustomExpression<String>(
+                  "'working'",
+                ),
+              },
+              // drift copies into the CURRENT table shape, so the two v7
+              // columns (default `working` and null) must be listed here
+              // too; their values are not read from the old table. This
+              // changes no v6 behaviour; the v7 step then finds them.
               newColumns: [
                 sessionSets.energyKcal,
                 sessionSets.energyProvenance,
+                sessionSets.setKind,
+                sessionSets.sessionExerciseId,
               ],
             ),
           );
@@ -333,6 +352,95 @@ class AppDatabase extends _$AppDatabase {
       if (keysOn) await customStatement('PRAGMA foreign_keys = ON');
     }
   });
+
+  /// v6 → v7 (WP 9). Additive only; no existing value is changed:
+  /// - `session_sets` gets `set_kind` (existing rows `working`) and
+  ///   `session_exercise_id` (nullable);
+  /// - `session_exercises` and `scheduled_workouts` are created with their
+  ///   indexes;
+  /// - every set without an entry is given one by
+  ///   [backfillSessionExercises].
+  ///
+  /// Idempotent: columns, tables and indexes are created only if missing and
+  /// the backfill touches only sets that still have no entry, so a re-run
+  /// after a crash before `user_version` is written changes nothing. One
+  /// transaction; no table is rebuilt, so foreign keys can stay on.
+  Future<void> _migrateV6ToV7(Migrator m) => transaction(() async {
+    await m.createTable(sessionExercises); // IF NOT EXISTS
+    await m.createTable(scheduledWorkouts);
+    if (!await _columnExists('session_sets', 'set_kind')) {
+      await m.addColumn(sessionSets, sessionSets.setKind);
+    }
+    if (!await _columnExists('session_sets', 'session_exercise_id')) {
+      await m.addColumn(sessionSets, sessionSets.sessionExerciseId);
+    }
+    for (final index in [
+      idxSessionExercisesSession,
+      idxSessionSetsEntry,
+      idxScheduledWorkoutsDay,
+    ]) {
+      if (!await _schemaEntityExists('index', index.entityName)) {
+        await m.createIndex(index);
+      }
+    }
+    await backfillSessionExercises();
+  });
+
+  /// Gives every set that has no `session_exercise_id` an entry (schema v7).
+  /// Used by the v6 → v7 migration and by restoring a backup made before v7.
+  ///
+  /// Sets are grouped by (session, exercise_order, exercise); a group whose
+  /// session already has an entry for the exercise joins it, any other group
+  /// gets a new entry (id `legacy:<session>:<position>`) at the next free
+  /// position, groups taken in `exercise_order` then first-row order, so the
+  /// existing order is kept and two exercises that shared an
+  /// `exercise_order` get distinct positions. `exercise_order` and every
+  /// other existing set value stay as they are. Safe to run again.
+  Future<void> backfillSessionExercises() async {
+    final groups = await customSelect(
+      'SELECT session_id, exercise_order, exercise_id, '
+      'MIN(rowid) AS first_row '
+      'FROM session_sets WHERE session_exercise_id IS NULL '
+      'GROUP BY session_id, exercise_order, exercise_id '
+      'ORDER BY session_id, exercise_order, first_row',
+    ).get();
+    for (final g in groups) {
+      final sessionId = g.read<String>('session_id');
+      final exerciseId = g.read<String>('exercise_id');
+      final order = g.read<int>('exercise_order');
+      final existing = await customSelect(
+        'SELECT id FROM session_exercises '
+        'WHERE session_id = ? AND exercise_id = ? ORDER BY position LIMIT 1',
+        variables: [
+          Variable.withString(sessionId),
+          Variable.withString(exerciseId),
+        ],
+      ).get();
+      String entryId;
+      if (existing.isNotEmpty) {
+        entryId = existing.first.read<String>('id');
+      } else {
+        final next = await customSelect(
+          'SELECT COALESCE(MAX(position) + 1, 0) AS p '
+          'FROM session_exercises WHERE session_id = ?',
+          variables: [Variable.withString(sessionId)],
+        ).getSingle();
+        final position = next.read<int>('p');
+        entryId = 'legacy:$sessionId:$position';
+        await customStatement(
+          'INSERT INTO session_exercises (id, session_id, position, '
+          'exercise_id) VALUES (?, ?, ?, ?)',
+          [entryId, sessionId, position, exerciseId],
+        );
+      }
+      await customStatement(
+        'UPDATE session_sets SET session_exercise_id = ? '
+        'WHERE session_id = ? AND exercise_id = ? AND exercise_order = ? '
+        'AND session_exercise_id IS NULL',
+        [entryId, sessionId, exerciseId, order],
+      );
+    }
+  }
 
   Future<void> _quarantine(
     String table,

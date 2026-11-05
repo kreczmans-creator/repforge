@@ -14,6 +14,7 @@ import 'package:repforge/data/repositories/drift_measurement_repository.dart';
 import 'package:repforge/data/repositories/drift_prep_batch_repository.dart';
 import 'package:repforge/data/repositories/drift_recipe_repository.dart';
 import 'package:repforge/data/repositories/drift_saved_meal_repository.dart';
+import 'package:repforge/data/repositories/drift_scheduled_workout_repository.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/data/repositories/drift_training_split_repository.dart';
 import 'package:repforge/data/repositories/drift_weight_repository.dart';
@@ -166,6 +167,10 @@ final trainingSplitRepositoryProvider = Provider<TrainingSplitRepository>(
     ref.watch(databaseProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+final scheduledWorkoutRepositoryProvider = Provider<ScheduledWorkoutRepository>(
+  (ref) => DriftScheduledWorkoutRepository(ref.watch(databaseProvider)),
 );
 
 final workoutSessionRepositoryProvider = Provider<WorkoutSessionRepository>(

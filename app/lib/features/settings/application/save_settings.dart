@@ -18,6 +18,14 @@ final class SaveSettings {
         ValidationError('Week start must be 1–7.', field: 'weekStartDay'),
       );
     }
+    if (settings.defaultRestSeconds < 0 || settings.defaultRestSeconds > 3600) {
+      return const Err(
+        ValidationError(
+          'Default rest must be 0–3600 seconds.',
+          field: 'defaultRestSeconds',
+        ),
+      );
+    }
     try {
       await repository.save(settings);
     } on Exception catch (e) {

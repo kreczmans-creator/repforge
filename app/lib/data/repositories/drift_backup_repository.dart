@@ -95,6 +95,13 @@ final class DriftBackupRepository implements BackupRepository {
           }
           counts[entry.key] = n;
         }
+        // A backup made before schema v7 has sets without an exercise entry
+        // (and no session_exercises table): give them entries, the same way
+        // the migration does. A v7 backup carries its entries and is
+        // restored as it is.
+        if (!tables.containsKey('session_exercises')) {
+          await _db.backfillSessionExercises();
+        }
         // Pre-v6 training rows that broke a CHECK constraint: the original
         // is kept here, see LegacyTrainingRows.
         final quarantineColumns = {

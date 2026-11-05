@@ -9,7 +9,8 @@ import 'package:repforge/domain/training/training_validation.dart';
 ///
 /// Validates the name, every plan exercise ([validatePlanExercise], with the
 /// exercise's type so a rep target on a timed exercise is rejected), that
-/// each referenced exercise exists and is not archived, and the weekday
+/// each referenced exercise exists and, unless the saved plan already lists
+/// it (TD-42), is not archived, and the weekday
 /// numbers (1 Monday to 7 Sunday, no repeats). The order of [exercises] is
 /// the plan order: `sortOrder` is renumbered 0..n-1 and a blank id gets a
 /// new one.
@@ -53,6 +54,10 @@ final class SavePlan {
       if (id != null && existing == null) {
         return const Err(NotFoundError('That plan no longer exists.'));
       }
+      final alreadyInPlan = {
+        for (final e in existing?.exercises ?? const <PlanExercise>[])
+          e.exerciseId,
+      };
       final out = <PlanExercise>[];
       for (var i = 0; i < planExercises.length; i++) {
         final pe = planExercises[i];
@@ -62,7 +67,10 @@ final class SavePlan {
             NotFoundError('An exercise in the plan no longer exists.'),
           );
         }
-        if (exercise.archived) {
+        // TD-42: only an exercise newly added to the plan must be active. One
+        // the saved plan already lists may have been archived since; a rename
+        // or reorder must not be blocked by it.
+        if (exercise.archived && !alreadyInPlan.contains(pe.exerciseId)) {
           return Err(
             ValidationError(
               '"${exercise.name}" is archived. Restore it or remove it from '

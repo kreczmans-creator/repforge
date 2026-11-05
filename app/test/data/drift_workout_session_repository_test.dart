@@ -136,12 +136,24 @@ void main() {
     await seedSession(repo, session);
 
     final loaded = await repo.byId('s');
-    expect(loaded, session);
+    // Every set joined an entry of its exercise order (schema v7); apart from
+    // that link the set is stored and read back unchanged.
+    expect([
+      for (final s in loaded!.sets) s.copyWith(sessionExerciseId: null),
+    ], sets);
+    expect(loaded.exercises.map((e) => e.position), [0, 1, 2, 3, 4, 5]);
+    for (final s in loaded.sets) {
+      final entry = loaded.exercises.singleWhere(
+        (e) => e.id == s.sessionExerciseId,
+      );
+      expect(entry.position, s.exerciseOrder);
+      expect(entry.exerciseId, s.exerciseId);
+    }
     expect(
-      loaded!.sets.map((s) => s.data.type).toSet(),
+      loaded.sets.map((s) => s.data.type).toSet(),
       ExerciseType.values.toSet(),
     );
-    expect((await repo.watchAll().first).single, session);
+    expect((await repo.watchAll().first).single, loaded);
   });
 
   test('sets are read back ordered by exerciseOrder then setOrder', () async {

@@ -26,7 +26,9 @@ const _tableNames = [
   'workout_plans',
   'plan_exercises',
   'workout_sessions',
+  'session_exercises',
   'session_sets',
+  'scheduled_workouts',
   'training_splits',
   'split_days',
   'legacy_quarantine',
@@ -110,11 +112,37 @@ Future<void> _seed(AppDatabase db, {String suffix = ''}) async {
         ),
       );
   await db
+      .into(db.sessionExercises)
+      .insert(
+        SessionExercisesCompanion.insert(
+          id: 'se$suffix',
+          sessionId: 's$suffix',
+          position: 0,
+          exerciseId: 'bench',
+          note: const Value('felt strong'),
+        ),
+      );
+  await db
+      .into(db.scheduledWorkouts)
+      .insert(
+        ScheduledWorkoutsCompanion.insert(
+          id: 'sw$suffix',
+          day: '2026-11-02',
+          sourceDay: '2026-11-02',
+          planId: 'p$suffix',
+          origin: 'weekday',
+          status: 'planned',
+          createdAt: _t,
+          updatedAt: _t,
+        ),
+      );
+  await db
       .into(db.sessionSets)
       .insert(
         SessionSetsCompanion.insert(
           id: 'ss$suffix',
           sessionId: 's$suffix',
+          sessionExerciseId: Value('se$suffix'),
           exerciseId: 'bench',
           exerciseOrder: 0,
           setOrder: 0,
@@ -225,7 +253,7 @@ void main() {
 
       expect(doc['app'], 'repforge');
       expect(doc['formatVersion'], 1);
-      expect(doc['schemaVersion'], 6);
+      expect(doc['schemaVersion'], 7);
       expect(DateTime.tryParse(doc['exportedAt']! as String), isNotNull);
       final tables = doc['tables']! as Map<String, Object?>;
       expect(tables.keys, containsAll(_tableNames));
@@ -237,6 +265,8 @@ void main() {
         'goals',
         'settings',
         'workout_sessions',
+        'session_exercises',
+        'scheduled_workouts',
         'session_sets',
         'recipes',
         'recipe_ingredients',
@@ -563,6 +593,17 @@ void main() {
       expect(sets['good']!.reps, 5);
       expect([sets['bad']!.reps, sets['bad']!.averageHeartRate], [null, null]);
       expect(sets['bad']!.loadKg, 80);
+      // Pre-v7 sets get an exercise entry and the kind working.
+      expect(
+        [sets['good']!.setKind, sets['bad']!.setKind],
+        ['working', 'working'],
+      );
+      final entries = await db.select(db.sessionExercises).get();
+      expect(entries.map((e) => (e.id, e.sessionId, e.position)), [
+        ('legacy:s:0', 's', 0),
+      ]);
+      expect(sets['good']!.sessionExerciseId, 'legacy:s:0');
+      expect(sets['bad']!.sessionExerciseId, 'legacy:s:0');
 
       // Nothing is lost silently: the originals are kept.
       final q = {
@@ -573,6 +614,88 @@ void main() {
         (jsonDecode(q['bad-sets']!.originalJson) as Map)['target_sets'],
         0,
       );
+    });
+
+    test('a v6 backup (no session_exercises) restores with entries made '
+        'from its sets, exercise_order untouched', () async {
+      const ts = '2026-11-01T08:00:00.000Z';
+      Map<String, Object?> set(String id, String ex, int order, int n) => {
+        'id': id,
+        'session_id': 's',
+        'exercise_id': ex,
+        'exercise_order': order,
+        'set_order': n,
+        'type': 'weighted',
+        'load_kg': 80.0,
+        'reps': 5,
+        'energy_kcal': null,
+        'energy_provenance': null,
+        'completed': 1,
+      };
+      final result = await repo.importJson(
+        jsonEncode({
+          'app': 'repforge',
+          'formatVersion': 1,
+          'schemaVersion': 6,
+          'tables': {
+            'workout_sessions': [
+              {
+                'id': 's',
+                'created_at': ts,
+                'updated_at': ts,
+                'deleted_at': null,
+                'name': 'S',
+                'plan_id': null,
+                'started_at': ts,
+                'ended_at': null,
+                'notes': '',
+              },
+            ],
+            'session_sets': [
+              set('a', 'bench', 2, 0),
+              set('b', 'bench', 2, 1),
+              set('c', 'squat', 5, 0),
+            ],
+          },
+        }),
+      );
+      expect(result.isOk, isTrue);
+      final entries = await db.select(db.sessionExercises).get()
+        ..sort((a, b) => a.position.compareTo(b.position));
+      expect(entries.map((e) => (e.exerciseId, e.position)), [
+        ('bench', 0),
+        ('squat', 1),
+      ]);
+      final sets = {
+        for (final x in await db.select(db.sessionSets).get()) x.id: x,
+      };
+      expect(sets['a']!.sessionExerciseId, entries[0].id);
+      expect(sets['b']!.sessionExerciseId, entries[0].id);
+      expect(sets['c']!.sessionExerciseId, entries[1].id);
+      expect(
+        [sets['a']!.exerciseOrder, sets['c']!.exerciseOrder],
+        [2, 5],
+        reason: 'stored exercise_order is not rewritten',
+      );
+    });
+
+    test('a v7 backup keeps set kinds, entries, notes and scheduled '
+        'workouts, and no entry is invented', () async {
+      await _seed(db);
+      await db.customStatement(
+        "UPDATE session_sets SET set_kind = 'failure' WHERE id = 'ss'",
+      );
+      final json = await repo.exportJson();
+      await db.customStatement('DELETE FROM scheduled_workouts');
+      await db.customStatement('DELETE FROM session_exercises');
+      expect((await repo.importJson(json)).isOk, isTrue);
+      expect(await db.select(db.sessionExercises).get(), hasLength(1));
+      expect(
+        (await db.select(db.sessionExercises).get()).single.note,
+        'felt strong',
+      );
+      expect(await db.select(db.scheduledWorkouts).get(), hasLength(1));
+      expect((await db.select(db.sessionSets).get()).single.setKind, 'failure');
     });
 
     test('a v6 backup round-trips splits, aliases and cardio energy', () async {

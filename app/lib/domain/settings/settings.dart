@@ -21,6 +21,14 @@ abstract class AppSettings with _$AppSettings {
 
     /// 1 = Monday … 7 = Sunday.
     @Default(1) int weekStartDay,
+
+    /// Rest-timer length in seconds when the exercise plans none (TRN-021),
+    /// 0 to 3600.
+    @Default(90) int defaultRestSeconds,
+
+    /// Whether the rest timer may post a local notification when it ends
+    /// (TRN-022, PLT-007). Off until the user opts in.
+    @Default(false) bool restTimerNotifications,
   }) = _AppSettings;
 }
 

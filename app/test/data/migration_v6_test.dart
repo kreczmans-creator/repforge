@@ -6,7 +6,7 @@ import 'package:repforge/data/db/app_database.dart';
 
 import 'generated_migrations/schema.dart';
 import 'generated_migrations/schema_v5.dart' as v5;
-import 'generated_migrations/schema_v6.dart' as v6;
+import 'generated_migrations/schema_v7.dart' as v7;
 
 const _t = '2026-11-01T08:00:00.000Z';
 
@@ -118,9 +118,9 @@ void main() {
     await old.close();
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 6);
+    await verifier.migrateAndValidate(db, 7);
 
-    final migrated = v6.DatabaseAtV6(schema.newConnection());
+    final migrated = v7.DatabaseAtV7(schema.newConnection());
     addTearDown(migrated.close);
 
     final exercises = {
@@ -202,8 +202,8 @@ void main() {
     await old.close();
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 6);
-    final migrated = v6.DatabaseAtV6(schema.newConnection());
+    await verifier.migrateAndValidate(db, 7);
+    final migrated = v7.DatabaseAtV7(schema.newConnection());
     addTearDown(migrated.close);
 
     Future<void> setSql(
@@ -317,8 +317,8 @@ void main() {
 
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 6);
-    final migrated = v6.DatabaseAtV6(schema.newConnection());
+    await verifier.migrateAndValidate(db, 7);
+    final migrated = v7.DatabaseAtV7(schema.newConnection());
     addTearDown(migrated.close);
 
     // Every row survives, except the plan exercise with 0 sets.
@@ -381,7 +381,7 @@ void main() {
     await old.close();
 
     final first = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(first, 6);
+    await verifier.migrateAndValidate(first, 7);
     // Data that only exists in v6, so a re-run would show lost columns.
     await first.customStatement(
       "UPDATE exercises SET aliases_json = '[\"Flye\"]', "
@@ -425,7 +425,7 @@ void main() {
     final version = await second
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data.values.single, 6);
+    expect(version.data.values.single, 7);
   });
 
   test(
@@ -468,8 +468,8 @@ void main() {
       await old.close();
       final db = AppDatabase(schema.newConnection());
       addTearDown(db.close);
-      await verifier.migrateAndValidate(db, 6);
-      final migrated = v6.DatabaseAtV6(schema.newConnection());
+      await verifier.migrateAndValidate(db, 7);
+      final migrated = v7.DatabaseAtV7(schema.newConnection());
       addTearDown(migrated.close);
 
       final rows = {
