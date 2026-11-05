@@ -16,4 +16,4 @@ Format: see `ADR-0001`. Required fields: ID, Title, Status (Proposed / Accepted 
 | ADR-0008 | Exercise library domain model: Engineering Objects, hierarchical anatomy, classifications, relationships | Accepted — direction (2026-11-05); implementation gated (WP 8 stage 3) |
 | ADR-0009 | Exercise catalogue provenance, providers and idempotent updates | Accepted — direction (2026-11-05); implementation gated (WP 8 stage 3) |
 | ADR-0010 | `fullBody` as a non-anatomical top-level anatomy node (amends ADR-0008 decision 2) | Accepted (2026-11-05) |
-| ADR-0011 | Exporting and importing user files through a platform adapter (share_plus, file_selector) | Proposed (WP 10 D2) |
+| ADR-0011 | Exporting and importing user files through a platform adapter (share_plus, file_selector) | Accepted (2026-11-05) |

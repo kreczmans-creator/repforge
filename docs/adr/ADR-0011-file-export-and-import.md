@@ -1,6 +1,6 @@
 # ADR-0011: Exporting and importing user files through a platform adapter (share_plus, file_selector)
 
-- Status: **Proposed** (WP 10 decision D2; owner approval required before WP 10 stage 3)
+- Status: **Accepted** (owner, 2026-11-05, WP 10 decision D2). Package compatibility (Android debug and release with R8, iOS) is verified before implementation; WP 10 stage 3 proceeds after the file-output implementation has been reviewed.
 - Date: 2026-11-05
 
 ## Context
@@ -11,7 +11,7 @@ WP 10 must deliver a CSV export of body measurements (BCM-009(1); D06 acceptance
 2. `file_picker` for both directions: one plugin, but its "save file" support differs by platform and it carries a larger native surface.
 3. Save into the app's documents folder only: no plugin, but on iOS and Android the user cannot easily reach the file, so "opens in a spreadsheet" fails.
 
-## Decision (proposed)
+## Decision
 Option 1, behind a port `UserFileGateway` (export bytes with a file name and MIME type; pick a file of given types and return its bytes), with one adapter in `lib/data/platform/` and a fake for widget and integration tests. Versions pinned exactly to releases at least two weeks old: `share_plus` 13.3.1 (2026-10-01) and `file_selector` 1.1.0 (2025-11-21), subject to the Android build (AGP 9.1.0, compileSdk 36, release build with R8) and the iOS build; any SDK or manifest change is recorded in D03.
 
 ## Rationale
