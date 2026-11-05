@@ -167,6 +167,7 @@ class NewSetRow extends ConsumerStatefulWidget {
     required this.exercise,
     required this.entrySets,
     required this.prefill,
+    this.startsRest = true,
     super.key,
   });
 
@@ -176,26 +177,88 @@ class NewSetRow extends ConsumerStatefulWidget {
   final List<SessionSet> entrySets;
   final EntryPrefill? prefill;
 
+  /// Whether logging a set starts the rest timer. False for a finished
+  /// session that was reopened to correct its sets: no rest follows, so no
+  /// timer and no notification.
+  final bool startsRest;
+
   @override
   ConsumerState<NewSetRow> createState() => _NewSetRowState();
 }
 
 class _NewSetRowState extends ConsumerState<NewSetRow> {
+  late final SetDraft _draft = nextSetDraft(
+    type: widget.exercise.type,
+    entrySets: widget.entrySets,
+    prefill: widget.prefill,
+  );
   late final SetFormController _form = SetFormController(
     type: widget.exercise.type,
-    draft: nextSetDraft(
-      type: widget.exercise.type,
-      entrySets: widget.entrySets,
-      prefill: widget.prefill,
-    ),
+    draft: _draft,
+    kind: _draft.kind,
   );
   bool _details = false;
   bool _busy = false;
   Map<String, String> _errors = const {};
   String? _general;
 
+  // A row pre-filled as a warm-up becomes a working set as soon as the user
+  // types other values over it (the numbers are then not last time's
+  // warm-up), unless the user chose the kind explicitly.
+  bool _kindChosen = false;
+  bool _switching = false;
+
+  List<TextEditingController> get _valueFields => [
+    _form.load,
+    _form.reps,
+    _form.duration,
+    _form.metres,
+    _form.heartRate,
+  ];
+
+  List<String> get _draftValues => [
+    _draft.load,
+    _draft.reps,
+    _draft.duration,
+    _draft.metres,
+    _draft.heartRate,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _form.addListener(_onKindChanged);
+    if (_draft.kind == SetKind.warmUp) {
+      for (final c in _valueFields) {
+        c.addListener(_onValuesChanged);
+      }
+    }
+  }
+
+  void _onKindChanged() {
+    if (!_switching) _kindChosen = true;
+  }
+
+  void _onValuesChanged() {
+    if (_kindChosen || _form.kind != SetKind.warmUp) return;
+    final now = [for (final c in _valueFields) c.text];
+    final draft = _draftValues;
+    var same = true;
+    for (var i = 0; i < now.length; i++) {
+      if (now[i] != draft[i]) same = false;
+    }
+    if (same) return;
+    _switching = true;
+    _form.kind = SetKind.working;
+    _switching = false;
+  }
+
   @override
   void dispose() {
+    _form.removeListener(_onKindChanged);
+    for (final c in _valueFields) {
+      c.removeListener(_onValuesChanged);
+    }
     _form.dispose();
     super.dispose();
   }
@@ -240,14 +303,17 @@ class _NewSetRowState extends ConsumerState<NewSetRow> {
     if (!mounted) return;
     switch (result) {
       case Ok():
-        // Confirming a set starts the rest timer (TRN-021(1)).
-        ref
-            .read(restTimerProvider.notifier)
-            .start(
-              plannedRestSeconds:
-                  restSeconds ?? widget.prefill?.target?.restSeconds,
-              defaultRestSeconds: settings.defaultRestSeconds,
-            );
+        // Confirming a set starts the rest timer (TRN-021(1)), except when
+        // correcting a finished session.
+        if (widget.startsRest) {
+          ref
+              .read(restTimerProvider.notifier)
+              .start(
+                plannedRestSeconds:
+                    restSeconds ?? widget.prefill?.target?.restSeconds,
+                defaultRestSeconds: settings.defaultRestSeconds,
+              );
+        }
         ref.invalidate(sessionViewProvider(widget.sessionId));
       case Err(:final error):
         setState(() => _busy = false);
@@ -289,18 +355,45 @@ class _NewSetRowState extends ConsumerState<NewSetRow> {
                   ?.copyWith(color: context.rf.alertText),
             ),
           ),
+        ListenableBuilder(
+          listenable: _form,
+          builder: (context, _) => _form.kind == SetKind.working
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.only(bottom: RfSpace.s2),
+                  child: Semantics(
+                    label:
+                        'This set will be logged as a '
+                        '${setKindLabel(_form.kind).toLowerCase()} set',
+                    child: ExcludeSemantics(
+                      child: Chip(
+                        key: Key('newset-kind-label-$id'),
+                        label: Text(setKindLabel(_form.kind)),
+                        avatar: const Icon(Icons.label_outline, size: 16),
+                      ),
+                    ),
+                  ),
+                ),
+        ),
         Wrap(
           spacing: RfSpace.s2,
           runSpacing: RfSpace.s2,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            RfButton(
-              key: Key('newset-log-$id'),
-              label: 'Log set',
-              icon: Icons.check,
-              expand: false,
-              loading: _busy,
-              onPressed: _log,
+            ListenableBuilder(
+              listenable: _form,
+              builder: (context, _) => RfButton(
+                key: Key('newset-log-$id'),
+                label: switch (_form.kind) {
+                  SetKind.working => 'Log set',
+                  SetKind.warmUp => 'Log warm-up',
+                  SetKind.failure => 'Log failure set',
+                },
+                icon: Icons.check,
+                expand: false,
+                loading: _busy,
+                onPressed: _log,
+              ),
             ),
             RfButton(
               key: Key('newset-details-$id'),

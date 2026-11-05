@@ -281,5 +281,32 @@ void main() {
         expect(ok(ExertionScale.rir, v), isFalse, reason: '$v');
       }
     });
+
+    test(
+      'the constants define the range and the labels (final review L11)',
+      () {
+        expect(
+          (
+            TrainingRules.rpeMin,
+            TrainingRules.rpeMax,
+            TrainingRules.rpeStep,
+            TrainingRules.rirMin,
+            TrainingRules.rirMax,
+          ),
+          (1, 10, 0.5, 0, 5),
+        );
+        expect(TrainingRules.exertionRange(ExertionScale.rpe), '1–10');
+        expect(TrainingRules.exertionRange(ExertionScale.rir), '0–5');
+        // The edges of the constants are the edges of the rule.
+        expect(ok(ExertionScale.rpe, TrainingRules.rpeMin.toDouble()), isTrue);
+        expect(ok(ExertionScale.rpe, TrainingRules.rpeMax.toDouble()), isTrue);
+        expect(
+          ok(ExertionScale.rpe, TrainingRules.rpeMin - TrainingRules.rpeStep),
+          isFalse,
+        );
+        expect(ok(ExertionScale.rir, TrainingRules.rirMin.toDouble()), isTrue);
+        expect(ok(ExertionScale.rir, TrainingRules.rirMax + 1), isFalse);
+      },
+    );
   });
 }

@@ -3,6 +3,22 @@ import 'package:repforge/domain/units/units.dart';
 
 /// Pure calculation rules for training data. Each has example-based tests.
 abstract final class TrainingRules {
+  /// RPE range and step (D04 TRN-020). Labels and messages are built from
+  /// these, so the owner's decision on the exertion rule changes one place.
+  static const rpeMin = 1;
+  static const rpeMax = 10;
+  static const rpeStep = 0.5;
+
+  /// RIR range (whole numbers).
+  static const rirMin = 0;
+  static const rirMax = 5;
+
+  /// `1–10` or `0–5`: the accepted range of [scale], for labels.
+  static String exertionRange(ExertionScale scale) => switch (scale) {
+    ExertionScale.rpe => '$rpeMin–$rpeMax',
+    ExertionScale.rir => '$rirMin–$rirMax',
+  };
+
   /// Tonnage in kg for sets where load × reps is meaningful: weighted sets,
   /// and bodyweight sets with added load (added load only; the body's own
   /// mass is not counted so volume is comparable across days). Assisted,
@@ -96,8 +112,10 @@ abstract final class TrainingRules {
     if (v.isNaN || v.isInfinite) return false;
     return switch (e.scale) {
       ExertionScale.rpe =>
-        v * 2 == (v * 2).roundToDouble() && v >= 1 && v <= 10,
-      ExertionScale.rir => v == v.roundToDouble() && v >= 0 && v <= 5,
+        v / rpeStep == (v / rpeStep).roundToDouble() &&
+            v >= rpeMin &&
+            v <= rpeMax,
+      ExertionScale.rir => v == v.roundToDouble() && v >= rirMin && v <= rirMax,
     };
   }
 }

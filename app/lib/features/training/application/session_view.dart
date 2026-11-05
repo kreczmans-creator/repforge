@@ -20,8 +20,8 @@ class EntryPrefill {
   final String sessionExerciseId;
   final String exerciseId;
 
-  /// Completed sets of the most recent other session with this exercise, in
-  /// performed order; empty when never performed.
+  /// Completed sets of the most recent other session with this exercise that
+  /// started before (or with) this one, in performed order; empty when none.
   final List<SessionSet> previous;
 
   /// The plan row the entry was created from, when the session has a plan
@@ -69,6 +69,31 @@ final class LoadSessionView {
   final ExerciseRepository exercises;
   final WorkoutPlanRepository plans;
 
+  /// The completed sets of the newest other session with [exerciseId] that
+  /// started no later than [session], so correcting an old session hints with
+  /// what was done before it, however many newer sessions exist. Pages
+  /// through the history newest first until one qualifies.
+  Future<List<SessionSet>> _previousSets(
+    WorkoutSession session,
+    String exerciseId,
+  ) async {
+    const page = 20;
+    for (var offset = 0; ; offset += page) {
+      final history = await sessions.sessionsForExercise(
+        exerciseId,
+        limit: page,
+        offset: offset,
+      );
+      for (final h in history) {
+        if (h.sessionId != session.id &&
+            !h.startedAt.isAfter(session.startedAt)) {
+          return h.sets;
+        }
+      }
+      if (history.length < page) return const [];
+    }
+  }
+
   Future<Result<SessionView?>> call(String sessionId) async {
     try {
       final session = await sessions.byId(sessionId);
@@ -83,17 +108,7 @@ final class LoadSessionView {
       for (final id in ids) {
         final e = await exercises.byId(id);
         if (e != null) byId[id] = e;
-        final history = await sessions.sessionsForExercise(id, limit: 3);
-        previous[id] =
-            history
-                .where(
-                  (h) =>
-                      h.sessionId != session.id &&
-                      !h.startedAt.isAfter(session.startedAt),
-                )
-                .firstOrNull
-                ?.sets ??
-            const [];
+        previous[id] = await _previousSets(session, id);
         records.addAll(
           PersonalRecordRules.recordSetIds(await sessions.performedSets(id)),
         );
@@ -183,6 +198,32 @@ final activeSessionProvider = Provider<AsyncValue<WorkoutSession?>>(
   (ref) => ref
       .watch(sessionHistoryProvider(100))
       .whenData((all) => all.where((s) => s.endedAt == null).firstOrNull),
+);
+
+/// Use case (read): the session that was started and not finished, if any
+/// (newest first among the latest 100), for the "Continue or start new?"
+/// question when starting a workout.
+final class FindUnfinishedSession {
+  const FindUnfinishedSession({required this.sessions});
+
+  final WorkoutSessionRepository sessions;
+
+  /// Null when there is none or the history cannot be read (starting a
+  /// workout must not be blocked by a failed lookup).
+  Future<WorkoutSession?> call() async {
+    try {
+      final all = await sessions.watchAll().first;
+      return all.where((s) => s.endedAt == null).firstOrNull;
+    } on Object {
+      return null;
+    }
+  }
+}
+
+final findUnfinishedSessionProvider = Provider<FindUnfinishedSession>(
+  (ref) => FindUnfinishedSession(
+    sessions: ref.watch(workoutSessionRepositoryProvider),
+  ),
 );
 
 /// Exercises skipped when a session was started, by session id, so the

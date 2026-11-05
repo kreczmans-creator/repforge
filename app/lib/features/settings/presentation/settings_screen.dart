@@ -11,6 +11,7 @@ import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/training/training_rules.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
@@ -22,6 +23,13 @@ import 'package:repforge/ui/components/rf_states.dart';
 import 'package:repforge/ui/components/rf_text_field.dart';
 import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
+
+/// Help text under the exertion scale choice, from the rule's constants.
+final _exertionNote =
+    'RPE: rate of perceived exertion '
+    '${TrainingRules.exertionRange(ExertionScale.rpe)} in steps of '
+    '${TrainingRules.rpeStep}. RIR: reps in reserve '
+    '${TrainingRules.exertionRange(ExertionScale.rir)}, whole numbers.';
 
 /// Settings: daily nutrition targets (persisted as goals) and app
 /// preferences (persisted in the settings table).
@@ -95,9 +103,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       return;
     }
     setState(() => _restError = null);
-    final current = await ref.read(settingsRepositoryProvider).read();
-    final result = await ref.read(saveSettingsProvider)(
-      current.copyWith(defaultRestSeconds: seconds),
+    final result = await ref.read(updateSettingsProvider)(
+      (s) => s.copyWith(defaultRestSeconds: seconds),
     );
     if (!mounted) return;
     switch (result) {
@@ -184,8 +191,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// snapshot this widget was built with) so rapid successive changes do
   /// not overwrite each other.
   Future<void> _saveSettings(AppSettings Function(AppSettings) change) async {
-    final current = await ref.read(settingsRepositoryProvider).read();
-    final result = await ref.read(saveSettingsProvider)(change(current));
+    final result = await ref.read(updateSettingsProvider)(change);
     if (!mounted) return;
     if (result case Err(:final error)) {
       ScaffoldMessenger.of(context)
@@ -429,9 +435,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     },
                     onChanged: (v) =>
                         _saveSettings((s) => s.copyWith(exertionScale: v)),
-                    note:
-                        'RPE: rate of perceived exertion 1–10 in steps '
-                        'of 0.5. RIR: reps in reserve 0–5, whole numbers.',
+                    note: _exertionNote,
                   ),
                   const SizedBox(height: RfSpace.s4),
                   _choice<int>(

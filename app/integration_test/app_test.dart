@@ -61,6 +61,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Like [pumpUntil], for a finder that must match exactly [count] widgets
+  /// (a fixed pump before such an assertion can be too short on a slow
+  /// emulator).
+  Future<void> pumpUntilCount(
+    WidgetTester tester,
+    Finder finder,
+    int count, {
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    final end = DateTime.now().add(timeout);
+    while (finder.evaluate().length != count) {
+      if (DateTime.now().isAfter(end)) {
+        fail('Timed out waiting for $count x $finder');
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pumpAndSettle();
+  }
+
   /// Counterpart of [pumpUntil] for a widget that must disappear.
   Future<void> pumpUntilGone(
     WidgetTester tester,
@@ -441,18 +460,37 @@ void main() {
     await tester.tap(log);
     await pumpFramesUntil(find.byKey(const Key('rest-timer-panel')));
     expect(find.byKey(const Key('rest-remaining')), findsOneWidget);
-    // The notification is scheduled for the timer's end (ADR-0007).
+    // In the foreground nothing is scheduled; going to the background
+    // schedules the notification for the timer's end and coming back cancels
+    // it (ADR-0007).
+    await pumpIo();
+    expect(scheduler.scheduled, isEmpty);
+    // `inactive` counts as background for the rest alert but, unlike
+    // `paused`, the engine still draws frames, so pumping keeps working.
+    void goBackground() => TestWidgetsFlutterBinding.instance
+        .handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    void goForeground() => TestWidgetsFlutterBinding.instance
+        .handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+
+    goBackground();
     await pumpIo();
     final firstEnd = scheduler.scheduled[restNotificationId];
     expect(firstEnd, isNotNull);
+    goForeground();
+    await pumpIo();
+    expect(scheduler.scheduled, isEmpty);
 
-    // +15 s moves the end by exactly 15 s and reschedules.
+    // +15 s moves the end by at least 15 s (real clock); in the background
+    // it is rescheduled for the new end.
     await tester.tap(find.byKey(const Key('rest-extend')));
+    goBackground();
     await pumpIo();
     expect(
-      scheduler.scheduled[restNotificationId],
-      firstEnd!.add(const Duration(seconds: 15)),
+      scheduler.scheduled[restNotificationId]!.difference(firstEnd!),
+      greaterThanOrEqualTo(const Duration(seconds: 15)),
     );
+    goForeground();
+    await pumpIo();
 
     // Skip hides the panel and cancels the notification.
     await tester.tap(find.byKey(const Key('rest-skip')));
@@ -470,8 +508,7 @@ void main() {
     await tester.tap(log);
     await pumpFramesUntil(find.byKey(const Key('rest-timer-panel')));
     await tester.tap(find.byKey(const Key('rest-skip')));
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pumpAndSettle();
+    await pumpUntilCount(tester, keyStartingWith('set-text-'), 2);
     expect(keyStartingWith('set-text-'), findsNWidgets(2));
     expect(keyStartingWith('pr-badge-'), findsOneWidget);
 

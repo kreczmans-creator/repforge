@@ -172,8 +172,10 @@ Result<SetData> validateSetForExercise(
     return Err(
       _err(
         exertion.scale == ExertionScale.rpe
-            ? 'RPE must be 1 to 10 in half steps.'
-            : 'RIR must be a whole number from 0 to 5.',
+            ? 'RPE must be ${TrainingRules.rpeMin} to ${TrainingRules.rpeMax} '
+                  'in half steps.'
+            : 'RIR must be a whole number from ${TrainingRules.rirMin} to '
+                  '${TrainingRules.rirMax}.',
         'exertion',
       ),
     );

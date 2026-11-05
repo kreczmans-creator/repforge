@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/training/training_rules.dart';
 import 'package:repforge/domain/training/training_validation.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/presentation/set_defaults.dart';
@@ -221,7 +222,8 @@ String setKindLabel(SetKind k) => switch (k) {
 
 /// Label of the exertion scale for the entry field.
 String exertionFieldLabel(ExertionScale s) =>
-    s == ExertionScale.rpe ? 'RPE (1–10)' : 'RIR (0–5)';
+    '${s == ExertionScale.rpe ? 'RPE' : 'RIR'} '
+    '(${TrainingRules.exertionRange(s)})';
 
 /// The data fields of a set for its exercise type. [keyPrefix] makes the keys
 /// (`<prefix>load`, `<prefix>reps`, `<prefix>duration`, `<prefix>metres`,

@@ -13,8 +13,10 @@ enum RestTimerStatus { idle, running, paused }
 
 /// Immutable rest-timer state (D04 TRN-021). A running timer holds the
 /// wall-clock moment it ends, so it stays correct while the app is in the
-/// background or killed; a paused timer holds the time left. Every operation
-/// takes the current time and returns a new state; nothing reads a clock.
+/// background; a paused timer holds the time left. The state lives in memory:
+/// it does not survive the process being killed (the OS notification, if one
+/// was scheduled, still fires then). Every operation takes the current time
+/// and returns a new state; nothing reads a clock.
 @immutable
 final class RestTimer {
   const RestTimer._(this.status, this._endAt, this._left);

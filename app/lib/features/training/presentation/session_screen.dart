@@ -402,12 +402,7 @@ class _EntryCard extends StatelessWidget {
     final type = exercise?.type;
     final hint = type == null
         ? null
-        : previousHint(
-            type,
-            sets.where((s) => s.kind != SetKind.warmUp).length,
-            prefill,
-            UnitSystem.metric,
-          );
+        : previousHint(type, sets, prefill, UnitSystem.metric);
     final plan = planHint(prefill);
     return RfCard(
       key: Key('entry-$id'),
@@ -531,6 +526,7 @@ class _EntryCard extends StatelessWidget {
               exercise: exercise,
               entrySets: sets,
               prefill: prefill,
+              startsRest: view.session.endedAt == null,
             ),
         ],
       ),

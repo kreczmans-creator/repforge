@@ -15,6 +15,7 @@ class SetDraft {
     this.duration = '',
     this.metres = '',
     this.heartRate = '',
+    this.kind = SetKind.working,
   });
 
   /// The fields of a recorded set.
@@ -76,54 +77,111 @@ class SetDraft {
   final String duration;
   final String metres;
   final String heartRate;
+
+  /// The kind the new row starts with: that of the previous-session set it
+  /// was matched with (a warm-up row follows a previous warm-up).
+  final SetKind kind;
+
+  /// This draft with another [kind].
+  SetDraft withKind(SetKind kind) => SetDraft(
+    load: load,
+    reps: reps,
+    duration: duration,
+    metres: metres,
+    heartRate: heartRate,
+    kind: kind,
+  );
 }
 
-/// The values the next-set row starts with (TRN-016(1), TRN-018): the
-/// entry's last set when it has one, else the set at the same position of the
-/// previous session, else the plan's targets. Warm-ups carry no weight over
-/// to the first working set, so they are skipped when looking at the last set
-/// of the entry.
-SetDraft nextSetDraft({
+bool _isWarmUp(SessionSet s) => s.kind == SetKind.warmUp;
+
+/// The previous-session set the next-set row matches (TRN-018, TRN-019), and
+/// the kind the row takes from it. Warm-ups are matched with previous
+/// warm-ups and working or failure sets with previous working or failure
+/// sets, the position being counted per group: the next row is a warm-up
+/// while the entry has no working set yet and fewer warm-ups than last time;
+/// otherwise it is the next working set. A group the previous session did not
+/// have matches nothing (null set, working kind), so skipping warm-ups today
+/// does not shift the working sets onto last time's warm-ups.
+({SessionSet? set, SetKind kind}) matchPrevious({
   required ExerciseType type,
   required List<SessionSet> entrySets,
   required EntryPrefill? prefill,
 }) {
   final own = [
     for (final s in entrySets)
-      if (s.data.type == type && s.kind != SetKind.warmUp) s,
+      if (s.data.type == type) s,
   ];
-  if (own.isNotEmpty) return SetDraft.fromData(own.last.data);
-  final previous = previousSetFor(type, own.length, prefill);
-  if (previous != null) return SetDraft.fromData(previous.data);
+  final previous = [
+    for (final s in prefill?.previous ?? const <SessionSet>[])
+      if (s.data.type == type) s,
+  ];
+  final ownWarm = own.where(_isWarmUp).length;
+  final ownWork = own.length - ownWarm;
+  final prevWarm = previous.where(_isWarmUp).toList();
+  final prevWork = previous.where((s) => !_isWarmUp(s)).toList();
+  if (ownWork == 0 && ownWarm < prevWarm.length) {
+    return (set: prevWarm[ownWarm], kind: SetKind.warmUp);
+  }
+  if (prevWork.isEmpty) return (set: null, kind: SetKind.working);
+  final match =
+      prevWork[ownWork < prevWork.length ? ownWork : prevWork.length - 1];
+  // Only warm-up versus working carries over: a failure set is an outcome,
+  // not a plan, so a matched failure set pre-fills a working row.
+  return (set: match, kind: SetKind.working);
+}
+
+/// The values the next-set row starts with (TRN-016(1), TRN-018): the
+/// matching set of the previous session for a warm-up row; for a working row
+/// the entry's last working set when it has one, else the matching working
+/// set of the previous session, else the plan's targets. Warm-ups carry no
+/// weight over to the first working set. See [matchPrevious] for the
+/// matching and the row's kind.
+SetDraft nextSetDraft({
+  required ExerciseType type,
+  required List<SessionSet> entrySets,
+  required EntryPrefill? prefill,
+}) {
+  final match = matchPrevious(
+    type: type,
+    entrySets: entrySets,
+    prefill: prefill,
+  );
+  if (match.kind == SetKind.warmUp && match.set != null) {
+    return SetDraft.fromData(match.set!.data).withKind(SetKind.warmUp);
+  }
+  final ownWork = [
+    for (final s in entrySets)
+      if (s.data.type == type && !_isWarmUp(s)) s,
+  ];
+  if (ownWork.isNotEmpty) {
+    return SetDraft.fromData(ownWork.last.data).withKind(match.kind);
+  }
+  if (match.set != null) {
+    return SetDraft.fromData(match.set!.data).withKind(match.kind);
+  }
   final target = prefill?.target;
   if (target != null) return SetDraft.fromTarget(type, target);
   return const SetDraft();
 }
 
-/// The set of the previous session that matches position [index] (the last
-/// one when the previous session had fewer sets); null when there is none.
-SessionSet? previousSetFor(
-  ExerciseType type,
-  int index,
-  EntryPrefill? prefill,
-) {
-  final previous = [
-    for (final s in prefill?.previous ?? const <SessionSet>[])
-      if (s.data.type == type) s,
-  ];
-  if (previous.isEmpty) return null;
-  return previous[index < previous.length ? index : previous.length - 1];
-}
-
-/// `Last: 80 kg × 5` (the previous-performance hint), or null.
+/// `Last: 80 kg × 5` (the previous-performance hint for the next set), with
+/// ` (warm-up)` appended when that set was a warm-up; null without a match.
+/// It names the set [nextSetDraft] matches.
 String? previousHint(
   ExerciseType type,
-  int index,
+  List<SessionSet> entrySets,
   EntryPrefill? prefill,
   UnitSystem units,
 ) {
-  final s = previousSetFor(type, index, prefill);
-  return s == null ? null : 'Last: ${formatSetData(s.data, units)}';
+  final s = matchPrevious(
+    type: type,
+    entrySets: entrySets,
+    prefill: prefill,
+  ).set;
+  if (s == null) return null;
+  final warm = s.kind == SetKind.warmUp ? ' (warm-up)' : '';
+  return 'Last: ${formatSetData(s.data, units)}$warm';
 }
 
 /// `Plan: 3 sets · 8–10 reps · 60 kg`, or null without a plan row.

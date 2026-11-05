@@ -21,6 +21,8 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
     this.requestResult,
     this.settingsOpens = true,
     this.failing = false,
+    this.scheduleDelay = Duration.zero,
+    this.cancelDelay = Duration.zero,
   });
 
   /// Answer of [status]; updated by [request].
@@ -35,6 +37,11 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
   /// When true every operation throws (the real adapter never does; this
   /// proves callers also survive a misbehaving port).
   bool failing;
+
+  /// How long [schedule] and [cancel] take before they take effect, to
+  /// reproduce a slow platform.
+  Duration scheduleDelay;
+  Duration cancelDelay;
 
   /// Every call in order.
   final List<SchedulerCall> calls = [];
@@ -82,6 +89,9 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
     required String body,
   }) async {
     _record(SchedulerCall('schedule', id: id, endsAt: endsAt));
+    if (scheduleDelay > Duration.zero) {
+      await Future<void>.delayed(scheduleDelay);
+    }
     scheduled[id] = endsAt;
     texts[id] = (title, body);
   }
@@ -89,6 +99,7 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
   @override
   Future<void> cancel(String id) async {
     _record(SchedulerCall('cancel', id: id));
+    if (cancelDelay > Duration.zero) await Future<void>.delayed(cancelDelay);
     scheduled.remove(id);
     texts.remove(id);
   }

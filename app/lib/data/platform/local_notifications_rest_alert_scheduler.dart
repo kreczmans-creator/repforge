@@ -36,6 +36,11 @@ final class LocalNotificationsRestAlertScheduler implements RestAlertScheduler {
   static const channelId = 'rest_timer';
   static const channelName = 'Rest timer';
 
+  /// Monochrome status-bar icon: the drawable `res/drawable/ic_stat_rest.xml`
+  /// (the plugin looks drawables up by name). It is only referenced by name
+  /// at run time, so `res/raw/keep.xml` keeps it in release builds.
+  static const smallIcon = 'ic_stat_rest';
+
   final FlutterLocalNotificationsPlugin _plugin;
   Future<bool>? _initialised;
 
@@ -66,7 +71,7 @@ final class LocalNotificationsRestAlertScheduler implements RestAlertScheduler {
     try {
       await _plugin.initialize(
         settings: const InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+          android: AndroidInitializationSettings(smallIcon),
           // No permission prompt at startup: the user is asked only when
           // they turn the setting on (PLT-007(1)).
           iOS: DarwinInitializationSettings(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
@@ -117,6 +118,9 @@ class SessionHarness {
   final alert = FakeRestAlert();
   final scheduler = FakeRestAlertScheduler();
   int gen = 0;
+
+  /// Extra provider overrides for a test (set before [open]).
+  List<Override> extraOverrides = const [];
   int taps = 0;
 
   Future<void> seedExercises() async {
@@ -156,6 +160,7 @@ class SessionHarness {
           idGeneratorProvider.overrideWithValue(() => 'gen-${gen++}'),
           restAlertProvider.overrideWithValue(alert),
           restAlertSchedulerProvider.overrideWithValue(scheduler),
+          ...extraOverrides,
         ],
         child: RepForgeApp(router: createRouter(initialLocation: location)),
       ),

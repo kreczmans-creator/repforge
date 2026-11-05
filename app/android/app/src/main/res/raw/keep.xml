@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resources that are only looked up by name at run time (the notification
+     small icon is passed to the plugin as a string), so the resource shrinker
+     of a release build must keep them
+     (flutter_local_notifications README, "Android setup"). -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_rest,@mipmap/ic_launcher" />

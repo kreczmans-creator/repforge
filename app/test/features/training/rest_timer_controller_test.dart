@@ -82,11 +82,12 @@ void main() {
 
 void hapticTests() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  test('the default alert uses haptics and the system sound only', () async {
+  test('the default alert is a pattern of strong haptic pulses, no system '
+      'sound (final review M2)', () async {
     final calls = <String>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-          calls.add(call.method);
+          calls.add('${call.method}:${call.arguments}');
           return null;
         });
     addTearDown(
@@ -94,7 +95,19 @@ void hapticTests() {
           .setMockMethodCallHandler(SystemChannels.platform, null),
     );
     await const HapticRestAlert().fire();
-    expect(calls, ['HapticFeedback.vibrate', 'SystemSound.play']);
+    expect(
+      calls,
+      List.filled(3, 'HapticFeedback.vibrate:HapticFeedbackType.heavyImpact'),
+    );
+  });
+
+  test('the pulses are spaced apart', () async {
+    final events = <String>[];
+    await HapticRestAlert(
+      pulse: () async => events.add('pulse'),
+      wait: (d) async => events.add('wait ${d.inMilliseconds}'),
+    ).fire();
+    expect(events, ['pulse', 'wait 200', 'pulse', 'wait 200', 'pulse']);
   });
 
   test('a failing platform call never throws', () async {

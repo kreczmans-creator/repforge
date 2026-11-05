@@ -193,6 +193,10 @@ final saveSettingsProvider = Provider<SaveSettings>(
   (ref) => SaveSettings(repository: ref.watch(settingsRepositoryProvider)),
 );
 
+final updateSettingsProvider = Provider<UpdateSettings>(
+  (ref) => UpdateSettings(repository: ref.watch(settingsRepositoryProvider)),
+);
+
 final savedMealRepositoryProvider = Provider<SavedMealRepository>(
   (ref) => DriftSavedMealRepository(
     ref.watch(databaseProvider),

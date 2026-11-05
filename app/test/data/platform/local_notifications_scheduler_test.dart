@@ -68,6 +68,17 @@ void main() {
     },
   );
 
+  test(
+    'uses the monochrome notification icon, not the launcher icon',
+    () async {
+      await LocalNotificationsRestAlertScheduler().status();
+      final init = calls.firstWhere((c) => c.method == 'initialize');
+      final icon = (init.arguments as Map)['defaultIcon'];
+      expect(icon, LocalNotificationsRestAlertScheduler.smallIcon);
+      expect(icon, isNot(contains('ic_launcher')));
+    },
+  );
+
   test('request maps granted and refused', () async {
     final s = LocalNotificationsRestAlertScheduler();
     expect(await s.request(), NotificationPermission.granted);

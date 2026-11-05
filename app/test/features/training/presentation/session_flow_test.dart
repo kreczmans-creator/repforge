@@ -135,6 +135,16 @@ void main() {
 
     await h.tap(tester, 'newset-log-$id');
     await h.settle(tester);
+    // Nothing is scheduled in the foreground; the background schedules.
+    expect(h.scheduler.scheduled, isEmpty);
+    final binding = TestWidgetsFlutterBinding.instance;
+    addTearDown(
+      () => binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed),
+    );
+    // `inactive` counts as background but still draws frames (paused stops
+    // them, so the buttons below could not be tapped).
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await h.settle(tester);
     expect(
       h.scheduler.scheduled['rest-timer'],
       h.now.add(const Duration(seconds: 60)),
