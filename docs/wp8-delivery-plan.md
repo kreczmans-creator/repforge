@@ -128,7 +128,7 @@ Per ADR-0009: bundled JSON per provider and release, holding reference data, exe
 ## 8. Changes to WP 8 and WP 9 code (behaviour preserved)
 - `Exercise`: `primaryMuscle`/`secondaryMuscles` → `targets`; `supplied` → `source`; new classification fields. Library queries filter by node with descendants; equipment filter unchanged; search unchanged.
 - WP 8 screens: show primary targets where they showed the primary muscle; editor requires at least one primary target. No new discovery features (WP 8 stage 6).
-- WP 9 volume per muscle group (TRN-027(3)), **OQ-19 approved 2026-11-05**: each primary muscle target receives the full recorded exercise-set count; secondary muscles are reported separately and excluded from primary totals; a set is attributed once per distinct primary target. These are **set counts, not physiological volume measurements**, and screens say so. **Clarification pending** (D04 §7): whether kg volume per muscle (TRN-027(3)) follows the same attribution. Session and exercise volume are unchanged.
+- WP 9 volume per muscle group (TRN-027(3)), **OQ-19 approved 2026-11-05**: each primary muscle target receives the full recorded exercise-set count; secondary muscles are reported separately and excluded from primary totals; a set is attributed once per distinct primary target. These are **attributed set counts, not physiological measurements of muscle stimulus**; reports and documentation show the distinction (confirmed 2026-11-05). Where kg volume per muscle (TRN-027(3)) is shown, it is the kg volume of the attributed sets, labelled the same way. Session and exercise volume are unchanged.
 - Custom copies: copy targets, patterns and content; source `user`.
 - `TRN-010(1)` amended by owner decision (one or more primary targets); TRN-010(2) behaviour kept.
 
@@ -193,9 +193,11 @@ WP 8 is accepted when all of the following hold:
 1. **Original D06 criteria** remain met (each set type stored and read back; invalid combinations rejected at use-case level; unit and migration tests) and TRN-001..TRN-012 hold, with TRN-010(1) as amended (one or more primary targets).
 2. **Stage 3** criteria (§11) met: Engineering Object model, four-level anatomy, targets, classifications, relationships, content and media references, providers and releases, source separation, idempotent updates that never overwrite user data, duplicate detection and integrity report, schema v8 preserving all identifiers and data.
 3. **Stage 4**: editorial guide, licence register, CI integrity and coverage reporting; coverage matrix minimums and reference lists approved by the owner.
-4. **Stage 5**: every region's tranche meets the approved coverage matrix (anatomy, diversity, compound/isolation, unilateral/bilateral, patterns, equipment incl. free weights, machines, cables, Smith machine, bands, kettlebells and bodyweight, difficulty distribution, variation depth); instructions (setup, execution, breathing, common mistakes) for every system exercise; zero integrity failures; explicit gap report; owner content review per tranche. Raw count is not evidence.
+4. **Stage 5** (starts only after OQ-22 lists and OQ-23 minimums are approved): every region's tranche meets the approved coverage matrix (anatomy, diversity, compound/isolation, unilateral/bilateral, patterns, equipment incl. free weights, machines, cables, Smith machine, bands, kettlebells and bodyweight, difficulty distribution, variation depth); instructions (setup, execution, breathing, common mistakes) for every system exercise; zero integrity failures; explicit gap report; owner content review per tranche. Raw count is not evidence.
 5. **Stage 6**: search, filters, sorting, favourites, relationship navigation, instruction display and custom exercise creation (LIB-008, LIB-009) with widget and integration tests and accessibility as WP 8/9.
 6. **Media**: data references only (LIB-010 readiness); display and storage deferred, outside acceptance.
+6a. **Integrity**: an automated check proves every historical set and plan reference resolves to an existing exercise, retired exercises included; no exercise deleted, no identifier reused.
+6b. **OQ-19 terminology** visible wherever per-muscle figures are reported.
 7. **No regressions**: all WP 9 behaviour and tests pass; full suite, coverage gate (≥ 80 %), four workflows and the emulator run green on the final commit.
 8. **Open WP 8 decisions** dispositioned by the owner: legacy-data policy and TRN-020 correction (WP 8 record), OQ-19, OQ-21, OQ-22, OQ-23.
 9. Independent review of the final combined diff with findings resolved or accepted as debt; delivery record complete with exact commits and CI runs.
@@ -236,8 +238,8 @@ Atomic: validation of the whole release before any write; one transaction per re
 |---|---|---|
 | ADR-0008, ADR-0009 | direction approved | implement as written in stage 3 |
 | 19 muscle ids, `fullBody` | approved (§4) | mapping as §4 |
-| `exercises` rebuild | approved, conditional | §17.1 spike and §17.2 equality evidence are acceptance conditions for sub-stage 3b |
-| OQ-19 | set counts per primary target | §8; kg-volume attribution clarification pending |
+| `exercises` rebuild | approved, conditional | §17.1 trial comparison, §17.2 value equality, §17.3 backup compatibility and §17.5 reference preservation are recorded as evidence before sub-stage 3b is finalised; the comparison may not be skipped |
+| OQ-19 | attributed set counts, confirmed | §8; terminology shown in reports |
 | OQ-21 | approved | ADR-0009 §1 |
 | Legacy invalid values | approved rule incl. **report of every affected record** | stage 3 adds a migration report (in-app Settings › Data and in the backup), resolving TD-41's visibility gap; applies to v6 quarantine rows and any v8 findings |
 | TRN-020 | RIR integer 0–5 at domain **and persistence** boundaries | stage 3b adds persistence enforcement for `session_sets` exertion (CHECK via table rebuild, or validation triggers — chosen by the same evidence method as §17.1); stored out-of-range values quarantined, cleared (exertion is optional) and reported |

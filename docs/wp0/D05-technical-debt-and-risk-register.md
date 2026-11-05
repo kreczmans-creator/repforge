@@ -67,6 +67,10 @@ Scales: Severity and Impact: Low / Medium / High / Critical. Likelihood: Low / M
 | R-10 | Legacy ZIP workflow keeps running and keeps failing, creating noise and confusion about project health. | Low | High | Low | Disable automatic trigger in WP 1 (D07 §4). | — | P2 |
 | R-11 | Recipe nutrition seeds are estimates presented as numbers; users may treat them as facts. | Medium | High | Medium | Store with `estimated` provenance and show the label in UI. | — | P2 |
 | R-12 | No documented product decisions (units, markets, food database licence). | Medium | High | Medium | D04 open questions answered before WP 5. | Owner | P2 |
+| R-13 | WP 8 stage 3 `exercises` table rebuild loses or alters data, or breaks historical references (sets and plan exercises reference exercises without a foreign key). | High | Low | High | Conditional approval: trial comparison against incremental migration, value-equality tests from every schema version, backup compatibility, reference-integrity check; evidence recorded before sub-stage 3b is finalised. | WP 9 acceptance | P1 |
+| R-14 | Anatomy taxonomy or coverage minimums are of poor quality, producing a larger database rather than a useful library. | High | Medium | High | OQ-22 lists and OQ-23 minimums derived from the anatomical structure, independently reviewed and owner-approved before stage 5; integrity and coverage reports in CI. | WP 8 stage 4 | P1 |
+| R-15 | Notification plugin build risk: core library desugaring with AGP 9.1.0, iOS build with deployment target 15.0, and stability of the new emulator full-session test. | Medium | Medium | Medium | WP 9 stage 3b CI result reviewed by the owner before WP 9 acceptance (WP 8 stage 3 gate). | WP 9 | P2 |
+| R-16 | Persistence enforcement of TRN-020 (RIR integer 0–5) needs a `session_sets` rebuild or triggers; stored out-of-range values must be quarantined and reported. | Medium | Low | Medium | Decide by the same evidence method in WP 8 stage 3b; legacy-value rule applies. | WP 8 stage 3 | P2 |
 
 ## C. Open verification items (evidence missing, not defects)
 
