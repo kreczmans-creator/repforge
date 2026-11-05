@@ -11,3 +11,5 @@ Format: see `ADR-0001`. Required fields: ID, Title, Status (Proposed / Accepted 
 | ADR-0003 | Git tree, not ZIP archives, is the source of truth | Accepted (2026-11-01) |
 | ADR-0004 | Local-first persistence with SQLite via drift; cloud sync deferred | Accepted (2026-11-01) |
 | ADR-0005 | Encryption at rest and privacy of locally stored fitness data | Accepted (2026-11-03) |
+| ADR-0006 | Barcode scanning through a platform adapter | Accepted (2026-11-04) |
+| ADR-0007 | Rest-timer alerts through a notification adapter | Proposed (WP 9) |
