@@ -45,4 +45,36 @@ void main() {
     expect(find.byKey(const Key('kcal-tile')), findsOneWidget);
     await unmount(tester);
   });
+
+  testWidgets('training plan, split and schedule routes resolve', (
+    tester,
+  ) async {
+    expect(RfRoutes.trainPlans, '/train/plans');
+    expect(RfRoutes.trainPlanNew, '/train/plans/new');
+    expect(RfRoutes.trainPlan('p1'), '/train/plans/p1');
+    expect(RfRoutes.trainSplitNew, '/train/splits/new');
+    expect(RfRoutes.trainSplit('s1'), '/train/splits/s1');
+    expect(RfRoutes.trainSchedule, '/train/schedule');
+
+    final expected = <String, String>{
+      RfRoutes.trainPlans: 'new-plan',
+      RfRoutes.trainPlanNew: 'plan-name-field',
+      RfRoutes.trainPlan('missing'): 'plan-missing',
+      RfRoutes.trainSplitNew: 'split-name-field',
+      RfRoutes.trainSplit('missing'): 'split-missing',
+      RfRoutes.trainSchedule: 'schedule-on-date',
+    };
+    for (final entry in expected.entries) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [databaseProvider.overrideWithValue(db)],
+          child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(entry.value)), findsOneWidget, reason: entry.key);
+      await unmount(tester);
+    }
+  });
 }

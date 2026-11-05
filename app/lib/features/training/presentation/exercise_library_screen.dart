@@ -123,6 +123,29 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
           icon: Icons.add,
           onPressed: _new,
         ),
+        const SizedBox(height: RfSpace.s2),
+        Wrap(
+          spacing: RfSpace.s2,
+          runSpacing: RfSpace.s2,
+          children: [
+            RfButton(
+              key: const Key('open-plans'),
+              label: 'Workouts',
+              icon: Icons.list_alt_outlined,
+              variant: RfButtonVariant.secondary,
+              expand: false,
+              onPressed: () => context.push(RfRoutes.trainPlans),
+            ),
+            RfButton(
+              key: const Key('open-schedule'),
+              label: 'Schedule',
+              icon: Icons.calendar_month_outlined,
+              variant: RfButtonVariant.secondary,
+              expand: false,
+              onPressed: () => context.push(RfRoutes.trainSchedule),
+            ),
+          ],
+        ),
         const SizedBox(height: RfSpace.s3),
         RfTextField(
           key: const Key('exercise-search'),

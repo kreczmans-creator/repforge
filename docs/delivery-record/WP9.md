@@ -25,6 +25,7 @@ WP 9 builds on the WP 8 implementation and must not settle WP 8 decisions 1–5 
 | OQ-05 rest-timer alert in background or locked | Follows D06 acceptance: Android background notification, iOS foreground alert with documented limitation; notifications off until the user opts in (PLT-007). Plugin choice in a proposed ADR. | Yes |
 | OQ-12 default exertion scale | Keeps the existing setting (default RPE since WP 3) and per-set stored scale; changes no default. | Yes |
 | OQ-18 day boundary and week start | Uses the existing settings (`dayStartHour`, `weekStartDay`, default Monday as TRN-027 states); changes no default. | Yes |
+| OQ-02 imperial units | Loads are entered and shown in kg only; no pound entry or display is added (GEN-003 metric default). | Yes |
 | TRN-028 progressive overload charts (P2) | Not in D06 WP 9 scope; no allocation in D06. Proposed for WP 11 (progress visualisation). | Allocation |
 
 ## Gap analysis against WP 8
@@ -53,7 +54,8 @@ WP 9 builds on the WP 8 implementation and must not settle WP 8 decisions 1–5 
 ## What was built
 | Stage | Commit | Content |
 |---|---|---|
-| 1 — domain, schema v7, use cases (no UI) | (this commit) | set kind; session exercise entries with notes; start, finish, edit and delete session use cases; personal-record and volume rules; scheduled workouts; rest-timer rules and settings; TD-42; schema v7 (additive); providers |
+| 1 — domain, schema v7, use cases (no UI) | ebff8d0 | set kind; session exercise entries with notes; start, finish, edit and delete session use cases; personal-record and volume rules; scheduled workouts; rest-timer rules and settings; TD-42; schema v7 (additive); providers. CI 42003487020, Android 42003486896, iOS 42003486889, integration 42003486856 — all success. |
+| 2 — screens for plans, splits and scheduling | (this commit) | plan list with archive and restore; plan builder with exercise picker, reorder by drag and by buttons, TD-42 errors, unsaved-changes guard; split editor; schedule screen (8 weeks by date; schedule by date, weekdays or split; move and skip); routes; widget tests |
 
 ### Stage 1 — domain, schema v7, use cases (no UI)
 - **TRN-019 set kind**: `SetKind` warm-up / working / failure on `SessionSet`, stored in `session_sets.set_kind` (existing rows `working`); `RecordSet` and `EditSet` take it.
@@ -78,8 +80,42 @@ Assumptions and decisions for the owner to confirm (none touches WP 8 decisions 
 
 Local gate for stage 1: `dart format` clean, `flutter analyze --fatal-infos` clean, 1005 tests pass, coverage gate 90.9 % (minimum 80 %). CI is run at commit.
 
+### Stage 2 — screens for plans, splits and scheduling
+- **Routes** (Train tab, entered from two buttons on the library header, library screens otherwise unchanged): `/train/plans` (plans and splits list), `/train/plans/new`, `/train/plans/:id` (plan builder), `/train/splits/new`, `/train/splits/:id` (split editor), `/train/schedule`.
+- **Plan list (TRN-013)**: non-archived plans, archive and restore (`ArchivePlan`), create; the splits are listed on the same screen.
+- **Plan builder (TRN-013)**: name; exercises chosen in a searchable picker (archived exercises hidden); per exercise sets, rep range (weighted, bodyweight, assisted), duration as mm:ss through `parseDuration` (timed, distance, cardio), distance in metres (distance, cardio), optional load through `LoadKg.of` (all but distance and cardio) and rest seconds. Reorder by drag handle and by `plan-move-up-<i>` / `plan-move-down-<i>`. Errors from `SavePlan` (including the TD-42 archived-exercise refusal) show next to the field or on the exercise row; leaving with unsaved changes asks first.
+- **Split editor (TRN-014)**: name, 1 to 14 days, each a workout or a rest day, saved by `SaveSplit`.
+- **Schedule (TRN-015)**: scheduled workouts of the next 8 weeks grouped by date (earlier and later 8-week pages); schedule a workout on a date, on weekdays or from a split cycle; move (date picker) and skip (after a confirmation). Use-case errors show in the sheet next to the field, or in a snackbar for move and skip.
+
+Assumptions and decisions for the owner to confirm (none touches WP 8 decisions 1–5):
+1. **Load unit**: a target load is typed in kg whatever the unit setting (the field says kg), because `LoadKg.of` only accepts 0.25 kg steps and a typed pound value would be rejected or rounded. Pound entry and display depend on OQ-02 (open); not added in WP 9.
+2. **Plans keep their weekdays and split**: the builder does not edit `scheduledWeekdays` or `split`; saving an existing plan passes the stored values back to `SavePlan`, so they are preserved.
+3. **A plan needs at least one exercise in the screen** (`SavePlan` itself allows none); this is the only rule checked in the screen rather than by a use case. Empty rep fields mean no rep target; the rest field empty means the default rest.
+4. **Field to row mapping**: `SavePlan` reports the first failing exercise by field only, so the screen finds the row by validating each row with `validatePlanExercise`; the rep-range message shows once, under "Reps to".
+5. **Splits cannot be deleted or archived** from the screens: no use case exists and none was added. A new split starts as 7 rest days.
+6. **Today** for the schedule is the diary day (`dayStartHour` applied), the same as the diary; dates are local calendar dates. The weekday chips follow `weekStartDay`.
+7. **Skip is final**: there is no un-skip use case; skipping asks for confirmation. A skipped or done occurrence shows without actions.
+8. **Wiring added in `lib/features/training/application`** (new files only, nothing in stage 1 files changed): `archive_plan.dart` (`ArchivePlan`, there was no use case to archive a plan) and `plan_providers.dart` (plan, split and schedule read providers, so screens never touch a repository).
+9. **Drag reorder** is started from a handle (no long-press), so scrolling the list is not hijacked; the buttons are the accessible path.
+
+Local gate for stage 2: `dart format` clean, `flutter analyze --fatal-infos` clean, 1034 tests pass (29 added: plan list, plan builder, split editor, schedule, route resolution, narrow width and 1.3x text), coverage gate 91.3 % (minimum 80 %). CI is run at commit.
+
 ## Independent review
-Appended after review.
+### Stage 1 (fresh reviewer, range 034ec8b..ebff8d0, code read and probe tests)
+No high findings. Schema v7, backfill, backup, write-path validation, PR, volume and rest-timer rules verified by probes.
+
+| ID | Finding | Severity | Resolution |
+|---|---|---|---|
+| F1 | A plan with the same exercise twice starts a session with the second occurrence silently dropped (assumption 2) | Medium | Fix in progress: allow several entries per exercise; sets recorded against an entry |
+| F2 | `EditSet` replaces every field: omitted kind becomes working (changes PRs and volume); exertion, rest and note cleared; exertion scale can change on edit (TRN-020(2)) | Medium | Fix in progress |
+| F3 | A skipped dated occurrence blocks scheduling the plan on that date again, yet a weekday schedule creates it; message contradicts the doc comment; no un-skip | Medium | Fix in progress |
+| F4 | Schedule generation writes many rows without a transaction | Low | Fix in progress |
+| F5 | `scheduleDate` takes the UTC date of a UTC instant, not the local date | Low | Fix in progress |
+| F6 | Weekly volume range not aligned to week boundaries | Low | Fix in progress |
+| F7 | PR tie between sessions with equal start time broken by random id | Low | Fix in progress |
+| F8 | Backfill merges the same exercise at two orders into one entry | Low | Fix in progress (one entry per order and exercise group; affects only devices not yet on v7) |
+| F9 | Exercise history carries no session or entry notes (TRN-023(2)) | Low | Fix in progress |
+| F10 | Backup `formatVersion` 1 lets a v6 app restore a v7 file and silently drop set kinds, entry notes and schedules; a done occurrence whose session is deleted cannot be started again | Low | Fix in progress |
 
 ## Tests, CI
 Appended at delivery.

@@ -18,6 +18,10 @@ import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_detail_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_editor_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_library_screen.dart';
+import 'package:repforge/features/training/presentation/plan_editor_screen.dart';
+import 'package:repforge/features/training/presentation/plans_screen.dart';
+import 'package:repforge/features/training/presentation/schedule_screen.dart';
+import 'package:repforge/features/training/presentation/split_editor_screen.dart';
 import 'package:repforge/ui/components/rf_brand_mark.dart';
 import 'package:repforge/ui/gallery/gallery_screen.dart';
 import 'package:repforge/ui/tokens.dart';
@@ -34,6 +38,20 @@ abstract final class RfRoutes {
   /// Custom exercise editor for [id] (TRN-012).
   static String trainExerciseEdit(String id) => '/train/exercises/$id/edit';
   static String trainExerciseCopy(String id) => '/train/exercises/$id/copy';
+
+  /// Workout plans and splits list (TRN-013, TRN-014).
+  static const trainPlans = '/train/plans';
+  static const trainPlanNew = '/train/plans/new';
+
+  /// Plan builder for [id] (TRN-013).
+  static String trainPlan(String id) => '/train/plans/$id';
+  static const trainSplitNew = '/train/splits/new';
+
+  /// Split editor for [id] (TRN-014).
+  static String trainSplit(String id) => '/train/splits/$id';
+
+  /// Scheduled workouts (TRN-015).
+  static const trainSchedule = '/train/schedule';
   static const fuel = '/fuel';
   static const fuelSearch = '/fuel/search';
 
@@ -92,6 +110,41 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
               path: RfRoutes.train,
               builder: (context, state) => const ExerciseLibraryScreen(),
               routes: [
+                GoRoute(
+                  path: 'plans',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const PlansScreen(),
+                  routes: [
+                    // 'new' is declared before ':id' so it is not an id.
+                    GoRoute(
+                      path: 'new',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => const PlanEditorScreen(),
+                    ),
+                    GoRoute(
+                      path: ':id',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) =>
+                          PlanEditorScreen(planId: state.pathParameters['id']),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'splits/new',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const SplitEditorScreen(),
+                ),
+                GoRoute(
+                  path: 'splits/:id',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) =>
+                      SplitEditorScreen(splitId: state.pathParameters['id']),
+                ),
+                GoRoute(
+                  path: 'schedule',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const ScheduleScreen(),
+                ),
                 // 'new' is declared before ':id' so it is not an id.
                 GoRoute(
                   path: 'exercises/new',
