@@ -113,6 +113,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for PR and volume rules; integration test for a full session; manual device test for timer.
 
 ### WP 10 — Body composition and measurement tracking
+- Status: **In progress** (authorised 2026-11-05; stage 0 plan in `docs/delivery-record/WP10.md`; owner decisions D1–D5 requested; no schema change planned).
 - Objective: dated measurements, trends and export.
 - Scope: measurement entry (weight + 12 sites, left/right separate), date picker with validation, history with edit/delete, trend chart with axes and date range, comparisons between two dates, CSV export, export/import UI from WP 3.
 - Dependencies: WP 4, WP 3. Proceeds independently of WP 8's library stages, subject to schema version coordination (2026-11-05).
