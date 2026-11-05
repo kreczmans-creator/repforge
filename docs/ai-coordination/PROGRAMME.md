@@ -12,7 +12,7 @@ Author: Claude Code. Updated: 2026-11-05. Mirrors D06 (`docs/wp0/D06-work-packag
 | WP 5 | Nutrition and food database | WP 4 | DELIVERED | LEGACY | ACCEPTED | D05 V-01 airplane-mode device verification (owner) due at WP 6 acceptance | none |
 | WP 6 | Barcode scanning and food logging | WP 5 | DELIVERED | LEGACY | CONDITIONALLY_ACCEPTED | Owner device checklist (Android; iOS or approved deviation); D05 V-01; TD-34 EAN-8/UPC-E on real products; TD-36 "Scan again" variant | none |
 | WP 7 | Recipe management and meal planning | WP 5 | DELIVERED | LEGACY | CLOSED | Accepted and closed 2026-11-05 at 7c62e9c (DL-0007); TD-40 open as debt | none |
-| WP 8 | Exercise library and training architecture | WP 4 | DELIVERED | LEGACY | NOT_ACCEPTED | Delivered at b1ab45a (record 18c4c91), fresh-reviewer review inside the record; owner decisions 1–5 queued (DL-0008) | none |
+| WP 8 | Exercise library and training architecture | WP 4 | DELIVERED | AWAITING_REVIEW | NOT_ACCEPTED | Delivered at b1ab45a (record 18c4c91); owner decisions 1–5 queued (DL-0008) | HO-0003 |
 | WP 9 | Workout planning and workout execution | WP 8 | NOT_STARTED | NONE | NOT_ACCEPTED | | none |
 | WP 10 | Body composition and measurement tracking | WP 4 | NOT_STARTED | NONE | NOT_ACCEPTED | TD-22 resolved here before any restore action is exposed | none |
 | WP 11 | Analytics and progress visualisation | WP 5, WP 9, WP 10 | NOT_STARTED | NONE | NOT_ACCEPTED | NUT-019 day-total badge allocated here (owner 2026-11-04) | none |
@@ -20,7 +20,7 @@ Author: Claude Code. Updated: 2026-11-05. Mirrors D06 (`docs/wp0/D06-work-packag
 | WP 13 | Health platform integrations | WP 10, WP 9 | NOT_STARTED | NONE | NOT_ACCEPTED | | none |
 | WP 14 | Quality assurance and release engineering (continuous) | WP 1 (soft) | IN_PROGRESS | NONE | NOT_ACCEPTED | Continuous from WP 1 (D06); signed release process not started | none |
 | WP 15 | Nutrition entry units and serving sizes | WP 5, WP 7 | NOT_STARTED | NONE | NOT_ACCEPTED | Scope wording per owner brief 2026-11-04 pending DL-0005 | none |
-| GOV 1 | AI coordination infrastructure | none | DELIVERED | REVIEW_INCOMPLETE | NOT_ACCEPTED | RV-0001 REVIEW_INCOMPLETE; DL-0001..0003, DL-0005 | HO-0001 |
+| GOV 1 | AI coordination infrastructure | none | DELIVERED | AWAITING_REVIEW | NOT_ACCEPTED | RV-0001 REVIEW_INCOMPLETE on HO-0001; re-review requested on HO-0002; DL-0001..0003, DL-0005 | HO-0002 |
 
 Notes:
 - WP 0 and WP 1 closed with the merge of pull request #1 to `main` (30e51b0). WP 2–7 are accepted on the development branch; merge to `main` not authorised.

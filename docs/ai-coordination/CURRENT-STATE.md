@@ -9,10 +9,10 @@ Author: Claude Code. Updated: 2026-11-05. Imported into every Claude Code sessio
 
 ## Current implementation package
 - Engineering: none in progress by Claude Code. WP 8 was delivered on the development branch on 2026-11-05 (b1ab45a; record 18c4c91) by a separate session, outside this protocol; it awaits owner acceptance (DL-0008).
-- Governance: GOV 1 (this system), reviewed by ChatGPT (RV-0001, REVIEW_INCOMPLETE); correction handoff in preparation.
+- Governance: GOV 1 (this system), reviewed by ChatGPT (RV-0001, REVIEW_INCOMPLETE); correction handoff HO-0002 submitted.
 
 ## Latest handoff
-- HO-0001 — GOV 1 at 04d44a7, status REVIEW_INCOMPLETE (RV-0001). Issue #2. A correction handoff (Responds to RV-0001) and a retrospective WP 8 handoff follow in the next commit.
+- HO-0002 — GOV 1 correction handoff at 6c7dd20 (Responds to RV-0001, Supersedes HO-0001), AWAITING_REVIEW. HO-0003 — WP 8 retrospective submission at 18c4c91, AWAITING_REVIEW. HO-0001 SUPERSEDED (issue #2 closes as superseded on push).
 
 ## Latest review status
 - RV-0001 (ChatGPT, relayed by the owner, 2026-11-05): REVIEW_INCOMPLETE; no findings; re-review conditions in RV-0001 §9. First real review carried through the protocol: retrieved through the GitHub connector, committed to the branch, processed here. Not yet a full round-trip until the re-review is published and processed.
@@ -36,6 +36,6 @@ Author: Claude Code. Updated: 2026-11-05. Imported into every Claude Code sessio
 - Accepted or closed: WP 0–5, WP 7. Conditionally accepted: WP 6. Delivered awaiting owner acceptance: WP 8. Delivered awaiting review: GOV 1. Not started: WP 9–13, WP 15. Continuous: WP 14. Merge to `main`: not authorised for anything after WP 1. See `DASHBOARD.md`.
 
 ## Next recommended actions
-1. Owner: decide DL-0001, DL-0002, DL-0003, DL-0005, DL-0008, DL-0009; start the ChatGPT re-review of GOV 1 and the review of WP 8 from their issues; perform the WP 6 device checklist and V-01 when a device session is possible.
+1. Owner: decide DL-0001, DL-0002, DL-0003, DL-0005, DL-0008, DL-0009; start the ChatGPT re-review of GOV 1 (HO-0002) and the review of WP 8 (HO-0003) from their issues; perform the WP 6 device checklist and V-01 when a device session is possible.
 2. ChatGPT: re-review GOV 1 per RV-0001 §9 against the correction handoff; review WP 8 against the twelve dimensions.
 3. Claude Code: process the next reviews on file; then the package the owner chooses in DL-0009.
