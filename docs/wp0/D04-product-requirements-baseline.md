@@ -280,6 +280,7 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-17 | On restore, should the default be replace-all or merge? How are duplicates handled? | Affects data-loss risk and the complexity of the restore flow. | DAT-004 |
 | OQ-18 | What are the day boundary and week start rules (local midnight, Monday start)? Should users be able to change them? | Affects every daily and weekly total and the consistency of comparisons. | NUT-001, NUT-016, TRN-028 |
 | OQ-19 | How is training volume attributed when an exercise has several primary anatomical targets? | TRN-027 per-muscle volume and WP 11 reporting. Proposal: WP 16a plan §8. | TRN-027 |
+| OQ-20 | Does TRN-010(1) ("exactly one primary group") still hold? | Conflicts with multiple primary targets. **Closed 2026-11-05** by WP 16 decision 3 (§7): one or more primary targets. | TRN-010 |
 | OQ-21 | What counts as an "imported" exercise (versus system-supplied and user-created)? | Source separation and update rules. Proposal: ADR-0009. | LIB-011 |
 | OQ-22 | Which anatomy nodes (L1–L4) and movement patterns form the controlled reference lists? | Classification quality and coverage. Proposed in WP 16a; approved before WP 16c. | LIB-004, LIB-005 |
 | OQ-23 | What are the minimum coverage targets per anatomical region? | Formal WP 16c acceptance. Defined in WP 16b; approved before WP 16c. | LIB-001, LIB-002 |
