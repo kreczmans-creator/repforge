@@ -2,7 +2,7 @@
 
 Date: 2026-11-05
 Branch: `ccr-9fda2c32-wr163b`
-Status: **in progress, stages 1, 2, 3a and 3b built** (started by owner instruction on 2026-11-05. WP 8, its dependency, is delivered and awaiting owner acceptance; its decisions 1–5 are open. WP 6 device verification and D05 V-01 stay open and owner-owned.)
+Status: **Delivered — awaiting owner acceptance** (not accepted). Final implementation commit 27dd8b0; four workflows green incl. the first Android release build. Open owner decisions: M1 (OQ-24) and M4 (OQ-25). WP 8 remains active with expanded scope; WP 8 stage 3 code is gated on WP 9 acceptance. WP 6 device verification and D05 V-01 stay open and owner-owned.
 
 ## Scope (D06 WP 9)
 Plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
@@ -61,6 +61,7 @@ Update 2026-11-05 (D04 §7): WP 8 is active with expanded scope; its decisions 2
 | Stage 1 review fixes | 66a2a00 | F1–F10, N1–N3 (see Independent review). CI 42013923681, Android 42013923697, iOS 42013923648, integration 42013923649 — all success. |
 | 3a — session screen, rest timer UI, history UI | fb0a8d4 | session screen (entries with notes, pre-filled next-set row, set kind, exertion, rest, edit and delete sets, add/remove/replace/reorder exercises, finish); rest timer panel (wall clock, pause, +15 s, skip, foreground alert behind `RestAlert`); PR badges; volume per exercise and session; start from empty, plan, scheduled occurrence and past session; history list (20 then more), workout detail, edit details, delete with Undo; settings for default rest and the notification preference; routes; widget tests. No plugin or platform notification code (stage 3b, ADR-0007).. CI 42021551985, Android 42021552033, iOS 42021551906, integration 42021551855 — all success. |
 | 3b — rest notifications, integration test | 6a2d8ff | `RestAlertScheduler` port, `flutter_local_notifications` adapter and fake, wiring in the rest timer controller, permission flow in Settings, Android/iOS configuration, plugin-isolation architecture test, integration test for a full session. ADR-0007 stays Proposed. CI 42025560277, Android 42025560293, iOS 42025560262, integration (incl. full-session test) 42025560279 — all success. |
+| Final review fixes | 27dd8b0 | M2, M3, L1–L12, re-check N1–N3 (see Final review). CI 42038742516, Android 42038742592 (debug and release APK with R8), iOS 42038742554, integration 42038742486 — all success. |
 
 ### Stage 1 — domain, schema v7, use cases (no UI)
 - **TRN-019 set kind**: `SetKind` warm-up / working / failure on `SessionSet`, stored in `session_sets.set_kind` (existing rows `working`); `RecordSet` and `EditSet` take it.
@@ -218,4 +219,37 @@ Re-check 2 verdict: N1, N2, N3 resolved; no medium or high findings; tree ready 
 Acceptance view (reviewer): D06 set logging ≤ 3 interactions met (one tap); PRs per type met (assisted and cardio gap documented); background timer on Android partly met (M1); iOS foreground baseline met; full-session integration test met (narrow); TRN-013..017, 019..021, 023, 024 met; TRN-018(2), TRN-025, TRN-027 partly (gaps documented or M4).
 
 ## Tests, CI
-Appended at delivery.
+- Final implementation commit **27dd8b0**. Local: `dart format` clean, `flutter analyze --fatal-infos` clean, **1167 tests** pass (`--concurrency=2`), hand-written coverage **91.5 %** (gate 80 %).
+- CI on 27dd8b0, all success, first attempt: CI 42038742516; Android 42038742592 (debug APK, then **release APK with R8 and core library desugaring**, 2 min 49 s); iOS 42038742554; integration on the API 34 emulator 42038742486 (includes the full-session test with background and return simulation).
+- Every stage commit had all four workflows green (see "What was built").
+
+## Acceptance criteria (D06 WP 9) and evidence
+| Criterion | Evidence | Result |
+|---|---|---|
+| Logging a set takes ≤ 3 interactions (TRN-018(1): pre-filled set ≤ 2 taps) | Tap-count widget test and emulator test: one tap on `newset-log` | Met |
+| PRs detected per exercise and type (TRN-026) | `personal_records_test`; derived badges update on edit and delete | Met (assisted and cardio have no D04 definition — recorded gap) |
+| Rest timer fires in background on Android | OS notification scheduled while the app is not in the foreground; exact when permitted, otherwise inexact | **Partly** — timing depends on M1 (OQ-24) |
+| iOS: alert when foregrounded (documented limitation) | Haptic pattern, visual state and announcement in the foreground; background delivery unverified | Met as the documented baseline |
+| Unit tests for PR and volume rules | `personal_records_test`, `volume_test`, records use-case tests | Met |
+| Integration test for a full session | Emulator: start from plan, one-tap sets, rest timer extend/skip and background/return, PR badge, finish, history | Met (narrow scope) |
+| Manual device test for the timer | Not run | **Deferred** to the owner's device campaign (owner instruction) |
+
+TRN coverage (reviewer): TRN-013..017, 019..021, 023, 024 met; TRN-018(2) partly (keyboard autofocus only in the edit sheet); TRN-022(2) partly (M1); TRN-025(2) partly (M4); TRN-027 per muscle and per week: rules only, no screen (proposed for WP 11; OQ-19 terminology applies).
+
+## Deviations and limitations
+- Exercise history paging (TRN-025(2)) not delivered — M4 / OQ-25.
+- Android background alert usually inexact on Android 14+ — M1 / OQ-24.
+- No foreground sound; haptics can be switched off by the phone's touch-vibration setting.
+- A pending rest alert is lost on reboot; timer state survives backgrounding, not process death (the OS notification still fires).
+- Revoked notification permission leaves the setting shown as on.
+- Google Play exact-alarm policy to be verified before release.
+- Known Low items N1a, N1b (visible kind changes in the new-set row).
+
+## Owner decisions requested
+1. **M1 / OQ-24** — offer the Android exact-alarm grant with an explanation when the user enables rest alerts (recommended), or accept inexact alerts as a recorded limitation.
+2. **M4 / OQ-25** — exercise history paging: a narrow WP 9 fix, or allocation to WP 8 stage 6 with a recorded WP 9 gap.
+3. Confirm the WP 9 decisions and assumptions recorded per stage (derived PRs; dated schedule rows; wall-clock rest timer; several entries per exercise; 4000-character notes; skipped archived exercises on start; 12 s undo; kg-only entry pending OQ-02).
+4. ADR-0007 (rest-timer alerts) — approve (status Proposed); OQ-05 stays open unless decided with M1.
+
+## Recommendation
+Accept WP 9 at 27dd8b0 once M1 and M4 are decided. If M1 or M4 is to be fixed in WP 9, the fix follows the same gates (tests, independent re-check, four workflows) before acceptance. All D06 criteria are met except the Android background timing (M1) and the deferred manual device test; no medium or high findings remain open apart from M1 and M4.
