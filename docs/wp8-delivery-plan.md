@@ -244,6 +244,11 @@ Atomic: validation of the whole release before any write; one transaction per re
 | Legacy invalid values | approved rule incl. **report of every affected record** | stage 3 adds a migration report (in-app Settings › Data and in the backup), resolving TD-41's visibility gap; applies to v6 quarantine rows and any v8 findings |
 | TRN-020 | RIR integer 0–5 at domain **and persistence** boundaries | stage 3b adds persistence enforcement for `session_sets` exertion (CHECK via table rebuild, or validation triggers — chosen by the same evidence method as §17.1); stored out-of-range values quarantined, cleared (exertion is optional) and reported |
 | Screen ownership | WP 8: library, taxonomy, discovery, detail, favourites; WP 9: planning, execution, sessions, sets, rest timers | stage 6 scope; exercise detail history stays a WP 8 screen reading WP 9 data |
-| Stage 4 | authorised now | documentation and reference data only; no production code, schema or WP 9 change |
+| Stage 4 | authorised; **outputs approved 2026-11-05** (OQ-22, OQ-23, ADR-0010) | `docs/catalogue/` is the approved specification for stages 3c and 5; X1–X4 deferred to stage 3a or the 5.1 pilot |
 | Stage 3 | gated | starts after: WP 9 stage 3b CI green; Android/iOS builds reviewed (desugaring); emulator full-session test passed; independent WP 9 review complete; WP 9 accepted; then final authorisation of this stage |
+
+## 19. Stage 4 approval (2026-11-05) and the stage 5 gate
+- OQ-22 and OQ-23 approved; ADR-0010 accepted; primary-muscle principle, equipment, attributes, mechanics and content-policy decisions approved (D04 §7). `docs/catalogue/` is the approved reference specification.
+- Stage 3 must load the approved reference data (anatomy 126 nodes, patterns 79 entries, equipment 33 with the 12 additions, seven attributes) and implement the integrity checks, the `fullBody` rules (ADR-0010) and the migration report.
+- **Stage 5 gate**: authorised in principle; no bulk population before stage 3 tooling is implemented and verified; 5.1 chest pilot first; mandatory re-baselining and explicit owner approval before 5.2–5.7.
 

@@ -15,4 +15,4 @@ Format: see `ADR-0001`. Required fields: ID, Title, Status (Proposed / Accepted 
 | ADR-0007 | Rest-timer alerts through a notification adapter | Proposed (WP 9) |
 | ADR-0008 | Exercise library domain model: Engineering Objects, hierarchical anatomy, classifications, relationships | Accepted — direction (2026-11-05); implementation gated (WP 8 stage 3) |
 | ADR-0009 | Exercise catalogue provenance, providers and idempotent updates | Accepted — direction (2026-11-05); implementation gated (WP 8 stage 3) |
-| ADR-0010 | `fullBody` as a non-anatomical top-level anatomy node (amends ADR-0008 decision 2) | Proposed (WP 8 stage 4 review) |
+| ADR-0010 | `fullBody` as a non-anatomical top-level anatomy node (amends ADR-0008 decision 2) | Accepted (2026-11-05) |
