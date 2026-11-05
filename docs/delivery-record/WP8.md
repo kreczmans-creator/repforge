@@ -43,5 +43,24 @@ Debt owned here: TD-23 (exercise archive guard), TD-25 (database CHECK constrain
 - **Schema v6** with CHECK constraints (TD-25) and the `legacy_quarantine` decision: see `docs/data-model.md` (Migrations 5 → 6).
 - **Use cases** (`app/lib/features/training/application/`): `SaveCustomExercise`, `CopySuppliedExercise`, `ArchiveExercise`, `RecordSet`, `SavePlan`, `SaveSplit`, `ImportExerciseLibrary` (started from `main.dart` after the first frame, like the recipe import) and providers.
 
-## Tests, review, CI
+## Independent review (fresh reviewer, range 64599f3..058d433)
+No high-severity defects; D06 acceptance holds in substance. Findings (verified by probe):
+
+| ID | Finding | Severity | Resolution |
+|---|---|---|---|
+| M1 | Off-step loads (80.1 kg) and small negatives are rounded, not rejected, so TRN-002(2) is not enforced at use-case level; the strict constructor had no caller | Medium | Fix in progress: one strict input constructor; lenient only for database reads |
+| M2 | `WorkoutSessionRepository.upsert` re-inserts sets without validation (no caller today; WP 9 risk) | Medium | Fix in progress: upsert writes the session only |
+| M3 | Exertion rule allowed RIR 0–10 in half steps; D04 TRN-020 says RIR 0–5 whole numbers (RPE 1–10 in 0.5 steps). Inherited from WP 3, never an owner decision | Medium | Fix in progress: rule aligned to D04; the looser v6 CHECK stays (domain stricter) |
+| M4 | A migrated exercise with unrecognised category/muscle/equipment text becomes unreadable with no record; taxonomy labels were not recognised | Medium | Fix in progress: identifiers and labels matched; unmatched optional values dropped with a quarantine record; unmatched required values quarantined |
+| L1 | Copy-on-edit created the copy before the editor opened; cancelling left an orphan | Low | Fix in progress: copy persisted only on save |
+| L2 | Bodyweight-only filter not selectable (TRN-011(2)) | Low | Fix in progress |
+| L3 | Archived exercises accepted in plans | Low | Fix in progress |
+| L4 | Type change allowed when the exercise is used in a plan | Low | Fix in progress |
+| L5 | One use case catches `Exception` only | Low | Fix in progress |
+| L6 | No test guards TRN-007(2) | Low | Fix in progress |
+| L7 | TD-23 and TD-25 not updated in D05 | Low | At delivery |
+
+TRN criteria the reviewer found not fully met: TRN-002(2), TRN-011(2); and TRN-020 contradicted by the enforced rule (WP 9 scope, fixed here).
+
+## Tests, CI
 Appended at delivery.
