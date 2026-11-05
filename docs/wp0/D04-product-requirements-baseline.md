@@ -390,3 +390,9 @@ Governance: WP 8 active and expanded; WP 16 withdrawn; WP 9 scope unchanged; acc
 - **Option B approved**: readings separated by 7 days or less may be connected; gaps greater than 7 days must break the chart line. No missing reading is interpolated or fabricated; actual timestamps and values are preserved. A connection is a visual link between recorded observations, not continuous measurement.
 - WP 10 stage 3a (11c4889) local gate, independent review and two re-checks accepted; CI is the verification gate for stage 3b.
 
+### 2026-11-05 — WP 10 stage 3b architect decisions (owner may override)
+Taken under owner decision D3 ("reject invalid or newer-format backups without modifying existing data"), as the safer reading:
+- **Empty backups rejected**: a backup with no restorable records (empty or only unknown tables) is rejected at preview — "This backup contains no records. Nothing was changed." A restore never wipes all data; deleting all data, if ever wanted, would be its own explicit action.
+- **Android restore picker unfiltered**: the picker does not filter by file type on Android (providers such as Drive or mail often report `.json` as `text/plain`); the backup validator remains the guard; iOS keeps the `public.json` filter.
+- **CSV columns**: D5 (a `unit` column) supersedes DAT-006(1) "metric units in column names" for the body-measurements CSV.
+
