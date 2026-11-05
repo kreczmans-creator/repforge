@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:repforge/data/db/legacy_training_rows.dart';
 import 'package:repforge/data/db/tables.dart';
 
 export 'package:repforge/data/db/tables.dart';
@@ -22,6 +25,11 @@ part 'app_database.g.dart';
 ///    freezing enum, total and portion weight and ingredient notes;
 ///    recipe_ingredients get a serving label and count; new recipe_substitutes,
 ///    meal_plan_items and prep_batches.
+/// 6. WP 8: exercises get aliases, search key, `supplied` (replaces
+///    `is_custom`) and `copied_from_id`; session_sets get cardio energy with
+///    provenance; plan_exercises get a rep range and a distance target;
+///    new training_splits, split_days and legacy_quarantine; CHECK
+///    constraints on the training tables (TD-25).
 @DriftDatabase(
   tables: [
     Measurements,
@@ -40,6 +48,9 @@ part 'app_database.g.dart';
     PlanExercises,
     WorkoutSessions,
     SessionSets,
+    TrainingSplits,
+    SplitDays,
+    LegacyQuarantine,
     Goals,
     Settings,
   ],
@@ -51,7 +62,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -71,6 +82,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 5) {
         await _migrateV4ToV5(m);
+      }
+      if (from < 6) {
+        await _migrateV5ToV6(m);
       }
     },
     beforeOpen: (details) async {
@@ -232,4 +246,162 @@ class AppDatabase extends _$AppDatabase {
       if (keysOn) await customStatement('PRAGMA foreign_keys = ON');
     }
   });
+
+  /// v5 → v6 (WP 8). One transaction with foreign keys off (rebuilding a
+  /// table with keys on would cascade-delete children):
+  /// - rows that would violate a new CHECK constraint are dealt with first
+  ///   (see [LegacyTrainingRows]: an out-of-range nullable value becomes NULL,
+  ///   a row with an out-of-range NOT NULL value is removed; the complete
+  ///   original is kept in `legacy_quarantine`; nothing is clamped);
+  /// - `exercises` is rebuilt: `supplied` = NOT `is_custom`, `is_custom`
+  ///   dropped, new `aliases_json`, `search_key`, `copied_from_id`; free-text
+  ///   category, muscle and equipment values that match a taxonomy
+  ///   identifier ignoring case and spaces are rewritten to it, others are
+  ///   kept as they are;
+  /// - `plan_exercises` is rebuilt: `target_reps` is copied into `reps_min`
+  ///   and `reps_max`; new `target_metres`; CHECK constraints;
+  /// - `session_sets` is rebuilt: new `energy_kcal`, `energy_provenance`;
+  ///   CHECK constraints (a timed set's added load reuses `load_kg`);
+  /// - `training_splits`, `split_days`, `legacy_quarantine` are created.
+  ///
+  /// Idempotent: the rebuilds run only while `session_sets` has no
+  /// `energy_kcal` column, tables and indexes are created if missing, so a
+  /// re-run after a crash before `user_version` is written changes nothing.
+  Future<void> _migrateV5ToV6(Migrator m) => exclusively(() async {
+    final keysOn = (await customSelect(
+      'PRAGMA foreign_keys',
+    ).getSingle()).read<bool>('foreign_keys');
+    if (keysOn) await customStatement('PRAGMA foreign_keys = OFF');
+    try {
+      await transaction(() async {
+        await m.createTable(legacyQuarantine); // IF NOT EXISTS
+        if (!await _columnExists('session_sets', 'energy_kcal')) {
+          await _quarantineLegacySets();
+          await _quarantineLegacyPlanExercises();
+          await m.alterTable(
+            TableMigration(
+              exercises,
+              columnTransformer: {
+                exercises.supplied: const CustomExpression<bool>(
+                  'CASE WHEN is_custom = 1 THEN 0 ELSE 1 END',
+                ),
+              },
+              newColumns: [
+                exercises.aliasesJson,
+                exercises.searchKey,
+                exercises.copiedFromId,
+              ],
+            ),
+          );
+          await m.alterTable(
+            TableMigration(
+              planExercises,
+              columnTransformer: {
+                planExercises.repsMin: const CustomExpression<int>(
+                  'target_reps',
+                ),
+                planExercises.repsMax: const CustomExpression<int>(
+                  'target_reps',
+                ),
+              },
+              newColumns: [planExercises.targetMetres],
+            ),
+          );
+          await m.alterTable(
+            TableMigration(
+              sessionSets,
+              newColumns: [
+                sessionSets.energyKcal,
+                sessionSets.energyProvenance,
+              ],
+            ),
+          );
+          await _normaliseExercisesV6();
+        }
+        await m.createTable(trainingSplits);
+        await m.createTable(splitDays);
+        for (final index in [idxSplitDaysSplit]) {
+          if (!await _schemaEntityExists('index', index.entityName)) {
+            await m.createIndex(index);
+          }
+        }
+      });
+    } finally {
+      if (keysOn) await customStatement('PRAGMA foreign_keys = ON');
+    }
+  });
+
+  Future<void> _quarantine(
+    String table,
+    Map<String, Object?> original,
+    String reason,
+  ) => customStatement(
+    'INSERT INTO legacy_quarantine '
+    '(source_table, row_id, reason, original_json, quarantined_at) '
+    'VALUES (?, ?, ?, ?, ?)',
+    [
+      table,
+      (original['id'] ?? '').toString(),
+      reason,
+      jsonEncode(original),
+      DateTime.now().toUtc().toIso8601String(),
+    ],
+  );
+
+  Future<void> _quarantineLegacySets() async {
+    final rows = await customSelect('SELECT * FROM session_sets').get();
+    for (final r in rows) {
+      final fixed = LegacyTrainingRows.sessionSet(r.data);
+      if (fixed.unchanged) continue;
+      await _quarantine('session_sets', r.data, fixed.reason);
+      for (final column in fixed.nulledColumns) {
+        await customStatement(
+          'UPDATE session_sets SET "$column" = NULL WHERE id = ?',
+          [r.data['id']],
+        );
+      }
+    }
+  }
+
+  Future<void> _quarantineLegacyPlanExercises() async {
+    final rows = await customSelect('SELECT * FROM plan_exercises').get();
+    for (final r in rows) {
+      final fixed = LegacyTrainingRows.planExercise(r.data);
+      if (fixed.unchanged) continue;
+      await _quarantine('plan_exercises', r.data, fixed.reason);
+      if (fixed.row == null) {
+        await customStatement('DELETE FROM plan_exercises WHERE id = ?', [
+          r.data['id'],
+        ]);
+      }
+      for (final column in fixed.nulledColumns) {
+        await customStatement(
+          'UPDATE plan_exercises SET "$column" = NULL WHERE id = ?',
+          [r.data['id']],
+        );
+      }
+    }
+  }
+
+  /// Rewrites legacy free-text enum values and computes `search_key` for
+  /// every exercise row after the v6 rebuild.
+  Future<void> _normaliseExercisesV6() async {
+    final rows = await customSelect('SELECT * FROM exercises').get();
+    for (final r in rows) {
+      final row = LegacyTrainingRows.exercise(r.data);
+      await customStatement(
+        'UPDATE exercises SET category = ?, primary_muscle = ?, '
+        'secondary_muscles_json = ?, equipment_json = ?, search_key = ? '
+        'WHERE id = ?',
+        [
+          row['category'],
+          row['primary_muscle'],
+          row['secondary_muscles_json'],
+          row['equipment_json'],
+          row['search_key'],
+          row['id'],
+        ],
+      );
+    }
+  }
 }

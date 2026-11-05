@@ -42,4 +42,8 @@ abstract interface class SettingsRepository {
   /// Version of the bundled seed recipes already imported (0 = none yet).
   Future<int> readSeedRecipesVersion();
   Future<void> saveSeedRecipesVersion(int version);
+
+  /// Version of the bundled exercise library already imported (0 = none).
+  Future<int> readSeedExercisesVersion();
+  Future<void> saveSeedExercisesVersion(int version);
 }

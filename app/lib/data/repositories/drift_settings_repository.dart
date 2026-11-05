@@ -21,6 +21,7 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _mealLabels = 'mealLabels';
   static const _recipeFavouritesOnly = 'recipeFavouritesOnly';
   static const _seedRecipesVersion = 'seedRecipesVersion';
+  static const _seedExercisesVersion = 'seedExercisesVersion';
 
   @override
   Stream<AppSettings> watch() =>
@@ -106,6 +107,14 @@ final class DriftSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveSeedRecipesVersion(int version) =>
       _writeValue(_seedRecipesVersion, version.toString());
+
+  @override
+  Future<int> readSeedExercisesVersion() async =>
+      int.tryParse(await _readValue(_seedExercisesVersion) ?? '') ?? 0;
+
+  @override
+  Future<void> saveSeedExercisesVersion(int version) =>
+      _writeValue(_seedExercisesVersion, version.toString());
 
   static AppSettings _fromRows(List<SettingRow> rows) {
     final map = {for (final r in rows) r.key: r.value};

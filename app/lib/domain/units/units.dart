@@ -158,6 +158,18 @@ final class LoadKg {
     return Ok(LoadKg._(rounded));
   }
 
+  /// Like [of] but refuses a value that is not already a multiple of 0.25 kg
+  /// instead of rounding it (TRN-002(2): increments of 0.25 kg are accepted,
+  /// anything else is rejected). Use for typed user input.
+  static Result<LoadKg> strict(double raw) {
+    if (!raw.isNaN && !raw.isInfinite && raw * 4 != (raw * 4).roundToDouble()) {
+      return const Err(
+        ValidationError('Load must be in steps of 0.25 kg.', field: 'loadKg'),
+      );
+    }
+    return of(raw);
+  }
+
   String get label => '${formatNumber(value, maxDecimals: 2)} kg';
 
   @override

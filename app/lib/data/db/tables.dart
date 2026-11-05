@@ -8,6 +8,14 @@ mixin SyncColumns on Table {
   DateTimeColumn get deletedAt => dateTime().nullable()();
 }
 
+const _heartRateCheck =
+    'CHECK (average_heart_rate IS NULL '
+    'OR average_heart_rate BETWEEN 30 AND 250)';
+
+const _energyProvenanceCheck =
+    'CHECK (energy_provenance IS NULL '
+    "OR energy_provenance IN ('userEntered', 'estimated'))";
+
 /// Body measurements: one row per site per reading (BCM). `site` is the
 /// `MeasurementSite` enum name; `value` is kg for weight, cm otherwise.
 @DataClassName('MeasurementRow')
@@ -261,7 +269,10 @@ class PrepBatches extends Table with SyncColumns {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-/// Exercise library (TRN-010..012). Lists stored as JSON arrays.
+/// Exercise library (TRN-008..012). Lists stored as JSON arrays of enum
+/// names (`docs/training-taxonomy.md`). `supplied` is true for bundled
+/// library exercises (schema v6 replaces `is_custom`, supplied = NOT
+/// is_custom). `search_key` is the normalised name and aliases.
 @DataClassName('ExerciseRow')
 class Exercises extends Table with SyncColumns {
   TextColumn get name => text()();
@@ -270,7 +281,10 @@ class Exercises extends Table with SyncColumns {
   TextColumn get primaryMuscle => text()();
   TextColumn get secondaryMusclesJson => text()();
   TextColumn get equipmentJson => text()();
-  BoolColumn get isCustom => boolean().withDefault(const Constant(false))();
+  TextColumn get aliasesJson => text().withDefault(const Constant('[]'))();
+  TextColumn get searchKey => text().withDefault(const Constant(''))();
+  BoolColumn get supplied => boolean().withDefault(const Constant(false))();
+  TextColumn get copiedFromId => text().nullable()();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
 
   @override
@@ -288,6 +302,8 @@ class WorkoutPlans extends Table with SyncColumns {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Planned exercise (TRN-013). CHECK constraints (TD-25, schema v6) mirror
+/// `validatePlanExercise`.
 @DataClassName('PlanExerciseRow')
 @TableIndex(name: 'idx_plan_exercises_plan', columns: {#planId})
 class PlanExercises extends Table {
@@ -297,13 +313,29 @@ class PlanExercises extends Table {
   TextColumn get exerciseId => text()();
   IntColumn get sortOrder => integer()();
   IntColumn get targetSets => integer()();
-  IntColumn get targetReps => integer().nullable()();
+  IntColumn get repsMin => integer().nullable()();
+  IntColumn get repsMax => integer().nullable()();
   RealColumn get targetLoadKg => real().nullable()();
   IntColumn get targetDurationSec => integer().nullable()();
+  RealColumn get targetMetres => real().nullable()();
   IntColumn get restSeconds => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+    'CHECK (sort_order >= 0)',
+    'CHECK (target_sets BETWEEN 1 AND 20)',
+    'CHECK (reps_min IS NULL OR reps_min BETWEEN 1 AND 100)',
+    'CHECK (reps_max IS NULL OR reps_max BETWEEN 1 AND 100)',
+    'CHECK ((reps_min IS NULL) = (reps_max IS NULL))',
+    'CHECK (reps_min IS NULL OR reps_min <= reps_max)',
+    'CHECK (target_load_kg IS NULL OR target_load_kg BETWEEN 0 AND 1000)',
+    'CHECK (target_duration_sec IS NULL OR target_duration_sec > 0)',
+    'CHECK (target_metres IS NULL OR target_metres > 0)',
+    'CHECK (rest_seconds IS NULL OR rest_seconds BETWEEN 0 AND 3600)',
+  ];
 }
 
 @DataClassName('WorkoutSessionRow')
@@ -320,7 +352,10 @@ class WorkoutSessions extends Table with SyncColumns {
 }
 
 /// One performed set. `type` selects which nullable columns are meaningful
-/// (the domain `SetData` sealed class enforces the combinations).
+/// (the domain `SetData` sealed class enforces the combinations). `load_kg`
+/// is the lifted load of a weighted set and the added load of a bodyweight or
+/// timed set (the type column makes that unambiguous; no separate column).
+/// CHECK constraints (TD-25, schema v6) mirror `validateSetForExercise`.
 @DataClassName('SessionSetRow')
 @TableIndex(name: 'idx_session_sets_session', columns: {#sessionId})
 @TableIndex(name: 'idx_session_sets_exercise', columns: {#exerciseId})
@@ -338,6 +373,11 @@ class SessionSets extends Table {
   IntColumn get durationSec => integer().nullable()();
   RealColumn get metres => real().nullable()();
   IntColumn get averageHeartRate => integer().nullable()();
+
+  /// Cardio energy expended (TRN-007). Training data only; nutrition never
+  /// reads it. Always set together with `energy_provenance`.
+  RealColumn get energyKcal => real().nullable()();
+  TextColumn get energyProvenance => text().nullable()();
   BoolColumn get completed => boolean().withDefault(const Constant(true))();
   TextColumn get exertionScale => text().nullable()();
   RealColumn get exertionValue => real().nullable()();
@@ -346,6 +386,72 @@ class SessionSets extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+    'CHECK (reps IS NULL OR reps BETWEEN 1 AND 100)',
+    'CHECK (load_kg IS NULL OR load_kg BETWEEN 0 AND 1000)',
+    'CHECK (assistance_kg IS NULL OR assistance_kg BETWEEN 0 AND 1000)',
+    'CHECK (duration_sec IS NULL OR duration_sec > 0)',
+    'CHECK (metres IS NULL OR metres > 0)',
+    _heartRateCheck,
+    'CHECK (energy_kcal IS NULL OR energy_kcal >= 0)',
+    _energyProvenanceCheck,
+    'CHECK ((energy_kcal IS NULL) = (energy_provenance IS NULL))',
+    'CHECK (exertion_value IS NULL OR exertion_value BETWEEN 0 AND 10)',
+    'CHECK (rest_seconds IS NULL OR rest_seconds BETWEEN 0 AND 3600)',
+  ];
+}
+
+/// Training split (TRN-014): a named repeating cycle of workout days. The
+/// days are in `split_days`.
+@DataClassName('TrainingSplitRow')
+class TrainingSplits extends Table with SyncColumns {
+  TextColumn get name => text()();
+  IntColumn get cycleDays => integer()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => ['CHECK (cycle_days BETWEEN 1 AND 14)'];
+}
+
+/// One day of a split's cycle: `plan_id` is the workout plan, null for a rest
+/// day. `plan_id` is a loose reference (the plan may later be deleted).
+@DataClassName('SplitDayRow')
+@TableIndex(name: 'idx_split_days_split', columns: {#splitId})
+class SplitDays extends Table {
+  TextColumn get id => text()();
+  TextColumn get splitId =>
+      text().references(TrainingSplits, #id, onDelete: KeyAction.cascade)();
+  IntColumn get dayIndex => integer()();
+  TextColumn get planId => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+    'CHECK (day_index BETWEEN 0 AND 13)',
+    'UNIQUE (split_id, day_index)',
+  ];
+}
+
+/// Original contents of training rows that violated a schema v6 CHECK
+/// constraint when they were migrated or restored from an older backup. The
+/// migration never clamps a value: an out-of-range nullable column is set to
+/// NULL and the original row is kept here as JSON; a row whose NOT NULL
+/// column was out of range is moved here whole.
+@DataClassName('LegacyQuarantineRow')
+class LegacyQuarantine extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get sourceTable => text()();
+  TextColumn get rowId => text()();
+  TextColumn get reason => text()();
+  TextColumn get originalJson => text()();
+  DateTimeColumn get quarantinedAt => dateTime()();
 }
 
 @DataClassName('GoalRow')

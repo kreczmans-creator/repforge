@@ -218,29 +218,35 @@ void main() {
     },
   );
 
-  test('skips a set whose stored load is out of range', () async {
-    await repo.upsert(
-      _session('s', _t, [
-        _set('s', 'ok', 0, SetData.weighted(load: _kg(50), reps: 5)),
-      ]),
-    );
-    await db
-        .into(db.sessionSets)
-        .insert(
-          SessionSetsCompanion.insert(
-            id: 'bad',
-            sessionId: 's',
-            exerciseId: 'ex',
-            exerciseOrder: 0,
-            setOrder: 1,
-            type: 'weighted',
-            loadKg: const Value(5000),
-            reps: const Value(5),
-          ),
-        );
-    expect((await repo.byId('s'))!.sets.map((s) => s.id), ['ok']);
-    expect((await repo.setsForExercise('ex')).map((s) => s.id), ['ok']);
-  });
+  test(
+    'the database refuses a set whose load is out of range (TD-25)',
+    () async {
+      await repo.upsert(
+        _session('s', _t, [
+          _set('s', 'ok', 0, SetData.weighted(load: _kg(50), reps: 5)),
+        ]),
+      );
+      await expectLater(
+        db
+            .into(db.sessionSets)
+            .insert(
+              SessionSetsCompanion.insert(
+                id: 'bad',
+                sessionId: 's',
+                exerciseId: 'ex',
+                exerciseOrder: 0,
+                setOrder: 1,
+                type: 'weighted',
+                loadKg: const Value(5000),
+                reps: const Value(5),
+              ),
+            ),
+        throwsA(anything),
+      );
+      expect((await repo.byId('s'))!.sets.map((s) => s.id), ['ok']);
+      expect((await repo.setsForExercise('ex')).map((s) => s.id), ['ok']);
+    },
+  );
 
   test('skips a set with an unknown type or missing fields', () async {
     await repo.upsert(_session('s', _t, const []));

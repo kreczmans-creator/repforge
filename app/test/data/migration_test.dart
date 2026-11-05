@@ -10,7 +10,7 @@ import 'generated_migrations/schema_v1.dart' as v1;
 import 'generated_migrations/schema_v2.dart' as v2;
 import 'generated_migrations/schema_v3.dart' as v3;
 import 'generated_migrations/schema_v4.dart' as v4;
-import 'generated_migrations/schema_v5.dart' as v5;
+import 'generated_migrations/schema_v6.dart' as v6;
 
 /// Every schema version must migrate to the current one without loss. Add a
 /// case here for each new version (R-07: data loss from an untested
@@ -56,9 +56,9 @@ void main() {
 
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
+    await verifier.migrateAndValidate(db, 6);
 
-    final migrated = v5.DatabaseAtV5(schema.newConnection());
+    final migrated = v6.DatabaseAtV6(schema.newConnection());
     addTearDown(migrated.close);
     final rows = await (migrated.select(
       migrated.measurements,
@@ -85,7 +85,7 @@ void _v2ToV3() {
   late SchemaVerifier verifier;
   setUpAll(() => verifier = SchemaVerifier(GeneratedHelper()));
 
-  test('schema v2 upgrades to v5 keeping existing rows', () async {
+  test('schema v2 upgrades to v6 keeping existing rows', () async {
     final schema = await verifier.schemaAt(2);
     final oldDb = v2.DatabaseAtV2(schema.newConnection());
     await oldDb
@@ -104,9 +104,9 @@ void _v2ToV3() {
 
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
+    await verifier.migrateAndValidate(db, 6);
 
-    final migrated = v5.DatabaseAtV5(schema.newConnection());
+    final migrated = v6.DatabaseAtV6(schema.newConnection());
     addTearDown(migrated.close);
     expect(
       (await migrated.select(migrated.measurements).get()).single.id,
@@ -115,18 +115,18 @@ void _v2ToV3() {
     expect(await migrated.select(migrated.savedMeals).get(), isEmpty);
   });
 
-  test('schema v1 upgrades straight to v5', () async {
+  test('schema v1 upgrades straight to v6', () async {
     final connection = await verifier.startAt(1);
     final db = AppDatabase(connection);
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
+    await verifier.migrateAndValidate(db, 6);
   });
 
   test('v2 upgrade can run again after a crash before user_version is '
       'recorded', () async {
     final schema = await verifier.schemaAt(2);
     final first = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(first, 5);
+    await verifier.migrateAndValidate(first, 6);
     await first.customStatement('PRAGMA user_version = 2');
     await first.close();
 
@@ -136,7 +136,7 @@ void _v2ToV3() {
     final version = await second
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data.values.single, 5);
+    expect(version.data.values.single, 6);
   });
 
   test('v1 upgrade can run again after a crash before user_version is '
@@ -159,7 +159,7 @@ void _v2ToV3() {
     await oldDb.close();
 
     final first = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(first, 5);
+    await verifier.migrateAndValidate(first, 6);
     await first.customStatement('PRAGMA user_version = 1');
     await first.close();
 
@@ -171,7 +171,7 @@ void _v2ToV3() {
     final version = await second
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data.values.single, 5);
+    expect(version.data.values.single, 6);
   });
 }
 
@@ -262,7 +262,7 @@ void _v3ToV4() {
         );
   }
 
-  Future<void> expectRowsKept(v5.DatabaseAtV5 db) async {
+  Future<void> expectRowsKept(v6.DatabaseAtV6 db) async {
     final food = (await db.select(db.foods).get()).single;
     expect(
       [food.id, food.proteinG, food.carbsG, food.fatG, food.fibreG],
@@ -284,16 +284,16 @@ void _v3ToV4() {
 
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
+    await verifier.migrateAndValidate(db, 6);
 
-    final migrated = v5.DatabaseAtV5(schema.newConnection());
+    final migrated = v6.DatabaseAtV6(schema.newConnection());
     addTearDown(migrated.close);
     await expectRowsKept(migrated);
 
     await migrated
         .into(migrated.foodLogEntries)
         .insert(
-          v5.FoodLogEntriesCompanion.insert(
+          v6.FoodLogEntriesCompanion.insert(
             id: 'e2',
             day: '2026-11-01',
             meal: 'snack',
@@ -321,7 +321,7 @@ void _v3ToV4() {
     await oldDb.close();
 
     final first = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(first, 5);
+    await verifier.migrateAndValidate(first, 6);
     await first.customStatement('PRAGMA user_version = 3');
     await first.close();
 
@@ -334,7 +334,7 @@ void _v3ToV4() {
     final version = await second
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data.values.single, 5);
+    expect(version.data.values.single, 6);
   });
 }
 
@@ -399,7 +399,7 @@ void _v4ToV5() {
         );
   }
 
-  Future<void> expectRecipesMigrated(v5.DatabaseAtV5 db) async {
+  Future<void> expectRecipesMigrated(v6.DatabaseAtV6 db) async {
     final rows = await (db.select(
       db.recipes,
     )..orderBy([(r) => OrderingTerm.asc(r.id)])).get();
@@ -447,9 +447,9 @@ void _v4ToV5() {
 
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
+    await verifier.migrateAndValidate(db, 6);
 
-    final migrated = v5.DatabaseAtV5(schema.newConnection());
+    final migrated = v6.DatabaseAtV6(schema.newConnection());
     addTearDown(migrated.close);
     await expectRecipesMigrated(migrated);
 
@@ -468,7 +468,7 @@ void _v4ToV5() {
     await oldDb.close();
 
     final first = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(first, 5);
+    await verifier.migrateAndValidate(first, 6);
     // Add data that only exists in v5 so a re-run would show lost columns.
     await first.customStatement(
       'UPDATE recipes SET total_weight_g = 900, '
@@ -495,7 +495,7 @@ void _v4ToV5() {
     final version = await second
         .customSelect('PRAGMA user_version')
         .getSingle();
-    expect(version.data.values.single, 5);
+    expect(version.data.values.single, 6);
   });
 
   test('prep batches refuse negative portions remaining', () async {
@@ -505,13 +505,13 @@ void _v4ToV5() {
     await oldDb.close();
     final db = AppDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
-    final migrated = v5.DatabaseAtV5(schema.newConnection());
+    await verifier.migrateAndValidate(db, 6);
+    final migrated = v6.DatabaseAtV6(schema.newConnection());
     addTearDown(migrated.close);
     Future<void> batch(double remaining) => migrated
         .into(migrated.prepBatches)
         .insert(
-          v5.PrepBatchesCompanion.insert(
+          v6.PrepBatchesCompanion.insert(
             id: 'b$remaining',
             recipeId: 'r1',
             preparedAt: t,

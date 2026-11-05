@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/db/legacy_training_rows.dart';
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
@@ -69,6 +70,7 @@ final class DriftBackupRepository implements BackupRepository {
     }
     final byName = {for (final t in _db.allTables) t.actualTableName: t};
     final counts = <String, int>{};
+    final quarantined = <Map<String, Object?>>[];
     try {
       await _db.transaction(() async {
         for (final t in _db.allTables.toList().reversed) {
@@ -82,14 +84,24 @@ final class DriftBackupRepository implements BackupRepository {
           var n = 0;
           for (final r in rows) {
             if (r is! Map<String, Object?>) continue;
-            await _insertRaw(
+            final mapped = _fromOlderSchema(
               table.actualTableName,
-              allowed,
-              _fromOlderSchema(table.actualTableName, r),
+              r,
+              quarantined,
             );
+            if (mapped == null) continue;
+            await _insertRaw(table.actualTableName, allowed, mapped);
             n++;
           }
           counts[entry.key] = n;
+        }
+        // Pre-v6 training rows that broke a CHECK constraint: the original
+        // is kept here, see LegacyTrainingRows.
+        final quarantineColumns = {
+          for (final c in byName['legacy_quarantine']!.$columns) c.$name,
+        };
+        for (final q in quarantined) {
+          await _insertRaw('legacy_quarantine', quarantineColumns, q);
         }
       });
     } on Object catch (e) {
@@ -104,24 +116,58 @@ final class DriftBackupRepository implements BackupRepository {
   }
 
   /// Maps a row exported by an older schema onto the current columns, so a
-  /// backup made before schema v5 restores without losing recipe data: the
-  /// single v4 step list (`method_steps_json`) becomes the cooking steps and
-  /// the v4 boolean `freezer_friendly` becomes `freezing` (true is 'yes';
-  /// false only ever meant "not stated", so 'unknown').
-  static Map<String, Object?> _fromOlderSchema(
+  /// backup made before schema v6 restores without losing data.
+  ///
+  /// Before v5: the single v4 step list (`method_steps_json`) becomes the
+  /// cooking steps and the v4 boolean `freezer_friendly` becomes `freezing`
+  /// (true is 'yes'; false only ever meant "not stated", so 'unknown').
+  ///
+  /// Before v6: `exercises.is_custom` becomes `supplied` (its negation) with
+  /// taxonomy identifiers, aliases and search key filled in;
+  /// `plan_exercises.target_reps` becomes `reps_min` and `reps_max`. A
+  /// training row that would break a v6 CHECK constraint is handled like in
+  /// the migration (see [LegacyTrainingRows]): a nullable out-of-range value
+  /// becomes NULL, a row with an out-of-range required value is not
+  /// restored, and in both cases the original is added to [quarantined].
+  /// Returns null when the row is not restored.
+  static Map<String, Object?>? _fromOlderSchema(
     String table,
     Map<String, Object?> row,
+    List<Map<String, Object?>> quarantined,
   ) {
-    if (table != 'recipes' || !row.containsKey('method_steps_json')) {
-      return row;
+    void quarantine(SanitisedRow fixed) {
+      quarantined.add({
+        'source_table': table,
+        'row_id': (row['id'] ?? '').toString(),
+        'reason': fixed.reason,
+        'original_json': jsonEncode(row),
+        'quarantined_at': DateTime.now().toUtc().toIso8601String(),
+      });
     }
-    final flag = row['freezer_friendly'];
-    return {
-      ...row,
-      'cook_steps_json': row['cook_steps_json'] ?? row['method_steps_json'],
-      'freezing':
-          row['freezing'] ?? (flag == 1 || flag == true ? 'yes' : 'unknown'),
-    };
+
+    if (table == 'recipes' && row.containsKey('method_steps_json')) {
+      final flag = row['freezer_friendly'];
+      return {
+        ...row,
+        'cook_steps_json': row['cook_steps_json'] ?? row['method_steps_json'],
+        'freezing':
+            row['freezing'] ?? (flag == 1 || flag == true ? 'yes' : 'unknown'),
+      };
+    }
+    if (table == 'exercises' && row.containsKey('is_custom')) {
+      return LegacyTrainingRows.exercise(row);
+    }
+    if (table == 'plan_exercises' && row.containsKey('target_reps')) {
+      final fixed = LegacyTrainingRows.planExercise(row);
+      if (!fixed.unchanged) quarantine(fixed);
+      return fixed.row;
+    }
+    if (table == 'session_sets' && !row.containsKey('energy_kcal')) {
+      final fixed = LegacyTrainingRows.sessionSet(row);
+      if (!fixed.unchanged) quarantine(fixed);
+      return fixed.row;
+    }
+    return row;
   }
 
   Future<void> _insertRaw(
