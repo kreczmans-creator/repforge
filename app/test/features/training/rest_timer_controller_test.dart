@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/training/rest_timer.dart';
 import 'package:repforge/features/training/application/haptic_rest_alert.dart';
 import 'package:repforge/features/training/application/rest_timer_controller.dart';
@@ -13,18 +14,24 @@ void main() {
   late MutableClock clock;
   late FakeRestAlert alert;
   late ProviderContainer container;
+  late AppDatabase db;
 
   setUp(() {
+    db = AppDatabase.inMemory();
     clock = MutableClock(DateTime(2026, 11, 5, 9));
     alert = FakeRestAlert();
     container = ProviderContainer(
       overrides: [
+        databaseProvider.overrideWithValue(db),
         clockProvider.overrideWithValue(clock),
         restAlertProvider.overrideWithValue(alert),
       ],
     );
   });
-  tearDown(() => container.dispose());
+  tearDown(() async {
+    container.dispose();
+    await db.close();
+  });
 
   RestTimerController ctl() => container.read(restTimerProvider.notifier);
   RestTimerState state() => container.read(restTimerProvider);

@@ -36,6 +36,7 @@ import 'package:repforge/domain/recipes/recipe_repository.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
 import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
+import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/training_repository.dart';
 import 'package:repforge/features/measurements/application/delete_weight_entry.dart';
 import 'package:repforge/features/measurements/application/record_body_weight.dart';
@@ -224,6 +225,13 @@ final barcodeScannerProvider = Provider<BarcodeScanner>(
 /// action unless this resolves to [ScannerCapability.available].
 final scannerCapabilityProvider = FutureProvider<ScannerCapability>(
   (ref) => ref.watch(barcodeScannerProvider).capability(),
+);
+
+/// Background notification scheduling (ADR-0007). The default schedules
+/// nothing; `main.dart` binds the platform adapter on Android and iOS and
+/// tests override it with `FakeRestAlertScheduler`.
+final restAlertSchedulerProvider = Provider<RestAlertScheduler>(
+  (_) => const NoopRestAlertScheduler(),
 );
 
 final mealPlanRepositoryProvider = Provider<MealPlanRepository>(

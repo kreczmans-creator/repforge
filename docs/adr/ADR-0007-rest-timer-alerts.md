@@ -17,6 +17,9 @@ Option 1, behind a Flutter-free domain interface `RestAlertScheduler` (schedule 
 - Android: exact scheduling when the exact-alarm permission is available, otherwise inexact (the 2 s target may then be missed; recorded as a limitation).
 - iOS: the notification is scheduled the same way; device behaviour is unverified until the owner's device campaign. D06's documented limitation (foreground only) stays the acceptance baseline until then.
 
+### Implementation record (WP 9 stage 3b)
+Pinned `flutter_local_notifications` 22.3.2 and `timezone` 0.11.2 (compileSdk 36 and minSdk 24, so no SDK change; core library desugaring added to the app Gradle file; recorded in D03). Android mode: `exactAllowWhileIdle` when `canScheduleExactNotifications()` is true, otherwise `inexactAllowWhileIdle`; `SCHEDULE_EXACT_ALARM` is declared, `USE_EXACT_ALARM` is not, and the exact-alarm settings screen is not opened. The domain interface also has `openSettings()` for the denied-permission path. Status remains Proposed.
+
 ## Rationale
 One scheduled notification at a known end time is the smallest mechanism that meets TRN-022(2) without a background task. The adapter keeps platform code out of feature code (ADR-0006 standing constraint) and lets the timer be tested without a device.
 

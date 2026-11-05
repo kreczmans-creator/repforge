@@ -7,11 +7,15 @@ import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/platform/fake_barcode_scanner.dart';
+import 'package:repforge/data/platform/fake_rest_alert_scheduler.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/training/rest_alert.dart';
+import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/scanner_preview.dart';
+import 'package:repforge/features/training/application/rest_timer_controller.dart';
 
 import '../test/helpers/scrolling.dart';
 
@@ -333,6 +337,163 @@ void main() {
     expect(await db.select(db.foods).get(), hasLength(1));
   });
 
+  testWidgets('full training session: plan, one-tap sets, rest timer, PR, '
+      'finish, history (in-memory db, fake alerts)', (tester) async {
+    final db = AppDatabase.inMemory();
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
+    // Seed an exercise and a plan with a 60 s rest, and switch the rest
+    // notifications on (the fake scheduler grants permission).
+    final now = DateTime.now().toUtc();
+    final seeder = ProviderContainer(
+      overrides: [databaseProvider.overrideWithValue(db)],
+    );
+    await seeder
+        .read(exerciseRepositoryProvider)
+        .upsert(
+          Exercise(
+            id: 'it-squat',
+            name: 'IT back squat',
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.legs,
+            primaryMuscle: MuscleGroup.quadriceps,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await seeder
+        .read(workoutPlanRepositoryProvider)
+        .upsert(
+          WorkoutPlan(
+            id: 'it-plan',
+            name: 'IT leg day',
+            createdAt: now,
+            updatedAt: now,
+            exercises: [
+              PlanExercise(
+                id: 'it-plan-row',
+                exerciseId: 'it-squat',
+                sortOrder: 0,
+                targetSets: 3,
+                repsMin: 5,
+                repsMax: 5,
+                targetLoad: LoadKg.fromStored(60),
+                restSeconds: 60,
+              ),
+            ],
+          ),
+        );
+    final settings = seeder.read(settingsRepositoryProvider);
+    await settings.save(
+      (await settings.read()).copyWith(restTimerNotifications: true),
+    );
+    seeder.dispose();
+
+    final scheduler = FakeRestAlertScheduler();
+    await pumpApp(
+      tester,
+      db: db,
+      overrides: [
+        restAlertProvider.overrideWithValue(_SilentRestAlert()),
+        restAlertSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+
+    Finder keyStartingWith(String prefix) => find.byWidgetPredicate((w) {
+      final k = w.key;
+      return k is ValueKey<String> && k.value.startsWith(prefix);
+    });
+
+    // While the rest timer runs its one-second tick keeps scheduling frames,
+    // so pumpAndSettle would never return: pump frames until [finder] shows.
+    Future<void> pumpFramesUntil(Finder finder) async {
+      final end = DateTime.now().add(const Duration(seconds: 15));
+      while (finder.evaluate().isEmpty) {
+        if (DateTime.now().isAfter(end)) fail('Timed out waiting for $finder');
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    // Lets the database read and the scheduler call finish without
+    // pumpAndSettle (the timer's tick never settles).
+    Future<void> pumpIo() async {
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    // Train tab > Plans > start the plan.
+    await tester.tap(find.byKey(const Key('nav-train')));
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const Key('open-plans')));
+    await tester.tap(find.byKey(const Key('open-plans')));
+    await pumpUntil(tester, find.byKey(const Key('plan-start-it-plan')));
+    await scrollTo(tester, find.byKey(const Key('plan-start-it-plan')));
+    await tester.tap(find.byKey(const Key('plan-start-it-plan')));
+    await pumpUntil(tester, keyStartingWith('newset-log-'));
+    expect(find.byKey(const Key('rest-timer-panel')), findsNothing);
+
+    // Set 1: one tap on the pre-filled row (60 kg x 5 from the plan).
+    final log = keyStartingWith('newset-log-');
+    await scrollTo(tester, log);
+    await tester.tap(log);
+    await pumpFramesUntil(find.byKey(const Key('rest-timer-panel')));
+    expect(find.byKey(const Key('rest-remaining')), findsOneWidget);
+    // The notification is scheduled for the timer's end (ADR-0007).
+    await pumpIo();
+    final firstEnd = scheduler.scheduled[restNotificationId];
+    expect(firstEnd, isNotNull);
+
+    // +15 s moves the end by exactly 15 s and reschedules.
+    await tester.tap(find.byKey(const Key('rest-extend')));
+    await pumpIo();
+    expect(
+      scheduler.scheduled[restNotificationId],
+      firstEnd!.add(const Duration(seconds: 15)),
+    );
+
+    // Skip hides the panel and cancels the notification.
+    await tester.tap(find.byKey(const Key('rest-skip')));
+    await pumpIo();
+    expect(find.byKey(const Key('rest-timer-panel')), findsNothing);
+    expect(scheduler.scheduled, isEmpty);
+    await tester.pumpAndSettle();
+
+    // The first set of an exercise is a personal record.
+    await pumpUntil(tester, keyStartingWith('pr-badge-'));
+    expect(keyStartingWith('pr-badge-'), findsOneWidget);
+
+    // Set 2: another one-tap log (a tie, not a record), then skip.
+    await scrollTo(tester, log);
+    await tester.tap(log);
+    await pumpFramesUntil(find.byKey(const Key('rest-timer-panel')));
+    await tester.tap(find.byKey(const Key('rest-skip')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(keyStartingWith('set-text-'), findsNWidgets(2));
+    expect(keyStartingWith('pr-badge-'), findsOneWidget);
+
+    // Finish: the summary opens.
+    await scrollTo(tester, find.byKey(const Key('finish-session')));
+    await tester.tap(find.byKey(const Key('finish-session')));
+    await pumpUntil(tester, find.byKey(const Key('detail-title')));
+    expect(find.text('IT leg day'), findsWidgets);
+
+    // The finished workout is in the history. The summary replaced the
+    // session screen, so back leads to the plans list and then the Train tab.
+    await tester.pageBack();
+    await pumpUntil(tester, find.byKey(const Key('plan-start-it-plan')));
+    await tester.pageBack();
+    await pumpUntil(tester, find.byKey(const Key('open-history')));
+    await scrollTo(tester, find.byKey(const Key('open-history')));
+    await tester.tap(find.byKey(const Key('open-history')));
+    await pumpUntil(tester, keyStartingWith('history-session-'));
+    expect(keyStartingWith('history-session-'), findsOneWidget);
+    expect(find.text('IT leg day'), findsWidgets);
+  });
+
   testWidgets('real on-device database opens, migrates, persists a weight '
       'and a target across a fresh connection', (tester) async {
     await pumpApp(tester); // production providers: real file database
@@ -399,4 +560,10 @@ final class _NoMatchLookup implements FoodLookupService {
 
   @override
   Future<Result<Food?>> byBarcode(String barcode) async => const Ok(null);
+}
+
+/// Foreground alert that does nothing, so the emulator does not vibrate.
+final class _SilentRestAlert implements RestAlert {
+  @override
+  Future<void> fire() async {}
 }

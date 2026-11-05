@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
@@ -7,6 +9,7 @@ import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
+import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
@@ -187,6 +190,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (result case Err(:final error)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(userMessageFor(error))));
+    }
+  }
+
+  /// PLT-007: turning the switch on asks for permission and stays off when it
+  /// is refused; turning it off cancels every scheduled rest alert.
+  Future<void> _setRestNotifications(bool on) async {
+    final scheduler = ref.read(restAlertSchedulerProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    if (on) {
+      var permission = NotificationPermission.denied;
+      try {
+        permission = await scheduler.request();
+      } on Object {
+        // A failing platform counts as not allowed.
+      }
+      if (permission != NotificationPermission.granted) {
+        if (!mounted) return;
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              key: const Key('rest-notifications-denied'),
+              content: const Text(
+                'Notifications are not allowed, so the switch stays off. '
+                'Allow them for RepForge in system settings to get rest '
+                'alerts in the background.',
+              ),
+              action: SnackBarAction(
+                label: 'Open settings',
+                onPressed: () {
+                  unawaited(scheduler.openSettings().catchError((_) => false));
+                },
+              ),
+            ),
+          );
+        return;
+      }
+      await _saveSettings((s) => s.copyWith(restTimerNotifications: true));
+      return;
+    }
+    await _saveSettings((s) => s.copyWith(restTimerNotifications: false));
+    try {
+      await scheduler.cancelAll();
+    } on Object {
+      // Nothing may block turning the setting off.
     }
   }
 
@@ -424,14 +472,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Rest timer notifications'),
                     subtitle: const Text(
-                      'Saves your choice only. Alerts when the app is in the '
-                      'background arrive in a later update; for now the timer '
-                      'alerts while the app is open.',
+                      'Shows a notification when a rest ends while the app is '
+                      'in the background. Off until you allow notifications. '
+                      'The timer always alerts while the app is open, and its '
+                      'time is right even if no notification arrives.',
                     ),
                     value: s.restTimerNotifications,
-                    onChanged: (v) => _saveSettings(
-                      (s) => s.copyWith(restTimerNotifications: v),
-                    ),
+                    onChanged: _setRestNotifications,
                   ),
                 ],
               ),

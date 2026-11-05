@@ -5,6 +5,7 @@ import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/platform/fake_rest_alert_scheduler.dart';
 import 'package:repforge/data/repositories/drift_exercise_repository.dart';
 import 'package:repforge/data/repositories/drift_scheduled_workout_repository.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
@@ -114,6 +115,7 @@ class SessionHarness {
   late final DriftScheduledWorkoutRepository scheduled;
   late final DriftSettingsRepository settings;
   final alert = FakeRestAlert();
+  final scheduler = FakeRestAlertScheduler();
   int gen = 0;
   int taps = 0;
 
@@ -153,6 +155,7 @@ class SessionHarness {
           clockProvider.overrideWithValue(clock),
           idGeneratorProvider.overrideWithValue(() => 'gen-${gen++}'),
           restAlertProvider.overrideWithValue(alert),
+          restAlertSchedulerProvider.overrideWithValue(scheduler),
         ],
         child: RepForgeApp(router: createRouter(initialLocation: location)),
       ),

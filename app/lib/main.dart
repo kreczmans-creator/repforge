@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/platform/camera_capability_channel.dart';
+import 'package:repforge/data/platform/local_notifications_rest_alert_scheduler.dart';
 import 'package:repforge/data/platform/mobile_scanner_barcode_scanner.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/features/nutrition/application/scanner_preview.dart';
@@ -51,8 +52,9 @@ Future<void> _importExerciseLibrary(ProviderContainer container) async {
   }
 }
 
-/// Real camera scanning exists only on Android and iOS; elsewhere the
-/// providers keep their throwing defaults.
+/// Real camera scanning and rest notifications exist only on Android and iOS;
+/// elsewhere the providers keep their defaults (scanner throws, notifications
+/// schedule nothing).
 List<Override> _platformOverrides() {
   final isMobile =
       !kIsWeb &&
@@ -66,5 +68,8 @@ List<Override> _platformOverrides() {
   return [
     barcodeScannerProvider.overrideWithValue(scanner),
     scannerPreviewBuilderProvider.overrideWithValue(scanner.preview),
+    restAlertSchedulerProvider.overrideWithValue(
+      LocalNotificationsRestAlertScheduler(),
+    ),
   ];
 }

@@ -122,6 +122,42 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('rest notification follows the session screen (ADR-0007)', (
+    tester,
+  ) async {
+    await h.setSettings(
+      (await h.settings.read()).copyWith(restTimerNotifications: true),
+    );
+    await h.plans.upsert(_plan(h.now));
+    await h.open(tester, location: RfRoutes.trainPlans);
+    await h.tap(tester, 'plan-start-plan');
+    final id = (await h.latest()).exercises.single.id;
+
+    await h.tap(tester, 'newset-log-$id');
+    await h.settle(tester);
+    expect(
+      h.scheduler.scheduled['rest-timer'],
+      h.now.add(const Duration(seconds: 60)),
+    );
+    await h.tap(tester, 'rest-extend');
+    await h.settle(tester);
+    expect(
+      h.scheduler.scheduled['rest-timer'],
+      h.now.add(const Duration(seconds: 75)),
+    );
+    await h.tap(tester, 'rest-pause');
+    await h.settle(tester);
+    expect(h.scheduler.scheduled, isEmpty);
+    await h.tap(tester, 'rest-resume');
+    await h.settle(tester);
+    expect(h.scheduler.scheduled, hasLength(1));
+    // Finishing the session skips the timer and cancels the alert.
+    await h.tap(tester, 'finish-session');
+    await h.settle(tester);
+    expect(h.scheduler.scheduled, isEmpty);
+    await unmount(tester);
+  });
+
   testWidgets('exercise history shows set kind and PR badges', (tester) async {
     await h.seed(
       pastSession(
