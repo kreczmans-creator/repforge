@@ -66,16 +66,12 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
       ),
     );
     if (ok != true || !mounted) return;
-    setState(() => _busy = true);
-    final result = await ref.read(copySuppliedExerciseProvider)(sourceId: e.id);
-    if (!mounted) return;
-    setState(() => _busy = false);
-    switch (result) {
-      case Ok(:final value):
-        context.pushReplacement(RfRoutes.trainExerciseEdit(value.id));
-      case Err(:final error):
-        _snack(userMessageFor(error));
-    }
+    // The editor opens on an unsaved draft; the copy exists only if saved.
+    final saved = await context.push<Exercise>(
+      RfRoutes.trainExerciseCopy(e.id),
+    );
+    if (saved == null || !mounted) return;
+    context.pushReplacement(RfRoutes.trainExercise(saved.id));
   }
 
   Future<void> _archive(Exercise e) async {

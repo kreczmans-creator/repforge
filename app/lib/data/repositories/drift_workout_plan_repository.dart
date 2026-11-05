@@ -61,6 +61,24 @@ final class DriftWorkoutPlanRepository implements WorkoutPlanRepository {
     );
   }
 
+  @override
+  Future<bool> usesExercise(String exerciseId) async {
+    final q =
+        _db.selectOnly(_db.planExercises).join([
+            innerJoin(
+              _db.workoutPlans,
+              _db.workoutPlans.id.equalsExp(_db.planExercises.planId),
+            ),
+          ])
+          ..addColumns([_db.planExercises.id])
+          ..where(
+            _db.planExercises.exerciseId.equals(exerciseId) &
+                _db.workoutPlans.deletedAt.isNull(),
+          )
+          ..limit(1);
+    return (await q.get()).isNotEmpty;
+  }
+
   Future<List<WorkoutPlan>> _load(List<WorkoutPlanRow> rows) async {
     if (rows.isEmpty) return const [];
     final children =

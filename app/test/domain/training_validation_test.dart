@@ -451,26 +451,12 @@ void main() {
         const Exertion(scale: ExertionScale.rpe, value: 10.5),
         const Exertion(scale: ExertionScale.rpe, value: 8.3),
         const Exertion(scale: ExertionScale.rir, value: -1),
+        const Exertion(scale: ExertionScale.rir, value: 6),
+        const Exertion(scale: ExertionScale.rir, value: 2.5),
         const Exertion(scale: ExertionScale.rir, value: 11),
       ]) {
         expect(_field(with_(bad)), 'exertion', reason: '$bad');
       }
-    });
-  });
-
-  group('LoadKg.strict (TRN-002(2))', () {
-    test('accepts 0.25 kg steps and refuses other steps and negatives', () {
-      expect(_ok(LoadKg.strict(80)).value, 80);
-      expect(_ok(LoadKg.strict(62.5)).value, 62.5);
-      expect(_ok(LoadKg.strict(0.25)).value, 0.25);
-      expect(_ok(LoadKg.strict(0)).value, 0);
-      expect(LoadKg.strict(0.1).isErr, isTrue);
-      expect(LoadKg.strict(62.3).isErr, isTrue);
-      expect(LoadKg.strict(-0.25).isErr, isTrue);
-      expect(LoadKg.strict(1000.25).isErr, isTrue);
-      expect(LoadKg.strict(double.nan).isErr, isTrue);
-      // The lenient constructor still rounds (display / legacy input).
-      expect(_ok(LoadKg.of(0.1)).value, 0);
     });
   });
 

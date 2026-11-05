@@ -333,6 +333,81 @@ void main() {
       expect(rows.first.prepStepsJson, '[]');
     });
 
+    test('a schema v5 backup maps taxonomy labels and synonyms and '
+        'quarantines unmatched values like the migration (M4)', () async {
+      const ts = '2026-11-01T08:00:00.000Z';
+      Map<String, Object?> ex(
+        String id, {
+        required String category,
+        required String primary,
+        required String secondary,
+        required String equipment,
+      }) => {
+        'id': id,
+        'created_at': ts,
+        'updated_at': ts,
+        'deleted_at': null,
+        'name': id,
+        'type': 'weighted',
+        'category': category,
+        'primary_muscle': primary,
+        'secondary_muscles_json': secondary,
+        'equipment_json': equipment,
+        'is_custom': 1,
+        'archived': 0,
+      };
+      final result = await repo.importJson(
+        jsonEncode({
+          'app': 'repforge',
+          'formatVersion': 1,
+          'schemaVersion': 5,
+          'tables': {
+            'exercises': [
+              ex(
+                'labels',
+                category: 'Full body',
+                primary: 'Quads',
+                secondary: '["Hams"]',
+                equipment: '["Dumbbells","Cable station"]',
+              ),
+              ex(
+                'optional',
+                category: 'push',
+                primary: 'chest',
+                secondary: '["Tentacles","triceps"]',
+                equipment: '["Flux capacitor"]',
+              ),
+              ex(
+                'required',
+                category: 'Hybrid',
+                primary: 'chest',
+                secondary: '[]',
+                equipment: '[]',
+              ),
+            ],
+          },
+        }),
+      );
+      expect(result.isOk, isTrue);
+      final rows = {
+        for (final e in await db.select(db.exercises).get()) e.id: e,
+      };
+      expect(rows['labels']!.category, 'fullBody');
+      expect(rows['labels']!.primaryMuscle, 'quadriceps');
+      expect(rows['labels']!.secondaryMusclesJson, '["hamstrings"]');
+      expect(rows['labels']!.equipmentJson, '["dumbbell","cable"]');
+      expect(rows['optional']!.secondaryMusclesJson, '["triceps"]');
+      expect(rows['optional']!.equipmentJson, '[]');
+      expect(rows['required']!.category, 'Hybrid');
+      final q = {
+        for (final r in await db.select(db.legacyQuarantine).get()) r.rowId: r,
+      };
+      expect(q.keys, unorderedEquals(['optional', 'required']));
+      expect(q['optional']!.reason, contains('Tentacles'));
+      expect(q['required']!.reason, contains('category "Hybrid"'));
+      expect(q['required']!.sourceTable, 'exercises');
+    });
+
     test('a schema v5 backup restores its training rows: supplied from '
         'is_custom, taxonomy names, target_reps as a range', () async {
       const ts = '2026-11-01T08:00:00.000Z';

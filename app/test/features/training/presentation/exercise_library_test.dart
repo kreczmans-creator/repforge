@@ -21,6 +21,7 @@ import 'package:repforge/features/training/application/record_set.dart';
 
 import '../../../helpers/pump.dart';
 import '../../../helpers/scrolling.dart';
+import '../../../helpers/seed_session.dart';
 
 final _now = DateTime(2026, 11, 5, 9);
 
@@ -81,7 +82,8 @@ void main() {
     )();
   }
 
-  Future<void> session(String id) => sessions.upsert(
+  Future<void> session(String id) => seedSession(
+    sessions,
     WorkoutSession(
       id: id,
       name: 'Session $id',
@@ -291,6 +293,100 @@ void main() {
     await tapKey(tester, 'avail-dumbbell');
     await tapKey(tester, 'avail-done');
     expect(find.text('Barbell back squat'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('bodyweight only is a choice of its own, distinct from no '
+      'filter, and is remembered (TRN-011(2), L2)', (tester) async {
+    await importSeed();
+    final bodyweightOnly = (await tester.runAsync(
+      () => exercises.search(const ExerciseQuery(availableEquipment: {})),
+    ))!;
+    expect(bodyweightOnly, isNotEmpty);
+    expect(bodyweightOnly.every((e) => e.equipment.isEmpty), isTrue);
+    await open(tester);
+    // No filter: everything, including equipment exercises.
+    expect(find.text('Barbell back squat'), findsOneWidget);
+    expect(find.text('Push-up'), findsOneWidget);
+
+    await tapKey(tester, 'equipment-bodyweight-only');
+    expect(find.text('Push-up'), findsOneWidget);
+    expect(find.text('Barbell back squat'), findsNothing);
+    expect(find.text('Goblet squat'), findsNothing);
+
+    // "Restart": a new provider scope on the same database.
+    await open(tester, key: const ValueKey('restarted'));
+    expect(find.text('Push-up'), findsOneWidget);
+    expect(find.text('Barbell back squat'), findsNothing);
+
+    // Choosing equipment replaces it; switching it off shows everything.
+    await tapKey(tester, 'filter-equipment');
+    await tapKey(tester, 'avail-dumbbell');
+    await tapKey(tester, 'avail-done');
+    expect(find.text('Goblet squat'), findsOneWidget);
+    await tapKey(tester, 'equipment-bodyweight-only');
+    expect(find.text('Goblet squat'), findsNothing);
+    await tapKey(tester, 'equipment-bodyweight-only');
+    expect(find.text('Barbell back squat'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('cancelling the copy editor creates nothing; saving creates '
+      'exactly one copy and leaves the supplied exercise unchanged (L1)', (
+    tester,
+  ) async {
+    await importSeed();
+    final before = (await tester.runAsync(
+      () => db.select(db.exercises).get(),
+    ))!;
+    final supplied = (await tester.runAsync(
+      () => exercises.byId('lib-back-squat'),
+    ))!;
+    await open(tester, location: RfRoutes.trainExercise('lib-back-squat'));
+
+    Future<void> startCopy() async {
+      await tapKey(tester, 'exercise-edit');
+      await tapKey(tester, 'copy-confirm');
+      expect(find.text('Edit exercise'), findsOneWidget);
+      // Prefilled from the original.
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(const Key('exercise-name-field')),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller!
+            .text,
+        supplied.name,
+      );
+    }
+
+    await startCopy();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    var rows = (await tester.runAsync(() => db.select(db.exercises).get()))!;
+    expect(rows, hasLength(before.length), reason: 'cancel creates nothing');
+    expect(find.text('Edit exercise'), findsNothing);
+    expect(find.byKey(const Key('detail-badge')), findsOneWidget);
+
+    await startCopy();
+    await tester.enterText(
+      find.byKey(const Key('exercise-name-field')),
+      'My squat',
+    );
+    await tapKey(tester, 'exercise-save');
+    rows = (await tester.runAsync(() => db.select(db.exercises).get()))!;
+    expect(rows, hasLength(before.length + 1));
+    final copies = rows.where((r) => r.copiedFromId == 'lib-back-squat');
+    expect(copies, hasLength(1));
+    expect(copies.single.name, 'My squat');
+    expect(copies.single.supplied, isFalse);
+    final after = (await tester.runAsync(
+      () => exercises.byId('lib-back-squat'),
+    ))!;
+    expect(after, supplied);
     await unmount(tester);
   });
 

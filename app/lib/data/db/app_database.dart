@@ -255,9 +255,12 @@ class AppDatabase extends _$AppDatabase {
   ///   original is kept in `legacy_quarantine`; nothing is clamped);
   /// - `exercises` is rebuilt: `supplied` = NOT `is_custom`, `is_custom`
   ///   dropped, new `aliases_json`, `search_key`, `copied_from_id`; free-text
-  ///   category, muscle and equipment values that match a taxonomy
-  ///   identifier ignoring case and spaces are rewritten to it, others are
-  ///   kept as they are;
+  ///   type, category, muscle and equipment values that match a taxonomy
+  ///   identifier, label or listed synonym ignoring case and spaces are
+  ///   rewritten to the identifier; an unmatched secondary muscle or
+  ///   equipment item is dropped, an unmatched type, category or primary
+  ///   muscle is kept as it is, and in both cases the original row is copied
+  ///   to `legacy_quarantine` with the reason;
   /// - `plan_exercises` is rebuilt: `target_reps` is copied into `reps_min`
   ///   and `reps_max`; new `target_metres`; CHECK constraints;
   /// - `session_sets` is rebuilt: new `energy_kcal`, `energy_provenance`;
@@ -388,12 +391,17 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _normaliseExercisesV6() async {
     final rows = await customSelect('SELECT * FROM exercises').get();
     for (final r in rows) {
-      final row = LegacyTrainingRows.exercise(r.data);
+      final mapped = LegacyTrainingRows.exercise(r.data);
+      final row = mapped.row;
+      if (mapped.quarantineReason case final reason?) {
+        await _quarantine('exercises', r.data, reason);
+      }
       await customStatement(
-        'UPDATE exercises SET category = ?, primary_muscle = ?, '
+        'UPDATE exercises SET type = ?, category = ?, primary_muscle = ?, '
         'secondary_muscles_json = ?, equipment_json = ?, search_key = ? '
         'WHERE id = ?',
         [
+          row['type'],
           row['category'],
           row['primary_muscle'],
           row['secondary_muscles_json'],

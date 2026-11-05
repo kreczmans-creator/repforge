@@ -89,12 +89,15 @@ abstract final class TrainingRules {
   /// Validates a rep count (1–100).
   static bool validReps(int reps) => reps >= 1 && reps <= 100;
 
-  /// Validates an exertion rating: RPE 1–10, RIR 0–10, half steps.
+  /// Validates an exertion rating (D04 TRN-020): RPE 1–10 in steps of 0.5,
+  /// RIR 0–5 in whole numbers.
   static bool validExertion(Exertion e) {
-    final halfStep = (e.value * 2) == (e.value * 2).roundToDouble();
+    final v = e.value;
+    if (v.isNaN || v.isInfinite) return false;
     return switch (e.scale) {
-      ExertionScale.rpe => halfStep && e.value >= 1 && e.value <= 10,
-      ExertionScale.rir => halfStep && e.value >= 0 && e.value <= 10,
+      ExertionScale.rpe =>
+        v * 2 == (v * 2).roundToDouble() && v >= 1 && v <= 10,
+      ExertionScale.rir => v == v.roundToDouble() && v >= 0 && v <= 5,
     };
   }
 }

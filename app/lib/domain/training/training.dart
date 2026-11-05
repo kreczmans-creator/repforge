@@ -110,7 +110,7 @@ abstract class Exercise with _$Exercise {
 String exerciseSearchKey(String name, Iterable<String> aliases) =>
     normaliseSearchKey([name, ...aliases].join(' '));
 
-/// Exertion rating: RPE 1–10 or RIR 0–10, half steps.
+/// Exertion rating: RPE 1–10 in steps of 0.5, or RIR 0–5 in whole numbers.
 @freezed
 abstract class Exertion with _$Exertion {
   const factory Exertion({

@@ -132,42 +132,52 @@ final class Centimetres {
 
 /// Training load in kilograms (0–1000, 0.25 kg steps). Distinct from body
 /// weight (`Kilograms`) which has a different valid range.
+///
+/// [of] is the single input constructor and is strict (TRN-002(2)): a value
+/// that is not a multiple of 0.25 kg, or is negative, is rejected, never
+/// rounded. `fromStored` and `tryFromStored` are for reads from the
+/// database only and snap to the step instead of rejecting.
 @immutable
 final class LoadKg {
   const LoadKg._(this.value);
 
-  factory LoadKg.fromStored(double v) => switch (of(v)) {
-    Ok(:final value) => value,
-    Err(:final error) => throw StateError(error.message),
-  };
+  /// Reads a stored value. Snaps to 0.25 kg; throws [StateError] when out of
+  /// range. Not for user input.
+  factory LoadKg.fromStored(double v) =>
+      tryFromStored(v) ?? (throw StateError('Stored load out of range: $v'));
 
   static const double min = 0;
   static const double max = 1000;
+  static const double _tolerance = 1e-9;
   final double value;
 
+  /// Lenient read of a stored value; null when not a finite number in range.
+  static LoadKg? tryFromStored(double raw) {
+    if (raw.isNaN || raw.isInfinite) return null;
+    final snapped = (raw * 4).roundToDouble() / 4 + 0.0; // +0.0 maps -0.0 to 0
+    if (snapped < min || snapped > max) return null;
+    return LoadKg._(snapped);
+  }
+
+  /// Validates typed input: finite, 0–1000 kg and a multiple of 0.25 kg
+  /// (within 1e-9 for floating-point noise). Rejects, never rounds.
   static Result<LoadKg> of(double raw) {
     if (raw.isNaN || raw.isInfinite) {
       return const Err(ValidationError('Enter a number.', field: 'loadKg'));
     }
-    final rounded = (raw * 4).roundToDouble() / 4;
-    if (rounded < min || rounded > max) {
-      return const Err(
-        ValidationError('Load must be between 0 and 1000 kg.', field: 'loadKg'),
-      );
-    }
-    return Ok(LoadKg._(rounded));
-  }
-
-  /// Like [of] but refuses a value that is not already a multiple of 0.25 kg
-  /// instead of rounding it (TRN-002(2): increments of 0.25 kg are accepted,
-  /// anything else is rejected). Use for typed user input.
-  static Result<LoadKg> strict(double raw) {
-    if (!raw.isNaN && !raw.isInfinite && raw * 4 != (raw * 4).roundToDouble()) {
+    final steps = (raw * 4).roundToDouble();
+    if ((raw * 4 - steps).abs() > _tolerance) {
       return const Err(
         ValidationError('Load must be in steps of 0.25 kg.', field: 'loadKg'),
       );
     }
-    return of(raw);
+    final snapped = steps / 4 + 0.0; // -0.0 becomes 0
+    if (snapped < min || snapped > max) {
+      return const Err(
+        ValidationError('Load must be between 0 and 1000 kg.', field: 'loadKg'),
+      );
+    }
+    return Ok(LoadKg._(snapped));
   }
 
   String get label => '${formatNumber(value, maxDecimals: 2)} kg';

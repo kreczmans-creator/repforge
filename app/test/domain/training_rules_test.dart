@@ -263,7 +263,7 @@ void main() {
     bool ok(ExertionScale s, double v) =>
         TrainingRules.validExertion(Exertion(scale: s, value: v));
 
-    test('RPE is 1-10 in half steps', () {
+    test('RPE is 1-10 in half steps (D04 TRN-020)', () {
       expect(ok(ExertionScale.rpe, 1), isTrue);
       expect(ok(ExertionScale.rpe, 8.5), isTrue);
       expect(ok(ExertionScale.rpe, 10), isTrue);
@@ -273,13 +273,13 @@ void main() {
       expect(ok(ExertionScale.rpe, 7.3), isFalse);
     });
 
-    test('RIR is 0-10 in half steps', () {
-      expect(ok(ExertionScale.rir, 0), isTrue);
-      expect(ok(ExertionScale.rir, 2.5), isTrue);
-      expect(ok(ExertionScale.rir, 10), isTrue);
-      expect(ok(ExertionScale.rir, -1), isFalse);
-      expect(ok(ExertionScale.rir, 10.5), isFalse);
-      expect(ok(ExertionScale.rir, 7.3), isFalse);
+    test('RIR is 0-5 in whole numbers (D04 TRN-020)', () {
+      for (final v in [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]) {
+        expect(ok(ExertionScale.rir, v), isTrue, reason: '$v');
+      }
+      for (final v in [-1.0, 2.5, 5.5, 6.0, 7.5, 10.0, 7.3]) {
+        expect(ok(ExertionScale.rir, v), isFalse, reason: '$v');
+      }
     });
   });
 }

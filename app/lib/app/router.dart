@@ -33,6 +33,7 @@ abstract final class RfRoutes {
 
   /// Custom exercise editor for [id] (TRN-012).
   static String trainExerciseEdit(String id) => '/train/exercises/$id/edit';
+  static String trainExerciseCopy(String id) => '/train/exercises/$id/copy';
   static const fuel = '/fuel';
   static const fuelSearch = '/fuel/search';
 
@@ -109,6 +110,13 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                       parentNavigatorKey: _rootKey,
                       builder: (context, state) => ExerciseEditorScreen(
                         exerciseId: state.pathParameters['id'],
+                      ),
+                    ),
+                    GoRoute(
+                      path: 'copy',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => ExerciseEditorScreen(
+                        copyFromId: state.pathParameters['id'],
                       ),
                     ),
                   ],

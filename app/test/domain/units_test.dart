@@ -128,11 +128,34 @@ void main() {
   });
 
   group('LoadKg', () {
-    test('rounds to 0.25 steps', () {
-      expect((LoadKg.of(20.1) as Ok<LoadKg>).value.value, 20);
-      expect((LoadKg.of(20.13) as Ok<LoadKg>).value.value, 20.25);
-      expect((LoadKg.of(20.4) as Ok<LoadKg>).value.value, 20.5);
-      expect((LoadKg.of(0.74) as Ok<LoadKg>).value.value, 0.75);
+    test('input accepts 0.25 steps and rejects anything else (TRN-002(2))', () {
+      for (final v in [0, 0.25, 20, 20.25, 20.5, 62.5, 1000]) {
+        expect((LoadKg.of(v.toDouble()) as Ok<LoadKg>).value.value, v);
+      }
+      for (final v in [20.1, 20.13, 20.4, 0.74, 80.1, 0.1, 1000.25]) {
+        expect(LoadKg.of(v).isErr, isTrue, reason: '$v');
+      }
+    });
+
+    test('float noise within 1e-9 is accepted', () {
+      expect((LoadKg.of(0.1 + 0.15) as Ok<LoadKg>).value.value, 0.25);
+      expect((LoadKg.of(80 + 1e-12) as Ok<LoadKg>).value.value, 80);
+    });
+
+    test('negative zero is zero; negatives are rejected', () {
+      const negativeZero = -0.0;
+      final zero = (LoadKg.of(negativeZero) as Ok<LoadKg>).value.value;
+      expect(zero, 0);
+      expect(zero.isNegative, isFalse);
+      expect(LoadKg.of(-0.1).isErr, isTrue);
+      expect(LoadKg.of(-0.25).isErr, isTrue);
+    });
+
+    test('stored values are read leniently', () {
+      expect(LoadKg.fromStored(80.1).value, 80);
+      expect(LoadKg.tryFromStored(20.13)!.value, 20.25);
+      expect(LoadKg.tryFromStored(-1), isNull);
+      expect(LoadKg.tryFromStored(double.nan), isNull);
     });
 
     test('accepts bounds', () {

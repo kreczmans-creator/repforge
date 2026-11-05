@@ -22,6 +22,7 @@ final saveCustomExerciseProvider = Provider<SaveCustomExercise>(
   (ref) => SaveCustomExercise(
     exercises: ref.watch(exerciseRepositoryProvider),
     sessions: ref.watch(workoutSessionRepositoryProvider),
+    plans: ref.watch(workoutPlanRepositoryProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
   ),

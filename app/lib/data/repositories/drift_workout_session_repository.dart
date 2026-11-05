@@ -35,21 +35,13 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
     return (await _load([row])).firstOrNull;
   }
 
+  /// Writes the session row only; never touches `session_sets`. Sets enter
+  /// the database through [addSet] (used by `RecordSet`, which validates
+  /// them), so a caller cannot store an unvalidated set by passing it here.
   @override
-  Future<void> upsert(WorkoutSession session) => _db.transaction(() async {
-    await _db
-        .into(_db.workoutSessions)
-        .insertOnConflictUpdate(TrainingMappers.sessionToRow(session));
-    await (_db.delete(
-      _db.sessionSets,
-    )..where((t) => t.sessionId.equals(session.id))).go();
-    await _db.batch(
-      (b) => b.insertAll(_db.sessionSets, [
-        for (final s in session.sets)
-          TrainingMappers.sessionSetToRow(session.id, s),
-      ]),
-    );
-  });
+  Future<void> upsert(WorkoutSession session) => _db
+      .into(_db.workoutSessions)
+      .insertOnConflictUpdate(TrainingMappers.sessionToRow(session));
 
   @override
   Future<void> delete(String id) async {

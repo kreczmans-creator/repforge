@@ -124,61 +124,168 @@ abstract final class LegacyTrainingRows {
     return _result(row, out, nulled);
   }
 
-  /// Matches [raw] (free text from the WP 3 schema, e.g. `Push` or
-  /// `front delts`) to an enum value ignoring case, spaces and punctuation;
-  /// returns the enum name, or [raw] unchanged when nothing matches.
-  static String canonicalName<T extends Enum>(String raw, List<T> values) {
-    final folded = raw.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+  // ---- Taxonomy matching for free text (WP 3 schema) -----------------------
+
+  static String _fold(String raw) =>
+      raw.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+
+  /// Display labels from `docs/training-taxonomy.md` that differ from the
+  /// identifier once folded (the full label before any parenthesis). A
+  /// frozen snapshot: later label rewording does not change what a legacy
+  /// row maps to. Identifiers are matched through the enum names.
+  static const Map<String, String> _labelToIdentifier = {
+    // Equipment labels.
+    'dumbbells': 'dumbbell',
+    'cablestation': 'cable',
+    'weightplate': 'plate',
+    'gymnasticrings': 'rings',
+    'exercisebike': 'bike',
+    'rowingmachine': 'rower',
+    'crosstrainer': 'elliptical',
+  };
+
+  /// The small, explicit synonym table (folded text to identifier). Only
+  /// everyday gym words with one unambiguous target; anything else is
+  /// quarantined rather than guessed. "Delts" and "shoulders" are left out
+  /// because they map to three groups.
+  static const Map<String, String> _synonyms = {
+    // Muscles.
+    'quads': 'quadriceps',
+    'quad': 'quadriceps',
+    'hams': 'hamstrings',
+    'hamstring': 'hamstrings',
+    'lat': 'lats',
+    'glute': 'glutes',
+    'calf': 'calves',
+    'pecs': 'chest',
+    'pectorals': 'chest',
+    'traps': 'upperBack',
+    'trapezius': 'upperBack',
+    'rhomboids': 'upperBack',
+    'abdominals': 'abs',
+    'tricep': 'triceps',
+    'bicep': 'biceps',
+    // Equipment.
+    'cables': 'cable',
+    'kettlebells': 'kettlebell',
+    'barbells': 'barbell',
+    'band': 'resistanceBand',
+    'bands': 'resistanceBand',
+    'plates': 'plate',
+    // Category.
+    'stretching': 'mobility',
+  };
+
+  /// Equipment texts that mean "no equipment" (an empty list, not a loss).
+  static const Set<String> _noEquipment = {'none', 'bodyweight', 'noequipment'};
+
+  /// Matches [raw] (free text from the WP 3 schema, e.g. `Push`, `front
+  /// delts`, `Dumbbells`) to an enum value: identifier, taxonomy label or a
+  /// synonym, ignoring case, spaces and punctuation. Returns the enum name,
+  /// or null when nothing matches.
+  static String? matchName<T extends Enum>(String raw, List<T> values) {
+    final folded = _fold(raw);
+    if (folded.isEmpty) return null;
     for (final v in values) {
-      if (v.name.toLowerCase() == folded) return v.name;
+      if (_fold(v.name) == folded) return v.name;
     }
-    return raw;
+    final names = {for (final v in values) v.name};
+    final viaLabel = _labelToIdentifier[folded];
+    if (viaLabel != null && names.contains(viaLabel)) return viaLabel;
+    final viaSynonym = _synonyms[folded];
+    if (viaSynonym != null && names.contains(viaSynonym)) return viaSynonym;
+    return null;
   }
 
-  /// [canonicalName] applied to a JSON array of strings; text that is not
-  /// such an array is returned unchanged.
-  static String canonicalNamesJson<T extends Enum>(
+  /// Maps a JSON array of strings (secondary muscles, equipment) to
+  /// identifiers. Unmatched items are dropped and listed in `dropped`; text
+  /// that is not an array of strings becomes an empty list with the whole
+  /// text in `dropped`. [noneWords] are recognised as "nothing" and skipped
+  /// silently.
+  static ({String json, List<String> dropped}) _mapList<T extends Enum>(
     String json,
-    List<T> values,
-  ) {
+    List<T> values, {
+    Set<String> noneWords = const {},
+  }) {
+    Object? decoded;
     try {
-      final decoded = jsonDecode(json);
-      if (decoded is List && decoded.every((e) => e is String)) {
-        return jsonEncode([
-          for (final e in decoded) canonicalName(e as String, values),
-        ]);
-      }
+      decoded = jsonDecode(json);
     } on FormatException {
-      // Fall through: keep the stored text.
+      decoded = null;
     }
-    return json;
+    if (decoded is! List || decoded.any((e) => e is! String)) {
+      return (json: '[]', dropped: [json]);
+    }
+    final out = <String>[];
+    final dropped = <String>[];
+    for (final e in decoded.cast<String>()) {
+      final m = matchName(e, values);
+      if (m != null) {
+        if (!out.contains(m)) out.add(m);
+      } else if (!noneWords.contains(_fold(e))) {
+        dropped.add(e);
+      }
+    }
+    return (json: jsonEncode(out), dropped: dropped);
   }
 
   /// Maps an `exercises` row from the v5 shape (or earlier) to v6: `supplied`
   /// from `is_custom`, canonical enum names, aliases and search key.
-  static Map<String, Object?> exercise(Map<String, Object?> row) {
+  ///
+  /// An unmatched optional value (a secondary muscle, an equipment item) is
+  /// dropped from its list. An unmatched required value (type, category,
+  /// primary muscle) cannot be invented, so it is kept as it is and the
+  /// exercise stays unreadable to the mappers. Either way
+  /// [ExerciseMapping.quarantineReason] is set and the caller copies the
+  /// original row to `legacy_quarantine`.
+  static ExerciseMapping exercise(Map<String, Object?> row) {
     final out = Map<String, Object?>.of(row);
     if (!out.containsKey('supplied')) {
       final custom = out['is_custom'];
       out['supplied'] = (custom == 1 || custom == true) ? 0 : 1;
     }
     out.remove('is_custom');
-    out['category'] = canonicalName(
-      (row['category'] ?? '').toString(),
-      ExerciseCategory.values,
-    );
-    out['primary_muscle'] = canonicalName(
-      (row['primary_muscle'] ?? '').toString(),
-      MuscleGroup.values,
-    );
-    out['secondary_muscles_json'] = canonicalNamesJson(
+    final reasons = <String>[];
+    final unreadable = <String>[];
+    String required<T extends Enum>(String column, List<T> values) {
+      final raw = (row[column] ?? '').toString();
+      final m = matchName(raw, values);
+      if (m == null) unreadable.add('$column "$raw"');
+      return m ?? raw;
+    }
+
+    out['type'] = required('type', ExerciseType.values);
+    out['category'] = required('category', ExerciseCategory.values);
+    out['primary_muscle'] = required('primary_muscle', MuscleGroup.values);
+    final secondary = _mapList(
       (row['secondary_muscles_json'] ?? '[]').toString(),
       MuscleGroup.values,
     );
-    out['equipment_json'] = canonicalNamesJson(
+    out['secondary_muscles_json'] = secondary.json;
+    if (secondary.dropped.isNotEmpty) {
+      reasons.add(
+        'Unrecognised secondary muscle(s) dropped: '
+        '${secondary.dropped.join(', ')}',
+      );
+    }
+    final equipment = _mapList(
       (row['equipment_json'] ?? '[]').toString(),
       Equipment.values,
+      noneWords: _noEquipment,
     );
+    out['equipment_json'] = equipment.json;
+    if (equipment.dropped.isNotEmpty) {
+      reasons.add(
+        'Unrecognised equipment dropped: ${equipment.dropped.join(', ')}',
+      );
+    }
+    if (unreadable.isNotEmpty) {
+      reasons.insert(
+        0,
+        'Unrecognised required value(s), exercise kept but unreadable by '
+        'the app: ${unreadable.join(', ')}',
+      );
+    }
     final aliasesJson = (row['aliases_json'] ?? '[]').toString();
     var aliases = <String>[];
     try {
@@ -192,6 +299,20 @@ abstract final class LegacyTrainingRows {
       (row['name'] ?? '').toString(),
       aliases,
     );
-    return out;
+    return ExerciseMapping(
+      row: out,
+      quarantineReason: reasons.isEmpty ? null : reasons.join('; '),
+    );
   }
+}
+
+/// Result of [LegacyTrainingRows.exercise].
+final class ExerciseMapping {
+  const ExerciseMapping({required this.row, required this.quarantineReason});
+
+  /// The v6-shaped row (always kept).
+  final Map<String, Object?> row;
+
+  /// Non-null when the original row must be copied to `legacy_quarantine`.
+  final String? quarantineReason;
 }

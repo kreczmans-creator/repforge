@@ -6,6 +6,8 @@ import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 
+import '../helpers/seed_session.dart';
+
 final _clock = FixedClock(DateTime.utc(2026, 11, 3, 12));
 final _t = DateTime.utc(2026, 11, 1, 8);
 
@@ -131,7 +133,7 @@ void main() {
       ),
     ];
     final session = _session('s', _t, sets);
-    await repo.upsert(session);
+    await seedSession(repo, session);
 
     final loaded = await repo.byId('s');
     expect(loaded, session);
@@ -149,27 +151,49 @@ void main() {
       _set('s', 'b', 1, w),
       _set('s', 'a', 0, w),
     ]);
-    await repo.upsert(session);
+    await seedSession(repo, session);
     expect((await repo.byId('s'))!.sets.map((s) => s.id), ['a', 'b', 'c']);
   });
 
-  test('upsert replaces child sets', () async {
-    final w = SetData.weighted(load: _kg(50), reps: 5);
+  test(
+    'upsert writes the session row only and never touches sets (M2)',
+    () async {
+      final w = SetData.weighted(load: _kg(50), reps: 5);
+      await seedSession(repo, _session('s', _t, [_set('s', 'a', 0, w)]));
+      // A later upsert carrying other sets neither adds nor removes any.
+      await repo.upsert(
+        _session('s', _t, [
+          _set('s', 'c', 0, w),
+          _set('s', 'd', 1, w),
+        ], name: 'Renamed'),
+      );
+      final loaded = await repo.byId('s');
+      expect(loaded!.name, 'Renamed');
+      expect(loaded.sets.map((s) => s.id), ['a']);
+      expect(await db.select(db.sessionSets).get(), hasLength(1));
+      expect(await db.select(db.workoutSessions).get(), hasLength(1));
+    },
+  );
+
+  test('upserting a session that carries a type-mismatched set stores no '
+      'set (writes go through RecordSet validation)', () async {
+    // A weighted set on a timed exercise: RecordSet would refuse it.
     await repo.upsert(
-      _session('s', _t, [_set('s', 'a', 0, w), _set('s', 'b', 1, w)]),
+      _session('s', _t, [
+        _set('s', 'bad', 0, SetData.weighted(load: _kg(60), reps: 5)),
+      ]),
     );
-    final updated = _session('s', _t, [
-      _set('s', 'c', 0, SetData.weighted(load: _kg(60), reps: 3)),
-    ], name: 'Renamed');
-    await repo.upsert(updated);
-    expect(await repo.byId('s'), updated);
-    expect(await db.select(db.sessionSets).get(), hasLength(1));
-    expect(await db.select(db.workoutSessions).get(), hasLength(1));
+    expect(await repo.byId('s'), isNotNull);
+    expect(await db.select(db.sessionSets).get(), isEmpty);
+    expect((await repo.byId('s'))!.sets, isEmpty);
   });
 
   test('watchAll is newest first and respects the limit', () async {
     for (var i = 0; i < 3; i++) {
-      await repo.upsert(_session('s$i', _t.add(Duration(days: i)), const []));
+      await seedSession(
+        repo,
+        _session('s$i', _t.add(Duration(days: i)), const []),
+      );
     }
     expect((await repo.watchAll().first).map((s) => s.id), ['s2', 's1', 's0']);
     expect((await repo.watchAll(limit: 2).first).map((s) => s.id), [
@@ -179,7 +203,7 @@ void main() {
   });
 
   test('delete soft-deletes, stamps from clock, and is idempotent', () async {
-    await repo.upsert(_session('s', _t, const []));
+    await seedSession(repo, _session('s', _t, const []));
     await repo.delete('s');
     final first = (await db.select(db.workoutSessions).get()).single;
     expect(first.deletedAt, _clock.now());
@@ -197,16 +221,19 @@ void main() {
     () async {
       final w = SetData.weighted(load: _kg(50), reps: 5);
       // Insert newer session first to prove ordering is by startedAt.
-      await repo.upsert(
+      await seedSession(
+        repo,
         _session('new', _t.add(const Duration(days: 2)), [
           _set('new', 'n1', 0, w),
           _set('new', 'other', 1, w, exerciseId: 'different'),
         ]),
       );
-      await repo.upsert(
+      await seedSession(
+        repo,
         _session('old', _t, [_set('old', 'o2', 1, w), _set('old', 'o1', 0, w)]),
       );
-      await repo.upsert(
+      await seedSession(
+        repo,
         _session('gone', _t.add(const Duration(days: 1)), [
           _set('gone', 'g1', 0, w),
         ]),
@@ -221,7 +248,8 @@ void main() {
   test(
     'the database refuses a set whose load is out of range (TD-25)',
     () async {
-      await repo.upsert(
+      await seedSession(
+        repo,
         _session('s', _t, [
           _set('s', 'ok', 0, SetData.weighted(load: _kg(50), reps: 5)),
         ]),
@@ -249,7 +277,7 @@ void main() {
   );
 
   test('skips a set with an unknown type or missing fields', () async {
-    await repo.upsert(_session('s', _t, const []));
+    await seedSession(repo, _session('s', _t, const []));
     for (final (id, type) in [('u', 'teleport'), ('m', 'weighted')]) {
       await db
           .into(db.sessionSets)

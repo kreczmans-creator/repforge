@@ -11,15 +11,37 @@ final availableEquipmentProvider = StreamProvider<Set<Equipment>>(
   (ref) => ref.watch(settingsRepositoryProvider).watchAvailableEquipment(),
 );
 
-/// Use case: remember the user's available equipment.
+/// Whether the library shows bodyweight-only exercises (TRN-011(1)). This is
+/// not the same as "no equipment filter": it passes an empty available set to
+/// the query, so only exercises that need no equipment are listed.
+final bodyweightOnlyProvider = StreamProvider<bool>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchBodyweightOnly(),
+);
+
+/// Use case: remember the user's equipment choice. A selection of equipment
+/// and "bodyweight only" exclude each other.
 final class SetAvailableEquipment {
   const SetAvailableEquipment(this._settings);
   final SettingsRepository _settings;
 
+  /// Saves the equipment the user has; clears "bodyweight only". An empty set
+  /// means "do not filter".
   Future<Result<void>> call(Set<Equipment> equipment) async {
     try {
       await _settings.saveAvailableEquipment(equipment);
-    } on Exception catch (e) {
+      await _settings.saveBodyweightOnly(value: false);
+    } on Object catch (e) {
+      return Err(StorageError('Could not save your equipment.', cause: e));
+    }
+    return const Ok(null);
+  }
+
+  /// Turns "bodyweight only" on (clearing the equipment selection) or off.
+  Future<Result<void>> setBodyweightOnly({required bool value}) async {
+    try {
+      if (value) await _settings.saveAvailableEquipment(const {});
+      await _settings.saveBodyweightOnly(value: value);
+    } on Object catch (e) {
       return Err(StorageError('Could not save your equipment.', cause: e));
     }
     return const Ok(null);

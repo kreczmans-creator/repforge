@@ -44,6 +44,11 @@ abstract interface class SettingsRepository {
   Stream<Set<Equipment>> watchAvailableEquipment();
   Future<void> saveAvailableEquipment(Set<Equipment> equipment);
 
+  /// Whether the library shows bodyweight-only exercises (TRN-011(1)): a
+  /// distinct choice from "no equipment filter". False until set.
+  Stream<bool> watchBodyweightOnly();
+  Future<void> saveBodyweightOnly({required bool value});
+
   /// Version of the bundled seed recipes already imported (0 = none yet).
   Future<int> readSeedRecipesVersion();
   Future<void> saveSeedRecipesVersion(int version);

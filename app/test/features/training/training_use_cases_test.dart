@@ -15,6 +15,8 @@ import 'package:repforge/features/training/application/exercise_use_cases.dart';
 import 'package:repforge/features/training/application/plan_use_cases.dart';
 import 'package:repforge/features/training/application/record_set.dart';
 
+import '../../helpers/seed_session.dart';
+
 final _clock = FixedClock(DateTime.utc(2026, 11, 5, 10));
 final _t = DateTime.utc(2026, 11, 1, 9);
 
@@ -59,6 +61,7 @@ void main() {
     save = SaveCustomExercise(
       exercises: exercises,
       sessions: sessions,
+      plans: plans,
       clock: _clock,
       newId: newId,
     );
@@ -238,7 +241,8 @@ void main() {
           ),
         );
         expect(retyped.type, ExerciseType.weighted);
-        await sessions.upsert(
+        await seedSession(
+          sessions,
           WorkoutSession(
             id: 's',
             name: 'S',
@@ -281,10 +285,74 @@ void main() {
       },
     );
 
+    test(
+      'the type cannot change while a plan uses the exercise (L4)',
+      () async {
+        final e = _ok(
+          await save(
+            name: 'Plank',
+            type: ExerciseType.timed,
+            category: ExerciseCategory.core,
+            primaryMuscle: MuscleGroup.abs,
+          ),
+        );
+        await plans.upsert(
+          WorkoutPlan(
+            id: 'p',
+            name: 'Core',
+            exercises: [
+              PlanExercise(
+                id: 'pe',
+                exerciseId: e.id,
+                sortOrder: 0,
+                targetSets: 3,
+                targetDuration: const Duration(seconds: 60),
+              ),
+            ],
+            createdAt: _t,
+            updatedAt: _t,
+          ),
+        );
+        expect(await sessions.hasHistory(e.id), isFalse);
+        final r = await save(
+          id: e.id,
+          name: 'Plank',
+          type: ExerciseType.weighted,
+          category: ExerciseCategory.core,
+          primaryMuscle: MuscleGroup.abs,
+        );
+        expect((_err(r) as ValidationError).field, 'type');
+        expect((await exercises.byId(e.id))!.type, ExerciseType.timed);
+        // Renaming is still fine; and a deleted plan no longer blocks.
+        expect(
+          (await save(
+            id: e.id,
+            name: 'Plank 2',
+            type: ExerciseType.timed,
+            category: ExerciseCategory.core,
+            primaryMuscle: MuscleGroup.abs,
+          )).isOk,
+          isTrue,
+        );
+        await plans.delete('p');
+        expect(
+          (await save(
+            id: e.id,
+            name: 'Plank 2',
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.core,
+            primaryMuscle: MuscleGroup.abs,
+          )).isOk,
+          isTrue,
+        );
+      },
+    );
+
     test('a storage failure is returned, not thrown', () async {
       final broken = SaveCustomExercise(
         exercises: _BrokenExercises(),
         sessions: sessions,
+        plans: plans,
         clock: _clock,
         newId: newId,
       );
@@ -364,7 +432,8 @@ void main() {
           primaryMuscle: MuscleGroup.lats,
         ),
       );
-      await sessions.upsert(
+      await seedSession(
+        sessions,
         WorkoutSession(
           id: 's',
           name: 'S',
@@ -567,6 +636,22 @@ void main() {
         expect(await plans.watchAll().first, isEmpty);
       },
     );
+
+    test('an archived exercise cannot be added to a plan (L3)', () async {
+      await seedExercises();
+      expect(await exercises.archive('bench', archived: true), isTrue);
+      final r = await savePlan(name: 'P', planExercises: [pe('bench')]);
+      final error = _err(r) as ValidationError;
+      expect(error.field, 'exerciseId');
+      expect(error.message, contains('bench'));
+      expect(await plans.watchAll().first, isEmpty);
+      // Restoring it makes it usable again.
+      await exercises.archive('bench', archived: false);
+      expect(
+        (await savePlan(name: 'P', planExercises: [pe('bench')])).isOk,
+        isTrue,
+      );
+    });
 
     test('an unknown plan id is not found', () async {
       expect(

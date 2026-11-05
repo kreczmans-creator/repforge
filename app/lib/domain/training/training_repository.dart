@@ -34,6 +34,10 @@ abstract interface class WorkoutPlanRepository {
   Future<WorkoutPlan?> byId(String id);
   Future<void> upsert(WorkoutPlan plan);
   Future<void> delete(String id);
+
+  /// True when any plan that is not deleted (archived plans count) lists
+  /// [exerciseId].
+  Future<bool> usesExercise(String exerciseId);
 }
 
 /// One performed workout's completed sets for one exercise (TRN-025).
@@ -57,6 +61,9 @@ abstract interface class WorkoutSessionRepository {
   /// Newest first.
   Stream<List<WorkoutSession>> watchAll({int limit = 100});
   Future<WorkoutSession?> byId(String id);
+
+  /// Writes the session's own fields only. `session.sets` is ignored: sets
+  /// are stored through [addSet] after `RecordSet` has validated them.
   Future<void> upsert(WorkoutSession session);
   Future<void> delete(String id);
 

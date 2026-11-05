@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
-import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart' show DataProvenance;
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
@@ -27,10 +26,7 @@ abstract final class TrainingMappers {
 
   static LoadKg? _load(double? raw) {
     if (raw == null) return null;
-    return switch (LoadKg.of(raw)) {
-      Ok(:final value) => value,
-      Err() => null,
-    };
+    return LoadKg.tryFromStored(raw);
   }
 
   static Duration? _seconds(int? s) => s == null ? null : Duration(seconds: s);

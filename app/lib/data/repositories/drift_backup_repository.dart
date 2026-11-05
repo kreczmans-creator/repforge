@@ -135,11 +135,11 @@ final class DriftBackupRepository implements BackupRepository {
     Map<String, Object?> row,
     List<Map<String, Object?>> quarantined,
   ) {
-    void quarantine(SanitisedRow fixed) {
+    void quarantine(String reason) {
       quarantined.add({
         'source_table': table,
         'row_id': (row['id'] ?? '').toString(),
-        'reason': fixed.reason,
+        'reason': reason,
         'original_json': jsonEncode(row),
         'quarantined_at': DateTime.now().toUtc().toIso8601String(),
       });
@@ -155,16 +155,18 @@ final class DriftBackupRepository implements BackupRepository {
       };
     }
     if (table == 'exercises' && row.containsKey('is_custom')) {
-      return LegacyTrainingRows.exercise(row);
+      final mapped = LegacyTrainingRows.exercise(row);
+      if (mapped.quarantineReason case final reason?) quarantine(reason);
+      return mapped.row;
     }
     if (table == 'plan_exercises' && row.containsKey('target_reps')) {
       final fixed = LegacyTrainingRows.planExercise(row);
-      if (!fixed.unchanged) quarantine(fixed);
+      if (!fixed.unchanged) quarantine(fixed.reason);
       return fixed.row;
     }
     if (table == 'session_sets' && !row.containsKey('energy_kcal')) {
       final fixed = LegacyTrainingRows.sessionSet(row);
-      if (!fixed.unchanged) quarantine(fixed);
+      if (!fixed.unchanged) quarantine(fixed.reason);
       return fixed.row;
     }
     return row;

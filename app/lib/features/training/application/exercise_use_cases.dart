@@ -10,18 +10,20 @@ import 'package:repforge/domain/training/training_validation.dart';
 /// A name, type, category and primary muscle group are required. Editing is
 /// only for exercises the user owns: a supplied exercise is never changed
 /// (use [CopySuppliedExercise], TRN-008(2)). The type of an exercise that
-/// already has recorded sets cannot change, because those sets would no
-/// longer match it.
+/// already has recorded sets, or that a plan lists, cannot change, because
+/// those sets and plan targets would no longer match it.
 final class SaveCustomExercise {
   const SaveCustomExercise({
     required this.exercises,
     required this.sessions,
+    required this.plans,
     required this.clock,
     required this.newId,
   });
 
   final ExerciseRepository exercises;
   final WorkoutSessionRepository sessions;
+  final WorkoutPlanRepository plans;
   final Clock clock;
   final IdGenerator newId;
 
@@ -64,13 +66,23 @@ final class SaveCustomExercise {
             ),
           );
         }
-        if (existing.type != type && await sessions.hasHistory(existing.id)) {
-          return const Err(
-            ValidationError(
-              'The type cannot change once sets have been recorded.',
-              field: 'type',
-            ),
-          );
+        if (existing.type != type) {
+          if (await sessions.hasHistory(existing.id)) {
+            return const Err(
+              ValidationError(
+                'The type cannot change once sets have been recorded.',
+                field: 'type',
+              ),
+            );
+          }
+          if (await plans.usesExercise(existing.id)) {
+            return const Err(
+              ValidationError(
+                'The type cannot change while a plan uses this exercise.',
+                field: 'type',
+              ),
+            );
+          }
         }
       }
       final draft = Exercise(

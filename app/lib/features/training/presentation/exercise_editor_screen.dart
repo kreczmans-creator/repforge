@@ -15,10 +15,16 @@ import 'package:repforge/ui/tokens.dart';
 
 /// Create or edit a custom exercise (TRN-012(1)). Pops with the saved
 /// exercise. With [exerciseId] null a new exercise is created.
+///
+/// With [copyFromId] the editor opens on an unsaved draft copy of that
+/// supplied exercise (TRN-008(2)): the fields are prefilled and nothing is
+/// stored until Save, which creates the one custom copy. Leaving the editor
+/// without saving creates nothing.
 class ExerciseEditorScreen extends ConsumerStatefulWidget {
-  const ExerciseEditorScreen({super.key, this.exerciseId});
+  const ExerciseEditorScreen({super.key, this.exerciseId, this.copyFromId});
 
   final String? exerciseId;
+  final String? copyFromId;
 
   @override
   ConsumerState<ExerciseEditorScreen> createState() =>
@@ -40,7 +46,8 @@ class _ExerciseEditorScreenState extends ConsumerState<ExerciseEditorScreen> {
   String? _error;
   String? _errorField;
 
-  bool get _isNew => widget.exerciseId == null;
+  bool get _isCopy => widget.copyFromId != null;
+  bool get _isNew => widget.exerciseId == null && !_isCopy;
 
   @override
   void initState() {
@@ -144,22 +151,51 @@ class _ExerciseEditorScreenState extends ConsumerState<ExerciseEditorScreen> {
       _error = null;
       _errorField = null;
     });
-    final result = await ref.read(saveCustomExerciseProvider)(
-      id: widget.exerciseId,
-      name: _name.text,
-      type: _type,
-      category: _category,
-      primaryMuscle: _primary,
-      secondaryMuscles: [
-        for (final m in MuscleGroup.values)
-          if (_secondary.contains(m)) m,
-      ],
-      equipment: [
-        for (final q in Equipment.values)
-          if (_equipment.contains(q)) q,
-      ],
-      aliases: _aliases,
-    );
+    final secondary = [
+      for (final m in MuscleGroup.values)
+        if (_secondary.contains(m)) m,
+    ];
+    final equipment = [
+      for (final q in Equipment.values)
+        if (_equipment.contains(q)) q,
+    ];
+    final Result<Exercise> result;
+    if (_isCopy) {
+      // The copy use case keeps the original's value for a null; the editor
+      // asks for all three required choices instead.
+      result = _type == null
+          ? const Err(ValidationError('Choose a type.', field: 'type'))
+          : _category == null
+          ? const Err(ValidationError('Choose a category.', field: 'category'))
+          : _primary == null
+          ? const Err(
+              ValidationError(
+                'Choose a primary muscle group.',
+                field: 'primary',
+              ),
+            )
+          : await ref.read(copySuppliedExerciseProvider)(
+              sourceId: widget.copyFromId!,
+              name: _name.text,
+              type: _type,
+              category: _category,
+              primaryMuscle: _primary,
+              secondaryMuscles: secondary,
+              equipment: equipment,
+              aliases: _aliases,
+            );
+    } else {
+      result = await ref.read(saveCustomExerciseProvider)(
+        id: widget.exerciseId,
+        name: _name.text,
+        type: _type,
+        category: _category,
+        primaryMuscle: _primary,
+        secondaryMuscles: secondary,
+        equipment: equipment,
+        aliases: _aliases,
+      );
+    }
     if (!mounted) return;
     switch (result) {
       case Ok(:final value):
@@ -191,7 +227,9 @@ class _ExerciseEditorScreenState extends ConsumerState<ExerciseEditorScreen> {
     final title = _isNew ? 'New exercise' : 'Edit exercise';
     var typeLocked = false;
     if (!_isNew) {
-      final async = ref.watch(exerciseByIdProvider(widget.exerciseId!));
+      final async = ref.watch(
+        exerciseByIdProvider(widget.copyFromId ?? widget.exerciseId!),
+      );
       final e = async.value;
       if (e == null) {
         return Scaffold(
@@ -208,22 +246,26 @@ class _ExerciseEditorScreenState extends ConsumerState<ExerciseEditorScreen> {
                 ),
         );
       }
-      if (e.supplied) {
+      if (e.supplied != _isCopy) {
         return Scaffold(
           appBar: AppBar(title: Text(title)),
-          body: const Padding(
-            padding: EdgeInsets.all(RfSpace.gutter),
+          body: Padding(
+            padding: const EdgeInsets.all(RfSpace.gutter),
             child: RfEmptyState(
-              key: Key('editor-supplied'),
-              message:
-                  'A supplied exercise cannot be edited. Open it and choose '
-                  'Edit to make your own copy.',
+              key: const Key('editor-supplied'),
+              message: _isCopy
+                  ? 'Only a supplied exercise is copied; edit your own '
+                        'directly.'
+                  : 'A supplied exercise cannot be edited. Open it and '
+                        'choose Edit to make your own copy.',
             ),
           ),
         );
       }
       _seed(e);
-      typeLocked = ref.watch(exerciseHasHistoryProvider(e.id)).value ?? false;
+      typeLocked =
+          !_isCopy &&
+          (ref.watch(exerciseHasHistoryProvider(e.id)).value ?? false);
     }
     final theme = Theme.of(context);
     return Scaffold(

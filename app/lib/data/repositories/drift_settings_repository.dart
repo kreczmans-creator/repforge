@@ -21,6 +21,7 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _mealLabels = 'mealLabels';
   static const _recipeFavouritesOnly = 'recipeFavouritesOnly';
   static const _availableEquipment = 'availableEquipment';
+  static const _bodyweightOnly = 'equipmentBodyweightOnly';
   static const _seedRecipesVersion = 'seedRecipesVersion';
   static const _seedExercisesVersion = 'seedExercisesVersion';
 
@@ -114,6 +115,17 @@ final class DriftSettingsRepository implements SettingsRepository {
     _availableEquipment,
     ([for (final e in equipment) e.name]..sort()).join(','),
   );
+
+  @override
+  Stream<bool> watchBodyweightOnly() =>
+      (_db.select(_db.settings)..where((t) => t.key.equals(_bodyweightOnly)))
+          .watchSingleOrNull()
+          .map((row) => row?.value == 'true')
+          .distinct();
+
+  @override
+  Future<void> saveBodyweightOnly({required bool value}) =>
+      _writeValue(_bodyweightOnly, value.toString());
 
   /// Unknown names are dropped so a renamed item cannot break the filter.
   static Set<Equipment> _equipmentFrom(String? raw) {

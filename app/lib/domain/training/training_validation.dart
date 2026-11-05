@@ -4,7 +4,6 @@ import 'package:repforge/domain/nutrition/nutrition.dart' show DataProvenance;
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/training/training_rules.dart';
 import 'package:repforge/domain/units/format.dart';
-import 'package:repforge/domain/units/units.dart';
 
 /// Longest accepted exercise, plan or split name.
 const maxTrainingNameLength = 100;
@@ -141,16 +140,6 @@ Result<double> _positiveMetres(double m, String field) {
   return Ok(r);
 }
 
-/// A [LoadKg] is already in range and rounded; re-check the step so a value
-/// built any other way cannot slip through. Null when fine.
-AppError? _loadError(LoadKg? load, String field) {
-  if (load == null) return null;
-  if (load.value < 0 || load.value * 4 != (load.value * 4).roundToDouble()) {
-    return _err('Load must be in steps of 0.25 kg.', field);
-  }
-  return null;
-}
-
 /// Validates [data] for [exercise] and returns it normalised (durations in
 /// whole seconds, metres to 0.1 m). Used by `RecordSet`, so invalid
 /// combinations are rejected at use-case level (D06 WP 8 acceptance).
@@ -158,7 +147,8 @@ AppError? _loadError(LoadKg? load, String field) {
 /// - the set's type must equal the exercise's type (a weighted set on a timed
 ///   exercise is rejected);
 /// - repetitions 1-100 ([TrainingRules.validReps]);
-/// - loads and assistance 0-1000 kg in 0.25 kg steps;
+/// - loads and assistance are valid by construction (`LoadKg.of` rejects
+///   off-step and negative input);
 /// - durations and metres greater than zero;
 /// - average heart rate 30-250 bpm;
 /// - energy at least 0, and present only together with a provenance of
@@ -183,7 +173,7 @@ Result<SetData> validateSetForExercise(
       _err(
         exertion.scale == ExertionScale.rpe
             ? 'RPE must be 1 to 10 in half steps.'
-            : 'RIR must be 0 to 10 in half steps.',
+            : 'RIR must be a whole number from 0 to 5.',
         'exertion',
       ),
     );
@@ -193,29 +183,21 @@ Result<SetData> validateSetForExercise(
       : Err(_err('Repetitions must be 1 to 100.', 'reps'));
 
   switch (data) {
-    case WeightedSet(:final load, :final reps):
+    case WeightedSet(:final reps):
       final e = repsError(reps);
       if (e != null) return e;
-      final le = _loadError(load, 'load');
-      if (le != null) return Err(le);
       return Ok(data);
-    case BodyweightSet(:final reps, :final addedLoad):
+    case BodyweightSet(:final reps):
       final e = repsError(reps);
       if (e != null) return e;
-      final le = _loadError(addedLoad, 'addedLoad');
-      if (le != null) return Err(le);
       return Ok(data);
-    case AssistedSet(:final reps, :final assistance):
+    case AssistedSet(:final reps):
       final e = repsError(reps);
       if (e != null) return e;
-      final le = _loadError(assistance, 'assistance');
-      if (le != null) return Err(le);
       return Ok(data);
     case TimedSet(:final duration, :final addedLoad):
       final d = _positiveDuration(duration, 'duration');
       if (d case Err(:final error)) return Err(error);
-      final le = _loadError(addedLoad, 'addedLoad');
-      if (le != null) return Err(le);
       return Ok(
         TimedSet(duration: (d as Ok<Duration>).value, addedLoad: addedLoad),
       );

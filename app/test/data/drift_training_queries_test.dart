@@ -10,6 +10,8 @@ import 'package:repforge/domain/training/exercise_query.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 
+import '../helpers/seed_session.dart';
+
 final _clock = FixedClock(DateTime.utc(2026, 11, 3, 12));
 final _t = DateTime.utc(2026, 11, 1, 8);
 
@@ -217,20 +219,23 @@ void main() {
       await exercises.upsert(
         _ex('squat', 'Squat', primary: MuscleGroup.quadriceps),
       );
-      await sessions.upsert(
+      await seedSession(
+        sessions,
         _session('s1', DateTime.utc(2026, 10, 1, 9), [
           _set('s1', 'bench', 0, 0, w(60, 8)),
           _set('s1', 'bench', 0, 1, w(60, 7)),
           _set('s1', 'squat', 1, 0, w(100, 5)),
         ]),
       );
-      await sessions.upsert(
+      await seedSession(
+        sessions,
         _session('s2', DateTime.utc(2026, 10, 8, 9), [
           _set('s2', 'bench', 0, 0, w(62.5, 8)),
           _set('s2', 'bench', 0, 1, w(62.5, 6), completed: false),
         ]),
       );
-      await sessions.upsert(
+      await seedSession(
+        sessions,
         _session('s3', DateTime.utc(2026, 10, 15, 9), [
           _set('s3', 'squat', 0, 0, w(105, 5)),
           _set('s3', 'bench', 1, 0, w(65, 5)),
@@ -284,7 +289,8 @@ void main() {
           (await sessions.sessionsForExercise('bench')).map((s) => s.sessionId),
           ['s2', 's1'],
         );
-        await sessions.upsert(
+        await seedSession(
+          sessions,
           _session('s4', DateTime.utc(2026, 11), [
             _set('s4', 'bench', 0, 0, w(70, 3), completed: false),
           ]),
@@ -311,7 +317,8 @@ void main() {
     test('hasHistory sees any set in a live session', () async {
       expect(await sessions.hasHistory('bench'), isTrue);
       expect(await sessions.hasHistory('unknown'), isFalse);
-      await sessions.upsert(
+      await seedSession(
+        sessions,
         _session('s5', DateTime.utc(2026, 11, 2), [
           _set('s5', 'row', 0, 0, w(40, 5), completed: false),
         ]),
@@ -370,7 +377,8 @@ void main() {
           energyProvenance: DataProvenance.userEntered,
         ),
       ];
-      await sessions.upsert(
+      await seedSession(
+        sessions,
         _session('all', DateTime.utc(2026, 11), [
           for (var i = 0; i < data.length; i++)
             _set('all', 'x$i', i, 0, data[i]),
@@ -457,7 +465,7 @@ void main() {
   });
 
   test('the database refuses invalid training rows (TD-25)', () async {
-    await sessions.upsert(_session('s', _t, const []));
+    await seedSession(sessions, _session('s', _t, const []));
     Future<void> insert({
       int? reps,
       double? load,

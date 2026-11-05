@@ -35,10 +35,11 @@ Debt owned here: TD-23 (exercise archive guard), TD-25 (database CHECK constrain
 |---|---|---|
 | Seed content | df326db | 89-exercise library (own content), asset test |
 | 1 — domain, schema v6, use cases | 6d401e6 | taxonomy enums; exercise aliases/supplied/copy; timed added load; cardio energy; rep ranges; splits; validation rules; `RecordSet`; library and history queries; schema v6 with CHECK constraints and legacy quarantine; library import. CI 41981492310, Android 41981492309, iOS 41981492295, integration 41981492328 — all success (the on-device test ran the v6 migration). |
-| 2 — Train tab library | (this commit) | library with search, category/muscle/equipment filters, persisted equipment selection, supplied/custom badges, archived toggle; exercise detail with per-type history formatting; custom exercise editor; copy-on-edit for supplied exercises |
+| 2 — Train tab library | 058d433 | library with search, category/muscle/equipment filters, persisted equipment selection, supplied/custom badges, archived toggle; exercise detail with per-type history formatting; custom exercise editor; copy-on-edit for supplied exercises. CI 41987520072, Android 41987519880, iOS 41987519687, integration 41987519799 — all success. |
+| Review fixes | (this commit) | M1–M4, L1–L6 below; architecture guards; D05 TD-23, TD-25, TD-41, TD-42 |
 
 ### Stage 1 — training domain, schema v6, use cases (no UI)
-- **Domain** (`app/lib/domain/training/`): enums `ExerciseCategory`, `MuscleGroup`, `Equipment` exactly per the taxonomy; `Exercise` with aliases, `supplied` (the one provenance concept; `isCustom` is derived) and `copiedFromId`; timed sets with optional added load; cardio energy with a `userEntered`/`estimated` label (never read by nutrition); plan exercises with reps range, duration, distance, load, rest, order; `TrainingSplit`/`SplitDay`. Pure rules in `training_validation.dart` (`parseDuration`, `formatDistance`, `normaliseExerciseSearch`, `validateExercise`, `validateSetForExercise`, `validatePlanExercise`, `validateSplit`, `reorder`) and `exercise_query.dart` (`ExerciseQuery`, `filterExercises`). `normaliseSearchKey` moved to `domain/core/search_key.dart` (still exported from the nutrition mappers). `LoadKg.strict` refuses a value that is not a 0.25 kg step instead of rounding it.
+- **Domain** (`app/lib/domain/training/`): enums `ExerciseCategory`, `MuscleGroup`, `Equipment` exactly per the taxonomy; `Exercise` with aliases, `supplied` (the one provenance concept; `isCustom` is derived) and `copiedFromId`; timed sets with optional added load; cardio energy with a `userEntered`/`estimated` label (never read by nutrition); plan exercises with reps range, duration, distance, load, rest, order; `TrainingSplit`/`SplitDay`. Pure rules in `training_validation.dart` (`parseDuration`, `formatDistance`, `normaliseExerciseSearch`, `validateExercise`, `validateSetForExercise`, `validatePlanExercise`, `validateSplit`, `reorder`) and `exercise_query.dart` (`ExerciseQuery`, `filterExercises`). `normaliseSearchKey` moved to `domain/core/search_key.dart` (still exported from the nutrition mappers). `LoadKg.strict` refused a value that is not a 0.25 kg step (superseded in the review fixes: `LoadKg.of` itself is now strict, M1).
 - **Queries**: `watchLibrary`/`search` (text, category, muscle with primary first, equipment subset, archived hidden); `sessionsForExercise` (completed sets per session, newest first, paged), `lastPerformance`, `hasHistory`; `exists`, `delete`, and `archive` guarded by `deleted_at IS NULL` (TD-23, returns whether a row changed).
 - **Schema v6** with CHECK constraints (TD-25) and the `legacy_quarantine` decision: see `docs/data-model.md` (Migrations 5 → 6).
 - **Use cases** (`app/lib/features/training/application/`): `SaveCustomExercise`, `CopySuppliedExercise`, `ArchiveExercise`, `RecordSet`, `SavePlan`, `SaveSplit`, `ImportExerciseLibrary` (started from `main.dart` after the first frame, like the recipe import) and providers.
@@ -48,19 +49,34 @@ No high-severity defects; D06 acceptance holds in substance. Findings (verified 
 
 | ID | Finding | Severity | Resolution |
 |---|---|---|---|
-| M1 | Off-step loads (80.1 kg) and small negatives are rounded, not rejected, so TRN-002(2) is not enforced at use-case level; the strict constructor had no caller | Medium | Fix in progress: one strict input constructor; lenient only for database reads |
-| M2 | `WorkoutSessionRepository.upsert` re-inserts sets without validation (no caller today; WP 9 risk) | Medium | Fix in progress: upsert writes the session only |
-| M3 | Exertion rule allowed RIR 0–10 in half steps; D04 TRN-020 says RIR 0–5 whole numbers (RPE 1–10 in 0.5 steps). Inherited from WP 3, never an owner decision | Medium | Fix in progress: rule aligned to D04; the looser v6 CHECK stays (domain stricter) |
-| M4 | A migrated exercise with unrecognised category/muscle/equipment text becomes unreadable with no record; taxonomy labels were not recognised | Medium | Fix in progress: identifiers and labels matched; unmatched optional values dropped with a quarantine record; unmatched required values quarantined |
-| L1 | Copy-on-edit created the copy before the editor opened; cancelling left an orphan | Low | Fix in progress: copy persisted only on save |
-| L2 | Bodyweight-only filter not selectable (TRN-011(2)) | Low | Fix in progress |
-| L3 | Archived exercises accepted in plans | Low | Fix in progress |
-| L4 | Type change allowed when the exercise is used in a plan | Low | Fix in progress |
-| L5 | One use case catches `Exception` only | Low | Fix in progress |
-| L6 | No test guards TRN-007(2) | Low | Fix in progress |
-| L7 | TD-23 and TD-25 not updated in D05 | Low | At delivery |
+| M1 | Off-step loads (80.1 kg) and small negatives are rounded, not rejected, so TRN-002(2) is not enforced at use-case level; the strict constructor had no caller | Medium | Fixed: `LoadKg.of` is the single strict input constructor (rejects off-step and negative, 1e-9 tolerance, -0.0 is 0); `fromStored`/`tryFromStored` for database reads; dead `_loadError` and `LoadKg.strict` removed |
+| M2 | `WorkoutSessionRepository.upsert` re-inserts sets without validation (no caller today; WP 9 risk) | Medium | Fixed: `upsert` writes the session row only; sets go through `addSet` (used by `RecordSet`) |
+| M3 | Exertion rule allowed RIR 0–10 in half steps; D04 TRN-020 says RIR 0–5 whole numbers (RPE 1–10 in 0.5 steps). Inherited from WP 3, never an owner decision | Medium | Fixed: RPE 1–10 in 0.5 steps, RIR 0–5 whole; the looser v6 CHECK stays (domain stricter) |
+| M4 | A migrated exercise with unrecognised category/muscle/equipment text becomes unreadable with no record; taxonomy labels were not recognised | Medium | Fixed in the mapping helper (not the v6 tables): identifiers, labels and a short synonym table matched; unmatched optional values dropped and the original quarantined; unmatched required values quarantined and the row kept. Applies to the migration and the pre-v6 backup restore. Note: the migration is already in a debug build, so the changed mapping only affects devices that have not yet migrated; a device already on v6 keeps what the earlier mapping wrote. Debt: an exercise kept with an unmatched required value exists but is unreadable (the library and history skip it); it is recorded in `legacy_quarantine` only, with no in-app surface yet |
+| L1 | Copy-on-edit created the copy before the editor opened; cancelling left an orphan | Low | Fixed: the editor opens on an unsaved draft (route `/train/exercises/:id/copy`); `CopySuppliedExercise` runs on Save only |
+| L2 | Bodyweight-only filter not selectable (TRN-011(2)) | Low | Fixed: explicit `equipment-bodyweight-only` choice passing an empty available set, persisted (new settings key), exclusive with an equipment selection |
+| L3 | Archived exercises accepted in plans | Low | Fixed: `SavePlan` rejects them with a ValidationError naming the exercise |
+| L4 | Type change allowed when the exercise is used in a plan | Low | Fixed: `WorkoutPlanRepository.usesExercise`; `SaveCustomExercise` refuses |
+| L5 | One use case catches `Exception` only | Low | Fixed: `SetAvailableEquipment` catches `Object` |
+| L6 | No test guards TRN-007(2) | Low | Fixed: `test/architecture/cardio_energy_isolation_test.dart` — `energyKcal`/`energyProvenance` may appear only in `lib/domain/training`, `lib/features/training` and `lib/data` (allowlist, so the dashboard and planning are covered) |
+| L7 | TD-23 and TD-25 not updated in D05 | Low | Fixed: TD-23 resolved; TD-25 constraints resolved, logging of skipped rows still open (with TD-32) |
 
 TRN criteria the reviewer found not fully met: TRN-002(2), TRN-011(2); and TRN-020 contradicted by the enforced rule (WP 9 scope, fixed here).
 
+### Re-verification of the fixes (same reviewer, uncommitted tree on 2208b94, code read)
+All ten fixes confirmed (M1–M3, L1–L5 resolved; M4 resolved for the agreed scope; L6 partly). Residuals and new findings:
+
+| ID | Item | Severity | Disposition |
+|---|---|---|---|
+| R1 | `LoadKg.fromStored` is public and snaps silently; nothing stops a future form from calling it | Low | Fixed: architecture test — `LoadKg.fromStored`/`tryFromStored` allowed only in `lib/data` (and its definition) |
+| R2 | L6 guard scanned only the nutrition folders | Low | Fixed: allowlist guard (row L6) |
+| R3 | M4: an exercise with an unmatched required value is unreadable, recorded only in quarantine | Low | Debt TD-41 |
+| N1 | `SavePlan` refuses to re-save a plan whose exercise was archived later (rename, reorder) | Low | Debt TD-42, WP 9 plan builder |
+| N2 | v5→v6 mapping does not map a legacy set's own `type` text (no pre-v6 code wrote sets) | Low | Recorded in TD-41 |
+| N3 | Equipment selection and bodyweight-only are two settings writes, not one transaction; a failed second write leaves bodyweight-only shown | Low | Accepted: harmless state, user can reselect |
+
+Both guards were shown to fail on a planted probe file under `lib/features/dashboard` (probe removed). The fixer showed each new regression test failing on the pre-fix `lib/` (assertion or compile failure; L6 by probe).
+
 ## Tests, CI
-Appended at delivery.
+- Review-fix commit, local: `dart format` clean, `flutter analyze --fatal-infos` clean, 875 tests pass (`--concurrency=2`), hand-written coverage 8160/9033 = 90.3 % (gate 80 %), `build_runner` leaves generated files unchanged.
+- CI runs for the review-fix commit: appended after push.

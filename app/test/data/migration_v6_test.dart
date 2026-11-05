@@ -138,6 +138,8 @@ void main() {
     expect(lib.primaryMuscle, 'frontDelts');
     expect(jsonDecode(lib.secondaryMusclesJson), ['triceps', 'frontDelts']);
     expect(jsonDecode(lib.equipmentJson), ['barbell', 'bench']);
+    // An unrecognised required value is never invented: the row is kept as
+    // it is (unreadable by the mapper) and a quarantine entry records it.
     expect(exercises['e-mine']!.category, 'weird');
     expect(exercises['e-mine']!.primaryMuscle, 'chest');
     // Search key: normalised name (diacritics folded) and aliases.
@@ -178,7 +180,17 @@ void main() {
       expect(s.energyKcal, isNull);
       expect(s.energyProvenance, isNull);
     }
-    expect(await migrated.select(migrated.legacyQuarantine).get(), isEmpty);
+    final quarantined = await migrated.select(migrated.legacyQuarantine).get();
+    expect(quarantined, hasLength(1), reason: 'only the weird category');
+    expect(
+      [quarantined.single.sourceTable, quarantined.single.rowId],
+      ['exercises', 'e-mine'],
+    );
+    expect(quarantined.single.reason, contains('category "weird"'));
+    expect(
+      (jsonDecode(quarantined.single.originalJson) as Map)['category'],
+      'weird',
+    );
     expect(await migrated.select(migrated.trainingSplits).get(), isEmpty);
     expect(await migrated.select(migrated.splitDays).get(), isEmpty);
   });
@@ -339,7 +351,13 @@ void main() {
     };
     expect(
       q.keys,
-      unorderedEquals(['bad-reps', 'bad-hr', 'bad-reps-pe', 'bad-sets-pe']),
+      unorderedEquals([
+        'bad-reps',
+        'bad-hr',
+        'bad-reps-pe',
+        'bad-sets-pe',
+        'e-mine',
+      ]),
     );
     final original = jsonDecode(q['bad-reps']!.originalJson) as Map;
     expect([original['reps'], original['load_kg']], [0, 50]);
@@ -399,10 +417,94 @@ void main() {
     )..where((s) => s.id.equals('c'))).getSingle();
     expect([c.energyKcal, c.energyProvenance], [210, 'estimated']);
     expect(await second.select(second.trainingSplits).get(), hasLength(1));
-    expect(await second.select(second.legacyQuarantine).get(), hasLength(1));
+    expect(
+      await second.select(second.legacyQuarantine).get(),
+      hasLength(2),
+      reason: 'bad-reps and the weird category, once each',
+    );
     final version = await second
         .customSelect('PRAGMA user_version')
         .getSingle();
     expect(version.data.values.single, 6);
   });
+
+  test(
+    'free-text taxonomy values migrate by identifier, label or synonym; '
+    'unmatched optional values are dropped with a quarantine record; '
+    'unmatched required values are quarantined and the row is kept (M4)',
+    () async {
+      final schema = await verifier.schemaAt(5);
+      final old = v5.DatabaseAtV5(schema.newConnection());
+      await exercise(
+        old,
+        'by-label',
+        name: 'DB Press',
+        isCustom: 1,
+        category: 'Full body',
+        primary: 'Quads',
+        secondary: '["Hams","Lats"]',
+        equipment: '["Dumbbells","Cable station","Bodyweight"]',
+      );
+      await exercise(
+        old,
+        'drops-optional',
+        name: 'Odd Row',
+        isCustom: 1,
+        category: 'pull',
+        primary: 'lats',
+        secondary: '["Tentacles","biceps"]',
+        equipment: '["Flux capacitor","barbell"]',
+      );
+      await exercise(
+        old,
+        'bad-required',
+        name: 'Mystery',
+        isCustom: 1,
+        category: 'Hybrid',
+        primary: 'Delts',
+        secondary: '[]',
+        equipment: '[]',
+      );
+      await old.close();
+      final db = AppDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 6);
+      final migrated = v6.DatabaseAtV6(schema.newConnection());
+      addTearDown(migrated.close);
+
+      final rows = {
+        for (final e in await migrated.select(migrated.exercises).get())
+          e.id: e,
+      };
+      final label = rows['by-label']!;
+      expect(label.category, 'fullBody');
+      expect(label.primaryMuscle, 'quadriceps');
+      expect(jsonDecode(label.secondaryMusclesJson), ['hamstrings', 'lats']);
+      expect(jsonDecode(label.equipmentJson), ['dumbbell', 'cable']);
+
+      final drops = rows['drops-optional']!;
+      expect(jsonDecode(drops.secondaryMusclesJson), ['biceps']);
+      expect(jsonDecode(drops.equipmentJson), ['barbell']);
+
+      final bad = rows['bad-required']!;
+      expect([bad.category, bad.primaryMuscle], ['Hybrid', 'Delts']);
+
+      final q = {
+        for (final r in await migrated.select(migrated.legacyQuarantine).get())
+          r.rowId: r,
+      };
+      expect(q.keys, unorderedEquals(['drops-optional', 'bad-required']));
+      expect(q['drops-optional']!.reason, contains('Tentacles'));
+      expect(q['drops-optional']!.reason, contains('Flux capacitor'));
+      expect(
+        (jsonDecode(q['drops-optional']!.originalJson)
+            as Map)['equipment_json'],
+        '["Flux capacitor","barbell"]',
+        reason: 'the original row is kept as it was',
+      );
+      expect(q['bad-required']!.reason, contains('category "Hybrid"'));
+      expect(q['bad-required']!.reason, contains('primary_muscle "Delts"'));
+      expect(q.containsKey('by-label'), isFalse);
+    },
+  );
 }

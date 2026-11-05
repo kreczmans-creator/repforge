@@ -9,6 +9,8 @@ import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/application/record_set.dart';
 
+import '../../helpers/seed_session.dart';
+
 final _clock = FixedClock(DateTime.utc(2026, 11, 5, 10));
 final _t = DateTime.utc(2026, 11, 5, 9);
 
@@ -44,7 +46,8 @@ void main() {
     for (final type in ExerciseType.values) {
       await exercises.upsert(_ex(type.name, type));
     }
-    await sessions.upsert(
+    await seedSession(
+      sessions,
       WorkoutSession(
         id: 's',
         name: 'Today',
@@ -215,11 +218,30 @@ void main() {
       await rejected('bodyweight', const SetData.bodyweight(reps: 0));
     });
 
-    test('a negative load and a 0.1 kg step cannot be built or are refused '
-        'on entry', () {
-      expect(LoadKg.strict(-5).isErr, isTrue);
-      expect(LoadKg.strict(0.1).isErr, isTrue);
-      expect(LoadKg.strict(100.1).isErr, isTrue);
+    test('a negative load and a 0.1 kg step are rejected on entry and '
+        'nothing is stored (TRN-002(2))', () async {
+      // Input built from raw numbers the way a form would: a value that
+      // does not become a LoadKg never reaches RecordSet.
+      Future<Result<SessionSet>> enter(double raw) {
+        final load = LoadKg.of(raw);
+        if (load case Err(:final error)) return Future.value(Err(error));
+        return rec(
+          'weighted',
+          SetData.weighted(load: (load as Ok<LoadKg>).value, reps: 5),
+        );
+      }
+
+      for (final raw in [80.1, -0.1, -5.0, 100.1, 0.1]) {
+        final r = await enter(raw);
+        expect(r.isErr, isTrue, reason: '$raw');
+        expect(((r as Err).error as ValidationError).field, 'loadKg');
+      }
+      expect(await db.select(db.sessionSets).get(), isEmpty);
+
+      final ok = await enter(80.25);
+      final stored = (ok as Ok<SessionSet>).value;
+      expect((stored.data as WeightedSet).load.value, 80.25);
+      expect((await db.select(db.sessionSets).getSingle()).loadKg, 80.25);
     });
 
     test('a zero duration and zero metres', () async {
@@ -290,6 +312,29 @@ void main() {
           set,
           exertion: const Exertion(scale: ExertionScale.rir, value: -1),
         );
+        for (final bad in [6.0, 7.5, 2.5, -1.0]) {
+          await rejected(
+            'weighted',
+            set,
+            exertion: Exertion(scale: ExertionScale.rir, value: bad),
+            field: 'exertion',
+          );
+        }
+        for (final bad in [0.5, 10.5]) {
+          await rejected(
+            'weighted',
+            set,
+            exertion: Exertion(scale: ExertionScale.rpe, value: bad),
+            field: 'exertion',
+          );
+        }
+        for (final good in [
+          const Exertion(scale: ExertionScale.rir, value: 3),
+          const Exertion(scale: ExertionScale.rpe, value: 7.5),
+        ]) {
+          expect((await rec('weighted', set, exertion: good)).isOk, isTrue);
+        }
+        await db.delete(db.sessionSets).go();
         final ok = await rec(
           'weighted',
           set,

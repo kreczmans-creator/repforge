@@ -9,9 +9,10 @@ import 'package:repforge/domain/training/training_validation.dart';
 ///
 /// Validates the name, every plan exercise ([validatePlanExercise], with the
 /// exercise's type so a rep target on a timed exercise is rejected), that
-/// each referenced exercise exists, and the weekday numbers (1 Monday to 7
-/// Sunday, no repeats). The order of [exercises] is the plan order:
-/// `sortOrder` is renumbered 0..n-1 and a blank id gets a new one.
+/// each referenced exercise exists and is not archived, and the weekday
+/// numbers (1 Monday to 7 Sunday, no repeats). The order of [exercises] is
+/// the plan order: `sortOrder` is renumbered 0..n-1 and a blank id gets a
+/// new one.
 final class SavePlan {
   const SavePlan({
     required this.plans,
@@ -59,6 +60,15 @@ final class SavePlan {
         if (exercise == null) {
           return const Err(
             NotFoundError('An exercise in the plan no longer exists.'),
+          );
+        }
+        if (exercise.archived) {
+          return Err(
+            ValidationError(
+              '"${exercise.name}" is archived. Restore it or remove it from '
+              'the plan.',
+              field: 'exerciseId',
+            ),
           );
         }
         final checked = validatePlanExercise(

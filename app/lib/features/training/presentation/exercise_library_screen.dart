@@ -78,6 +78,10 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
     if (picked == null || !mounted) return;
     final result = await ref.read(setAvailableEquipmentProvider)(picked);
     if (!mounted) return;
+    _showError(result);
+  }
+
+  void _showError(Result<void> result) {
     if (result case Err(:final error)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(userMessageFor(error))));
@@ -88,11 +92,15 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
   Widget build(BuildContext context) {
     final available =
         ref.watch(availableEquipmentProvider).value ?? const <Equipment>{};
+    final bodyweightOnly = ref.watch(bodyweightOnlyProvider).value ?? false;
     final query = ExerciseQuery(
       text: _search.text,
       category: _category,
       muscle: _muscle,
-      availableEquipment: available.isEmpty ? null : available,
+      // An empty set is "bodyweight only"; null is "no filter".
+      availableEquipment: bodyweightOnly
+          ? const <Equipment>{}
+          : (available.isEmpty ? null : available),
       includeArchived: _showArchived,
     );
     final library = ref.watch(exerciseLibraryProvider(query));
@@ -100,7 +108,8 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
         _search.text.trim().isNotEmpty ||
         _category != null ||
         _muscle != null ||
-        available.isNotEmpty;
+        available.isNotEmpty ||
+        bodyweightOnly;
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -160,6 +169,18 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
               ),
               selected: available.isNotEmpty,
               onSelected: (_) => _pickEquipment(available),
+            ),
+            FilterChip(
+              key: const Key('equipment-bodyweight-only'),
+              label: const Text('Bodyweight only'),
+              selected: bodyweightOnly,
+              onSelected: (v) async {
+                final result = await ref
+                    .read(setAvailableEquipmentProvider)
+                    .setBodyweightOnly(value: v);
+                if (!mounted) return;
+                _showError(result);
+              },
             ),
             FilterChip(
               key: const Key('show-archived'),
