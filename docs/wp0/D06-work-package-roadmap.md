@@ -86,7 +86,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: integration test with fake adapter; manual device checklist for both platforms recorded with device models.
 
 ### WP 7 — Recipe management and meal planning
-- Status: **Conditionally accepted by the owner 2026-11-04; closure condition met at 7c62e9c** (portion counts to 0.01, spec rev 1.3; fresh review: condition met; CI 41916959323, Android 41916959074, iOS 41916959377, integration 41916959075 all green). Awaiting the owner's final acceptance (`docs/delivery-record/WP7.md`). OQ-14 decided (UK/EU available carbohydrate).
+- Status: **Accepted and closed by the owner 2026-11-05 at 7c62e9c** (closure record eb8f769; `docs/delivery-record/WP7.md`). NUT-017 calculation specification rev 1.3 approved. TD-40 open as debt.
 - Objective: recipes as first-class, calculable entities.
 - Scope: recipe CRUD, ingredients with quantities linked to foods, per-portion nutrition computed from ingredients (not typed in), portion scaling, prep/cook/storage/freezing/reheating fields, favourites, substitutions, seed import of the 22 legacy recipes flagged `estimated`, log a portion to the diary, weekly meal plan and prep list (P2).
 - Added 2026-11-04 (owner allocation from WP 5): **NUT-011** named meals rename/reorder, with its D04 acceptance criteria.

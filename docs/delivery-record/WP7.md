@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Branch: `ccr-9fda2c32-wr163b`
-Status: **conditionally accepted by the owner (2026-11-04); closure condition met at 7c62e9c — presented for final acceptance.** Not formally closed until the owner records it. No merge to `main`. (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
+Status: **ACCEPTED and CLOSED by the owner (2026-11-05).** Implementation acceptance reference **7c62e9c**; closure-record reference **eb8f769**. No merge to `main` (separately authorised integration step). (Authorised by the owner 2026-11-04 while WP 6 device testing is pending; WP 7 depends on WP 5, which is accepted by owner decision. If D05 V-01 fails and WP 5 reopens, WP 7 work that builds on the affected code is re-checked.)
 
 ## Scope (D06 WP 7)
 Recipe CRUD; ingredients with quantities linked to foods; per-portion nutrition computed from ingredients (not typed in); portion scaling; prep/cook/storage/freezing/reheating fields; favourites; substitutions; seed import of the 22 legacy recipes flagged `estimated`; log a portion to the diary; weekly meal plan and prep list (P2); NUT-011 meal rename/reorder (owner allocation 2026-11-04).
@@ -131,3 +131,9 @@ The emulator failure on ae338e0 and ee97c17 is the new RCP-013 integration test:
 | Integration tests (Android emulator) | 41916959075 | success |
 
 All closure steps done: spec rev 1.3, implementation and regression tests, fresh independent review (condition met), four workflows green on 7c62e9c, this record and D06 updated.
+
+## Final owner decision (2026-11-05)
+- **WP 7: ACCEPTED at 7c62e9c and CLOSED.** Rationale recorded by the owner: four workflows green on first attempt; 730 local tests, analyzer and formatter clean; coverage 89.1 %; independent review verified persisted values and nutrient calculations; regression tests fail on the previous behaviour; gram/ml precision and historical stored values unaffected; the three low findings documented.
+- **NUT-017 revision 1.3: APPROVED.**
+- **TD-40** stays open as technical debt; not part of WP 7.
+- References preserved: implementation 7c62e9c, closure record eb8f769; earlier evidence commits 110b8bb (delivery), c009b2c and 5e18144 (diagnostics).
