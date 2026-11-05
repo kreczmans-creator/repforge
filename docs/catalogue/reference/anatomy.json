@@ -3,7 +3,7 @@
   "status": "Proposed — for owner approval",
   "provider": "repforge",
   "locale": "en-GB",
-  "description": "Proposed anatomy hierarchy (OQ-22). L1 region, L2 muscle group, L3 anatomical muscle, L4 subdivision or head. sort orders siblings (ascending, step 10). Qualitative only; no activation values.",
+  "description": "Proposed anatomy hierarchy (OQ-22). L1 region, L2 muscle group, L3 anatomical muscle or named functional muscle set whose members cannot be trained separately, L4 head, part or named member of such a set. sort orders siblings (ascending, step 10). lifecycle is active or retired (retired nodes stay in the file and in ledger.json; ids are never reused). Qualitative only; no activation values.",
   "levels": {
     "1": "region",
     "2": "muscle group",
@@ -41,7 +41,8 @@
       "label": "Neck",
       "definition": "The cervical region between the skull and the upper trunk.",
       "includes": "Muscles whose main job is to flex, extend, tilt or rotate the head and neck.",
-      "excludes": "Upper trapezius and levator scapulae (tagged under Upper back as scapular muscles)."
+      "excludes": "Upper trapezius and levator scapulae (tagged under Upper back as scapular muscles).",
+      "lifecycle": "active"
     },
     {
       "id": "neckFlexors",
@@ -52,7 +53,8 @@
       "label": "Neck flexors",
       "definition": "Muscles at the front of the neck that bend the head and neck forward.",
       "includes": "Sternocleidomastoid and deep neck flexors.",
-      "excludes": "Muscles that lift the head backwards."
+      "excludes": "Muscles that lift the head backwards.",
+      "lifecycle": "active"
     },
     {
       "id": "sternocleidomastoid",
@@ -64,7 +66,8 @@
       "definition": "Paired muscle running from behind the ear to the breastbone and collarbone.",
       "includes": "Neck flexion (both sides), side flexion and rotation to the opposite side (one side).",
       "excludes": "Scalenes.",
-      "note": "Also a lateral flexor and rotator; filed once under flexors."
+      "note": "Also a lateral flexor and rotator; filed once under flexors.",
+      "lifecycle": "active"
     },
     {
       "id": "deepNeckFlexors",
@@ -75,7 +78,8 @@
       "label": "Deep neck flexors",
       "definition": "Longus colli and longus capitis, the deep muscles on the front of the cervical spine.",
       "includes": "Chin-tuck movements and controlled neck flexion.",
-      "excludes": "Sternocleidomastoid."
+      "excludes": "Sternocleidomastoid.",
+      "lifecycle": "active"
     },
     {
       "id": "neckExtensors",
@@ -86,7 +90,8 @@
       "label": "Neck extensors",
       "definition": "Muscles at the back of the neck that tilt the head back and hold it upright.",
       "includes": "Splenius, semispinalis capitis and suboccipitals.",
-      "excludes": "Upper trapezius (Upper back)."
+      "excludes": "Upper trapezius (Upper back).",
+      "lifecycle": "active"
     },
     {
       "id": "splenius",
@@ -97,7 +102,8 @@
       "label": "Splenius capitis and cervicis",
       "definition": "Strap muscles on the back of the neck.",
       "includes": "Neck extension and rotation to the same side.",
-      "excludes": "Semispinalis capitis."
+      "excludes": "Semispinalis capitis.",
+      "lifecycle": "active"
     },
     {
       "id": "semispinalisCapitis",
@@ -108,7 +114,8 @@
       "label": "Semispinalis capitis",
       "definition": "Thick column of muscle beside the cervical spine.",
       "includes": "Neck extension.",
-      "excludes": "Splenius."
+      "excludes": "Splenius.",
+      "lifecycle": "active"
     },
     {
       "id": "suboccipitals",
@@ -120,7 +127,8 @@
       "definition": "Small muscles at the base of the skull.",
       "includes": "Fine head positioning and upper cervical extension.",
       "excludes": "Larger neck extensors.",
-      "note": "Rarely a training target; kept so mobility entries can be tagged."
+      "note": "Rarely a training target; kept so mobility entries can be tagged.",
+      "lifecycle": "active"
     },
     {
       "id": "neckLateralFlexors",
@@ -131,7 +139,8 @@
       "label": "Neck side flexors",
       "definition": "Muscles that tilt the head sideways.",
       "includes": "Scalenes.",
-      "excludes": "Sternocleidomastoid, which is filed under flexors."
+      "excludes": "Sternocleidomastoid, which is filed under flexors.",
+      "lifecycle": "active"
     },
     {
       "id": "scalenes",
@@ -141,8 +150,9 @@
       "sort": 10,
       "label": "Scalenes",
       "definition": "Anterior, middle and posterior scalene muscles on the side of the neck.",
-      "includes": "Neck side flexion and first-rib elevation.",
-      "excludes": "Sternocleidomastoid."
+      "includes": "Neck side flexion and elevation of the first and second ribs.",
+      "excludes": "Sternocleidomastoid.",
+      "lifecycle": "active"
     },
     {
       "id": "regionShoulder",
@@ -153,7 +163,8 @@
       "label": "Shoulder",
       "definition": "The shoulder joint and the muscles that move or stabilise the arm at the shoulder.",
       "includes": "Deltoid and rotator cuff.",
-      "excludes": "Muscles that mainly move the shoulder blade (see Chest and Back) and the chest muscles that cross the shoulder."
+      "excludes": "Muscles that mainly move the shoulder blade (see Chest and Back) and the chest muscles that cross the shoulder.",
+      "lifecycle": "active"
     },
     {
       "id": "shoulders",
@@ -164,7 +175,8 @@
       "label": "Shoulders",
       "definition": "Muscle group of the deltoid, the main mover of the arm at the shoulder.",
       "includes": "The deltoid and its three heads.",
-      "excludes": "Rotator cuff (own group) and scapular muscles."
+      "excludes": "Rotator cuff (own group) and scapular muscles.",
+      "lifecycle": "active"
     },
     {
       "id": "deltoid",
@@ -175,7 +187,8 @@
       "label": "Deltoid",
       "definition": "The rounded shoulder muscle with front, side and rear fibres.",
       "includes": "Shoulder flexion, abduction, extension and horizontal movement of the arm.",
-      "excludes": "Rotator cuff."
+      "excludes": "Rotator cuff.",
+      "lifecycle": "active"
     },
     {
       "id": "frontDelts",
@@ -187,7 +200,8 @@
       "definition": "Anterior head of the deltoid.",
       "includes": "Shoulder flexion and pressing overhead; assists in horizontal adduction.",
       "excludes": "Chest muscles that dominate flat pressing.",
-      "note": "Anterior deltoid. Preserved WP 8 id (L4 head)."
+      "note": "Anterior deltoid. Preserved WP 8 id (L4 head).",
+      "lifecycle": "active"
     },
     {
       "id": "sideDelts",
@@ -199,7 +213,8 @@
       "definition": "Lateral head of the deltoid.",
       "includes": "Shoulder abduction (raising the arm out to the side).",
       "excludes": "Supraspinatus, which starts abduction but sits in the rotator cuff.",
-      "note": "Lateral deltoid. Preserved WP 8 id (L4 head)."
+      "note": "Lateral deltoid. Preserved WP 8 id (L4 head).",
+      "lifecycle": "active"
     },
     {
       "id": "rearDelts",
@@ -211,7 +226,8 @@
       "definition": "Posterior head of the deltoid.",
       "includes": "Shoulder extension and horizontal abduction (reverse fly).",
       "excludes": "Rhomboids and middle trapezius, which retract the shoulder blade.",
-      "note": "Posterior deltoid. Preserved WP 8 id (L4 head)."
+      "note": "Posterior deltoid. Preserved WP 8 id (L4 head).",
+      "lifecycle": "active"
     },
     {
       "id": "rotatorCuff",
@@ -222,7 +238,8 @@
       "label": "Rotator cuff",
       "definition": "Four small muscles that centre the head of the humerus in the shoulder socket.",
       "includes": "Supraspinatus, infraspinatus, teres minor, subscapularis.",
-      "excludes": "Deltoid and teres major."
+      "excludes": "Deltoid and teres major.",
+      "lifecycle": "active"
     },
     {
       "id": "supraspinatus",
@@ -231,9 +248,10 @@
       "nonAnatomical": false,
       "sort": 10,
       "label": "Supraspinatus",
-      "definition": "Cuff muscle above the shoulder blade spine.",
-      "includes": "Initiating shoulder abduction and stabilising the joint.",
-      "excludes": "Side delts."
+      "definition": "Cuff muscle in the hollow above the spine of the shoulder blade.",
+      "includes": "Helping to start shoulder abduction and centring the humerus; it works with the deltoid through the whole arc.",
+      "excludes": "Side delts.",
+      "lifecycle": "active"
     },
     {
       "id": "infraspinatus",
@@ -244,7 +262,8 @@
       "label": "Infraspinatus",
       "definition": "Cuff muscle below the shoulder blade spine.",
       "includes": "Shoulder external rotation.",
-      "excludes": "Teres minor."
+      "excludes": "Teres minor.",
+      "lifecycle": "active"
     },
     {
       "id": "teresMinor",
@@ -253,9 +272,10 @@
       "nonAnatomical": false,
       "sort": 30,
       "label": "Teres minor",
-      "definition": "Small cuff muscle at the lower edge of the shoulder blade.",
+      "definition": "Small cuff muscle on the upper part of the lateral (outer) border of the shoulder blade.",
       "includes": "Shoulder external rotation.",
-      "excludes": "Teres major (filed under Lats)."
+      "excludes": "Teres major (filed under Lats).",
+      "lifecycle": "active"
     },
     {
       "id": "subscapularis",
@@ -266,7 +286,8 @@
       "label": "Subscapularis",
       "definition": "Cuff muscle on the front of the shoulder blade.",
       "includes": "Shoulder internal rotation.",
-      "excludes": "Pectoralis major."
+      "excludes": "Pectoralis major.",
+      "lifecycle": "active"
     },
     {
       "id": "regionChest",
@@ -277,7 +298,8 @@
       "label": "Chest",
       "definition": "The front of the ribcage and the muscles that lie over it.",
       "includes": "Pectoral muscles and serratus anterior.",
-      "excludes": "Deltoid, which is a shoulder muscle."
+      "excludes": "Deltoid, which is a shoulder muscle.",
+      "lifecycle": "active"
     },
     {
       "id": "chest",
@@ -289,7 +311,8 @@
       "definition": "Muscle group covering the pectorals and serratus anterior.",
       "includes": "Pressing and fly movements that load the pectorals.",
       "excludes": "Deltoid and triceps.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "pectoralisMajor",
@@ -300,7 +323,8 @@
       "label": "Pectoralis major",
       "definition": "Large fan-shaped muscle of the upper chest wall.",
       "includes": "Horizontal adduction, shoulder flexion and internal rotation, pressing.",
-      "excludes": "Pectoralis minor."
+      "excludes": "Pectoralis minor.",
+      "lifecycle": "active"
     },
     {
       "id": "pectoralisMajorClavicular",
@@ -312,7 +336,8 @@
       "definition": "Upper fibres attaching to the collarbone.",
       "includes": "Incline pressing and shoulder flexion at the chest.",
       "excludes": "Sternocostal head.",
-      "note": "Qualitative emphasis only; incline angles shift emphasis, they do not isolate it."
+      "note": "Qualitative emphasis only; incline angles shift emphasis, they do not isolate it.",
+      "lifecycle": "active"
     },
     {
       "id": "pectoralisMajorSternocostal",
@@ -324,7 +349,8 @@
       "definition": "Middle and lower fibres attaching to the breastbone and ribs.",
       "includes": "Flat and decline pressing, dips and fly movements. Includes the abdominal fibres.",
       "excludes": "Clavicular head.",
-      "note": "Abdominal fibres are not tagged separately."
+      "note": "Abdominal fibres are not tagged separately.",
+      "lifecycle": "active"
     },
     {
       "id": "pectoralisMinor",
@@ -336,7 +362,8 @@
       "definition": "Small muscle under pectoralis major, attaching to the shoulder blade.",
       "includes": "Shoulder blade protraction and depression.",
       "excludes": "Pectoralis major.",
-      "note": "Scapular function; placed under Chest as planned."
+      "note": "Scapular function; placed under Chest as planned.",
+      "lifecycle": "active"
     },
     {
       "id": "serratusAnterior",
@@ -348,7 +375,8 @@
       "definition": "Muscle along the side of the ribcage attaching to the shoulder blade.",
       "includes": "Shoulder blade protraction and upward rotation (push-up plus, overhead reach).",
       "excludes": "Rhomboids and trapezius.",
-      "note": "Scapular function; placed under Chest as planned."
+      "note": "Scapular function; placed under Chest as planned.",
+      "lifecycle": "active"
     },
     {
       "id": "regionBack",
@@ -359,7 +387,8 @@
       "label": "Back",
       "definition": "The posterior trunk from the base of the neck to the pelvis.",
       "includes": "Muscles of the upper back, the lats and the lower back.",
-      "excludes": "Rear deltoid (Shoulder) and neck muscles (Neck)."
+      "excludes": "Rear deltoid (Shoulder) and neck muscles (Neck).",
+      "lifecycle": "active"
     },
     {
       "id": "upperBack",
@@ -371,7 +400,8 @@
       "definition": "Muscles between the neck and the mid-spine that move and stabilise the shoulder blades.",
       "includes": "Trapezius, rhomboids and levator scapulae.",
       "excludes": "Lats, rear delts and spinal extensors.",
-      "note": "Preserved WP 8 id (L2 group). Label in training taxonomy: Upper back (traps, rhomboids)."
+      "note": "Preserved WP 8 id (L2 group). Label in training taxonomy: Upper back (traps, rhomboids).",
+      "lifecycle": "active"
     },
     {
       "id": "trapezius",
@@ -380,9 +410,10 @@
       "nonAnatomical": false,
       "sort": 10,
       "label": "Trapezius",
-      "definition": "Kite-shaped muscle from skull to mid-back, working in three parts.",
+      "definition": "Kite-shaped muscle from the skull base and neck down to the 12th thoracic vertebra (T12), working in three parts.",
       "includes": "Shoulder blade elevation, retraction, depression and upward rotation.",
-      "excludes": "Rhomboids."
+      "excludes": "Rhomboids.",
+      "lifecycle": "active"
     },
     {
       "id": "trapeziusUpper",
@@ -394,7 +425,8 @@
       "definition": "Upper fibres running from neck to collarbone.",
       "includes": "Shrugging and shoulder blade elevation.",
       "excludes": "Neck extensors.",
-      "note": "Also extends and side-flexes the neck."
+      "note": "Also extends and side-flexes the neck.",
+      "lifecycle": "active"
     },
     {
       "id": "trapeziusMiddle",
@@ -405,7 +437,8 @@
       "label": "Middle trapezius",
       "definition": "Horizontal fibres between spine and shoulder blade.",
       "includes": "Shoulder blade retraction.",
-      "excludes": "Rhomboids."
+      "excludes": "Rhomboids.",
+      "lifecycle": "active"
     },
     {
       "id": "trapeziusLower",
@@ -414,9 +447,10 @@
       "nonAnatomical": false,
       "sort": 30,
       "label": "Lower trapezius",
-      "definition": "Lower fibres running down the mid-spine.",
+      "definition": "Lower fibres running down the spine as far as the 12th thoracic vertebra (T12).",
       "includes": "Shoulder blade depression and upward rotation.",
-      "excludes": "Lats."
+      "excludes": "Lats.",
+      "lifecycle": "active"
     },
     {
       "id": "rhomboids",
@@ -428,7 +462,8 @@
       "definition": "Rhomboid major and minor beneath the trapezius.",
       "includes": "Shoulder blade retraction and downward rotation.",
       "excludes": "Middle trapezius.",
-      "note": "Major and minor are not tagged separately."
+      "note": "Major and minor are not tagged separately.",
+      "lifecycle": "active"
     },
     {
       "id": "levatorScapulae",
@@ -440,7 +475,8 @@
       "definition": "Muscle from the upper neck vertebrae to the shoulder blade.",
       "includes": "Shoulder blade elevation.",
       "excludes": "Neck extensors.",
-      "note": "Debatable: also a neck muscle; filed as a scapular muscle."
+      "note": "Debatable: also a neck muscle; filed as a scapular muscle.",
+      "lifecycle": "active"
     },
     {
       "id": "lats",
@@ -452,7 +488,8 @@
       "definition": "Muscle group of the latissimus dorsi and teres major.",
       "includes": "Pulling the arm down and back, and pulling the body up.",
       "excludes": "Upper back and rear delts.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "latissimusDorsi",
@@ -463,7 +500,8 @@
       "label": "Latissimus dorsi",
       "definition": "Broad muscle from the spine and pelvis to the upper arm.",
       "includes": "Shoulder extension, adduction and internal rotation; vertical and horizontal pulling.",
-      "excludes": "Teres major."
+      "excludes": "Teres major.",
+      "lifecycle": "active"
     },
     {
       "id": "teresMajor",
@@ -475,7 +513,8 @@
       "definition": "Thick muscle below the shoulder blade that assists the lats.",
       "includes": "Shoulder extension, adduction and internal rotation.",
       "excludes": "Teres minor (Rotator cuff).",
-      "note": "Functionally a shoulder muscle; filed under Lats as planned."
+      "note": "Functionally a shoulder muscle; filed under Lats as planned.",
+      "lifecycle": "active"
     },
     {
       "id": "lowerBack",
@@ -487,7 +526,8 @@
       "definition": "Muscles that extend and stabilise the lumbar spine.",
       "includes": "Erector spinae, quadratus lumborum and multifidus.",
       "excludes": "Glutes and hamstrings.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "erectorSpinae",
@@ -496,43 +536,11 @@
       "nonAnatomical": false,
       "sort": 10,
       "label": "Erector spinae",
-      "definition": "Three columns of muscle running along the spine.",
-      "includes": "Spinal extension and isometric bracing in hinges and carries.",
+      "definition": "Group of muscle columns running along the spine (iliocostalis, longissimus and spinalis).",
+      "includes": "Spinal extension and isometric bracing in hinges and carries. The three columns are not modelled separately.",
       "excludes": "Multifidus.",
-      "note": "Thoracic portions also serve the upper back; tag here."
-    },
-    {
-      "id": "iliocostalis",
-      "parent": "erectorSpinae",
-      "level": 4,
-      "nonAnatomical": false,
-      "sort": 10,
-      "label": "Iliocostalis",
-      "definition": "Outer column of the erector spinae.",
-      "includes": "Spinal extension and side flexion.",
-      "excludes": "Longissimus."
-    },
-    {
-      "id": "longissimus",
-      "parent": "erectorSpinae",
-      "level": 4,
-      "nonAnatomical": false,
-      "sort": 20,
-      "label": "Longissimus",
-      "definition": "Middle column of the erector spinae.",
-      "includes": "Spinal extension.",
-      "excludes": "Spinalis."
-    },
-    {
-      "id": "spinalis",
-      "parent": "erectorSpinae",
-      "level": 4,
-      "nonAnatomical": false,
-      "sort": 30,
-      "label": "Spinalis",
-      "definition": "Inner column of the erector spinae.",
-      "includes": "Spinal extension.",
-      "excludes": "Longissimus."
+      "note": "Thoracic portions also serve the upper back; tag here. No L4 split: the three columns cannot be loaded separately.",
+      "lifecycle": "active"
     },
     {
       "id": "quadratusLumborum",
@@ -544,7 +552,8 @@
       "definition": "Deep muscle linking the pelvis to the lowest rib.",
       "includes": "Side flexion of the trunk and anti-lateral-flexion bracing.",
       "excludes": "Obliques.",
-      "note": "Debatable: sits deep in the abdominal wall; filed under Lower back as planned."
+      "note": "Debatable: sits deep in the abdominal wall; filed under Lower back as planned.",
+      "lifecycle": "active"
     },
     {
       "id": "multifidus",
@@ -555,7 +564,8 @@
       "label": "Multifidus",
       "definition": "Short deep muscles along the vertebrae.",
       "includes": "Fine control and stiffening of the spine.",
-      "excludes": "Erector spinae."
+      "excludes": "Erector spinae.",
+      "lifecycle": "active"
     },
     {
       "id": "regionArm",
@@ -566,7 +576,8 @@
       "label": "Arm",
       "definition": "The upper arm and forearm.",
       "includes": "Elbow flexors and extensors and the muscles that move the forearm, wrist and fingers.",
-      "excludes": "Deltoid (Shoulder)."
+      "excludes": "Deltoid (Shoulder).",
+      "lifecycle": "active"
     },
     {
       "id": "upperArmAnterior",
@@ -577,7 +588,8 @@
       "label": "Upper arm, front",
       "definition": "Muscles at the front of the upper arm that bend the elbow.",
       "includes": "Biceps, brachialis, coracobrachialis.",
-      "excludes": "Brachioradialis (Forearms)."
+      "excludes": "Brachioradialis (Forearms).",
+      "lifecycle": "active"
     },
     {
       "id": "biceps",
@@ -589,7 +601,8 @@
       "definition": "Biceps brachii with two heads.",
       "includes": "Elbow flexion, forearm supination and shoulder flexion.",
       "excludes": "Brachialis.",
-      "note": "Preserved WP 8 id (L3 muscle)."
+      "note": "Preserved WP 8 id (L3 muscle).",
+      "lifecycle": "active"
     },
     {
       "id": "bicepsLongHead",
@@ -601,7 +614,8 @@
       "definition": "Outer head crossing the top of the shoulder joint.",
       "includes": "Curls with the arm behind or beside the body.",
       "excludes": "Short head.",
-      "note": "Emphasis claims are qualitative."
+      "note": "Emphasis claims are qualitative. L4 tag; use only when the design deliberately shifts the load.",
+      "lifecycle": "active"
     },
     {
       "id": "bicepsShortHead",
@@ -610,10 +624,11 @@
       "nonAnatomical": false,
       "sort": 20,
       "label": "Biceps, short head",
-      "definition": "Inner head attaching to the shoulder blade.",
+      "definition": "Inner head, attached to the coracoid process of the shoulder blade.",
       "includes": "Curls with the arm in front of the body.",
       "excludes": "Long head.",
-      "note": "Emphasis claims are qualitative."
+      "note": "Emphasis claims are qualitative. L4 tag; use only when the design deliberately shifts the load.",
+      "lifecycle": "active"
     },
     {
       "id": "brachialis",
@@ -624,7 +639,8 @@
       "label": "Brachialis",
       "definition": "Muscle under the biceps that bends the elbow in any forearm position.",
       "includes": "Hammer and reverse curls.",
-      "excludes": "Biceps and brachioradialis."
+      "excludes": "Biceps and brachioradialis.",
+      "lifecycle": "active"
     },
     {
       "id": "coracobrachialis",
@@ -636,7 +652,8 @@
       "definition": "Small muscle at the top of the inner upper arm.",
       "includes": "Shoulder flexion and adduction.",
       "excludes": "Biceps.",
-      "note": "Rarely a training target."
+      "note": "Rarely a training target.",
+      "lifecycle": "active"
     },
     {
       "id": "upperArmPosterior",
@@ -647,7 +664,8 @@
       "label": "Upper arm, back",
       "definition": "Muscles at the back of the upper arm that straighten the elbow.",
       "includes": "Triceps and anconeus.",
-      "excludes": "Chest and deltoid."
+      "excludes": "Chest and deltoid.",
+      "lifecycle": "active"
     },
     {
       "id": "triceps",
@@ -659,7 +677,8 @@
       "definition": "Triceps brachii with three heads.",
       "includes": "Elbow extension and pressing.",
       "excludes": "Anconeus.",
-      "note": "Preserved WP 8 id (L3 muscle)."
+      "note": "Preserved WP 8 id (L3 muscle).",
+      "lifecycle": "active"
     },
     {
       "id": "tricepsLongHead",
@@ -671,7 +690,8 @@
       "definition": "Head crossing the shoulder joint.",
       "includes": "Overhead extensions.",
       "excludes": "Lateral and medial heads.",
-      "note": "Emphasis claims are qualitative."
+      "note": "Emphasis claims are qualitative.",
+      "lifecycle": "active"
     },
     {
       "id": "tricepsLateralHead",
@@ -682,7 +702,8 @@
       "label": "Triceps, lateral head",
       "definition": "Outer head.",
       "includes": "Heavy pressing and pushdowns.",
-      "excludes": "Long and medial heads."
+      "excludes": "Long and medial heads.",
+      "lifecycle": "active"
     },
     {
       "id": "tricepsMedialHead",
@@ -693,7 +714,8 @@
       "label": "Triceps, medial head",
       "definition": "Deep head beneath the other two.",
       "includes": "Elbow extension at all angles.",
-      "excludes": "Long and lateral heads."
+      "excludes": "Long and lateral heads.",
+      "lifecycle": "active"
     },
     {
       "id": "anconeus",
@@ -705,7 +727,8 @@
       "definition": "Small muscle at the back of the elbow.",
       "includes": "Elbow extension and joint stability.",
       "excludes": "Triceps.",
-      "note": "Rarely a training target."
+      "note": "Rarely a training target.",
+      "lifecycle": "active"
     },
     {
       "id": "forearms",
@@ -717,7 +740,8 @@
       "definition": "Muscles between elbow and wrist that move the wrist, fingers and forearm.",
       "includes": "Wrist flexors and extensors, brachioradialis, pronators, supinators.",
       "excludes": "Biceps, brachialis and triceps.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "wristFlexors",
@@ -728,7 +752,8 @@
       "label": "Wrist and finger flexors",
       "definition": "Muscles on the palm side of the forearm.",
       "includes": "Wrist flexion, gripping and holding.",
-      "excludes": "Wrist extensors."
+      "excludes": "Wrist extensors.",
+      "lifecycle": "active"
     },
     {
       "id": "flexorCarpiRadialis",
@@ -739,7 +764,8 @@
       "label": "Flexor carpi radialis",
       "definition": "Flexor on the thumb side of the forearm.",
       "includes": "Wrist flexion and radial deviation.",
-      "excludes": "Flexor carpi ulnaris."
+      "excludes": "Flexor carpi ulnaris.",
+      "lifecycle": "active"
     },
     {
       "id": "flexorCarpiUlnaris",
@@ -750,7 +776,8 @@
       "label": "Flexor carpi ulnaris",
       "definition": "Flexor on the little-finger side of the forearm.",
       "includes": "Wrist flexion and ulnar deviation.",
-      "excludes": "Flexor carpi radialis."
+      "excludes": "Flexor carpi radialis.",
+      "lifecycle": "active"
     },
     {
       "id": "fingerFlexors",
@@ -762,7 +789,8 @@
       "definition": "Flexor digitorum superficialis and profundus.",
       "includes": "Gripping, hanging and carrying.",
       "excludes": "Wrist-only flexors.",
-      "note": "Cross the wrist; filed under wrist flexors."
+      "note": "Cross the wrist; filed under wrist flexors.",
+      "lifecycle": "active"
     },
     {
       "id": "wristExtensors",
@@ -773,7 +801,8 @@
       "label": "Wrist and finger extensors",
       "definition": "Muscles on the back of the forearm.",
       "includes": "Wrist extension and holding the wrist neutral under load.",
-      "excludes": "Wrist flexors."
+      "excludes": "Wrist flexors.",
+      "lifecycle": "active"
     },
     {
       "id": "extensorCarpiRadialis",
@@ -784,7 +813,8 @@
       "label": "Extensor carpi radialis",
       "definition": "Longus and brevis, on the thumb side.",
       "includes": "Wrist extension and radial deviation.",
-      "excludes": "Extensor carpi ulnaris."
+      "excludes": "Extensor carpi ulnaris.",
+      "lifecycle": "active"
     },
     {
       "id": "extensorCarpiUlnaris",
@@ -795,7 +825,8 @@
       "label": "Extensor carpi ulnaris",
       "definition": "Extensor on the little-finger side.",
       "includes": "Wrist extension and ulnar deviation.",
-      "excludes": "Extensor carpi radialis."
+      "excludes": "Extensor carpi radialis.",
+      "lifecycle": "active"
     },
     {
       "id": "fingerExtensors",
@@ -806,7 +837,8 @@
       "label": "Finger extensors",
       "definition": "Extensor digitorum and related muscles.",
       "includes": "Opening the hand and finger extension.",
-      "excludes": "Wrist-only extensors."
+      "excludes": "Wrist-only extensors.",
+      "lifecycle": "active"
     },
     {
       "id": "brachioradialis",
@@ -818,7 +850,8 @@
       "definition": "Forearm muscle on the thumb side that bends the elbow.",
       "includes": "Elbow flexion with a neutral or pronated forearm (reverse curl, hammer curl).",
       "excludes": "Brachialis.",
-      "note": "Debatable: an elbow flexor placed under Forearms as planned."
+      "note": "Debatable: an elbow flexor placed under Forearms as planned.",
+      "lifecycle": "active"
     },
     {
       "id": "forearmPronators",
@@ -829,7 +862,8 @@
       "label": "Forearm pronators",
       "definition": "Pronator teres and pronator quadratus.",
       "includes": "Turning the palm down.",
-      "excludes": "Supinators."
+      "excludes": "Supinators.",
+      "lifecycle": "active"
     },
     {
       "id": "forearmSupinators",
@@ -840,7 +874,8 @@
       "label": "Forearm supinators",
       "definition": "Supinator muscle (the biceps also supinates).",
       "includes": "Turning the palm up.",
-      "excludes": "Pronators."
+      "excludes": "Pronators.",
+      "lifecycle": "active"
     },
     {
       "id": "regionTrunk",
@@ -852,7 +887,8 @@
       "definition": "The abdominal wall and the deep muscles that brace the spine and pelvis.",
       "includes": "Abdominals, obliques and pelvic floor.",
       "excludes": "Spinal extensors (Back, as Lower back).",
-      "note": "Training tranche 5.6 also covers Lower back, whose region is Back."
+      "note": "Training tranche 5.6 also covers Lower back, whose region is Back.",
+      "lifecycle": "active"
     },
     {
       "id": "abs",
@@ -864,7 +900,8 @@
       "definition": "Front abdominal wall muscles.",
       "includes": "Rectus abdominis and transversus abdominis.",
       "excludes": "Obliques.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "rectusAbdominis",
@@ -876,7 +913,8 @@
       "definition": "Paired vertical muscle at the front of the abdomen.",
       "includes": "Trunk flexion and resisting trunk extension.",
       "excludes": "Transversus abdominis.",
-      "note": "Not split into upper and lower parts: a single muscle with segmental activity."
+      "note": "Not split into upper and lower parts: a single muscle with segmental activity.",
+      "lifecycle": "active"
     },
     {
       "id": "transversusAbdominis",
@@ -888,7 +926,8 @@
       "definition": "Deepest abdominal layer wrapping around the trunk.",
       "includes": "Bracing and drawing in the abdominal wall.",
       "excludes": "Rectus abdominis.",
-      "note": "Rarely a primary target; tag as secondary for bracing work."
+      "note": "Rarely a primary target; tag as secondary for bracing work.",
+      "lifecycle": "active"
     },
     {
       "id": "obliques",
@@ -900,7 +939,8 @@
       "definition": "Muscles on the sides of the abdomen.",
       "includes": "External and internal oblique.",
       "excludes": "Quadratus lumborum.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "externalOblique",
@@ -911,7 +951,8 @@
       "label": "External oblique",
       "definition": "Outer oblique layer.",
       "includes": "Trunk rotation to the opposite side, side flexion, flexion.",
-      "excludes": "Internal oblique."
+      "excludes": "Internal oblique.",
+      "lifecycle": "active"
     },
     {
       "id": "internalOblique",
@@ -922,7 +963,8 @@
       "label": "Internal oblique",
       "definition": "Oblique layer under the external oblique.",
       "includes": "Trunk rotation to the same side, side flexion.",
-      "excludes": "External oblique."
+      "excludes": "External oblique.",
+      "lifecycle": "active"
     },
     {
       "id": "pelvicFloor",
@@ -934,7 +976,8 @@
       "definition": "Muscles that form the base of the pelvis.",
       "includes": "Pelvic floor contraction and relaxation exercises.",
       "excludes": "Hip muscles.",
-      "note": "Debatable: could sit under Hip and pelvis. Not covered by minimums; owner to decide whether to include it in the catalogue."
+      "note": "Debatable: could sit under Hip and pelvis. Not covered by minimums; owner to decide whether to include it in the catalogue.",
+      "lifecycle": "active"
     },
     {
       "id": "regionHip",
@@ -945,7 +988,8 @@
       "label": "Hip and pelvis",
       "definition": "The hip joint and the muscles that move the thigh at the hip.",
       "includes": "Glutes, hip abductors, adductors, hip flexors and deep hip rotators.",
-      "excludes": "Quadriceps and hamstrings (Thigh)."
+      "excludes": "Quadriceps and hamstrings (Thigh).",
+      "lifecycle": "active"
     },
     {
       "id": "glutes",
@@ -957,7 +1001,8 @@
       "definition": "Muscle group of the gluteus maximus, medius and minimus.",
       "includes": "Hip extension, hip abduction, pelvic stability.",
       "excludes": "Tensor fasciae latae (Abductors) and deep rotators.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "gluteusMaximus",
@@ -969,7 +1014,8 @@
       "definition": "Largest gluteal muscle.",
       "includes": "Hip extension and external rotation (thrusts, bridges, hinges, squats).",
       "excludes": "Gluteus medius.",
-      "note": "Upper and lower fibres are not tagged separately."
+      "note": "Upper and lower fibres are not tagged separately.",
+      "lifecycle": "active"
     },
     {
       "id": "gluteusMedius",
@@ -981,7 +1027,8 @@
       "definition": "Fan-shaped muscle on the outer pelvis.",
       "includes": "Hip abduction and single-leg pelvic stability.",
       "excludes": "Gluteus minimus.",
-      "note": "Functionally a hip abductor but filed under Glutes: one parent per node."
+      "note": "Functionally a hip abductor but filed under Glutes: one parent per node.",
+      "lifecycle": "active"
     },
     {
       "id": "gluteusMinimus",
@@ -993,7 +1040,8 @@
       "definition": "Smallest gluteal muscle, under the medius.",
       "includes": "Hip abduction and internal rotation.",
       "excludes": "Gluteus medius.",
-      "note": "Functionally a hip abductor but filed under Glutes: one parent per node."
+      "note": "Functionally a hip abductor but filed under Glutes: one parent per node.",
+      "lifecycle": "active"
     },
     {
       "id": "abductors",
@@ -1005,7 +1053,8 @@
       "definition": "Muscles that move the thigh out to the side, as filed here.",
       "includes": "Tensor fasciae latae and any exercise tagged as hip abduction at group level.",
       "excludes": "Gluteus medius and minimus (filed under Glutes).",
-      "note": "Preserved WP 8 id (L2 group). Known limitation: most abduction work is done by gluteus medius and minimus; tag them as well when the exercise targets them."
+      "note": "Preserved WP 8 id (L2 group). Known limitation: most abduction work is done by gluteus medius and minimus; tag them as well when the exercise targets them.",
+      "lifecycle": "active"
     },
     {
       "id": "tensorFasciaeLatae",
@@ -1016,7 +1065,8 @@
       "label": "Tensor fasciae latae",
       "definition": "Small muscle at the front-outer hip feeding the iliotibial band.",
       "includes": "Hip abduction, flexion and internal rotation.",
-      "excludes": "Gluteus medius."
+      "excludes": "Gluteus medius.",
+      "lifecycle": "active"
     },
     {
       "id": "adductors",
@@ -1028,7 +1078,8 @@
       "definition": "Muscles on the inner thigh that pull the leg towards the midline.",
       "includes": "Adductor magnus, longus, brevis, gracilis and pectineus.",
       "excludes": "Hamstrings.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group). Placement under Hip and pelvis is debatable (see anatomy.md section 5, item 16).",
+      "lifecycle": "active"
     },
     {
       "id": "adductorMagnus",
@@ -1039,7 +1090,8 @@
       "label": "Adductor magnus",
       "definition": "Largest adductor with an adductor part and a hamstring part.",
       "includes": "Hip adduction and, through its rear part, hip extension.",
-      "excludes": "Adductor longus."
+      "excludes": "Adductor longus.",
+      "lifecycle": "active"
     },
     {
       "id": "adductorMagnusAdductor",
@@ -1050,7 +1102,8 @@
       "label": "Adductor magnus, adductor part",
       "definition": "Front part of adductor magnus.",
       "includes": "Hip adduction.",
-      "excludes": "Hamstring part."
+      "excludes": "Hamstring part.",
+      "lifecycle": "active"
     },
     {
       "id": "adductorMagnusHamstring",
@@ -1062,7 +1115,8 @@
       "definition": "Rear part of adductor magnus.",
       "includes": "Hip extension in deep squats and hinges.",
       "excludes": "Adductor part.",
-      "note": "Tag rarely; use only when the movement clearly loads deep hip extension."
+      "note": "Tag rarely; use only when the movement clearly loads deep hip extension.",
+      "lifecycle": "active"
     },
     {
       "id": "adductorLongus",
@@ -1073,7 +1127,8 @@
       "label": "Adductor longus",
       "definition": "Long, thin inner-thigh muscle.",
       "includes": "Hip adduction and flexion.",
-      "excludes": "Adductor brevis."
+      "excludes": "Adductor brevis.",
+      "lifecycle": "active"
     },
     {
       "id": "adductorBrevis",
@@ -1084,7 +1139,8 @@
       "label": "Adductor brevis",
       "definition": "Short adductor beneath the longus.",
       "includes": "Hip adduction.",
-      "excludes": "Adductor longus."
+      "excludes": "Adductor longus.",
+      "lifecycle": "active"
     },
     {
       "id": "gracilis",
@@ -1095,7 +1151,8 @@
       "label": "Gracilis",
       "definition": "Thin strap muscle on the inner thigh.",
       "includes": "Hip adduction and knee flexion.",
-      "excludes": "Sartorius."
+      "excludes": "Sartorius.",
+      "lifecycle": "active"
     },
     {
       "id": "pectineus",
@@ -1106,7 +1163,8 @@
       "label": "Pectineus",
       "definition": "Small muscle at the top of the inner thigh.",
       "includes": "Hip adduction and flexion.",
-      "excludes": "Iliopsoas."
+      "excludes": "Iliopsoas.",
+      "lifecycle": "active"
     },
     {
       "id": "hipFlexors",
@@ -1118,7 +1176,8 @@
       "definition": "Muscles that lift the thigh towards the trunk.",
       "includes": "Iliopsoas and sartorius. Rectus femoris is filed under Quadriceps.",
       "excludes": "Abdominals.",
-      "note": "Functional group; rectus femoris stays under Quadriceps (one parent per node)."
+      "note": "Functional group; rectus femoris stays under Quadriceps (one parent per node).",
+      "lifecycle": "active"
     },
     {
       "id": "iliopsoas",
@@ -1129,7 +1188,8 @@
       "label": "Iliopsoas",
       "definition": "Psoas major and iliacus together.",
       "includes": "Hip flexion and lumbar stabilisation.",
-      "excludes": "Rectus abdominis."
+      "excludes": "Rectus abdominis.",
+      "lifecycle": "active"
     },
     {
       "id": "psoasMajor",
@@ -1140,7 +1200,8 @@
       "label": "Psoas major",
       "definition": "Muscle from the lumbar spine to the thigh.",
       "includes": "Hip flexion.",
-      "excludes": "Iliacus."
+      "excludes": "Iliacus.",
+      "lifecycle": "active"
     },
     {
       "id": "iliacus",
@@ -1151,7 +1212,8 @@
       "label": "Iliacus",
       "definition": "Muscle lining the inside of the pelvis.",
       "includes": "Hip flexion.",
-      "excludes": "Psoas major."
+      "excludes": "Psoas major.",
+      "lifecycle": "active"
     },
     {
       "id": "sartorius",
@@ -1163,7 +1225,8 @@
       "definition": "Long strap muscle across the front of the thigh.",
       "includes": "Hip flexion, abduction and external rotation; knee flexion.",
       "excludes": "Quadriceps.",
-      "note": "Debatable: lies in the anterior thigh but is filed with the hip flexors."
+      "note": "Debatable: lies in the anterior thigh but is filed with the hip flexors.",
+      "lifecycle": "active"
     },
     {
       "id": "hipExternalRotators",
@@ -1172,9 +1235,11 @@
       "nonAnatomical": false,
       "sort": 50,
       "label": "Deep hip rotators",
-      "definition": "Small muscles behind the hip joint that turn the thigh outwards.",
-      "includes": "Piriformis, obturators, gemelli and quadratus femoris.",
-      "excludes": "Gluteus maximus."
+      "definition": "Small muscles behind the hip joint that turn the thigh outwards: piriformis, obturator internus and externus, the gemelli and quadratus femoris.",
+      "includes": "Hip external rotation. Only piriformis has its own node; the obturators, gemelli and quadratus femoris are covered by this group node and are tagged at the group (L2).",
+      "excludes": "Gluteus maximus.",
+      "note": "Reduced from five L3 nodes to one: the smaller rotators cannot be trained separately.",
+      "lifecycle": "active"
     },
     {
       "id": "piriformis",
@@ -1185,52 +1250,9 @@
       "label": "Piriformis",
       "definition": "Pear-shaped muscle from the sacrum to the thigh bone.",
       "includes": "Hip external rotation.",
-      "excludes": "Gluteus maximus."
-    },
-    {
-      "id": "obturatorInternus",
-      "parent": "hipExternalRotators",
-      "level": 3,
-      "nonAnatomical": false,
-      "sort": 20,
-      "label": "Obturator internus",
-      "definition": "Deep rotator inside the pelvis.",
-      "includes": "Hip external rotation.",
-      "excludes": "Obturator externus."
-    },
-    {
-      "id": "obturatorExternus",
-      "parent": "hipExternalRotators",
-      "level": 3,
-      "nonAnatomical": false,
-      "sort": 30,
-      "label": "Obturator externus",
-      "definition": "Deep rotator on the outer pelvis.",
-      "includes": "Hip external rotation.",
-      "excludes": "Obturator internus."
-    },
-    {
-      "id": "gemelli",
-      "parent": "hipExternalRotators",
-      "level": 3,
-      "nonAnatomical": false,
-      "sort": 40,
-      "label": "Gemelli",
-      "definition": "Superior and inferior gemellus.",
-      "includes": "Hip external rotation.",
-      "excludes": "Quadratus femoris.",
-      "note": "Superior and inferior are not tagged separately."
-    },
-    {
-      "id": "quadratusFemoris",
-      "parent": "hipExternalRotators",
-      "level": 3,
-      "nonAnatomical": false,
-      "sort": 50,
-      "label": "Quadratus femoris",
-      "definition": "Flat rotator below the gemelli.",
-      "includes": "Hip external rotation.",
-      "excludes": "Gemelli."
+      "excludes": "Gluteus maximus.",
+      "note": "Only deep rotator with its own node.",
+      "lifecycle": "active"
     },
     {
       "id": "regionThigh",
@@ -1241,7 +1263,8 @@
       "label": "Thigh",
       "definition": "The thigh between hip and knee.",
       "includes": "Quadriceps and hamstrings.",
-      "excludes": "Adductor group and hip flexors (Hip and pelvis)."
+      "excludes": "Adductor group and hip flexors (Hip and pelvis).",
+      "lifecycle": "active"
     },
     {
       "id": "quadriceps",
@@ -1253,7 +1276,8 @@
       "definition": "Four-headed muscle at the front of the thigh.",
       "includes": "Knee extension in squats, presses, lunges and extensions.",
       "excludes": "Hip flexors other than rectus femoris.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "rectusFemoris",
@@ -1265,7 +1289,8 @@
       "definition": "Quadriceps head that crosses the hip.",
       "includes": "Knee extension and hip flexion.",
       "excludes": "Vastus muscles.",
-      "note": "Functions as a hip flexor but filed under Quadriceps."
+      "note": "Functions as a hip flexor but filed under Quadriceps.",
+      "lifecycle": "active"
     },
     {
       "id": "vastusLateralis",
@@ -1276,7 +1301,8 @@
       "label": "Vastus lateralis",
       "definition": "Outer quadriceps head.",
       "includes": "Knee extension.",
-      "excludes": "Vastus medialis."
+      "excludes": "Vastus medialis.",
+      "lifecycle": "active"
     },
     {
       "id": "vastusMedialis",
@@ -1285,10 +1311,11 @@
       "nonAnatomical": false,
       "sort": 30,
       "label": "Vastus medialis",
-      "definition": "Inner quadriceps head.",
-      "includes": "Knee extension, especially the last degrees.",
+      "definition": "Inner quadriceps head on the front of the thigh.",
+      "includes": "Knee extension through the whole range.",
       "excludes": "Vastus lateralis.",
-      "note": "The commonly used 'VMO' label is not modelled separately."
+      "note": "The commonly used 'VMO' label is not modelled separately. The idea that this head works only in the last degrees of extension is a myth and is not used here.",
+      "lifecycle": "active"
     },
     {
       "id": "vastusIntermedius",
@@ -1299,7 +1326,8 @@
       "label": "Vastus intermedius",
       "definition": "Deep quadriceps head under rectus femoris.",
       "includes": "Knee extension.",
-      "excludes": "Rectus femoris."
+      "excludes": "Rectus femoris.",
+      "lifecycle": "active"
     },
     {
       "id": "hamstrings",
@@ -1311,7 +1339,8 @@
       "definition": "Muscle group at the back of the thigh.",
       "includes": "Knee flexion and hip extension.",
       "excludes": "Gluteus maximus and adductor magnus.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "bicepsFemoris",
@@ -1322,7 +1351,8 @@
       "label": "Biceps femoris",
       "definition": "Outer hamstring with two heads.",
       "includes": "Knee flexion and hip extension.",
-      "excludes": "Biceps brachii."
+      "excludes": "Biceps brachii.",
+      "lifecycle": "active"
     },
     {
       "id": "bicepsFemorisLongHead",
@@ -1333,7 +1363,8 @@
       "label": "Biceps femoris, long head",
       "definition": "Head crossing hip and knee.",
       "includes": "Hip extension and knee flexion.",
-      "excludes": "Short head."
+      "excludes": "Short head.",
+      "lifecycle": "active"
     },
     {
       "id": "bicepsFemorisShortHead",
@@ -1344,7 +1375,8 @@
       "label": "Biceps femoris, short head",
       "definition": "Head crossing the knee only.",
       "includes": "Knee flexion, including when the hip is already extended.",
-      "excludes": "Long head."
+      "excludes": "Long head.",
+      "lifecycle": "active"
     },
     {
       "id": "semitendinosus",
@@ -1355,7 +1387,8 @@
       "label": "Semitendinosus",
       "definition": "Inner hamstring with a long tendon.",
       "includes": "Knee flexion and hip extension.",
-      "excludes": "Semimembranosus."
+      "excludes": "Semimembranosus.",
+      "lifecycle": "active"
     },
     {
       "id": "semimembranosus",
@@ -1366,7 +1399,8 @@
       "label": "Semimembranosus",
       "definition": "Deep inner hamstring.",
       "includes": "Knee flexion and hip extension.",
-      "excludes": "Semitendinosus."
+      "excludes": "Semitendinosus.",
+      "lifecycle": "active"
     },
     {
       "id": "regionLowerLeg",
@@ -1377,7 +1411,8 @@
       "label": "Lower leg and ankle",
       "definition": "The lower leg between knee and ankle, including the muscles that move the ankle and foot.",
       "includes": "Calf, shin and lateral lower-leg muscles.",
-      "excludes": "Intrinsic foot muscles (not modelled)."
+      "excludes": "Intrinsic foot muscles (not modelled).",
+      "lifecycle": "active"
     },
     {
       "id": "calves",
@@ -1389,7 +1424,8 @@
       "definition": "Muscles at the back of the lower leg that point the foot down.",
       "includes": "Gastrocnemius and soleus.",
       "excludes": "Tibialis posterior and toe flexors.",
-      "note": "Preserved WP 8 id (L2 group)."
+      "note": "Preserved WP 8 id (L2 group).",
+      "lifecycle": "active"
     },
     {
       "id": "gastrocnemius",
@@ -1400,7 +1436,8 @@
       "label": "Gastrocnemius",
       "definition": "Two-headed calf muscle crossing knee and ankle.",
       "includes": "Plantar flexion, strongest with the knee straight.",
-      "excludes": "Soleus."
+      "excludes": "Soleus.",
+      "lifecycle": "active"
     },
     {
       "id": "gastrocnemiusMedialHead",
@@ -1412,7 +1449,8 @@
       "definition": "Inner head of the calf muscle.",
       "includes": "Plantar flexion with the knee straight.",
       "excludes": "Lateral head.",
-      "note": "Heads are tagged only when an exercise deliberately changes foot position; qualitative."
+      "note": "Heads are tagged only when an exercise deliberately changes foot position; qualitative.",
+      "lifecycle": "active"
     },
     {
       "id": "gastrocnemiusLateralHead",
@@ -1423,7 +1461,8 @@
       "label": "Gastrocnemius, lateral head",
       "definition": "Outer head of the calf muscle.",
       "includes": "Plantar flexion with the knee straight.",
-      "excludes": "Medial head."
+      "excludes": "Medial head.",
+      "lifecycle": "active"
     },
     {
       "id": "soleus",
@@ -1434,7 +1473,8 @@
       "label": "Soleus",
       "definition": "Flat calf muscle under the gastrocnemius.",
       "includes": "Plantar flexion, strongest with the knee bent.",
-      "excludes": "Gastrocnemius."
+      "excludes": "Gastrocnemius.",
+      "lifecycle": "active"
     },
     {
       "id": "anteriorLowerLeg",
@@ -1445,7 +1485,8 @@
       "label": "Shin muscles",
       "definition": "Front compartment of the lower leg.",
       "includes": "Tibialis anterior and toe extensors.",
-      "excludes": "Calves."
+      "excludes": "Calves.",
+      "lifecycle": "active"
     },
     {
       "id": "tibialisAnterior",
@@ -1457,7 +1498,8 @@
       "definition": "Muscle along the front of the shin.",
       "includes": "Dorsiflexion and foot inversion.",
       "excludes": "Toe extensors.",
-      "note": "The plan proposed this as an L2 node; here it is L3 under a new L2 compartment so related muscles have a parent."
+      "note": "The plan proposed this as an L2 node; here it is L3 under a new L2 compartment so related muscles have a parent.",
+      "lifecycle": "active"
     },
     {
       "id": "toeExtensors",
@@ -1468,7 +1510,8 @@
       "label": "Toe extensors",
       "definition": "Extensor digitorum longus and extensor hallucis longus.",
       "includes": "Lifting the toes and assisting dorsiflexion.",
-      "excludes": "Tibialis anterior."
+      "excludes": "Tibialis anterior.",
+      "lifecycle": "active"
     },
     {
       "id": "lateralLowerLeg",
@@ -1479,7 +1522,8 @@
       "label": "Outer lower-leg muscles",
       "definition": "Lateral compartment of the lower leg.",
       "includes": "Fibularis (peroneal) muscles.",
-      "excludes": "Calves."
+      "excludes": "Calves.",
+      "lifecycle": "active"
     },
     {
       "id": "fibularisLongus",
@@ -1490,7 +1534,8 @@
       "label": "Fibularis longus",
       "definition": "Outer lower-leg muscle (peroneus longus).",
       "includes": "Foot eversion and ankle stability.",
-      "excludes": "Fibularis brevis."
+      "excludes": "Fibularis brevis.",
+      "lifecycle": "active"
     },
     {
       "id": "fibularisBrevis",
@@ -1501,7 +1546,8 @@
       "label": "Fibularis brevis",
       "definition": "Shorter outer lower-leg muscle (peroneus brevis).",
       "includes": "Foot eversion.",
-      "excludes": "Fibularis longus."
+      "excludes": "Fibularis longus.",
+      "lifecycle": "active"
     },
     {
       "id": "deepPosteriorLowerLeg",
@@ -1512,7 +1558,8 @@
       "label": "Deep calf muscles",
       "definition": "Deep back compartment of the lower leg.",
       "includes": "Tibialis posterior and toe flexors.",
-      "excludes": "Gastrocnemius and soleus."
+      "excludes": "Gastrocnemius and soleus.",
+      "lifecycle": "active"
     },
     {
       "id": "tibialisPosterior",
@@ -1523,7 +1570,8 @@
       "label": "Tibialis posterior",
       "definition": "Deep muscle supporting the arch.",
       "includes": "Foot inversion and arch support.",
-      "excludes": "Toe flexors."
+      "excludes": "Toe flexors.",
+      "lifecycle": "active"
     },
     {
       "id": "toeFlexors",
@@ -1534,7 +1582,8 @@
       "label": "Toe flexors",
       "definition": "Flexor digitorum longus and flexor hallucis longus.",
       "includes": "Curling the toes and push-off.",
-      "excludes": "Tibialis posterior."
+      "excludes": "Tibialis posterior.",
+      "lifecycle": "active"
     },
     {
       "id": "fullBody",
@@ -1543,10 +1592,11 @@
       "nonAnatomical": true,
       "sort": 100,
       "label": "Full body",
-      "definition": "Non-anatomical classification for conditioning and whole-body work.",
+      "definition": "Non-anatomical classification for conditioning and whole-body work (flagged non-anatomical).",
       "includes": "Cardio and conditioning exercises with no defensible muscle subset.",
-      "excludes": "Any anatomical muscle. The node has no children and is excluded from anatomical coverage.",
-      "note": "Non-anatomical. ADR-0008 text calls fullBody a target kind; the approved plan (section 4) and D04 section 7 make it an L1 node. This list follows the plan."
+      "excludes": "Any anatomical muscle. The node has no children and is excluded from anatomical coverage, roll-ups and attributed set counts (shown separately).",
+      "note": "Flagged non-anatomical L1 node with no children, as in ADR-0010 (proposed), which amends ADR-0008 decision 2. Whether it may be a secondary target, or a primary beside anatomical primaries, is an open owner question.",
+      "lifecycle": "active"
     }
   ]
 }

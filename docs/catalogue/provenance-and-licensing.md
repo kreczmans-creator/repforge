@@ -33,6 +33,8 @@ Stage 3 stores providers in the provider table. This is the proposed field set; 
 
 Per-record provenance in a release entry: `providerId`, an optional `sourceRef` (the record id in the dataset), the author and reviewer initials, and a free note for transformations.
 
+The 89 exercises already in the app (seed) carry provider `repforge` and the author "RepForge editorial (WP 8 seed)" in release 2, with the reviewer empty until a tranche review names one (IC-212). The owner may name a person or role instead.
+
 ## 3. Rules for original authoring
 1. Write from your own knowledge of performing the movement and from standard anatomy.
 2. Do not copy, translate or closely paraphrase from any website, app, book or video. Do not work with another source open beside the entry you are writing.

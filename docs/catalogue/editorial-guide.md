@@ -3,7 +3,8 @@
 - Status: **Proposed — for owner approval.** WP 8 stage 4 (documentation only).
 - Audience: editors who author or review system catalogue exercises (WP 8 stage 5) and the integrity tool that checks them.
 - Requirements: LIB-001..LIB-007, LIB-013; owner decisions 2 (original content), 3 (anatomy), 4 (difficulty), 5 (relationships).
-- Related: `anatomy.md`, `movement-patterns.md`, `equipment.md`, `quality-and-duplicates.md`, `provenance-and-licensing.md`.
+- Related: `anatomy.md`, `movement-patterns.md`, `equipment.md`, `quality-and-duplicates.md`, `provenance-and-licensing.md`, `coverage-matrix.md`.
+- Revision 2 (review findings F04, F08, F12, F13, F14, F19, F21, F25): relationships store `progressionOf` only; functional double tags are one primary plus one secondary; difficulty drivers aligned to the owner definitions; per-exercise equipment roles; `fullBody` aligned with ADR-0010 (proposed).
 
 ## 1. Principles
 1. **Original content.** Write every name, alias, classification and instruction yourself. Do not copy or closely paraphrase any website, app, book or video. Bodybuilding.com is a breadth benchmark only. See `provenance-and-licensing.md`.
@@ -36,7 +37,7 @@
 - Add the common alternative names, including common US names and abbreviations, so search finds them.
 - At most six aliases. Each alias must be unique in the whole catalogue (not equal, after normalisation, to any other name or alias) and must refer to **this** exercise only.
 - Do not add an alias that names a different exercise. *Stiff-leg deadlift* is not an alias of *Romanian deadlift*.
-- Do not add a case, hyphen or plural variant of the name. The search normalises those.
+- Do not add a case, hyphen, apostrophe or plural variant of the name or of another alias. The search normalises those, and the checks reject them: *Pullup* for *Pull-up*, *Chinup* for *Chin-up* and *Farmers walk* beside *Farmer's walk* all collide after normalisation (IC-502 to IC-504).
 
 | Canonical name (UK) | Typical aliases |
 |---|---|
@@ -69,6 +70,7 @@ A new entry must differ from every existing entry in **at least one** of these w
 | Angle or position | Body or implement angle changes the movement | Incline versus flat press; seated versus standing |
 | Range | A different start or end position changes demand | Deficit deadlift; partial range |
 | Laterality | One limb works at a time | Single-arm row |
+| Arm or body position, knee position, grip, stance | Changes which part of the movement is loaded; record it as an **optional exercise attribute** where one exists (`coverage-matrix.md` section 3: angle, arm position, grip, body position, knee position, stance) | Incline versus flat press; arm behind the body versus beside it |
 
 An entry is **not** a legitimate variation when it differs only by:
 - tempo, pauses, repetition scheme, rest or intensity technique (these are ways to perform an exercise; future metadata may record tempo);
@@ -81,30 +83,31 @@ An entry is **not** a legitimate variation when it differs only by:
 1. Which of the six dimensions changes? If none, stop.
 2. Would a trainee choose it for a reason the existing entry cannot meet (equipment they have, a joint angle, a progression step, balance demand, one side at a time)? If not, stop.
 3. Does it have a canonical exercise to point to (`variationOf`)? If it is a new movement, it becomes a new canonical exercise.
-4. Does the near-duplicate check (`quality-and-duplicates.md`, section 6) flag it? If yes, record a reason or merge.
+4. Does the near-duplicate check (`quality-and-duplicates.md`, IC-600) flag it? If yes, record a reason or merge. A pair whose recorded attributes differ is cleared automatically; a pair that differs only in an unrecorded grip or stance is a review item (checklist), not an automatic flag.
 
 ## 4. Relationships
-The five kinds, as in ADR-0008. Relationships describe the catalogue; they do not schedule or prescribe training. Each pair is stored once; the inverse is derived.
+Four stored kinds. ADR-0008 decision 5 lists five kinds; at revision 2 the guide proposes to **store `progressionOf` only** and to derive the regression view (F19), so that one ladder step has one spelling. Relationships describe the catalogue; they do not schedule or prescribe training. Each pair is stored once; the inverse is derived.
 
 | Kind | Use when | Direction | Stored as |
 |---|---|---|---|
 | `variationOf` | The entry is the same movement as a canonical exercise, changed in equipment, grip, stance, angle, range or laterality | From the variation **to** the canonical exercise (the family root) | Directional, at most one per exercise |
 | `progressionOf` | The entry is the next, more technically demanding step after another entry | From the harder entry **to** the easier one | Directional |
-| `regressionOf` | The entry is an easier, more accessible version of another entry | From the easier entry **to** the harder one | Directional |
 | `alternativeTo` | The entry loads the same target with a different movement, and a trainee could swap one for the other. It is not a variation | Symmetric | Stored once, ids in alphabetical order |
 | `unilateralCounterpartOf` | One entry is the single-limb form of the other bilateral entry | Symmetric | Stored once, ids in alphabetical order |
 
+**Regression is a derived view.** "A is a regression of B" is shown when B is stored as a progression of A. The editor tool may accept `regressionOf` as input (from the easier entry to the harder one) and **normalises it to the inverse `progressionOf` before storing**; the file never contains `regressionOf`. ADR-0008 decision 5 should be clarified accordingly (proposed clarification; the ADR is not edited here).
+
 ### 4.1 How to choose
-1. Same movement, one of the six dimensions changes: `variationOf` the family root.
-2. A ladder of difficulty (for example wall push-up › incline push-up › push-up › decline push-up): choose `progressionOf` or `regressionOf`. Use `regressionOf` when you add the easier entry for an existing exercise and `progressionOf` when you add a harder one. Never store the same pair both ways.
+1. Same movement, one of the dimensions of section 3 changes: `variationOf` the family root.
+2. A ladder of difficulty (for example wall push-up › incline push-up › push-up › decline push-up): store `progressionOf` from each harder step to the next easier one. When you add an easier step below an existing exercise, store the existing exercise as a progression of the new one. Never store the same pair both ways.
 3. Different movement, same target, interchangeable: `alternativeTo`.
 4. A bilateral and a unilateral version of the same movement: `unilateralCounterpartOf`, in addition to `variationOf` when the unilateral one derives from the bilateral root.
 5. A pair can carry more than one kind (for example `variationOf` and `unilateralCounterpartOf`), but not two kinds that mean the same thing.
 
 ### 4.2 Rules
-- No self-reference, no duplicate, no inverse duplicate.
-- `variationOf` forms a forest: every family has one canonical root with no `variationOf` of its own. A variation points to the root, not to another variation. Depth greater than 2 needs a reviewer note.
-- `progressionOf` and `regressionOf` must not form a cycle.
+- No self-reference, no duplicate, no inverse duplicate (a `progressionOf` from A to B and from B to A is refused).
+- `variationOf` forms a forest: every family has one canonical root with no `variationOf` of its own. A variation points to the root, not to another variation, so a family has depth 1; a deeper structure is refused, not noted.
+- `progressionOf` must not form a cycle.
 - `alternativeTo` is not used between two members of the same family (the family already links them).
 - `unilateralCounterpartOf` joins one bilateral and one unilateral or alternating entry.
 - An active entry never links to a retired entry.
@@ -116,11 +119,11 @@ Use `anatomy.md`. Use `reference/anatomy.json` for ids.
 1. **Most defensible level.** Tag the lowest level you can defend for this exercise. For a flat bench press, `pectoralisMajor` or `chest` is defensible; `pectoralisMajorClavicular` is not. For a lateral raise, `sideDelts`.
 2. **Do not tag both a node and its ancestor or descendant.** Choose one. (Tagging `chest` and `pectoralisMajor` on the same exercise double-counts it.)
 3. **Primary** means the muscle or muscles the exercise is designed to load, which do the main work through the main range. **Secondary** means a muscle that clearly assists or stabilises but is not the aim.
-4. **Multiple primaries** are allowed when two muscle groups share the main work (for example chest and triceps in a close-grip press, only if you can defend it). Use one to three primaries. Do not promote a secondary to primary to make a coverage minimum. Adding a primary changes attributed set counts.
+4. **Multiple primaries.** Use one to three primaries, and add a second only where the primary-target principle allows it. The principle is an **open owner question (Q-P, `mapping-existing.md` section 8)**: when a compound movement is shared by several muscles, are the primaries only the muscle or muscles the movement is designed to load (the seed's practice, normally one), or every muscle that does main work through the main range? Until the owner answers, use the seed's practice. Do not promote a secondary to primary to make a coverage minimum. Adding a primary changes attributed set counts, so each tranche reports **primaries per exercise** (`coverage-matrix.md` section 9).
 5. **Secondary list**: only muscles that clearly assist. Zero to six. Do not list every muscle that contracts.
-6. **Heads and subdivisions** (L4): tag them only when the exercise design deliberately shifts the load (for example an overhead triceps extension for the long head) and the claim is a qualitative tendency. Otherwise tag the muscle (L3).
-7. **Functional groups**: where a muscle has two functions, tag the muscle where it sits and also tag the group that names the function when it matters (for example `gluteusMedius` and `abductors` for a banded side step). See `anatomy.md` section 4.
-8. **`fullBody`**: use only as a primary target, and only when no defensible anatomical subset exists (most cardio). Do not list it as secondary.
+6. **Heads and subdivisions** (L4): optional. Tag them only when the exercise design deliberately shifts the load (for example an overhead triceps extension for the long head) and the claim is a qualitative tendency. Otherwise tag the muscle (L3). No coverage minimum depends on an L4 primary tag; where a head matters, the coverage slot uses an optional attribute such as the arm position (`coverage-matrix.md` section 4).
+7. **Functional double tags.** Where a muscle sits under one group but acts through a function named by another (gluteus medius and `abductors`; rectus femoris and `hipFlexors`; upper trapezius and the neck extensors), tag **one primary and one secondary**, never two primaries. The primary is the node the exercise is designed to load; the other is a secondary. Coverage counts primaries only, and an exercise fills at most one slot per group. Hip abduction: open-chain against external resistance (machine, cable, ankle strap, standing band) is primary `abductors`, secondary `gluteusMedius`; a bodyweight, side-lying or weight-bearing stability drill (clamshell, lateral band walk) is primary `gluteusMedius`, secondary `abductors`. Whether any such exercise should carry two primaries is part of Q-P. See `anatomy.md` section 4.
+8. **`fullBody`** is a flagged, childless, non-anatomical L1 node (ADR-0010, proposed). Use it as a primary target when no defensible anatomical subset exists (most cardio). Do not list it as a secondary, and do not place it beside anatomical primaries, in new content until the owner answers Q-F (may it be a secondary, or a primary beside anatomical primaries?). Existing stored uses are preserved and listed in the migration report. The integrity rule IC-304 applies to system content only; user exercises are never rejected for it.
 9. **No precision claims.** Write "tends to emphasise" in notes, never percentages, and never "isolates" or "only".
 10. **Reporting wording.** Per-muscle figures in the app are *attributed set counts*: a primary muscle receives full attribution of each recorded exercise set; a secondary muscle receives separately recorded attribution that is excluded from primary totals. They are not physiological measurements of muscle stimulus.
 
@@ -129,41 +132,56 @@ Difficulty describes **technical complexity**, not load, volume or fitness (owne
 
 | Level | Owner definition | Typical drivers |
 |---|---|---|
-| `beginner` | Simple movement, stable setup, straightforward execution | One main joint pattern; supported or guided path; low balance demand; little setup |
-| `intermediate` | Moderate coordination, technique or control | Several joints coordinating; free implement; moderate balance or mobility demand; some setup steps |
-| `advanced` | High technical demand, stability or complex execution | Fast or ballistic movement; high balance or mobility demand; complex timing; difficult setup |
+| `beginner` | Simple movement, stable setup, straightforward execution | One main joint pattern; supported or guided path; low balance demand; little set-up |
+| `intermediate` | Moderate coordination, technique or control | Several joints coordinating; a free bar path to control; two independent loads to balance; moderate balance or mobility demand; some set-up steps; ballistic movement with simple timing |
+| `advanced` | High technical demand, stability or complex execution | High balance or mobility demand; complex timing (multi-phase lifts, catches, transitions); inversion; difficult set-up |
 
-Choose by the highest single driver. Do not raise a level because a lift is heavy, and do not lower it because it is easy for a strong person.
+Rules:
+1. Choose by the highest single driver. Do not raise a level because a lift is heavy, and do not lower it because it is easy for a strong person.
+2. **An implement is not a driver.** A free weight does not make an exercise intermediate. What the implement demands does: a bar path to control, two loads to balance, a rack position.
+3. **Ballistic movement is intermediate** unless it is combined with complex timing (a catch, several phases) or a high mobility demand; then it is advanced.
 
 Worked examples:
 | Exercise | Level | Reason |
 |---|---|---|
 | Machine chest press | beginner | Guided path, stable seat |
 | Bodyweight squat | beginner | One pattern, no equipment |
-| Lat pulldown | beginner | Guided path, simple setup |
+| Goblet squat (dumbbell) | beginner | One pattern, counterbalanced load, stable stance |
+| Dumbbell biceps curl | beginner | One joint, simple path |
+| Dumbbell lateral raise | beginner | One joint, simple path |
+| Lat pulldown | beginner | Guided path, simple set-up |
 | Plank | beginner | Static, one position |
+| Dumbbell bench press | intermediate | Two independent loads to balance and to get into position |
+| Dumbbell Romanian deadlift | intermediate | Hinge pattern and bracing; the implement is not the driver |
 | Barbell bench press | intermediate | Bar path, shoulder blade position and bracing |
 | Barbell back squat | intermediate | Bar position, depth and bracing |
 | Conventional deadlift | intermediate | Hinge pattern, bracing, set-up |
 | Pull-up | intermediate | Shoulder blade control and bodyweight coordination |
 | Bulgarian split squat | intermediate | Balance and range |
-| Kettlebell swing | intermediate | Ballistic hinge timing |
-| Snatch (barbell) | advanced | Fast, complex timing and mobility |
+| Kettlebell swing | intermediate | Ballistic hinge with simple timing |
+| Dumbbell snatch | advanced | Ballistic with complex timing, overhead catch and mobility |
+| Snatch (barbell) | advanced | Complex timing, catch and mobility |
 | Muscle-up | advanced | Transition and timing |
 | Pistol squat | advanced | Balance and mobility on one leg |
 | Handstand push-up | advanced | Inversion, balance, shoulder control |
 
-## 7. Mechanics and laterality
+The 89 seed exercises were assigned difficulties under these rules (`mapping-existing.md` section 6); none meets the advanced definition.
+
+## 7. Mechanics, laterality and equipment roles
 ### Mechanics
-- `compound`: two or more joints produce the main work (squat, row, press, pull-up, face pull).
-- `isolation`: one joint produces the main work (curl, lateral raise, leg extension, calf raise).
-- Static holds follow the joints that bear the load: a plank is `compound`.
-- Cardio and mobility entries: see the open question in `coverage-matrix.md`, section 11.
+- `compound`: two or more joints produce the main work (squat, row, press, pull-up).
+- `isolation`: one joint produces the main work (curl, lateral raise, leg extension, calf raise, **face pull**: the main work is at the shoulder joint and the elbow only follows, F25).
+- Static holds follow the joints that bear the load: a plank is `compound`; a dead hang is `isolation` (the grip).
+- Hip thrusts and glute bridges are `compound` by decision: hip extension with the knee held under load.
+- Cardio and mobility entries: the proposed default is an **empty** mechanics value, not checked by IC-207. This is an open owner question (Q-M, `coverage-matrix.md` section 13); the alternative is to force a value.
 
 ### Laterality
 - `bilateral`: both limbs do the same job at the same time (barbell squat, lat pulldown).
 - `unilateral`: one limb or side does the work while the other rests or supports (single-arm row), or the two limbs do different jobs (split squat, lunge, side plank).
 - `alternating`: limbs take turns without a break in the set (alternating curl, walking lunge, running).
+
+### Equipment roles (F21)
+List every item the exercise needs. Each item has a default role in `equipment.md` (load or support). If in this exercise the item does the opposite, add `equipmentRoles` with the item id and the role, and a note. **Rule:** an item is `load` if the resistance or the assistance comes from it; it is `support` if it only holds the body or another item. The exercise class is derived from the load items only. Example: in the inverted row the barbell is fixed in a rack and the body is the load, so the barbell is `support` and the row is a bodyweight exercise; in a barbell row the barbell is `load`.
 
 ## 8. Instructions
 Four sections for every system exercise, in `en-GB`.
@@ -253,9 +271,9 @@ Why the choices were made:
 
 ## 10. Editor's checklist (summary)
 See `population-standards.md`, section 3, for the full definition of done.
-- Name follows section 2; aliases unique.
+- Name follows section 2; aliases unique after normalisation.
 - Variation passes the section 3 test.
-- Targets, pattern, equipment, mechanics, laterality, difficulty complete.
-- Relationships follow section 4.
+- Targets, pattern, equipment (with roles where they differ from the default), mechanics, laterality, difficulty complete; optional attributes recorded where a coverage slot or a duplicate check needs them.
+- Relationships follow section 4 (`progressionOf` only; regression is derived).
 - Four instruction sections follow section 8.
 - Original text; provider and authorship recorded.

@@ -1,0 +1,2149 @@
+{
+  "formatVersion": 1,
+  "status": "Proposed — for owner approval",
+  "description": "Ledger of reference ids (anatomy, movement pattern, equipment). An id is never reused or given a new meaning. Retiring an id sets lifecycle to retired here and in its list, with retiredIn, reason and (optional) replacedBy; it is never removed. This proposed ledger is the starting state for catalogue release 2.",
+  "entries": [
+    {
+      "list": "anatomy",
+      "id": "regionNeck",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "neckFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "sternocleidomastoid",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "deepNeckFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "neckExtensors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "splenius",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "semispinalisCapitis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "suboccipitals",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "neckLateralFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "scalenes",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionShoulder",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "shoulders",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "deltoid",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "frontDelts",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "sideDelts",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "rearDelts",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "rotatorCuff",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "supraspinatus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "infraspinatus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "teresMinor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "subscapularis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionChest",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "chest",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "pectoralisMajor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "pectoralisMajorClavicular",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "pectoralisMajorSternocostal",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "pectoralisMinor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "serratusAnterior",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionBack",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "upperBack",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "trapezius",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "trapeziusUpper",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "trapeziusMiddle",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "trapeziusLower",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "rhomboids",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "levatorScapulae",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "lats",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "latissimusDorsi",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "teresMajor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "lowerBack",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "erectorSpinae",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "quadratusLumborum",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "multifidus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionArm",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "upperArmAnterior",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "biceps",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "bicepsLongHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "bicepsShortHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "brachialis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "coracobrachialis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "upperArmPosterior",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "triceps",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "tricepsLongHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "tricepsLateralHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "tricepsMedialHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "anconeus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "forearms",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "wristFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "flexorCarpiRadialis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "flexorCarpiUlnaris",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "fingerFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "wristExtensors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "extensorCarpiRadialis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "extensorCarpiUlnaris",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "fingerExtensors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "brachioradialis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "forearmPronators",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "forearmSupinators",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionTrunk",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "abs",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "rectusAbdominis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "transversusAbdominis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "obliques",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "externalOblique",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "internalOblique",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "pelvicFloor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionHip",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "glutes",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gluteusMaximus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gluteusMedius",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gluteusMinimus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "abductors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "tensorFasciaeLatae",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "adductors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "adductorMagnus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "adductorMagnusAdductor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "adductorMagnusHamstring",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "adductorLongus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "adductorBrevis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gracilis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "pectineus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "hipFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "iliopsoas",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "psoasMajor",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "iliacus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "sartorius",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "hipExternalRotators",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "piriformis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionThigh",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "quadriceps",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "rectusFemoris",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "vastusLateralis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "vastusMedialis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "vastusIntermedius",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "hamstrings",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "bicepsFemoris",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "bicepsFemorisLongHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "bicepsFemorisShortHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "semitendinosus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "semimembranosus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "regionLowerLeg",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "calves",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gastrocnemius",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gastrocnemiusMedialHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "gastrocnemiusLateralHead",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "soleus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "anteriorLowerLeg",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "tibialisAnterior",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "toeExtensors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "lateralLowerLeg",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "fibularisLongus",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "fibularisBrevis",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "deepPosteriorLowerLeg",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "tibialisPosterior",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "toeFlexors",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "anatomy",
+      "id": "fullBody",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "lowerBodyCompound",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "squat",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hinge",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "lunge",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "upperPush",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "horizontalPush",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "verticalPush",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "upperPull",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "horizontalPull",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "verticalPull",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "elbowJoint",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "elbowFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "elbowExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderJoint",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderAbduction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderHorizontalAdduction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderHorizontalAbduction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderExternalRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "shoulderInternalRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "scapularMotion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "scapularElevation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "scapularRetraction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "scapularProtraction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "scapularDepression",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "kneeJoint",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "kneeExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "kneeFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hipJoint",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hipExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hipAbduction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hipAdduction",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hipFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "hipRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "ankleFoot",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "plantarFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "dorsiflexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "ankleInversionEversion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "trunkMotion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "trunkFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "trunkExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "trunkRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "trunkLateralFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "trunkStability",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "antiExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "antiRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "antiLateralFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "carries",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "carryBilateral",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "carryUnilateral",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "conditioning",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "walkRun",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "ergometer",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "skipping",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "sledPushPull",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "crawl",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "fullBodyConditioning",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "power",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "verticalJump",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "horizontalJump",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "lateralJump",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "upperPlyometric",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "explosiveLift",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "wristGrip",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "wristFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "wristExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "forearmRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "gripHold",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "mobilityStretch",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "staticStretch",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "dynamicMobility",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "spinalMobility",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "softTissueRelease",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "neckMotion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "neckFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "neckExtension",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "neckLateralFlexion",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "movementPattern",
+      "id": "neckRotation",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "barbell",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "ezBar",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "trapBar",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "dumbbell",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "kettlebell",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "cable",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "machine",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "smithMachine",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "bench",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "squatRack",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "pullUpBar",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "dipBars",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "resistanceBand",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "plate",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "medicineBall",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "rings",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "treadmill",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "bike",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "rower",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "elliptical",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "skippingRope",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "landmine",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "sled",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "plyoBox",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "suspensionTrainer",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "battleRopes",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "preacherBench",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "hyperextensionBench",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "abWheel",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "stabilityBall",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "skiErg",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "stairClimber",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    },
+    {
+      "list": "equipment",
+      "id": "foamRoller",
+      "introducedIn": "catalogue release 2 (proposed)",
+      "lifecycle": "active",
+      "retiredIn": null,
+      "replacedBy": null,
+      "reason": null
+    }
+  ]
+}

@@ -1,0 +1,5461 @@
+{
+  "formatVersion": 1,
+  "status": "Proposed — for owner approval",
+  "description": "Machine-readable slot inventory behind coverage-matrix.md (revision 2). Every number is derived from the enumerated entries: a slot minimum is the number of counted entries; a group minimum is the sum of its slot minimums; mechanics, laterality and equipment-class minimums are the counts of those values among the counted entries. Entries marked counted:false are optional and legitimate but never a minimum. Entry names are intended exercises, not required names: CI counts catalogue exercises by the slot rules below, not by name. Minimums are measurable from catalogue data alone.",
+  "countingRules": {
+    "group": "An exercise counts toward a group when one of its PRIMARY targets is a node listed in the group nodes or a descendant, AND its primary pattern (first pattern) is one of the patterns of at least one slot of that group. Secondary targets never count. fullBody never counts. Exercises of category cardio or mobility never count toward an anatomical group; they are measured in the conditioning and mobility sets (section 5.7). Retired, user and imported exercises never count.",
+    "slot": "An exercise fills at most ONE slot per group. A slot accepts an exercise when the group rule holds, the primary pattern is one of the slot patterns, and every discriminator term holds. Assignment of exercises to slots is a deterministic maximum bipartite matching (ties broken by exercise id); slots are met when the matching fills slot.min of them.",
+    "discriminatorKinds": {
+      "attribute": "recorded optional controlled exercise attribute equals one of values (an unrecorded attribute never matches)",
+      "equipmentClass": "derived class (equipment.md) is in values",
+      "laterality": "laterality is in values",
+      "mechanics": "mechanics is in values (unset never matches)",
+      "subTarget": "the exercise has the node or a descendant as a target; role primary or any"
+    },
+    "noL4Primary": "No slot or minimum depends on an L4 primary tag (F03). L4 tagging stays optional. A discriminator of kind subTarget names an L2 or L3 node only.",
+    "dimensions": "Compound, isolation, bilateral, unilateral-or-alternating and equipment-class minimums are counted over the exercises that fill slots (not over all exercises of the group).",
+    "variationFamilies": "Minimum number of variationOf families in the group with a root and at least three variations. Derived: the number of slots with at least four counted entries.",
+    "caps": {
+      "family": "At most max(30 percent of the group total, 4 exercises) in one variationOf family. Chosen form for F06: the floor of 4 exercises replaces a minimum-size threshold, so small groups are not capped below a workable family size.",
+      "equipmentClass": "At most max(55 percent of the group total, 4 exercises) in one equipment class; the bodyweight class is exempt in groups with bodyweightExempt true (abs, obliques, lowerBack)."
+    }
+  },
+  "exerciseAttributesProposed": {
+    "status": "Proposed. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate check. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format. If the owner declines, the attribute-discriminated slots fall back to review checklist items and the minimums that use them become informational.",
+    "attributes": {
+      "angle": [
+        "flat",
+        "incline",
+        "decline"
+      ],
+      "armPosition": [
+        "besideBody",
+        "behindBody",
+        "supportedInFront",
+        "overhead",
+        "abducted90"
+      ],
+      "grip": [
+        "pronated",
+        "supinated",
+        "neutral"
+      ],
+      "bodyPosition": [
+        "standing",
+        "seated",
+        "lying",
+        "bentOver"
+      ],
+      "kneePosition": [
+        "straight",
+        "bent"
+      ],
+      "stance": [
+        "standard",
+        "wide"
+      ]
+    },
+    "usedBySlots": [
+      "biceps.armBehindBody",
+      "biceps.armBesideBody",
+      "biceps.armSupported",
+      "biceps.neutralGrip",
+      "calves.bentKnee",
+      "calves.straightKnee",
+      "chest.declinePress",
+      "chest.flatPress",
+      "chest.inclinePress",
+      "forearms.brachioradialis",
+      "rotatorCuff.externalRotationArmAbducted",
+      "rotatorCuff.externalRotationArmAtSide",
+      "triceps.kickback",
+      "triceps.lying",
+      "triceps.overhead",
+      "triceps.pushdown"
+    ]
+  },
+  "metrics": {
+    "primariesPerExercise": {
+      "description": "Per tranche, over the new system exercises of the tranche.",
+      "meanMaximum": 1.25,
+      "shareWithTwoOrMorePrimariesMaximum": 0.2,
+      "threeOrMorePrimaries": "allowed only with a reviewer note",
+      "status": "Proposed thresholds; tuned in the pilot."
+    },
+    "difficulty": {
+      "regionalTranche": {
+        "beginner": [
+          0.3,
+          0.45
+        ],
+        "intermediate": [
+          0.4,
+          0.55
+        ],
+        "advanced": [
+          0.1,
+          0.2
+        ]
+      },
+      "groupWithTotalAtLeast20": {
+        "beginner": 0.2,
+        "intermediate": 0.3,
+        "advancedShare": 0.05,
+        "advancedMinimumExercises": 2
+      },
+      "groupWithTotalBelow20": {
+        "beginner": 1,
+        "intermediate": 1,
+        "advanced": "optional; record the reason if none"
+      },
+      "conditioning": {
+        "beginner": [
+          0.3,
+          0.45
+        ],
+        "intermediate": [
+          0.4,
+          0.55
+        ],
+        "advanced": [
+          0.1,
+          0.2
+        ]
+      },
+      "mobility": {
+        "beginner": [
+          0.5,
+          0.7
+        ],
+        "intermediate": [
+          0.25,
+          0.4
+        ],
+        "advanced": [
+          0.0,
+          0.1
+        ]
+      }
+    }
+  },
+  "pilot": {
+    "tranche": "5.1",
+    "group": "chest",
+    "statement": "Tranche 5.1 (chest) is a PILOT. Every number in this file is a proposal until the pilot is accepted. After 5.1 an explicit re-baselining step runs: the slot inventory, thresholds (duplicate score, caps, primaries per exercise), difficulty bands and the attribute proposal are re-derived from what the pilot showed, the owner approves the revised coverage.json, and only then do tranches 5.2 to 5.7 start."
+  },
+  "groups": [
+    {
+      "id": "chest",
+      "label": "Chest",
+      "tranche": "5.1",
+      "nodes": [
+        "chest"
+      ],
+      "basis": "Pectoralis major has clavicular and sternocostal fibres, so presses at three angles and flys are needed; serratus anterior and pectoralis minor move the shoulder blade and need protraction work. Presses are discriminated by recorded angle, never by an L4 primary tag.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "chest.flatPress",
+          "label": "Flat press",
+          "patterns": [
+            "horizontalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "angle",
+              "values": [
+                "flat"
+              ]
+            },
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "machine",
+                "cable",
+                "smithMachine",
+                "band",
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Barbell bench press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell bench press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Machine chest press",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine bench press",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Cable chest press",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Band chest press",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "chest.inclinePress",
+          "label": "Incline press (up to about 45 degrees)",
+          "patterns": [
+            "horizontalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "angle",
+              "values": [
+                "incline"
+              ]
+            },
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "machine",
+                "cable",
+                "smithMachine",
+                "band",
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Incline barbell bench press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Incline dumbbell press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Incline machine press",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Incline Smith machine press",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Incline cable press",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "chest.declinePress",
+          "label": "Decline press",
+          "patterns": [
+            "horizontalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "angle",
+              "values": [
+                "decline"
+              ]
+            },
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "machine",
+                "cable",
+                "smithMachine",
+                "band",
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Decline barbell bench press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Decline dumbbell press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Decline machine press",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "chest.pushUp",
+          "label": "Push-up family (bodyweight presses)",
+          "patterns": [
+            "horizontalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Knee push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Incline push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Decline push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Archer push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Suspension trainer push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "chest.unilateralPress",
+          "label": "Single-arm presses",
+          "patterns": [
+            "horizontalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "laterality",
+              "values": [
+                "unilateral",
+                "alternating"
+              ]
+            },
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "machine",
+                "cable",
+                "smithMachine",
+                "band",
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Single-arm dumbbell bench press",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm cable chest press",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm machine chest press",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm band press",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "chest.flyFreeBodyweight",
+          "label": "Flys with free weights or bodyweight",
+          "patterns": [
+            "shoulderHorizontalAdduction"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Flat dumbbell fly",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Incline dumbbell fly",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Suspension trainer fly",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "chest.flyCable",
+          "label": "Cable flys",
+          "patterns": [
+            "shoulderHorizontalAdduction"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "cable"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Cable crossover (high pulleys)",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Low-to-high cable fly",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm cable fly",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "chest.flyMachineBand",
+          "label": "Machine and band flys",
+          "patterns": [
+            "shoulderHorizontalAdduction"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine",
+                "band"
+              ]
+            }
+          ],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Pec deck fly",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band chest fly",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "chest.serratus",
+          "label": "Shoulder blade protraction (serratus anterior, pectoralis minor)",
+          "patterns": [
+            "scapularProtraction"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Push-up plus",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Scapular push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable serratus punch",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Supine dumbbell serratus punch",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 36,
+      "derived": {
+        "mechanics": {
+          "compound": 24,
+          "isolation": 12
+        },
+        "laterality": {
+          "bilateral": 28,
+          "unilateralOrAlternating": 8
+        },
+        "equipmentClasses": {
+          "freeWeight": 10,
+          "machine": 5,
+          "cable": 7,
+          "smithMachine": 2,
+          "band": 3,
+          "kettlebell": 0,
+          "bodyweight": 9,
+          "other": 0
+        },
+        "variationFamilies": 5,
+        "familyCap": 10.8,
+        "classCap": 19.8
+      }
+    },
+    {
+      "id": "upperBack",
+      "label": "Upper back",
+      "tranche": "5.2",
+      "nodes": [
+        "upperBack"
+      ],
+      "basis": "The trapezius works in three parts (elevation, retraction, depression) and the rhomboids retract. Rows load retraction, shrugs elevation, low-angle work the lower trapezius. Which row exercises carry an upper-back primary depends on the primary-target principle (Q-P); the row slots count whichever exercises the owner decision tags with an upper-back primary.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "upperBack.rowsFreeWeight",
+          "label": "Rows with free weights, Smith machine or kettlebell",
+          "patterns": [
+            "horizontalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "smithMachine",
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Barbell bent-over row",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Pendlay row",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Chest-supported dumbbell row",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine bent-over row",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "T-bar row (landmine)",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "upperBack.rowsMachineCable",
+          "label": "Rows on machines and cables",
+          "patterns": [
+            "horizontalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine",
+                "cable"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Wide-grip seated cable row",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Chest-supported machine row",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Machine high row",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "upperBack.rowsBodyweightBand",
+          "label": "Bodyweight and band rows",
+          "patterns": [
+            "horizontalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight",
+                "band"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Inverted row",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Feet-elevated inverted row",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Suspension trainer row",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Seated band row",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "upperBack.rowsUnilateral",
+          "label": "Single-arm rows",
+          "patterns": [
+            "horizontalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "laterality",
+              "values": [
+                "unilateral",
+                "alternating"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Single-arm chest-supported dumbbell row",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm high cable row",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm machine row",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "upperBack.retraction",
+          "label": "Retraction and mid-back isolation",
+          "patterns": [
+            "scapularRetraction"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Prone dumbbell T raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Seated cable scapular retraction",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band scapular retraction",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "upperBack.shrugs",
+          "label": "Shrugs",
+          "patterns": [
+            "scapularElevation"
+          ],
+          "discriminator": [],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Barbell shrug",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell shrug",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Trap bar shrug",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine shrug",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable shrug",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Smith machine shrug",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "upperBack.depression",
+          "label": "Depression and lower trapezius",
+          "patterns": [
+            "scapularDepression"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Scapular pull-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Prone Y raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dip-bar scapular depression",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 25,
+      "derived": {
+        "mechanics": {
+          "compound": 14,
+          "isolation": 11
+        },
+        "laterality": {
+          "bilateral": 22,
+          "unilateralOrAlternating": 3
+        },
+        "equipmentClasses": {
+          "freeWeight": 8,
+          "machine": 4,
+          "cable": 4,
+          "smithMachine": 1,
+          "band": 2,
+          "kettlebell": 0,
+          "bodyweight": 6,
+          "other": 0
+        },
+        "variationFamilies": 3,
+        "familyCap": 7.5,
+        "classCap": 13.75
+      }
+    },
+    {
+      "id": "lats",
+      "label": "Lats",
+      "tranche": "5.2",
+      "nodes": [
+        "lats"
+      ],
+      "basis": "The latissimus dorsi extends and adducts the arm. Vertical pulls load it through the full range, close-grip rows in a shorter range, and straight-arm work isolates shoulder extension.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "lats.verticalBodyweightBand",
+          "label": "Pull-ups and chin-ups (bodyweight and band-assisted)",
+          "patterns": [
+            "verticalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight",
+                "band"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Pull-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Chin-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Neutral-grip pull-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Wide-grip pull-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Band-assisted pull-up",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "lats.verticalMachineCable",
+          "label": "Pulldowns and assisted pull-ups on machines and cables",
+          "patterns": [
+            "verticalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine",
+                "cable"
+              ]
+            }
+          ],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Wide-grip lat pulldown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Close-grip neutral pulldown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Underhand lat pulldown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Machine-assisted pull-up",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Plate-loaded pulldown machine",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm cable pulldown",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "lats.rowsFreeKettlebell",
+          "label": "Lat-emphasis rows with free weights or a kettlebell",
+          "patterns": [
+            "horizontalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "One-arm dumbbell row",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Underhand barbell row",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Kettlebell one-arm row",
+              "equipmentClass": "kettlebell",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Meadows row (landmine)",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": false,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "lats.rowsCableMachine",
+          "label": "Lat-emphasis rows on cables and machines",
+          "patterns": [
+            "horizontalPull"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "cable",
+                "machine"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Close-grip seated cable row",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm cable row",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Neutral-grip machine row",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "lats.straightArm",
+          "label": "Straight-arm pulldowns and pullovers",
+          "patterns": [
+            "shoulderExtension"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Straight-arm cable pulldown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell pullover",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band straight-arm pulldown",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine pullover",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 21,
+      "derived": {
+        "mechanics": {
+          "compound": 17,
+          "isolation": 4
+        },
+        "laterality": {
+          "bilateral": 17,
+          "unilateralOrAlternating": 4
+        },
+        "equipmentClasses": {
+          "freeWeight": 3,
+          "machine": 4,
+          "cable": 7,
+          "smithMachine": 0,
+          "band": 2,
+          "kettlebell": 1,
+          "bodyweight": 4,
+          "other": 0
+        },
+        "variationFamilies": 3,
+        "familyCap": 6.3,
+        "classCap": 11.55
+      }
+    },
+    {
+      "id": "shoulders",
+      "label": "Shoulders (deltoid)",
+      "tranche": "5.3",
+      "nodes": [
+        "shoulders"
+      ],
+      "basis": "The deltoid has three heads with different jobs: front (flexion, pressing), side (abduction), rear (extension, horizontal abduction). Each needs its own slot. Superficial variants (seat angle, hand rotation of a few degrees, tempo) are not enumerated: lateral and rear-delt slots list only entries that change the implement, the line of pull or the side worked.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "shoulders.pressFreeWeight",
+          "label": "Overhead presses with free weights",
+          "patterns": [
+            "verticalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Barbell overhead press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Seated dumbbell shoulder press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Arnold press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Barbell push press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm dumbbell overhead press",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.pressMachineSmithCable",
+          "label": "Overhead presses on machine, Smith machine or cable",
+          "patterns": [
+            "verticalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine",
+                "smithMachine",
+                "cable"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Machine shoulder press",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine shoulder press",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-arm cable overhead press",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.pressKettlebellBand",
+          "label": "Kettlebell and band overhead presses",
+          "patterns": [
+            "verticalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "kettlebell",
+                "band"
+              ]
+            }
+          ],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Single-arm kettlebell overhead press",
+              "equipmentClass": "kettlebell",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Band overhead press",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Bottoms-up kettlebell press",
+              "equipmentClass": "kettlebell",
+              "laterality": "unilateral",
+              "counted": false,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.pressBodyweight",
+          "label": "Bodyweight vertical presses",
+          "patterns": [
+            "verticalPush"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Pike push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Feet-elevated pike push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Wall handstand push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.lateralRaise",
+          "label": "Lateral raises",
+          "patterns": [
+            "shoulderAbduction"
+          ],
+          "discriminator": [],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Dumbbell lateral raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable lateral raise",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm cable lateral raise",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine lateral raise",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band lateral raise",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Lean-away single-arm dumbbell lateral raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.uprightRow",
+          "label": "Upright rows (decision rule R4)",
+          "patterns": [
+            "verticalPull"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Barbell upright row",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell upright row",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Cable upright row",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.frontRaise",
+          "label": "Front raises",
+          "patterns": [
+            "shoulderFlexion"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Dumbbell front raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Plate front raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable front raise",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band front raise",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.rearMachineCable",
+          "label": "Rear-delt work on machines and cables",
+          "patterns": [
+            "shoulderHorizontalAbduction"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine",
+                "cable"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Reverse pec deck",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable reverse fly",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm cable reverse fly",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable face pull",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "shoulders.rearFreeBandBodyweight",
+          "label": "Rear-delt work with free weights, bands or bodyweight",
+          "patterns": [
+            "shoulderHorizontalAbduction"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "band",
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Bent-over dumbbell reverse fly",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Chest-supported dumbbell reverse fly",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band pull-apart",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band face pull",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Suspension trainer reverse fly",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 35,
+      "derived": {
+        "mechanics": {
+          "compound": 16,
+          "isolation": 19
+        },
+        "laterality": {
+          "bilateral": 29,
+          "unilateralOrAlternating": 6
+        },
+        "equipmentClasses": {
+          "freeWeight": 13,
+          "machine": 3,
+          "cable": 8,
+          "smithMachine": 1,
+          "band": 5,
+          "kettlebell": 1,
+          "bodyweight": 4,
+          "other": 0
+        },
+        "variationFamilies": 5,
+        "familyCap": 10.5,
+        "classCap": 19.25
+      }
+    },
+    {
+      "id": "rotatorCuff",
+      "label": "Rotator cuff",
+      "tranche": "5.3",
+      "nodes": [
+        "rotatorCuff"
+      ],
+      "basis": "The four cuff muscles rotate and centre the humerus. Work is low load and single-joint: external rotation (infraspinatus, teres minor), internal rotation (subscapularis) and abduction (supraspinatus). No machine, Smith machine or kettlebell exercise is forced (F07).",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "rotatorCuff.externalRotationArmAtSide",
+          "label": "External rotation, arm at the side",
+          "patterns": [
+            "shoulderExternalRotation"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "besideBody"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Cable external rotation",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band external rotation",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Side-lying dumbbell external rotation",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "rotatorCuff.externalRotationArmAbducted",
+          "label": "External rotation, arm at 90 degrees",
+          "patterns": [
+            "shoulderExternalRotation"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "abducted90"
+              ]
+            }
+          ],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Cable 90/90 external rotation",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Prone dumbbell external rotation",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "rotatorCuff.internalRotation",
+          "label": "Internal rotation",
+          "patterns": [
+            "shoulderInternalRotation"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Cable internal rotation",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band internal rotation",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell internal rotation (lying)",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "rotatorCuff.supraspinatus",
+          "label": "Supraspinatus raises (scaption)",
+          "patterns": [
+            "shoulderAbduction"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Dumbbell scaption",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band scaption",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable scaption",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": false,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 10,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 10
+        },
+        "laterality": {
+          "bilateral": 2,
+          "unilateralOrAlternating": 8
+        },
+        "equipmentClasses": {
+          "freeWeight": 4,
+          "machine": 0,
+          "cable": 3,
+          "smithMachine": 0,
+          "band": 3,
+          "kettlebell": 0,
+          "bodyweight": 0,
+          "other": 0
+        },
+        "variationFamilies": 0,
+        "familyCap": 4,
+        "classCap": 5.5
+      }
+    },
+    {
+      "id": "neck",
+      "label": "Neck",
+      "tranche": "5.3",
+      "nodes": [
+        "regionNeck"
+      ],
+      "basis": "Neck flexors, extensors, side flexors and rotators each need one low-load isolation pattern. Safety wording must be conservative. Inclusion of the neck is an open owner question (Q-S); no machine or cable entry is forced (F07).",
+      "ownerScope": true,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "neck.flexion",
+          "label": "Neck flexion",
+          "patterns": [
+            "neckFlexion"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Lying neck flexion",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band neck flexion",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Harness neck flexion",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "neck.extension",
+          "label": "Neck extension",
+          "patterns": [
+            "neckExtension"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Prone neck extension",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band neck extension",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Harness neck extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "neck.lateralFlexion",
+          "label": "Neck side flexion",
+          "patterns": [
+            "neckLateralFlexion"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Side-lying neck side flexion",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band neck side flexion",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "neck.rotation",
+          "label": "Neck rotation",
+          "patterns": [
+            "neckRotation"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Manual-resistance neck rotation",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band neck rotation",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 10,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 10
+        },
+        "laterality": {
+          "bilateral": 6,
+          "unilateralOrAlternating": 4
+        },
+        "equipmentClasses": {
+          "freeWeight": 2,
+          "machine": 0,
+          "cable": 0,
+          "smithMachine": 0,
+          "band": 4,
+          "kettlebell": 0,
+          "bodyweight": 4,
+          "other": 0
+        },
+        "variationFamilies": 0,
+        "familyCap": 4,
+        "classCap": 5.5
+      }
+    },
+    {
+      "id": "biceps",
+      "label": "Biceps and brachialis",
+      "tranche": "5.4",
+      "nodes": [
+        "upperArmAnterior"
+      ],
+      "basis": "The elbow flexors bend the elbow in different forearm positions: biceps (supinated), brachialis (any), brachioradialis (neutral and pronated; counted under Forearms). Slots are discriminated by the recorded arm position or grip, which is how the long and short biceps heads are covered without an L4 minimum. Only entries that change the arm position, grip, implement or side worked are listed (superficial-variant risk, F07).",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "biceps.armBesideBody",
+          "label": "Curls with the arm beside the body",
+          "patterns": [
+            "elbowFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "besideBody"
+              ]
+            }
+          ],
+          "min": 7,
+          "entries": [
+            {
+              "name": "Barbell curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "EZ-bar curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Alternating dumbbell curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable curl",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm cable curl",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band curl",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "biceps.armBehindBody",
+          "label": "Curls with the arm behind the body",
+          "patterns": [
+            "elbowFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "behindBody"
+              ]
+            }
+          ],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Incline dumbbell curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Bayesian cable curl",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "biceps.armSupported",
+          "label": "Curls with the arm supported in front",
+          "patterns": [
+            "elbowFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "supportedInFront"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "EZ-bar preacher curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine preacher curl",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm dumbbell preacher curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable preacher curl",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Concentration curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Spider curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "biceps.neutralGrip",
+          "label": "Neutral-grip (hammer) curls",
+          "patterns": [
+            "elbowFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "grip",
+              "values": [
+                "neutral"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Hammer curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Rope hammer curl",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band hammer curl",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cross-body hammer curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": false,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Suspension trainer biceps curl",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 17,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 17
+        },
+        "laterality": {
+          "bilateral": 12,
+          "unilateralOrAlternating": 5
+        },
+        "equipmentClasses": {
+          "freeWeight": 9,
+          "machine": 1,
+          "cable": 5,
+          "smithMachine": 0,
+          "band": 2,
+          "kettlebell": 0,
+          "bodyweight": 0,
+          "other": 0
+        },
+        "variationFamilies": 2,
+        "familyCap": 5.1,
+        "classCap": 9.35
+      }
+    },
+    {
+      "id": "triceps",
+      "label": "Triceps",
+      "tranche": "5.4",
+      "nodes": [
+        "upperArmPosterior"
+      ],
+      "basis": "The triceps extend the elbow; the long head also crosses the shoulder, so overhead and neutral-arm positions load it differently. Overhead work is the discriminator for the long head (\"at least n exercises with the arm overhead\").",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "triceps.overhead",
+          "label": "Extensions with the arm overhead",
+          "patterns": [
+            "elbowExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "overhead"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Overhead dumbbell triceps extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "EZ-bar overhead triceps extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Overhead cable rope extension",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm overhead dumbbell extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band overhead triceps extension",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "triceps.pushdown",
+          "label": "Pushdowns with the arm beside the body",
+          "patterns": [
+            "elbowExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "armPosition",
+              "values": [
+                "besideBody"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Rope pushdown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Straight-bar pushdown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Reverse-grip pushdown",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-arm cable pushdown",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band pushdown",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "triceps.lying",
+          "label": "Lying extensions",
+          "patterns": [
+            "elbowExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "bodyPosition",
+              "values": [
+                "lying"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "EZ-bar skull crusher",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell lying triceps extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable lying triceps extension",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "triceps.kickback",
+          "label": "Kickbacks",
+          "patterns": [
+            "elbowExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "bodyPosition",
+              "values": [
+                "bentOver"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Dumbbell kickback",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable kickback",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band kickback",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "triceps.machine",
+          "label": "Machine extension",
+          "patterns": [
+            "elbowExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine"
+              ]
+            }
+          ],
+          "min": 1,
+          "entries": [
+            {
+              "name": "Machine triceps extension",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "triceps.closeGripPress",
+          "label": "Close-grip presses and push-ups",
+          "patterns": [
+            "horizontalPush"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Close-grip bench press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Neutral-grip dumbbell press",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Close-grip push-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine close-grip press",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "triceps.dips",
+          "label": "Dip variants",
+          "patterns": [
+            "verticalPush"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Parallel-bar dip",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Bench dip",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Machine-assisted dip",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 24,
+      "derived": {
+        "mechanics": {
+          "compound": 7,
+          "isolation": 17
+        },
+        "laterality": {
+          "bilateral": 19,
+          "unilateralOrAlternating": 5
+        },
+        "equipmentClasses": {
+          "freeWeight": 8,
+          "machine": 2,
+          "cable": 7,
+          "smithMachine": 1,
+          "band": 3,
+          "kettlebell": 0,
+          "bodyweight": 3,
+          "other": 0
+        },
+        "variationFamilies": 3,
+        "familyCap": 7.2,
+        "classCap": 13.2
+      }
+    },
+    {
+      "id": "forearms",
+      "label": "Forearms and grip",
+      "tranche": "5.4",
+      "nodes": [
+        "forearms"
+      ],
+      "basis": "Flexors and extensors of wrist and fingers, pronators and supinators, and brachioradialis. Grip holds use the finger flexors. Brachioradialis work is counted here, not under Biceps and brachialis.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "forearms.wristFlexion",
+          "label": "Wrist flexion",
+          "patterns": [
+            "wristFlexion"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Barbell wrist curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell wrist curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable wrist curl",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band wrist curl",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "forearms.wristExtension",
+          "label": "Wrist extension",
+          "patterns": [
+            "wristExtension"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Reverse barbell wrist curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Dumbbell reverse wrist curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable reverse wrist curl",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band wrist extension",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "forearms.brachioradialis",
+          "label": "Pronated-grip elbow flexion (brachioradialis)",
+          "patterns": [
+            "elbowFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "grip",
+              "values": [
+                "pronated"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Reverse barbell curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Reverse cable curl",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Zottman curl",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "forearms.rotation",
+          "label": "Forearm rotation",
+          "patterns": [
+            "forearmRotation"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Dumbbell forearm pronation and supination",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band forearm rotation",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "forearms.gripHold",
+          "label": "Grip holds",
+          "patterns": [
+            "gripHold"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Dead hang",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Towel hang",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Plate pinch hold",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "forearms.carries",
+          "label": "Carries with a forearm emphasis",
+          "patterns": [
+            "carryBilateral",
+            "carryUnilateral"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Farmer's carry (dumbbells)",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Suitcase carry",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Kettlebell farmer's carry",
+              "equipmentClass": "kettlebell",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 19,
+      "derived": {
+        "mechanics": {
+          "compound": 3,
+          "isolation": 16
+        },
+        "laterality": {
+          "bilateral": 10,
+          "unilateralOrAlternating": 9
+        },
+        "equipmentClasses": {
+          "freeWeight": 10,
+          "machine": 0,
+          "cable": 3,
+          "smithMachine": 0,
+          "band": 3,
+          "kettlebell": 1,
+          "bodyweight": 2,
+          "other": 0
+        },
+        "variationFamilies": 2,
+        "familyCap": 5.7,
+        "classCap": 10.45
+      }
+    },
+    {
+      "id": "glutes",
+      "label": "Glutes",
+      "tranche": "5.5",
+      "nodes": [
+        "glutes"
+      ],
+      "basis": "Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by class, laterality and mechanics so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on Q-P.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "glutes.thrustLoaded",
+          "label": "Loaded hip thrusts",
+          "patterns": [
+            "hipExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight",
+                "machine",
+                "smithMachine",
+                "band"
+              ]
+            },
+            {
+              "kind": "mechanics",
+              "values": [
+                "compound"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Barbell hip thrust",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell hip thrust",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine hip thrust",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Machine hip thrust",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Banded hip thrust",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "glutes.bridgeBodyweight",
+          "label": "Bodyweight bridges and thrusts",
+          "patterns": [
+            "hipExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight"
+              ]
+            },
+            {
+              "kind": "mechanics",
+              "values": [
+                "compound"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Glute bridge",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-leg glute bridge",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-leg hip thrust",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Feet-elevated glute bridge",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "glutes.kickback",
+          "label": "Kickbacks (single-leg isolation)",
+          "patterns": [
+            "hipExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "mechanics",
+              "values": [
+                "isolation"
+              ]
+            },
+            {
+              "kind": "laterality",
+              "values": [
+                "unilateral",
+                "alternating"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Cable glute kickback",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine glute kickback",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Quadruped donkey kick",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band glute kickback",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "glutes.reverseHyper",
+          "label": "Reverse hyperextension (decision rule R5)",
+          "patterns": [
+            "hipExtension"
+          ],
+          "discriminator": [
+            {
+              "kind": "mechanics",
+              "values": [
+                "isolation"
+              ]
+            },
+            {
+              "kind": "laterality",
+              "values": [
+                "bilateral"
+              ]
+            }
+          ],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Reverse hyperextension (bench)",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Reverse hyperextension (machine)",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "glutes.hinge",
+          "label": "Hinges with a glutes primary",
+          "patterns": [
+            "hinge"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Conventional deadlift",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Sumo deadlift",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Cable pull-through",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Kettlebell swing",
+              "equipmentClass": "kettlebell",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "glutes.lunge",
+          "label": "Lunges and steps with a glutes primary",
+          "patterns": [
+            "lunge"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "High-box dumbbell step-up",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Curtsy lunge",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "glutes.abduction",
+          "label": "Gluteus medius stability and abduction (bodyweight, side-lying, band)",
+          "patterns": [
+            "hipAbduction"
+          ],
+          "discriminator": [
+            {
+              "kind": "subTarget",
+              "node": "gluteusMedius",
+              "role": "primary"
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Clamshell",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Side-lying hip abduction",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Fire hydrant",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Banded lateral walk",
+              "equipmentClass": "band",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Seated banded hip abduction",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 26,
+      "derived": {
+        "mechanics": {
+          "compound": 15,
+          "isolation": 11
+        },
+        "laterality": {
+          "bilateral": 14,
+          "unilateralOrAlternating": 12
+        },
+        "equipmentClasses": {
+          "freeWeight": 6,
+          "machine": 3,
+          "cable": 2,
+          "smithMachine": 1,
+          "band": 4,
+          "kettlebell": 1,
+          "bodyweight": 9,
+          "other": 0
+        },
+        "variationFamilies": 5,
+        "familyCap": 7.8,
+        "classCap": 14.3
+      }
+    },
+    {
+      "id": "abductors",
+      "label": "Abductors",
+      "tranche": "5.5",
+      "nodes": [
+        "abductors"
+      ],
+      "basis": "Open-chain hip abduction against external resistance (machine, cable, standing band): primary abductors with gluteusMedius as secondary. Bodyweight and stability drills belong to the gluteusMedius slot of Glutes (functional double tag, editorial guide 5.7). No Smith machine or kettlebell entry exists.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "abductors.hipAbduction",
+          "label": "Open-chain hip abduction",
+          "patterns": [
+            "hipAbduction"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Machine hip abduction",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Standing cable hip abduction",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Standing band hip abduction",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 3,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 3
+        },
+        "laterality": {
+          "bilateral": 1,
+          "unilateralOrAlternating": 2
+        },
+        "equipmentClasses": {
+          "freeWeight": 0,
+          "machine": 1,
+          "cable": 1,
+          "smithMachine": 0,
+          "band": 1,
+          "kettlebell": 0,
+          "bodyweight": 0,
+          "other": 0
+        },
+        "variationFamilies": 0,
+        "familyCap": 4,
+        "classCap": 4
+      }
+    },
+    {
+      "id": "adductors",
+      "label": "Adductors",
+      "tranche": "5.5",
+      "nodes": [
+        "adductors"
+      ],
+      "basis": "Hip adduction with the adductor muscles. Wide-stance compound lifts count only if tagged primary and their primary pattern is a slot pattern of this group (they are not).",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "adductors.hipAdduction",
+          "label": "Hip adduction",
+          "patterns": [
+            "hipAdduction"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Machine hip adduction",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable hip adduction",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Copenhagen plank",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Side-lying hip adduction",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 4,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 4
+        },
+        "laterality": {
+          "bilateral": 1,
+          "unilateralOrAlternating": 3
+        },
+        "equipmentClasses": {
+          "freeWeight": 0,
+          "machine": 1,
+          "cable": 1,
+          "smithMachine": 0,
+          "band": 0,
+          "kettlebell": 0,
+          "bodyweight": 2,
+          "other": 0
+        },
+        "variationFamilies": 1,
+        "familyCap": 4,
+        "classCap": 4
+      }
+    },
+    {
+      "id": "hipFlexors",
+      "label": "Hip flexors",
+      "tranche": "5.5",
+      "nodes": [
+        "hipFlexors"
+      ],
+      "basis": "Iliopsoas lifts the thigh. Standing drives, cable and band work and supine marches give coverage. Hanging and lying leg raises with an abdominal primary count under Abs.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "hipFlexors.hipFlexion",
+          "label": "Hip flexion",
+          "patterns": [
+            "hipFlexion"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Standing cable hip flexion",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Seated band knee raise",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Supine psoas march",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Standing knee drive",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 4,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 4
+        },
+        "laterality": {
+          "bilateral": 0,
+          "unilateralOrAlternating": 4
+        },
+        "equipmentClasses": {
+          "freeWeight": 0,
+          "machine": 0,
+          "cable": 1,
+          "smithMachine": 0,
+          "band": 1,
+          "kettlebell": 0,
+          "bodyweight": 2,
+          "other": 0
+        },
+        "variationFamilies": 1,
+        "familyCap": 4,
+        "classCap": 4
+      }
+    },
+    {
+      "id": "hipExternalRotators",
+      "label": "Deep hip rotators",
+      "tranche": "5.5",
+      "nodes": [
+        "hipExternalRotators"
+      ],
+      "basis": "Small rotators behind the hip; light, controlled work. No cable entry is forced (F07).",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "hipExternalRotators.hipRotation",
+          "label": "Hip rotation",
+          "patterns": [
+            "hipRotation"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Banded seated hip external rotation",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "90/90 hip rotation",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Prone hip external rotation",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable hip external rotation",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": false,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 3,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 3
+        },
+        "laterality": {
+          "bilateral": 0,
+          "unilateralOrAlternating": 3
+        },
+        "equipmentClasses": {
+          "freeWeight": 0,
+          "machine": 0,
+          "cable": 0,
+          "smithMachine": 0,
+          "band": 1,
+          "kettlebell": 0,
+          "bodyweight": 2,
+          "other": 0
+        },
+        "variationFamilies": 0,
+        "familyCap": 4,
+        "classCap": 4
+      }
+    },
+    {
+      "id": "quadriceps",
+      "label": "Quadriceps",
+      "tranche": "5.5",
+      "nodes": [
+        "quadriceps"
+      ],
+      "basis": "Four heads extend the knee; squats, lunges and extensions load them through different ranges. Rectus femoris also flexes the hip. Squat and lunge slots are split by implement class because the load path differs. No cable entry is forced (F07). The trap bar deadlift has a hinge primary pattern and so counts toward no quadriceps slot.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "quadriceps.squatFreeWeight",
+          "label": "Squats with free weights",
+          "patterns": [
+            "squat"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight"
+              ]
+            }
+          ],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Barbell back squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Barbell front squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Goblet squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Barbell box squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Zercher squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.squatMachineSmith",
+          "label": "Squats and presses on machines",
+          "patterns": [
+            "squat"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "machine",
+                "smithMachine"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Smith machine squat",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Hack squat",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Leg press",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-leg press",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Belt squat",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.squatKettlebell",
+          "label": "Kettlebell squats",
+          "patterns": [
+            "squat"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "kettlebell"
+              ]
+            }
+          ],
+          "min": 1,
+          "entries": [
+            {
+              "name": "Kettlebell goblet squat",
+              "equipmentClass": "kettlebell",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.squatBodyweight",
+          "label": "Bodyweight squats and holds",
+          "patterns": [
+            "squat"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Bodyweight squat",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Wall sit",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Sissy squat",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.lungeFreeWeight",
+          "label": "Lunges and steps with free weights",
+          "patterns": [
+            "lunge"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "freeWeight"
+              ]
+            }
+          ],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Dumbbell walking lunge",
+              "equipmentClass": "freeWeight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell reverse lunge",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell Bulgarian split squat",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell step-up",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.lungeBodyweight",
+          "label": "Bodyweight lunges, steps and single-leg squats",
+          "patterns": [
+            "lunge"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Bodyweight lunge",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Bodyweight split squat",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Bodyweight step-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Skater squat",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Pistol squat",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.lungeSmith",
+          "label": "Smith machine split stance",
+          "patterns": [
+            "lunge"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "smithMachine"
+              ]
+            }
+          ],
+          "min": 1,
+          "entries": [
+            {
+              "name": "Smith machine split squat",
+              "equipmentClass": "smithMachine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "quadriceps.kneeExtension",
+          "label": "Knee extension",
+          "patterns": [
+            "kneeExtension"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Machine leg extension",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-leg machine leg extension",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Reverse Nordic curl",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 28,
+      "derived": {
+        "mechanics": {
+          "compound": 25,
+          "isolation": 3
+        },
+        "laterality": {
+          "bilateral": 16,
+          "unilateralOrAlternating": 12
+        },
+        "equipmentClasses": {
+          "freeWeight": 10,
+          "machine": 6,
+          "cable": 0,
+          "smithMachine": 2,
+          "band": 0,
+          "kettlebell": 1,
+          "bodyweight": 9,
+          "other": 0
+        },
+        "variationFamilies": 4,
+        "familyCap": 8.4,
+        "classCap": 15.4
+      }
+    },
+    {
+      "id": "hamstrings",
+      "label": "Hamstrings",
+      "tranche": "5.5",
+      "nodes": [
+        "hamstrings"
+      ],
+      "basis": "Hamstrings extend the hip and flex the knee. Hinges load the hip function; curls load the knee function. Knee-flexion variants differ by body position (seated, lying, standing, supported) and support, which gives fewer legitimate entries than elbow flexion (arm position and grip); the smaller figure is deliberate and reviewable (F07).",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "hamstrings.hinge",
+          "label": "Hinges with a hamstring primary",
+          "patterns": [
+            "hinge"
+          ],
+          "discriminator": [],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Barbell Romanian deadlift",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dumbbell Romanian deadlift",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Stiff-leg deadlift",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Single-leg dumbbell Romanian deadlift",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine Romanian deadlift",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Kettlebell Romanian deadlift",
+              "equipmentClass": "kettlebell",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "hamstrings.kneeFlexion",
+          "label": "Knee flexion",
+          "patterns": [
+            "kneeFlexion"
+          ],
+          "discriminator": [],
+          "min": 7,
+          "entries": [
+            {
+              "name": "Seated leg curl",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Lying leg curl",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Standing single-leg curl",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Nordic hamstring curl",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Stability ball leg curl",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Suspension trainer hamstring curl",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band leg curl",
+              "equipmentClass": "band",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 13,
+      "derived": {
+        "mechanics": {
+          "compound": 6,
+          "isolation": 7
+        },
+        "laterality": {
+          "bilateral": 11,
+          "unilateralOrAlternating": 2
+        },
+        "equipmentClasses": {
+          "freeWeight": 4,
+          "machine": 3,
+          "cable": 0,
+          "smithMachine": 1,
+          "band": 1,
+          "kettlebell": 1,
+          "bodyweight": 3,
+          "other": 0
+        },
+        "variationFamilies": 2,
+        "familyCap": 4,
+        "classCap": 7.15
+      }
+    },
+    {
+      "id": "calves",
+      "label": "Calves",
+      "tranche": "5.5",
+      "nodes": [
+        "calves"
+      ],
+      "basis": "Gastrocnemius works best with a straight knee; soleus with a bent knee. The recorded knee position discriminates the two slots, so there is no L4 or L3 primary minimum.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "calves.straightKnee",
+          "label": "Calf raises with a straight knee",
+          "patterns": [
+            "plantarFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "kneePosition",
+              "values": [
+                "straight"
+              ]
+            }
+          ],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Standing calf raise (machine)",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Smith machine calf raise",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-leg dumbbell calf raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Bodyweight calf raise on a step",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Single-leg bodyweight calf raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Leg press calf raise",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "calves.bentKnee",
+          "label": "Calf raises with a bent knee",
+          "patterns": [
+            "plantarFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "kneePosition",
+              "values": [
+                "bent"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Seated calf raise (machine)",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Seated dumbbell calf raise",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Bent-knee bodyweight calf raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 9,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 9
+        },
+        "laterality": {
+          "bilateral": 7,
+          "unilateralOrAlternating": 2
+        },
+        "equipmentClasses": {
+          "freeWeight": 2,
+          "machine": 3,
+          "cable": 0,
+          "smithMachine": 1,
+          "band": 0,
+          "kettlebell": 0,
+          "bodyweight": 3,
+          "other": 0
+        },
+        "variationFamilies": 1,
+        "familyCap": 4,
+        "classCap": 4.95
+      }
+    },
+    {
+      "id": "lowerLeg",
+      "label": "Shin and outer lower leg",
+      "tranche": "5.5",
+      "nodes": [
+        "anteriorLowerLeg",
+        "lateralLowerLeg",
+        "deepPosteriorLowerLeg"
+      ],
+      "basis": "Tibialis anterior, the fibularis muscles and tibialis posterior support the ankle. Light, single-joint work.",
+      "ownerScope": false,
+      "bodyweightExempt": false,
+      "slots": [
+        {
+          "id": "lowerLeg.dorsiflexion",
+          "label": "Dorsiflexion",
+          "patterns": [
+            "dorsiflexion"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Wall tibialis raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band dorsiflexion",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "lowerLeg.inversionEversion",
+          "label": "Inversion and eversion",
+          "patterns": [
+            "ankleInversionEversion"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Band ankle eversion",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band ankle inversion",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 4,
+      "derived": {
+        "mechanics": {
+          "compound": 0,
+          "isolation": 4
+        },
+        "laterality": {
+          "bilateral": 1,
+          "unilateralOrAlternating": 3
+        },
+        "equipmentClasses": {
+          "freeWeight": 0,
+          "machine": 0,
+          "cable": 0,
+          "smithMachine": 0,
+          "band": 3,
+          "kettlebell": 0,
+          "bodyweight": 1,
+          "other": 0
+        },
+        "variationFamilies": 0,
+        "familyCap": 4,
+        "classCap": 4
+      }
+    },
+    {
+      "id": "abs",
+      "label": "Abs",
+      "tranche": "5.6",
+      "nodes": [
+        "abs"
+      ],
+      "basis": "Rectus abdominis flexes the trunk and resists extension; transversus abdominis braces. Bodyweight work is legitimate and common, so the bodyweight class is exempt from the class cap in this group.",
+      "ownerScope": false,
+      "bodyweightExempt": true,
+      "slots": [
+        {
+          "id": "abs.flexionBodyweight",
+          "label": "Trunk flexion, bodyweight",
+          "patterns": [
+            "trunkFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "bodyweight"
+              ]
+            }
+          ],
+          "min": 6,
+          "entries": [
+            {
+              "name": "Crunch",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Reverse crunch",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Sit-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "V-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Decline sit-up",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Stability ball crunch",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "abs.flexionLoaded",
+          "label": "Trunk flexion, loaded",
+          "patterns": [
+            "trunkFlexion"
+          ],
+          "discriminator": [
+            {
+              "kind": "equipmentClass",
+              "values": [
+                "cable",
+                "machine",
+                "freeWeight"
+              ]
+            }
+          ],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Cable crunch",
+              "equipmentClass": "cable",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine crunch",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Weighted crunch (plate)",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "abs.antiExtension",
+          "label": "Anti-extension (planks, rollouts, holds)",
+          "patterns": [
+            "antiExtension"
+          ],
+          "discriminator": [],
+          "min": 7,
+          "entries": [
+            {
+              "name": "Plank",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Weighted plank",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Ab wheel rollout",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Dead bug",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Hollow body hold",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Stability ball rollout",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Suspension trainer fallout",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Barbell rollout",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "abs.hipFlexionRaises",
+          "label": "Leg and knee raises with an abdominal primary",
+          "patterns": [
+            "hipFlexion"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Hanging knee raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Hanging leg raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Lying leg raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Captain's chair leg raise",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 20,
+      "derived": {
+        "mechanics": {
+          "compound": 12,
+          "isolation": 8
+        },
+        "laterality": {
+          "bilateral": 19,
+          "unilateralOrAlternating": 1
+        },
+        "equipmentClasses": {
+          "freeWeight": 2,
+          "machine": 1,
+          "cable": 1,
+          "smithMachine": 0,
+          "band": 0,
+          "kettlebell": 0,
+          "bodyweight": 16,
+          "other": 0
+        },
+        "variationFamilies": 3,
+        "familyCap": 6.0,
+        "classCap": 11.0
+      }
+    },
+    {
+      "id": "obliques",
+      "label": "Obliques",
+      "tranche": "5.6",
+      "nodes": [
+        "obliques"
+      ],
+      "basis": "Obliques rotate, side-flex and resist rotation and side flexion. Unilateral and alternating work is the norm; bodyweight is exempt from the class cap.",
+      "ownerScope": false,
+      "bodyweightExempt": true,
+      "slots": [
+        {
+          "id": "obliques.rotation",
+          "label": "Rotation",
+          "patterns": [
+            "trunkRotation"
+          ],
+          "discriminator": [],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Cable high-to-low woodchop",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Cable low-to-high woodchop",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Russian twist",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine rotary torso",
+              "equipmentClass": "machine",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band woodchop",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "obliques.lateralFlexion",
+          "label": "Side bends",
+          "patterns": [
+            "trunkLateralFlexion"
+          ],
+          "discriminator": [],
+          "min": 4,
+          "entries": [
+            {
+              "name": "Dumbbell side bend",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Cable side bend",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Roman chair side bend",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Band side bend",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "obliques.antiRotation",
+          "label": "Anti-rotation",
+          "patterns": [
+            "antiRotation"
+          ],
+          "discriminator": [],
+          "min": 3,
+          "entries": [
+            {
+              "name": "Cable Pallof press",
+              "equipmentClass": "cable",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Band Pallof press",
+              "equipmentClass": "band",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Plank shoulder tap",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "obliques.antiLateralFlexion",
+          "label": "Anti-lateral flexion",
+          "patterns": [
+            "antiLateralFlexion"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Side plank",
+              "equipmentClass": "bodyweight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Weighted side plank",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Suitcase carry (obliques primary)",
+              "equipmentClass": "freeWeight",
+              "laterality": "unilateral",
+              "counted": false,
+              "mechanics": "compound"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 14,
+      "derived": {
+        "mechanics": {
+          "compound": 8,
+          "isolation": 6
+        },
+        "laterality": {
+          "bilateral": 0,
+          "unilateralOrAlternating": 14
+        },
+        "equipmentClasses": {
+          "freeWeight": 2,
+          "machine": 1,
+          "cable": 4,
+          "smithMachine": 0,
+          "band": 3,
+          "kettlebell": 0,
+          "bodyweight": 4,
+          "other": 0
+        },
+        "variationFamilies": 2,
+        "familyCap": 4.2,
+        "classCap": 7.7
+      }
+    },
+    {
+      "id": "lowerBack",
+      "label": "Lower back",
+      "tranche": "5.6",
+      "nodes": [
+        "lowerBack"
+      ],
+      "basis": "Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. The reverse hyperextension counts under Glutes (rule R5). The earlier quadratus lumborum slot was removed as a forced entry (F07).",
+      "ownerScope": false,
+      "bodyweightExempt": true,
+      "slots": [
+        {
+          "id": "lowerBack.extension",
+          "label": "Trunk extension",
+          "patterns": [
+            "trunkExtension"
+          ],
+          "discriminator": [],
+          "min": 5,
+          "entries": [
+            {
+              "name": "Back extension (45 degree)",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Weighted back extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Machine back extension",
+              "equipmentClass": "machine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Superman",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            },
+            {
+              "name": "Stability ball back extension",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "isolation"
+            }
+          ]
+        },
+        {
+          "id": "lowerBack.hinge",
+          "label": "Hinges with a lower-back primary",
+          "patterns": [
+            "hinge"
+          ],
+          "discriminator": [],
+          "min": 2,
+          "entries": [
+            {
+              "name": "Barbell good morning",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            },
+            {
+              "name": "Smith machine good morning",
+              "equipmentClass": "smithMachine",
+              "laterality": "bilateral",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        },
+        {
+          "id": "lowerBack.stability",
+          "label": "Spinal stability",
+          "patterns": [
+            "antiRotation"
+          ],
+          "discriminator": [],
+          "min": 1,
+          "entries": [
+            {
+              "name": "Bird dog",
+              "equipmentClass": "bodyweight",
+              "laterality": "alternating",
+              "counted": true,
+              "mechanics": "compound"
+            }
+          ]
+        }
+      ],
+      "slotTotal": 8,
+      "derived": {
+        "mechanics": {
+          "compound": 3,
+          "isolation": 5
+        },
+        "laterality": {
+          "bilateral": 7,
+          "unilateralOrAlternating": 1
+        },
+        "equipmentClasses": {
+          "freeWeight": 2,
+          "machine": 1,
+          "cable": 0,
+          "smithMachine": 1,
+          "band": 0,
+          "kettlebell": 0,
+          "bodyweight": 4,
+          "other": 0
+        },
+        "variationFamilies": 1,
+        "familyCap": 4,
+        "classCap": 4.4
+      }
+    }
+  ],
+  "sets": [
+    {
+      "id": "cardio.walkRun",
+      "label": "Walking and running",
+      "patterns": [
+        "walkRun"
+      ],
+      "min": 6,
+      "entries": [
+        {
+          "name": "Walking",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Incline treadmill walk",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Treadmill run",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Outdoor run",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "400 m run",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Interval run",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "cardio.ergometer",
+      "label": "Ergometer work",
+      "patterns": [
+        "ergometer"
+      ],
+      "min": 7,
+      "entries": [
+        {
+          "name": "Exercise bike",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Interval cycling",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Rowing machine",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Interval rowing",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Cross-trainer",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Ski ergometer",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Stair climber",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": [
+        "skiErg",
+        "stairClimber"
+      ],
+      "note": "Ski ergometer and stair climber need the proposed equipment items."
+    },
+    {
+      "id": "cardio.skipping",
+      "label": "Skipping",
+      "patterns": [
+        "skipping"
+      ],
+      "min": 3,
+      "entries": [
+        {
+          "name": "Skipping",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Alternate-foot skipping",
+          "equipmentClass": "other",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Double-under",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "conditioning.sled",
+      "label": "Sled push and pull",
+      "patterns": [
+        "sledPushPull"
+      ],
+      "min": 2,
+      "entries": [
+        {
+          "name": "Sled push",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Sled drag",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": [
+        "sled"
+      ],
+      "note": "Needs the proposed sled item."
+    },
+    {
+      "id": "conditioning.crawl",
+      "label": "Crawling",
+      "patterns": [
+        "crawl"
+      ],
+      "min": 3,
+      "entries": [
+        {
+          "name": "Bear crawl",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Crab walk",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Inchworm walk-out",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "conditioning.wholeBody",
+      "label": "Whole-body conditioning",
+      "patterns": [
+        "fullBodyConditioning"
+      ],
+      "min": 4,
+      "entries": [
+        {
+          "name": "Burpee",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Mountain climber",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Jumping jack",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Battle rope wave",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": [
+        "battleRopes"
+      ],
+      "note": "Battle rope wave needs the proposed battleRopes item."
+    },
+    {
+      "id": "power.verticalJump",
+      "label": "Vertical jumps",
+      "patterns": [
+        "verticalJump"
+      ],
+      "min": 4,
+      "entries": [
+        {
+          "name": "Box jump",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Jump squat",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Tuck jump",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Countermovement jump",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": [
+        "plyoBox"
+      ],
+      "note": "Box jump needs plyoBox."
+    },
+    {
+      "id": "power.horizontalJump",
+      "label": "Horizontal jumps",
+      "patterns": [
+        "horizontalJump"
+      ],
+      "min": 2,
+      "entries": [
+        {
+          "name": "Broad jump",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Bounding",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "power.lateralJump",
+      "label": "Lateral jumps",
+      "patterns": [
+        "lateralJump"
+      ],
+      "min": 1,
+      "entries": [
+        {
+          "name": "Skater jump",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "power.upperPlyometric",
+      "label": "Upper-body plyometrics",
+      "patterns": [
+        "upperPlyometric"
+      ],
+      "min": 3,
+      "entries": [
+        {
+          "name": "Medicine ball slam",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Medicine ball chest pass",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Plyometric push-up",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "power.explosiveLift",
+      "label": "Explosive lifts",
+      "patterns": [
+        "explosiveLift"
+      ],
+      "min": 6,
+      "entries": [
+        {
+          "name": "Barbell power clean",
+          "equipmentClass": "freeWeight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Hang power clean",
+          "equipmentClass": "freeWeight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Dumbbell clean and press",
+          "equipmentClass": "freeWeight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Dumbbell snatch",
+          "equipmentClass": "freeWeight",
+          "laterality": "unilateral",
+          "counted": true
+        },
+        {
+          "name": "Kettlebell clean",
+          "equipmentClass": "kettlebell",
+          "laterality": "unilateral",
+          "counted": true
+        },
+        {
+          "name": "Barbell high pull",
+          "equipmentClass": "freeWeight",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "mobility.static",
+      "label": "Static stretches, one per coverage group",
+      "patterns": [
+        "staticStretch"
+      ],
+      "rule": "eachGroup",
+      "entries": [
+        {
+          "name": "Doorway chest stretch",
+          "group": "chest",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Thread-the-needle stretch",
+          "group": "upperBack",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Child's pose",
+          "group": "lats",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Cross-body shoulder stretch",
+          "group": "shoulders",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Wall external rotation stretch",
+          "group": "rotatorCuff",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Neck side stretch",
+          "group": "neck",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Wall biceps stretch",
+          "group": "biceps",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Overhead triceps stretch",
+          "group": "triceps",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Wrist flexor stretch",
+          "group": "forearms",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Pigeon pose",
+          "group": "glutes",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Standing cross-leg side stretch",
+          "group": "abductors",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Butterfly stretch",
+          "group": "adductors",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Hip flexor stretch",
+          "group": "hipFlexors",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Supine figure-four stretch",
+          "group": "hipExternalRotators",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Standing quadriceps stretch",
+          "group": "quadriceps",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Hamstring stretch",
+          "group": "hamstrings",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Wall calf stretch",
+          "group": "calves",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Kneeling shin stretch",
+          "group": "lowerLeg",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Cobra stretch",
+          "group": "abs",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Standing side-reach stretch",
+          "group": "obliques",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Knees-to-chest stretch",
+          "group": "lowerBack",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "min": 21
+    },
+    {
+      "id": "mobility.dynamic",
+      "label": "Dynamic mobility",
+      "patterns": [
+        "dynamicMobility"
+      ],
+      "min": 6,
+      "entries": [
+        {
+          "name": "World's greatest stretch",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Arm circle",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Band shoulder dislocate",
+          "equipmentClass": "band",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Standing hip circle",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Front-to-back leg swing",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Side-to-side leg swing",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "mobility.spinal",
+      "label": "Spinal mobility",
+      "patterns": [
+        "spinalMobility"
+      ],
+      "min": 5,
+      "entries": [
+        {
+          "name": "Cat-cow",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Thoracic spine extension",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Open book thoracic rotation",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        },
+        {
+          "name": "Pelvic tilt",
+          "equipmentClass": "bodyweight",
+          "laterality": "bilateral",
+          "counted": true
+        },
+        {
+          "name": "Gentle neck rotation",
+          "equipmentClass": "bodyweight",
+          "laterality": "alternating",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": []
+    },
+    {
+      "id": "mobility.softTissue",
+      "label": "Soft tissue release (optional; conditional on foamRoller)",
+      "patterns": [
+        "softTissueRelease"
+      ],
+      "min": 0,
+      "entries": [
+        {
+          "name": "Foam roll upper back",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": false
+        },
+        {
+          "name": "Foam roll quadriceps",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": false
+        },
+        {
+          "name": "Foam roll glutes",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": false
+        },
+        {
+          "name": "Foam roll calves",
+          "equipmentClass": "other",
+          "laterality": "bilateral",
+          "counted": false
+        }
+      ],
+      "requiresEquipment": [
+        "foamRoller"
+      ],
+      "note": "All entries optional. Counted only if the owner approves soft tissue release content."
+    }
+  ]
+}

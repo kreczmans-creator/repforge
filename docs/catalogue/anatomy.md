@@ -1,7 +1,7 @@
 # Anatomy hierarchy (OQ-22) — proposed
 
 - Status: **Proposed — for owner approval.** Part of WP 8 stage 4 (documentation and reference data only). Nothing here is implemented. Stage 3 loads this list into the anatomy node table; stage 5 population tags exercises against it.
-- Machine-readable source: `docs/catalogue/reference/anatomy.json` (format version 1).
+- Machine-readable source: `docs/catalogue/reference/anatomy.json` (format version 1). Id history: `reference/ledger.json`.
 - Requirements: LIB-001, LIB-004; owner decision 3 (four levels, most defensible level, multiple primary and secondary targets, 19 ids preserved, no precision claims); `docs/wp8-delivery-plan.md` section 4.
 
 ## 1. Levels and rules
@@ -12,13 +12,15 @@
 | L3 | Anatomical muscle | Deltoid (`deltoid`) |
 | L4 | Subdivision or head | Side delts (`sideDelts`) |
 
-1. Every node has one id (camelCase), one parent (none at L1), a level equal to its parent's level plus one, a sibling sort order, an en-GB label, a definition, inclusion and exclusion criteria, and an optional note.
-2. Ids are stable. An id is never reused or given a new meaning. A label can change without a migration.
-3. `fullBody` is the only non-anatomical node. It is an L1 node with no children and is excluded from anatomical coverage. (ADR-0008 describes it as a "target kind"; the approved plan section 4 and the owner decision of 2026-11-05 make it an L1 node. This list follows the plan. The reviewer should confirm.)
+1. Every node has one id (camelCase), one parent (none at L1), a level equal to its parent's level plus one, a sibling sort order, an en-GB label, a definition, inclusion and exclusion criteria, a lifecycle (`active` or `retired`) and an optional note.
+2. Ids are stable. An id is never reused or given a new meaning. A label can change without a migration. A node is retired, never removed (`reference/ledger.json`).
+3. **`fullBody`** is the only non-anatomical node: a flagged, childless L1 node (`nonAnatomical = true`), as in ADR-0010 (proposed, amends the last sentence of ADR-0008 decision 2). It is excluded from anatomical roll-ups, from coverage and from per-muscle attributed set counts (OQ-19), or shown separately and labelled non-anatomical. System content may use it only as a primary target where no defensible anatomical subset exists. **Open owner question:** may it also be a secondary target, or a primary beside anatomical primaries? Until decided, stored uses are preserved and listed in the migration report (`quality-and-duplicates.md` section 4).
 4. A node has one parent. When a muscle has two functions, it sits where its anatomy puts it, and the other function appears as a note. This list does not model functional groups. See section 4.
-5. Filtering by a node includes its descendants. Primary matches rank before secondary matches (TRN-010(2), unchanged).
-6. The model is qualitative. It records primary and secondary involvement only. It stores no activation percentages and makes no claim of biomechanical precision.
-7. Per-muscle figures that WP 9 reports are **attributed set counts**: a primary muscle receives full attribution of each recorded exercise set; a secondary muscle receives separately recorded attribution that is excluded from primary totals. They are not physiological measurements of muscle stimulus (OQ-19).
+5. **Regional principle (proposed).** An L1 region holds the groups that mainly move one joint complex: Hip and pelvis holds the groups named for hip movements (glutes, abductors, adductors, hip flexors, deep hip rotators); Thigh holds the two groups trained as knee-dominant bulk muscle (quadriceps, hamstrings). The principle is a convention for filing, not an anatomical claim. It is debatable for the adductors and the hamstrings (section 5, item 16).
+6. Filtering by a node includes its descendants. Primary matches rank before secondary matches (TRN-010(2), unchanged).
+7. **L3 and L4 convention (F14).** L3 is an anatomical muscle, **or** a named functional muscle set whose members cannot be trained separately (rhomboids, wrist and finger flexors, wrist and finger extensors, forearm pronators, forearm supinators, scalenes, suboccipitals, deep neck flexors, toe flexors, toe extensors). L4 is a head or part of a single muscle (deltoid heads, biceps heads, trapezius parts) or an individually named member listed under a functional set (flexor carpi radialis). L4 tags are optional (editorial guide section 5) and **never** carry a coverage minimum on their own.
+8. The model is qualitative. It records primary and secondary involvement only. It stores no activation percentages and makes no claim of biomechanical precision.
+9. Per-muscle figures that WP 9 reports are **attributed set counts**: a primary muscle receives full attribution of each recorded exercise set; a secondary muscle receives separately recorded attribution that is excluded from primary totals. They are not physiological measurements of muscle stimulus (OQ-19).
 
 ### Definition, inclusion and exclusion fields
 - **Definition** says what the node is.
@@ -48,7 +50,7 @@ Each existing id becomes a node at the level the plan sets. Stored values map on
 | `quadriceps` | L2 | `regionThigh` | Quadriceps | Four-headed muscle at the front of the thigh. |
 | `hamstrings` | L2 | `regionThigh` | Hamstrings | Muscle group at the back of the thigh. |
 | `calves` | L2 | `regionLowerLeg` | Calves | Muscles at the back of the lower leg that point the foot down. |
-| `fullBody` | L1 | none (non-anatomical root) | Full body | Non-anatomical classification for conditioning and whole-body work. |
+| `fullBody` | L1 | none (flagged non-anatomical, no children; ADR-0010 proposed) | Full body | Non-anatomical classification for conditioning and whole-body work. |
 
 ## 3. Node counts
 | Region | L1 | L2 | L3 | L4 | Total |
@@ -56,16 +58,16 @@ Each existing id becomes a node at the level the plan sets. Stored values map on
 | Neck | 1 | 3 | 6 | 0 | 10 |
 | Shoulder | 1 | 2 | 5 | 3 | 11 |
 | Chest | 1 | 1 | 3 | 2 | 7 |
-| Back | 1 | 3 | 8 | 6 | 18 |
+| Back | 1 | 3 | 8 | 3 | 15 |
 | Arm | 1 | 3 | 10 | 11 | 25 |
 | Trunk | 1 | 3 | 4 | 0 | 8 |
-| Hip and pelvis | 1 | 5 | 16 | 4 | 26 |
+| Hip and pelvis | 1 | 5 | 12 | 4 | 22 |
 | Thigh | 1 | 2 | 7 | 2 | 12 |
 | Lower leg and ankle | 1 | 4 | 8 | 2 | 15 |
 | Full body | 1 | 0 | 0 | 0 | 1 |
-| **All** | 10 | 26 | 67 | 30 | 133 |
+| **All** | 10 | 26 | 63 | 27 | 126 |
 
-Counts are for this proposal and will change if the owner adds or removes nodes.
+Counts are for this proposal and will change if the owner adds or removes nodes. Revision 2 removed three erector spinae L4 nodes and four deep hip rotator L3 nodes (F17).
 
 ## 4. Functional-group limitations (recorded, not modelled)
 | Muscle | Filed under | Also acts as | Guidance |
@@ -81,16 +83,18 @@ Counts are for this proposal and will change if the owner adds or removes nodes.
 | Sternocleidomastoid | Neck flexors | Side flexor, rotator | Filed once. |
 | Quadratus lumborum | Lower back | Trunk side flexor | Region Back; tranche 5.6 (trunk) covers it. |
 | Adductor magnus (hamstring part) | Adductors | Hip extensor | Tag rarely. |
-| Erector spinae (thoracic part) | Lower back | Upper-back extensor | Tag here; do not add a thoracic node. |
+| Erector spinae (thoracic part) | Lower back | Upper-back extensor | Tag here; do not add a thoracic node. The three columns are not separate nodes. |
+| Obturators, gemelli, quadratus femoris | Deep hip rotators (group node) | Hip external rotators | Tag the group (L2). Only piriformis has its own node. |
+| Adductors | Hip and pelvis | Thigh (belly location) | Filed by function (regional principle, rule 5). |
 
 ## 5. Classifications the reviewer should check
-1. `fullBody` as an L1 node (plan and approved decision) versus ADR-0008 wording.
+1. `fullBody` as a flagged childless L1 node (plan, approved decision and ADR-0010 proposed) versus ADR-0008 wording; and whether it may be a secondary target or a primary beside anatomical primaries (open owner question).
 2. Gluteus medius and minimus under Glutes, with Abductors holding only tensor fasciae latae.
 3. Rectus femoris under Quadriceps, and sartorius under Hip flexors although it lies in the thigh.
 4. Serratus anterior and pectoralis minor under Chest (plan), although they move the shoulder blade.
 5. Teres major under Lats (plan), although it works with the shoulder.
 6. Tibialis anterior proposed as L3 under a new L2 `anteriorLowerLeg`; the plan sketched it as an L2 node. The new L2 gives the other shin, outer and deep calf muscles a parent.
-7. Rotator cuff and Deep hip rotators as separate L2 groups (the plan names the first and hints the second).
+7. Rotator cuff and Deep hip rotators as separate L2 groups (the plan names the first and hints the second). Deep hip rotators now has one L3 child (piriformis); the other rotators are described in the group definition.
 8. `shoulders` (L2) has the deltoid as its only child; the rotator cuff is a sibling group under `regionShoulder`.
 9. Levator scapulae under Upper back, although it is also a neck muscle.
 10. Quadratus lumborum under Lower back (Region Back) rather than Trunk.
@@ -99,6 +103,9 @@ Counts are for this proposal and will change if the owner adds or removes nodes.
 13. No split of the rhomboids, rectus abdominis, gluteus maximus or vastus medialis; the pectoralis major abdominal fibres sit inside the sternocostal head.
 14. Adductor magnus split into adductor and hamstring parts (L4); contested in the literature, so tag rarely.
 15. Neck, rotator cuff and Deep hip rotators are not in the 19 ids; exercises tagged only with the old ids cannot reach them until enriched.
+16. **Adductors under Hip and pelvis** (F18) although their bellies lie in the thigh, while quadriceps and hamstrings sit under Thigh. The regional principle (section 1, rule 5) files by function. The alternative is to move the adductors, and perhaps the hamstrings' hip function, to Thigh. Moving a group changes a parent, so it must be decided before ids are controlled.
+17. Erector spinae is one node with no columns (F17); thoracic erector spinae is tagged here, not under Upper back.
+18. The L3 convention (section 1, rule 7): L3 may be a named functional muscle set. The alternative is to keep L3 strictly anatomical and move such sets to L2 or flatten them.
 
 ## 6. Structures not modelled
 Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, facial and jaw muscles. Add them only if a catalogue exercise needs them.
@@ -119,7 +126,7 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `semispinalisCapitis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Semispinalis capitis | Thick column of muscle beside the cervical spine. | Neck extension. | Splenius. |  |
 | `suboccipitals` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Suboccipital muscles | Small muscles at the base of the skull. | Fine head positioning and upper cervical extension. | Larger neck extensors. | Rarely a training target; kept so mobility entries can be tagged. |
 | `neckLateralFlexors` | 2 | &nbsp;&nbsp;Neck side flexors | Muscles that tilt the head sideways. | Scalenes. | Sternocleidomastoid, which is filed under flexors. |  |
-| `scalenes` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Scalenes | Anterior, middle and posterior scalene muscles on the side of the neck. | Neck side flexion and first-rib elevation. | Sternocleidomastoid. |  |
+| `scalenes` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Scalenes | Anterior, middle and posterior scalene muscles on the side of the neck. | Neck side flexion and elevation of the first and second ribs. | Sternocleidomastoid. |  |
 
 ### Shoulder (`regionShoulder`)
 
@@ -132,9 +139,9 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `sideDelts` * | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Side delts | Lateral head of the deltoid. | Shoulder abduction (raising the arm out to the side). | Supraspinatus, which starts abduction but sits in the rotator cuff. | Lateral deltoid. Preserved WP 8 id (L4 head). |
 | `rearDelts` * | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rear delts | Posterior head of the deltoid. | Shoulder extension and horizontal abduction (reverse fly). | Rhomboids and middle trapezius, which retract the shoulder blade. | Posterior deltoid. Preserved WP 8 id (L4 head). |
 | `rotatorCuff` | 2 | &nbsp;&nbsp;Rotator cuff | Four small muscles that centre the head of the humerus in the shoulder socket. | Supraspinatus, infraspinatus, teres minor, subscapularis. | Deltoid and teres major. |  |
-| `supraspinatus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Supraspinatus | Cuff muscle above the shoulder blade spine. | Initiating shoulder abduction and stabilising the joint. | Side delts. |  |
+| `supraspinatus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Supraspinatus | Cuff muscle in the hollow above the spine of the shoulder blade. | Helping to start shoulder abduction and centring the humerus; it works with the deltoid through the whole arc. | Side delts. |  |
 | `infraspinatus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Infraspinatus | Cuff muscle below the shoulder blade spine. | Shoulder external rotation. | Teres minor. |  |
-| `teresMinor` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Teres minor | Small cuff muscle at the lower edge of the shoulder blade. | Shoulder external rotation. | Teres major (filed under Lats). |  |
+| `teresMinor` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Teres minor | Small cuff muscle on the upper part of the lateral (outer) border of the shoulder blade. | Shoulder external rotation. | Teres major (filed under Lats). |  |
 | `subscapularis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Subscapularis | Cuff muscle on the front of the shoulder blade. | Shoulder internal rotation. | Pectoralis major. |  |
 
 ### Chest (`regionChest`)
@@ -155,20 +162,17 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 |---|---|---|---|---|---|---|
 | `regionBack` | 1 | Back | The posterior trunk from the base of the neck to the pelvis. | Muscles of the upper back, the lats and the lower back. | Rear deltoid (Shoulder) and neck muscles (Neck). |  |
 | `upperBack` * | 2 | &nbsp;&nbsp;Upper back | Muscles between the neck and the mid-spine that move and stabilise the shoulder blades. | Trapezius, rhomboids and levator scapulae. | Lats, rear delts and spinal extensors. | Preserved WP 8 id (L2 group). Label in training taxonomy: Upper back (traps, rhomboids). |
-| `trapezius` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Trapezius | Kite-shaped muscle from skull to mid-back, working in three parts. | Shoulder blade elevation, retraction, depression and upward rotation. | Rhomboids. |  |
+| `trapezius` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Trapezius | Kite-shaped muscle from the skull base and neck down to the 12th thoracic vertebra (T12), working in three parts. | Shoulder blade elevation, retraction, depression and upward rotation. | Rhomboids. |  |
 | `trapeziusUpper` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper trapezius | Upper fibres running from neck to collarbone. | Shrugging and shoulder blade elevation. | Neck extensors. | Also extends and side-flexes the neck. |
 | `trapeziusMiddle` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Middle trapezius | Horizontal fibres between spine and shoulder blade. | Shoulder blade retraction. | Rhomboids. |  |
-| `trapeziusLower` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower trapezius | Lower fibres running down the mid-spine. | Shoulder blade depression and upward rotation. | Lats. |  |
+| `trapeziusLower` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower trapezius | Lower fibres running down the spine as far as the 12th thoracic vertebra (T12). | Shoulder blade depression and upward rotation. | Lats. |  |
 | `rhomboids` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Rhomboids | Rhomboid major and minor beneath the trapezius. | Shoulder blade retraction and downward rotation. | Middle trapezius. | Major and minor are not tagged separately. |
 | `levatorScapulae` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Levator scapulae | Muscle from the upper neck vertebrae to the shoulder blade. | Shoulder blade elevation. | Neck extensors. | Debatable: also a neck muscle; filed as a scapular muscle. |
 | `lats` * | 2 | &nbsp;&nbsp;Lats | Muscle group of the latissimus dorsi and teres major. | Pulling the arm down and back, and pulling the body up. | Upper back and rear delts. | Preserved WP 8 id (L2 group). |
 | `latissimusDorsi` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Latissimus dorsi | Broad muscle from the spine and pelvis to the upper arm. | Shoulder extension, adduction and internal rotation; vertical and horizontal pulling. | Teres major. |  |
 | `teresMajor` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Teres major | Thick muscle below the shoulder blade that assists the lats. | Shoulder extension, adduction and internal rotation. | Teres minor (Rotator cuff). | Functionally a shoulder muscle; filed under Lats as planned. |
 | `lowerBack` * | 2 | &nbsp;&nbsp;Lower back | Muscles that extend and stabilise the lumbar spine. | Erector spinae, quadratus lumborum and multifidus. | Glutes and hamstrings. | Preserved WP 8 id (L2 group). |
-| `erectorSpinae` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Erector spinae | Three columns of muscle running along the spine. | Spinal extension and isometric bracing in hinges and carries. | Multifidus. | Thoracic portions also serve the upper back; tag here. |
-| `iliocostalis` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Iliocostalis | Outer column of the erector spinae. | Spinal extension and side flexion. | Longissimus. |  |
-| `longissimus` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Longissimus | Middle column of the erector spinae. | Spinal extension. | Spinalis. |  |
-| `spinalis` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Spinalis | Inner column of the erector spinae. | Spinal extension. | Longissimus. |  |
+| `erectorSpinae` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Erector spinae | Group of muscle columns running along the spine (iliocostalis, longissimus and spinalis). | Spinal extension and isometric bracing in hinges and carries. The three columns are not modelled separately. | Multifidus. | Thoracic portions also serve the upper back; tag here. No L4 split: the three columns cannot be loaded separately. |
 | `quadratusLumborum` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Quadratus lumborum | Deep muscle linking the pelvis to the lowest rib. | Side flexion of the trunk and anti-lateral-flexion bracing. | Obliques. | Debatable: sits deep in the abdominal wall; filed under Lower back as planned. |
 | `multifidus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Multifidus | Short deep muscles along the vertebrae. | Fine control and stiffening of the spine. | Erector spinae. |  |
 
@@ -179,8 +183,8 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `regionArm` | 1 | Arm | The upper arm and forearm. | Elbow flexors and extensors and the muscles that move the forearm, wrist and fingers. | Deltoid (Shoulder). |  |
 | `upperArmAnterior` | 2 | &nbsp;&nbsp;Upper arm, front | Muscles at the front of the upper arm that bend the elbow. | Biceps, brachialis, coracobrachialis. | Brachioradialis (Forearms). |  |
 | `biceps` * | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Biceps | Biceps brachii with two heads. | Elbow flexion, forearm supination and shoulder flexion. | Brachialis. | Preserved WP 8 id (L3 muscle). |
-| `bicepsLongHead` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Biceps, long head | Outer head crossing the top of the shoulder joint. | Curls with the arm behind or beside the body. | Short head. | Emphasis claims are qualitative. |
-| `bicepsShortHead` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Biceps, short head | Inner head attaching to the shoulder blade. | Curls with the arm in front of the body. | Long head. | Emphasis claims are qualitative. |
+| `bicepsLongHead` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Biceps, long head | Outer head crossing the top of the shoulder joint. | Curls with the arm behind or beside the body. | Short head. | Emphasis claims are qualitative. L4 tag; use only when the design deliberately shifts the load. |
+| `bicepsShortHead` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Biceps, short head | Inner head, attached to the coracoid process of the shoulder blade. | Curls with the arm in front of the body. | Long head. | Emphasis claims are qualitative. L4 tag; use only when the design deliberately shifts the load. |
 | `brachialis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Brachialis | Muscle under the biceps that bends the elbow in any forearm position. | Hammer and reverse curls. | Biceps and brachioradialis. |  |
 | `coracobrachialis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Coracobrachialis | Small muscle at the top of the inner upper arm. | Shoulder flexion and adduction. | Biceps. | Rarely a training target. |
 | `upperArmPosterior` | 2 | &nbsp;&nbsp;Upper arm, back | Muscles at the back of the upper arm that straighten the elbow. | Triceps and anconeus. | Chest and deltoid. |  |
@@ -226,7 +230,7 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `gluteusMinimus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Gluteus minimus | Smallest gluteal muscle, under the medius. | Hip abduction and internal rotation. | Gluteus medius. | Functionally a hip abductor but filed under Glutes: one parent per node. |
 | `abductors` * | 2 | &nbsp;&nbsp;Abductors | Muscles that move the thigh out to the side, as filed here. | Tensor fasciae latae and any exercise tagged as hip abduction at group level. | Gluteus medius and minimus (filed under Glutes). | Preserved WP 8 id (L2 group). Known limitation: most abduction work is done by gluteus medius and minimus; tag them as well when the exercise targets them. |
 | `tensorFasciaeLatae` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Tensor fasciae latae | Small muscle at the front-outer hip feeding the iliotibial band. | Hip abduction, flexion and internal rotation. | Gluteus medius. |  |
-| `adductors` * | 2 | &nbsp;&nbsp;Adductors | Muscles on the inner thigh that pull the leg towards the midline. | Adductor magnus, longus, brevis, gracilis and pectineus. | Hamstrings. | Preserved WP 8 id (L2 group). |
+| `adductors` * | 2 | &nbsp;&nbsp;Adductors | Muscles on the inner thigh that pull the leg towards the midline. | Adductor magnus, longus, brevis, gracilis and pectineus. | Hamstrings. | Preserved WP 8 id (L2 group). Placement under Hip and pelvis is debatable (see anatomy.md section 5, item 16). |
 | `adductorMagnus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Adductor magnus | Largest adductor with an adductor part and a hamstring part. | Hip adduction and, through its rear part, hip extension. | Adductor longus. |  |
 | `adductorMagnusAdductor` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adductor magnus, adductor part | Front part of adductor magnus. | Hip adduction. | Hamstring part. |  |
 | `adductorMagnusHamstring` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adductor magnus, hamstring part | Rear part of adductor magnus. | Hip extension in deep squats and hinges. | Adductor part. | Tag rarely; use only when the movement clearly loads deep hip extension. |
@@ -239,12 +243,8 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `psoasMajor` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Psoas major | Muscle from the lumbar spine to the thigh. | Hip flexion. | Iliacus. |  |
 | `iliacus` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Iliacus | Muscle lining the inside of the pelvis. | Hip flexion. | Psoas major. |  |
 | `sartorius` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Sartorius | Long strap muscle across the front of the thigh. | Hip flexion, abduction and external rotation; knee flexion. | Quadriceps. | Debatable: lies in the anterior thigh but is filed with the hip flexors. |
-| `hipExternalRotators` | 2 | &nbsp;&nbsp;Deep hip rotators | Small muscles behind the hip joint that turn the thigh outwards. | Piriformis, obturators, gemelli and quadratus femoris. | Gluteus maximus. |  |
-| `piriformis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Piriformis | Pear-shaped muscle from the sacrum to the thigh bone. | Hip external rotation. | Gluteus maximus. |  |
-| `obturatorInternus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Obturator internus | Deep rotator inside the pelvis. | Hip external rotation. | Obturator externus. |  |
-| `obturatorExternus` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Obturator externus | Deep rotator on the outer pelvis. | Hip external rotation. | Obturator internus. |  |
-| `gemelli` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Gemelli | Superior and inferior gemellus. | Hip external rotation. | Quadratus femoris. | Superior and inferior are not tagged separately. |
-| `quadratusFemoris` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Quadratus femoris | Flat rotator below the gemelli. | Hip external rotation. | Gemelli. |  |
+| `hipExternalRotators` | 2 | &nbsp;&nbsp;Deep hip rotators | Small muscles behind the hip joint that turn the thigh outwards: piriformis, obturator internus and externus, the gemelli and quadratus femoris. | Hip external rotation. Only piriformis has its own node; the obturators, gemelli and quadratus femoris are covered by this group node and are tagged at the group (L2). | Gluteus maximus. | Reduced from five L3 nodes to one: the smaller rotators cannot be trained separately. |
+| `piriformis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Piriformis | Pear-shaped muscle from the sacrum to the thigh bone. | Hip external rotation. | Gluteus maximus. | Only deep rotator with its own node. |
 
 ### Thigh (`regionThigh`)
 
@@ -254,7 +254,7 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `quadriceps` * | 2 | &nbsp;&nbsp;Quadriceps | Four-headed muscle at the front of the thigh. | Knee extension in squats, presses, lunges and extensions. | Hip flexors other than rectus femoris. | Preserved WP 8 id (L2 group). |
 | `rectusFemoris` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Rectus femoris | Quadriceps head that crosses the hip. | Knee extension and hip flexion. | Vastus muscles. | Functions as a hip flexor but filed under Quadriceps. |
 | `vastusLateralis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Vastus lateralis | Outer quadriceps head. | Knee extension. | Vastus medialis. |  |
-| `vastusMedialis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Vastus medialis | Inner quadriceps head. | Knee extension, especially the last degrees. | Vastus lateralis. | The commonly used 'VMO' label is not modelled separately. |
+| `vastusMedialis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Vastus medialis | Inner quadriceps head on the front of the thigh. | Knee extension through the whole range. | Vastus lateralis. | The commonly used 'VMO' label is not modelled separately. The idea that this head works only in the last degrees of extension is a myth and is not used here. |
 | `vastusIntermedius` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Vastus intermedius | Deep quadriceps head under rectus femoris. | Knee extension. | Rectus femoris. |  |
 | `hamstrings` * | 2 | &nbsp;&nbsp;Hamstrings | Muscle group at the back of the thigh. | Knee flexion and hip extension. | Gluteus maximus and adductor magnus. | Preserved WP 8 id (L2 group). |
 | `bicepsFemoris` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Biceps femoris | Outer hamstring with two heads. | Knee flexion and hip extension. | Biceps brachii. |  |
@@ -287,5 +287,4 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 
 | Id | L | Name | Definition | Includes | Excludes | Note |
 |---|---|---|---|---|---|---|
-| `fullBody` * | 1 | Full body | Non-anatomical classification for conditioning and whole-body work. | Cardio and conditioning exercises with no defensible muscle subset. | Any anatomical muscle. The node has no children and is excluded from anatomical coverage. | Non-anatomical. ADR-0008 text calls fullBody a target kind; the approved plan (section 4) and D04 section 7 make it an L1 node. This list follows the plan. |
-
+| `fullBody` * | 1 | Full body | Non-anatomical classification for conditioning and whole-body work (flagged non-anatomical). | Cardio and conditioning exercises with no defensible muscle subset. | Any anatomical muscle. The node has no children and is excluded from anatomical coverage, roll-ups and attributed set counts (shown separately). | Flagged non-anatomical L1 node with no children, as in ADR-0010 (proposed), which amends ADR-0008 decision 2. Whether it may be a secondary target, or a primary beside anatomical primaries, is an open owner question. |

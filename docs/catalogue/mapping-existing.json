@@ -1,7 +1,178 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "status": "Proposed — for owner approval",
-  "description": "Proposed re-expression of the 89 seed exercises in the new model. Ids unchanged. Flag codes: M meaning of a tag changes; D debatable tag; E equipment tag inaccurate (proposed item); R refinement to a finer node; N note.",
+  "description": "Proposed re-expression of the 89 seed exercises in the new model (release 2). Ids unchanged. All mechanics, laterality, difficulty, attribute, role and alias values here are PROPOSED CONTENT for owner review, assigned under the editorial guide. flags: M meaning of a tag changes; D debatable tag kept; E equipment tag inaccurate (proposedEquipment fixes it); R refinement to a finer node (applied in the proposed list); S secondary list changed; N note. mechanics null means empty by default for cardio and mobility (open question Q-M). cleanup lists release-2 clean-up items (alias collisions and doubtful secondaries).",
+  "seedProvenance": {
+    "providerId": "repforge",
+    "authoredBy": "RepForge editorial (WP 8 seed)",
+    "reviewedBy": null,
+    "note": "Applies to all 89 seed exercises in release 2 (IC-212). Proposed; owner may name a person or role."
+  },
+  "muscleIds": [
+    {
+      "id": "chest",
+      "level": 2,
+      "parent": "regionChest",
+      "seedPrimaryCount": 9,
+      "seedSecondaryCount": 2
+    },
+    {
+      "id": "frontDelts",
+      "level": 4,
+      "parent": "deltoid",
+      "seedPrimaryCount": 3,
+      "seedSecondaryCount": 17
+    },
+    {
+      "id": "sideDelts",
+      "level": 4,
+      "parent": "deltoid",
+      "seedPrimaryCount": 1,
+      "seedSecondaryCount": 2
+    },
+    {
+      "id": "rearDelts",
+      "level": 4,
+      "parent": "deltoid",
+      "seedPrimaryCount": 2,
+      "seedSecondaryCount": 6
+    },
+    {
+      "id": "triceps",
+      "level": 3,
+      "parent": "upperArmPosterior",
+      "seedPrimaryCount": 5,
+      "seedSecondaryCount": 10
+    },
+    {
+      "id": "biceps",
+      "level": 3,
+      "parent": "upperArmAnterior",
+      "seedPrimaryCount": 5,
+      "seedSecondaryCount": 10
+    },
+    {
+      "id": "forearms",
+      "level": 2,
+      "parent": "regionArm",
+      "seedPrimaryCount": 2,
+      "seedSecondaryCount": 11
+    },
+    {
+      "id": "upperBack",
+      "level": 2,
+      "parent": "regionBack",
+      "seedPrimaryCount": 6,
+      "seedSecondaryCount": 16
+    },
+    {
+      "id": "lats",
+      "level": 2,
+      "parent": "regionBack",
+      "seedPrimaryCount": 7,
+      "seedSecondaryCount": 8
+    },
+    {
+      "id": "lowerBack",
+      "level": 2,
+      "parent": "regionBack",
+      "seedPrimaryCount": 1,
+      "seedSecondaryCount": 9
+    },
+    {
+      "id": "abs",
+      "level": 2,
+      "parent": "regionTrunk",
+      "seedPrimaryCount": 6,
+      "seedSecondaryCount": 6
+    },
+    {
+      "id": "obliques",
+      "level": 2,
+      "parent": "regionTrunk",
+      "seedPrimaryCount": 2,
+      "seedSecondaryCount": 7
+    },
+    {
+      "id": "glutes",
+      "level": 2,
+      "parent": "regionHip",
+      "seedPrimaryCount": 8,
+      "seedSecondaryCount": 20
+    },
+    {
+      "id": "abductors",
+      "level": 2,
+      "parent": "regionHip",
+      "seedPrimaryCount": 1,
+      "seedSecondaryCount": 2
+    },
+    {
+      "id": "adductors",
+      "level": 2,
+      "parent": "regionHip",
+      "seedPrimaryCount": 1,
+      "seedSecondaryCount": 6
+    },
+    {
+      "id": "quadriceps",
+      "level": 2,
+      "parent": "regionThigh",
+      "seedPrimaryCount": 17,
+      "seedSecondaryCount": 9
+    },
+    {
+      "id": "hamstrings",
+      "level": 2,
+      "parent": "regionThigh",
+      "seedPrimaryCount": 5,
+      "seedSecondaryCount": 11
+    },
+    {
+      "id": "calves",
+      "level": 2,
+      "parent": "regionLowerLeg",
+      "seedPrimaryCount": 2,
+      "seedSecondaryCount": 9
+    },
+    {
+      "id": "fullBody",
+      "level": 1,
+      "parent": null,
+      "seedPrimaryCount": 6,
+      "seedSecondaryCount": 1
+    }
+  ],
+  "categories": [
+    {
+      "id": "legs",
+      "seedExercises": 24
+    },
+    {
+      "id": "push",
+      "seedExercises": 16
+    },
+    {
+      "id": "pull",
+      "seedExercises": 18
+    },
+    {
+      "id": "core",
+      "seedExercises": 10
+    },
+    {
+      "id": "fullBody",
+      "seedExercises": 5
+    },
+    {
+      "id": "cardio",
+      "seedExercises": 8
+    },
+    {
+      "id": "mobility",
+      "seedExercises": 8
+    }
+  ],
   "exercises": [
     {
       "id": "lib-back-squat",
@@ -29,7 +200,26 @@
         "barbell",
         "squatRack"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "barbell",
+        "squatRack"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Back squat",
+        "Squat"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Squat\" is ambiguous (editorial guide 2.1 uses Bodyweight squat to avoid it). Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-front-squat",
@@ -55,7 +245,19 @@
         "barbell",
         "squatRack"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "barbell",
+        "squatRack"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: rack position and upright torso; mobility demand.",
+      "seedAliases": [
+        "Front squat"
+      ],
+      "flags": []
     },
     {
       "id": "lib-goblet-squat",
@@ -80,7 +282,25 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [],
+      "aliasesAdd": [
+        "Dumbbell goblet squat"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMissing",
+          "text": "No alias (IC-211 warning). Proposed alias added: \"Dumbbell goblet squat\"."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-hack-squat",
@@ -103,7 +323,18 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Machine hack squat"
+      ],
+      "flags": []
     },
     {
       "id": "lib-leg-press",
@@ -128,10 +359,23 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Classed as squat; a leg press is a machine press with a supported back. Reviewer may prefer a separate pattern."
-      }
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "45-degree leg press"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Classed as squat; a leg press is a machine press with a supported back (decision rule R7). Reviewer may prefer a separate pattern."
+        }
+      ]
     },
     {
       "id": "lib-leg-extension",
@@ -150,7 +394,18 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Quad extension"
+      ],
+      "flags": []
     },
     {
       "id": "lib-leg-curl",
@@ -165,7 +420,7 @@
         "hamstrings"
       ],
       "proposedSecondary": [
-        "calves"
+        "gastrocnemius"
       ],
       "proposedPatterns": [
         "kneeFlexion"
@@ -173,10 +428,27 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": {
-        "code": "R",
-        "text": "Secondary calves stands for gastrocnemius."
-      }
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "bodyPosition": "seated"
+      },
+      "seedAliases": [
+        "Hamstring curl",
+        "Machine leg curl"
+      ],
+      "flags": [
+        {
+          "code": "R",
+          "text": "Secondary calves refined to gastrocnemius (the muscle that crosses the knee); filters by calves still match."
+        }
+      ]
     },
     {
       "id": "lib-lying-leg-curl",
@@ -191,7 +463,7 @@
         "hamstrings"
       ],
       "proposedSecondary": [
-        "calves"
+        "gastrocnemius"
       ],
       "proposedPatterns": [
         "kneeFlexion"
@@ -199,10 +471,26 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": {
-        "code": "R",
-        "text": "Secondary calves stands for gastrocnemius."
-      }
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "bodyPosition": "lying"
+      },
+      "seedAliases": [
+        "Prone leg curl"
+      ],
+      "flags": [
+        {
+          "code": "R",
+          "text": "As seated leg curl."
+        }
+      ]
     },
     {
       "id": "lib-romanian-deadlift",
@@ -229,10 +517,24 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Glutes and lower back are arguably co-primary with hamstrings. Seed primary kept."
-      }
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "RDL",
+        "Barbell Romanian deadlift"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Glutes and lower back are arguably co-primary with hamstrings. Seed primary kept. Covered by the primary-target principle question (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-dumbbell-rdl",
@@ -259,10 +561,23 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "As Romanian deadlift."
-      }
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Dumbbell RDL"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "As Romanian deadlift (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-deadlift",
@@ -293,10 +608,33 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Seed primary is glutes alone. Hamstrings and lower back are arguably co-primary. Adding a primary changes attributed set counts, so the owner decides."
-      }
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "stance": "standard"
+      },
+      "seedAliases": [
+        "Deadlift",
+        "Barbell deadlift"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Deadlift\" is generic. Review."
+        }
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Seed primary is glutes alone. Hamstrings and lower back are arguably co-primary. Adding a primary changes attributed set counts, so the owner decides (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-sumo-deadlift",
@@ -325,10 +663,34 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "As conventional deadlift; adductors tagged secondary."
-      }
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "stance": "wide"
+      },
+      "seedAliases": [],
+      "aliasesAdd": [
+        "Barbell sumo deadlift",
+        "Wide-stance deadlift"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMissing",
+          "text": "No alias (IC-211 warning). Proposed aliases added."
+        }
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "As conventional deadlift; adductors tagged secondary (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-trap-bar-deadlift",
@@ -358,10 +720,23 @@
       "seedEquipment": [
         "trapBar"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Hybrid of hinge and squat; hinge listed first. Quadriceps primary is defensible."
-      }
+      "proposedEquipment": [
+        "trapBar"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: same set-up and bracing as the deadlift family; easier handle position is not a different level.",
+      "seedAliases": [
+        "Hex bar deadlift"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Hybrid of hinge and squat; hinge listed first (rule R7). Quadriceps primary is defensible, but the primary pattern is hinge, so the exercise counts toward no quadriceps slot (coverage-matrix.md section 11)."
+        }
+      ]
     },
     {
       "id": "lib-hip-thrust",
@@ -387,10 +762,27 @@
         "barbell",
         "bench"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Quadriceps as secondary is doubtful; review."
-      }
+      "proposedEquipment": [
+        "barbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Compound by decision rule: hip extension with the knee held under load (bridges and thrusts).",
+      "seedAliases": [
+        "Hip thrust"
+      ],
+      "doubtfulSecondaries": [
+        "quadriceps"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Quadriceps as secondary is doubtful; listed for release-2 clean-up."
+        }
+      ]
     },
     {
       "id": "lib-glute-bridge",
@@ -411,7 +803,16 @@
         "hipExtension"
       ],
       "seedEquipment": [],
-      "flag": null
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Compound by the same rule as the hip thrust.",
+      "seedAliases": [
+        "Bodyweight glute bridge"
+      ],
+      "flags": []
     },
     {
       "id": "lib-walking-lunge",
@@ -438,7 +839,18 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "alternating",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Walking lunge"
+      ],
+      "flags": []
     },
     {
       "id": "lib-bodyweight-lunge",
@@ -461,7 +873,23 @@
         "lunge"
       ],
       "seedEquipment": [],
-      "flag": null
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Unilateral if all repetitions are done on one leg, alternating if legs swap; editor to confirm.",
+      "seedAliases": [
+        "Forward lunge",
+        "Lunge"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Lunge\" is generic; walking and reverse lunges are different movements. Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-bulgarian-split-squat",
@@ -487,7 +915,19 @@
         "dumbbell",
         "bench"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Rear-foot elevated split squat"
+      ],
+      "flags": []
     },
     {
       "id": "lib-step-up",
@@ -511,10 +951,28 @@
         "dumbbell",
         "bench"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Step-up is classed with lunge and split stance. Equipment: bench in seed; plyoBox is the closer requirement."
-      }
+      "proposedEquipment": [
+        "dumbbell",
+        "plyoBox"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Step-up"
+      ],
+      "flags": [
+        {
+          "code": "E",
+          "text": "Equipment: bench in the seed; plyoBox is the closer requirement. Owner may keep bench."
+        },
+        {
+          "code": "D",
+          "text": "Step-up is classed with lunge and split stance (rule R7)."
+        }
+      ]
     },
     {
       "id": "lib-bodyweight-squat",
@@ -535,7 +993,16 @@
         "squat"
       ],
       "seedEquipment": [],
-      "flag": null
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Air squat"
+      ],
+      "flags": []
     },
     {
       "id": "lib-standing-calf-raise",
@@ -556,10 +1023,26 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": {
-        "code": "R",
-        "text": "Refined to gastrocnemius (primary) and soleus (secondary); standing with the knee straight."
-      }
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "kneePosition": "straight"
+      },
+      "seedAliases": [
+        "Calf raise"
+      ],
+      "flags": [
+        {
+          "code": "R",
+          "text": "Refined to gastrocnemius (primary) and soleus (secondary); standing with the knee straight."
+        }
+      ]
     },
     {
       "id": "lib-hip-abduction",
@@ -574,7 +1057,7 @@
         "abductors"
       ],
       "proposedSecondary": [
-        "glutes"
+        "gluteusMedius"
       ],
       "proposedPatterns": [
         "hipAbduction"
@@ -582,10 +1065,33 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Gluteus medius is the main mover but sits under Glutes; the seed primary abductors holds only tensor fasciae latae. Consider adding gluteusMedius as primary (changes attributed counts)."
-      }
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Hip abductor"
+      ],
+      "cleanup": [
+        {
+          "type": "nameNear",
+          "text": "Name is within edit distance 2 of \"Machine hip adduction\" (IC-508); distinct exercises. Disposition: distinct."
+        }
+      ],
+      "flags": [
+        {
+          "code": "R",
+          "text": "Secondary glutes refined to gluteusMedius (functional double tag: one primary abductors, one secondary)."
+        },
+        {
+          "code": "D",
+          "text": "Gluteus medius is the main mover but sits under Glutes; the seed primary abductors holds only tensor fasciae latae. Whether gluteusMedius becomes a co-primary is part of Q-P (changes attributed counts)."
+        }
+      ]
     },
     {
       "id": "lib-hip-adduction",
@@ -604,7 +1110,24 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Hip adductor"
+      ],
+      "cleanup": [
+        {
+          "type": "nameNear",
+          "text": "See hip abduction (IC-508). Disposition: distinct."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-bench-press",
@@ -631,7 +1154,24 @@
         "bench",
         "squatRack"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "angle": "flat"
+      },
+      "seedAliases": [
+        "Bench press",
+        "Flat bench press"
+      ],
+      "flags": []
     },
     {
       "id": "lib-db-bench-press",
@@ -657,7 +1197,22 @@
         "dumbbell",
         "bench"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: two independent loads to balance and to get into position.",
+      "attributes": {
+        "angle": "flat"
+      },
+      "seedAliases": [
+        "Flat dumbbell press"
+      ],
+      "flags": []
     },
     {
       "id": "lib-incline-bench-press",
@@ -684,10 +1239,28 @@
         "bench",
         "squatRack"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Incline emphasises the clavicular head only qualitatively. Optional refinement to pectoralisMajorClavicular."
-      }
+      "proposedEquipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "angle": "incline"
+      },
+      "seedAliases": [
+        "Incline bench press"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Incline emphasises the clavicular head only qualitatively. Optional refinement to pectoralisMajorClavicular (L4 tag, optional)."
+        }
+      ]
     },
     {
       "id": "lib-incline-db-press",
@@ -713,10 +1286,27 @@
         "dumbbell",
         "bench"
       ],
-      "flag": {
-        "code": "D",
-        "text": "As incline barbell press."
-      }
+      "proposedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "angle": "incline"
+      },
+      "seedAliases": [
+        "Incline dumbbell bench press"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "As incline barbell press."
+        }
+      ]
     },
     {
       "id": "lib-machine-chest-press",
@@ -741,7 +1331,21 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "angle": "flat"
+      },
+      "seedAliases": [
+        "Seated chest press"
+      ],
+      "flags": []
     },
     {
       "id": "lib-cable-fly",
@@ -764,7 +1368,25 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Cable crossover",
+        "Cable fly"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Cable crossover\" names a specific cable fly (high pulleys). Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-db-fly",
@@ -788,7 +1410,19 @@
         "dumbbell",
         "bench"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: range and shoulder control at the bottom of the movement.",
+      "seedAliases": [
+        "Dumbbell fly"
+      ],
+      "flags": []
     },
     {
       "id": "lib-push-up",
@@ -814,10 +1448,27 @@
         "antiExtension"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "R",
-        "text": "Abs retained as secondary; anti-extension listed as second pattern."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Press-up"
+      ],
+      "cleanup": [
+        {
+          "type": "nameNear",
+          "text": "Name is within edit distance 2 of \"Pull-up\" (IC-508); distinct exercises. Disposition: distinct."
+        }
+      ],
+      "flags": [
+        {
+          "code": "N",
+          "text": "Abs retained as secondary; anti-extension listed as second pattern."
+        }
+      ]
     },
     {
       "id": "lib-overhead-press",
@@ -844,10 +1495,28 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Upper back as secondary stands for upper trapezius."
-      }
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "OHP",
+        "Standing press",
+        "Military press"
+      ],
+      "doubtfulSecondaries": [
+        "upperBack"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Upper back as secondary stands for upper trapezius; listed for clean-up."
+        }
+      ]
     },
     {
       "id": "lib-db-shoulder-press",
@@ -873,7 +1542,19 @@
         "dumbbell",
         "bench"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: two independent loads to balance and to get into position (seated).",
+      "seedAliases": [
+        "Seated dumbbell press"
+      ],
+      "flags": []
     },
     {
       "id": "lib-lateral-raise",
@@ -896,7 +1577,22 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Side raise",
+        "Lateral raise"
+      ],
+      "doubtfulSecondaries": [
+        "upperBack"
+      ],
+      "flags": []
     },
     {
       "id": "lib-triceps-pushdown",
@@ -915,7 +1611,28 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "armPosition": "besideBody"
+      },
+      "seedAliases": [
+        "Cable pushdown",
+        "Tricep pushdown"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasSpelling",
+          "text": "Alias \"Tricep pushdown\" is a misspelling of \"triceps pushdown\". Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-skull-crusher",
@@ -935,7 +1652,23 @@
         "ezBar",
         "bench"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "ezBar",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: control of the bar near the head; set-up with a bench.",
+      "attributes": {
+        "bodyPosition": "lying"
+      },
+      "seedAliases": [
+        "Skull crusher",
+        "Lying triceps extension"
+      ],
+      "flags": []
     },
     {
       "id": "lib-overhead-triceps-extension",
@@ -954,7 +1687,28 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "armPosition": "overhead"
+      },
+      "seedAliases": [
+        "French press",
+        "Dumbbell triceps extension"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Aliases \"French press\" and \"Dumbbell triceps extension\" are generic or ambiguous. Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-dips",
@@ -979,10 +1733,24 @@
       "seedEquipment": [
         "dipBars"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Triceps and chest are co-primary in practice, depending on lean. Pattern classed as vertical push: debatable."
-      }
+      "proposedEquipment": [
+        "dipBars"
+      ],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Parallel bar dip",
+        "Triceps dip"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Triceps and chest are co-primary in practice, depending on lean (Q-P). Pattern classed as vertical push (rule R8): debatable."
+        }
+      ]
     },
     {
       "id": "lib-assisted-dip",
@@ -1007,10 +1775,24 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": {
-        "code": "D",
-        "text": "As dips."
-      }
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Machine-assisted dip",
+        "Assisted dips"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "As dips."
+        }
+      ]
     },
     {
       "id": "lib-pull-up",
@@ -1037,7 +1819,31 @@
       "seedEquipment": [
         "pullUpBar"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "pullUpBar"
+      ],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "grip": "pronated"
+      },
+      "seedAliases": [
+        "Pullup",
+        "Overhand pull-up"
+      ],
+      "aliasesRemove": [
+        "Pullup"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasCollision",
+          "text": "Alias \"Pullup\" equals the name \"Pull-up\" after squash (IC-502, IC-504). Remove."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-chin-up",
@@ -1062,10 +1868,36 @@
       "seedEquipment": [
         "pullUpBar"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Biceps is arguably co-primary."
-      }
+      "proposedEquipment": [
+        "pullUpBar"
+      ],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "attributes": {
+        "grip": "supinated"
+      },
+      "seedAliases": [
+        "Chinup",
+        "Underhand pull-up"
+      ],
+      "aliasesRemove": [
+        "Chinup"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasCollision",
+          "text": "Alias \"Chinup\" equals the name \"Chin-up\" after squash (IC-502, IC-504). Remove."
+        }
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Biceps is arguably co-primary (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-assisted-pull-up",
@@ -1090,7 +1922,19 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Machine-assisted pull-up",
+        "Assisted pull-ups"
+      ],
+      "flags": []
     },
     {
       "id": "lib-band-assisted-pull-up",
@@ -1116,7 +1960,19 @@
         "pullUpBar",
         "resistanceBand"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "pullUpBar",
+        "resistanceBand"
+      ],
+      "proposedClass": "band",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Resistance band pull-up"
+      ],
+      "flags": []
     },
     {
       "id": "lib-lat-pulldown",
@@ -1144,10 +2000,29 @@
         "cable",
         "machine"
       ],
-      "flag": {
-        "code": "E",
-        "text": "Equipment lists cable and machine together; a single class applies at coverage (cable)."
-      }
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Wide-grip pulldown"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Wide-grip pulldown\" names a grip variation. Review."
+        }
+      ],
+      "flags": [
+        {
+          "code": "E",
+          "text": "Equipment lists cable and machine together, which means the exercise needs both. Proposed: cable only."
+        }
+      ]
     },
     {
       "id": "lib-seated-cable-row",
@@ -1174,10 +2049,29 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Lats arguably co-primary. Row primaries are inconsistent across the seed (upperBack here, lats for one-arm row)."
-      }
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Cable row"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Cable row\" is generic (standing and single-arm cable rows exist). Review."
+        }
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Lats arguably co-primary. Row primaries are inconsistent across the seed (upperBack here, lats for one-arm row). This is the lead example of Q-P."
+        }
+      ]
     },
     {
       "id": "lib-barbell-row",
@@ -1206,10 +2100,24 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "As seated cable row."
-      }
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Barbell row",
+        "Bent-over row"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "As seated cable row (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-db-row",
@@ -1237,10 +2145,25 @@
         "dumbbell",
         "bench"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Primary lats while barbell and cable rows use upperBack. Harmonise during enrichment."
-      }
+      "proposedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Dumbbell row",
+        "Single-arm row"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Primary lats while barbell and cable rows use upperBack. Harmonise once Q-P is answered."
+        }
+      ]
     },
     {
       "id": "lib-chest-supported-row",
@@ -1267,7 +2190,18 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Machine row"
+      ],
+      "flags": []
     },
     {
       "id": "lib-inverted-row",
@@ -1295,10 +2229,28 @@
         "barbell",
         "squatRack"
       ],
-      "flag": {
-        "code": "E",
-        "text": "Equipment lists barbell and squatRack; the barbell is a fixed bar here. Coverage baseline counts it as bodyweight."
-      }
+      "proposedEquipment": [
+        "barbell",
+        "squatRack"
+      ],
+      "equipmentRoles": {
+        "barbell": "support"
+      },
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Bodyweight row",
+        "Australian pull-up"
+      ],
+      "flags": [
+        {
+          "code": "E",
+          "text": "Equipment lists barbell and squatRack; the barbell is a fixed bar here, so it is a support item (equipmentRoles). The class is then bodyweight."
+        }
+      ]
     },
     {
       "id": "lib-face-pull",
@@ -1322,10 +2274,23 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Rear delts primary; infraspinatus and middle trapezius are likely co-targets. Second pattern external rotation."
-      }
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Isolation (F25): the main work is at the shoulder joint; the elbow bends but does not carry the load.",
+      "seedAliases": [
+        "Cable face pull"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Rear delts primary; infraspinatus and middle trapezius are likely co-targets. Second pattern external rotation. Mechanics isolation (F25)."
+        }
+      ]
     },
     {
       "id": "lib-rear-delt-fly",
@@ -1348,7 +2313,19 @@
       "seedEquipment": [
         "machine"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "machine"
+      ],
+      "proposedClass": "machine",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Rear delt fly",
+        "Machine reverse fly"
+      ],
+      "flags": []
     },
     {
       "id": "lib-shrug",
@@ -1371,10 +2348,23 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": {
-        "code": "R",
-        "text": "Refined from upperBack to trapeziusUpper; filters by upperBack still match."
-      }
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Shrug"
+      ],
+      "flags": [
+        {
+          "code": "R",
+          "text": "Refined from upperBack to trapeziusUpper; filters by upperBack still match."
+        }
+      ]
     },
     {
       "id": "lib-barbell-curl",
@@ -1397,7 +2387,22 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "supinated"
+      },
+      "seedAliases": [
+        "Barbell curl"
+      ],
+      "flags": []
     },
     {
       "id": "lib-db-curl",
@@ -1420,7 +2425,29 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Bilateral if both arms curl together; many people alternate.",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "supinated"
+      },
+      "seedAliases": [
+        "Dumbbell curl",
+        "Bicep curl"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasSpelling",
+          "text": "Alias \"Bicep curl\" is a misspelling of \"biceps curl\". Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-hammer-curl",
@@ -1443,10 +2470,27 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Brachialis and brachioradialis emphasis is qualitative. Promoting either to primary would change meaning."
-      }
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "neutral"
+      },
+      "seedAliases": [
+        "Neutral-grip curl"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Brachialis and brachioradialis emphasis is qualitative. Promoting either to primary would change meaning."
+        }
+      ]
     },
     {
       "id": "lib-preacher-curl",
@@ -1466,10 +2510,27 @@
         "ezBar",
         "bench"
       ],
-      "flag": {
-        "code": "E",
-        "text": "Equipment ezBar and bench; preacherBench proposed."
-      }
+      "proposedEquipment": [
+        "ezBar",
+        "preacherBench"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "armPosition": "supportedInFront"
+      },
+      "seedAliases": [
+        "Preacher curl"
+      ],
+      "flags": [
+        {
+          "code": "E",
+          "text": "Equipment ezBar and bench; preacherBench proposed in place of bench."
+        }
+      ]
     },
     {
       "id": "lib-cable-curl",
@@ -1492,7 +2553,22 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "supinated"
+      },
+      "seedAliases": [
+        "Cable curl"
+      ],
+      "flags": []
     },
     {
       "id": "lib-plank",
@@ -1515,10 +2591,25 @@
         "antiExtension"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Front delts as secondary is doubtful; isometric hold."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Front plank",
+        "Forearm plank"
+      ],
+      "doubtfulSecondaries": [
+        "frontDelts"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Front delts as secondary is doubtful; isometric hold."
+        }
+      ]
     },
     {
       "id": "lib-side-plank",
@@ -1541,10 +2632,24 @@
         "antiLateralFlexion"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Abductors secondary stands for gluteus medius, which sits under Glutes."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Lateral plank"
+      ],
+      "doubtfulSecondaries": [
+        "abductors"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Abductors secondary stands for gluteus medius, which sits under Glutes."
+        }
+      ]
     },
     {
       "id": "lib-weighted-plank",
@@ -1567,7 +2672,18 @@
       "seedEquipment": [
         "plate"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "plate"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Plank with plate"
+      ],
+      "flags": []
     },
     {
       "id": "lib-dead-hang",
@@ -1592,10 +2708,24 @@
       "seedEquipment": [
         "pullUpBar"
       ],
-      "flag": {
-        "code": "N",
-        "text": "Category core; pattern gripHold. Category and pattern differ; allowed."
-      }
+      "proposedEquipment": [
+        "pullUpBar"
+      ],
+      "proposedClass": "bodyweight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Isolation: the main work is the grip (finger flexors). Static hold, so it follows the joint that bears the load.",
+      "seedAliases": [
+        "Passive hang",
+        "Bar hang"
+      ],
+      "flags": [
+        {
+          "code": "N",
+          "text": "Category core; pattern gripHold. Category and pattern differ; allowed."
+        }
+      ]
     },
     {
       "id": "lib-wall-sit",
@@ -1618,10 +2748,21 @@
         "squat"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "N",
-        "text": "Category legs; timed isometric squat pattern."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Wall squat hold"
+      ],
+      "flags": [
+        {
+          "code": "N",
+          "text": "Category legs; timed isometric squat pattern."
+        }
+      ]
     },
     {
       "id": "lib-hanging-leg-raise",
@@ -1638,7 +2779,8 @@
       ],
       "proposedSecondary": [
         "forearms",
-        "frontDelts"
+        "frontDelts",
+        "hipFlexors"
       ],
       "proposedPatterns": [
         "hipFlexion",
@@ -1647,10 +2789,30 @@
       "seedEquipment": [
         "pullUpBar"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Hip flexors arguably co-primary; front delts as secondary is doubtful."
-      }
+      "proposedEquipment": [
+        "pullUpBar"
+      ],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Hanging knee raise"
+      ],
+      "doubtfulSecondaries": [
+        "frontDelts"
+      ],
+      "flags": [
+        {
+          "code": "S",
+          "text": "hipFlexors added as secondary (the pattern is hip flexion first)."
+        },
+        {
+          "code": "D",
+          "text": "Hip flexors arguably co-primary (Q-P); front delts as secondary is doubtful."
+        }
+      ]
     },
     {
       "id": "lib-cable-crunch",
@@ -1673,7 +2835,18 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Kneeling cable crunch"
+      ],
+      "flags": []
     },
     {
       "id": "lib-crunch",
@@ -1694,7 +2867,16 @@
         "trunkFlexion"
       ],
       "seedEquipment": [],
-      "flag": null
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Sit-up crunch"
+      ],
+      "flags": []
     },
     {
       "id": "lib-pallof-press",
@@ -1719,10 +2901,26 @@
       "seedEquipment": [
         "cable"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Primary obliques stands for anti-rotation bracing."
-      }
+      "proposedEquipment": [
+        "cable"
+      ],
+      "proposedClass": "cable",
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Unilateral: performed one side at a time. Compound: the trunk resists while shoulder and elbow move.",
+      "seedAliases": [
+        "Cable anti-rotation press"
+      ],
+      "doubtfulSecondaries": [
+        "frontDelts"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Primary obliques stands for anti-rotation bracing; front delts secondary is doubtful."
+        }
+      ]
     },
     {
       "id": "lib-ab-wheel",
@@ -1745,10 +2943,23 @@
         "antiExtension"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "E",
-        "text": "Seed lists no equipment so it shows as bodyweight-only; abWheel proposed."
-      }
+      "proposedEquipment": [
+        "abWheel"
+      ],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Ab roller"
+      ],
+      "flags": [
+        {
+          "code": "E",
+          "text": "Seed lists no equipment so it shows as bodyweight-only; abWheel proposed."
+        }
+      ]
     },
     {
       "id": "lib-farmers-carry",
@@ -1775,10 +2986,33 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": {
-        "code": "N",
-        "text": "Category core; forearms primary. Upper trapezius and trunk bracing are co-targets."
-      }
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Farmer's walk",
+        "Farmers walk"
+      ],
+      "aliasesRemove": [
+        "Farmers walk"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasCollision",
+          "text": "Aliases \"Farmer's walk\" and \"Farmers walk\" are equal after norm (IC-503). Keep the first, remove \"Farmers walk\"."
+        }
+      ],
+      "flags": [
+        {
+          "code": "N",
+          "text": "Category core; forearms primary. Upper trapezius and trunk bracing are co-targets."
+        }
+      ]
     },
     {
       "id": "lib-sled-push",
@@ -1805,10 +3039,23 @@
       "seedEquipment": [
         "plate"
       ],
-      "flag": {
-        "code": "E",
-        "text": "Seed tags plate; sled proposed. Category fullBody."
-      }
+      "proposedEquipment": [
+        "sled"
+      ],
+      "proposedClass": "other",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Prowler push"
+      ],
+      "flags": [
+        {
+          "code": "E",
+          "text": "Seed tags plate; sled proposed. Category fullBody."
+        }
+      ]
     },
     {
       "id": "lib-kettlebell-swing",
@@ -1835,10 +3082,26 @@
       "seedEquipment": [
         "kettlebell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Front delts as secondary is doubtful; hinge listed as pattern (ballistic)."
-      }
+      "proposedEquipment": [
+        "kettlebell"
+      ],
+      "proposedClass": "kettlebell",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: ballistic hinge timing without complex coordination.",
+      "seedAliases": [
+        "Russian swing"
+      ],
+      "doubtfulSecondaries": [
+        "frontDelts"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Front delts as secondary is doubtful; hinge listed as pattern (ballistic, rule R6)."
+        }
+      ]
     },
     {
       "id": "lib-clean-and-press",
@@ -1868,10 +3131,23 @@
       "seedEquipment": [
         "dumbbell"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Primary frontDelts understates the lower-body drive. Candidate multiple primaries (changes attributed counts)."
-      }
+      "proposedEquipment": [
+        "dumbbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: two phases but a single dumbbell pair; advanced only with complex timing.",
+      "seedAliases": [
+        "Clean and press"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Primary frontDelts understates the lower-body drive. Candidate for multiple primaries (Q-P)."
+        }
+      ]
     },
     {
       "id": "lib-burpee",
@@ -1888,10 +3164,21 @@
         "fullBodyConditioning"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Only fullBody target. Consider anatomical secondaries."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Squat thrust with jump"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Only fullBody target. Consider anatomical secondaries; also depends on the fullBody-role question (Q-F)."
+        }
+      ]
     },
     {
       "id": "lib-thruster",
@@ -1919,10 +3206,23 @@
       "seedEquipment": [
         "barbell"
       ],
-      "flag": {
-        "code": "N",
-        "text": "Two patterns: squat then vertical push."
-      }
+      "proposedEquipment": [
+        "barbell"
+      ],
+      "proposedClass": "freeWeight",
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "",
+      "seedAliases": [
+        "Thruster"
+      ],
+      "flags": [
+        {
+          "code": "N",
+          "text": "Two patterns in phase order: squat then verticalPush (rule R3)."
+        }
+      ]
     },
     {
       "id": "lib-treadmill-run",
@@ -1947,10 +3247,30 @@
       "seedEquipment": [
         "treadmill"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Structural near-duplicate of outdoor run; differs by equipment only. Legitimate (equipment) variation."
-      }
+      "proposedEquipment": [
+        "treadmill"
+      ],
+      "proposedClass": "other",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Treadmill running",
+        "Running"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Running\" overlaps the outdoor run. Review."
+        }
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Structurally close to the outdoor run (equipment differs); legitimate equipment variation."
+        }
+      ]
     },
     {
       "id": "lib-incline-walk",
@@ -1975,10 +3295,23 @@
       "seedEquipment": [
         "treadmill"
       ],
-      "flag": {
-        "code": "D",
-        "text": "Primary glutes is a strong claim for incline walking; quadriceps and calves are as defensible."
-      }
+      "proposedEquipment": [
+        "treadmill"
+      ],
+      "proposedClass": "other",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Incline walk"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Primary glutes is a strong claim for incline walking; quadriceps and calves are as defensible."
+        }
+      ]
     },
     {
       "id": "lib-stationary-bike",
@@ -2003,7 +3336,25 @@
       "seedEquipment": [
         "bike"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "bike"
+      ],
+      "proposedClass": "other",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Cycling",
+        "Stationary bike"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Cycling\" also names outdoor cycling. Review."
+        }
+      ],
+      "flags": []
     },
     {
       "id": "lib-rowing-machine",
@@ -2028,10 +3379,25 @@
       "seedEquipment": [
         "rower"
       ],
-      "flag": {
-        "code": "D",
-        "text": "fullBody primary with lats and quadriceps secondary; acceptable."
-      }
+      "proposedEquipment": [
+        "rower"
+      ],
+      "proposedClass": "other",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Intermediate: sequencing of legs, hips and arms.",
+      "seedAliases": [
+        "Rowing",
+        "Rower",
+        "Ergometer row"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "fullBody primary with lats and quadriceps secondary; acceptable."
+        }
+      ]
     },
     {
       "id": "lib-cross-trainer",
@@ -2050,7 +3416,19 @@
       "seedEquipment": [
         "elliptical"
       ],
-      "flag": null
+      "proposedEquipment": [
+        "elliptical"
+      ],
+      "proposedClass": "other",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Elliptical",
+        "Elliptical trainer"
+      ],
+      "flags": []
     },
     {
       "id": "lib-skipping",
@@ -2062,20 +3440,35 @@
         "fullBody"
       ],
       "proposedPrimary": [
-        "calves",
+        "calves"
+      ],
+      "proposedSecondary": [
         "fullBody"
       ],
-      "proposedSecondary": [],
       "proposedPatterns": [
         "skipping"
       ],
       "seedEquipment": [
         "skippingRope"
       ],
-      "flag": {
-        "code": "M",
-        "text": "Seed lists fullBody as a secondary target. fullBody is non-anatomical and valid only as a primary target, so it moves to primary beside calves."
-      }
+      "proposedEquipment": [
+        "skippingRope"
+      ],
+      "proposedClass": "other",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Bilateral for two-foot skipping; alternate-foot skipping would be alternating.",
+      "seedAliases": [
+        "Jump rope",
+        "Rope skipping"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Seed lists fullBody as a secondary. Proposal at revision 2: calves stays the only primary and the fullBody secondary is preserved as stored (ADR-0010 proposed) and listed in the migration report. Not promoted to primary. Depends on Q-F."
+        }
+      ]
     },
     {
       "id": "lib-run-400m",
@@ -2100,10 +3493,22 @@
         "walkRun"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Near-duplicate of outdoor run and treadmill run by structure. Review for merge or relationship."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Quarter-mile run",
+        "400 m repeat"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Identical structure to the outdoor run (both distance logging, no equipment). Review for merge or relationship."
+        }
+      ]
     },
     {
       "id": "lib-outdoor-run",
@@ -2126,10 +3531,22 @@
         "walkRun"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "As 400 m run."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Road run",
+        "Jogging"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "As 400 m run."
+        }
+      ]
     },
     {
       "id": "lib-hip-flexor-stretch",
@@ -2151,10 +3568,21 @@
         "staticStretch"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "M",
-        "text": "Seed primary quadriceps; the stretch targets iliopsoas. Primary moves to hipFlexors and quadriceps (rectus femoris) becomes secondary. Primary meaning changes."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Kneeling hip flexor stretch"
+      ],
+      "flags": [
+        {
+          "code": "M",
+          "text": "Seed primary quadriceps; the stretch targets iliopsoas. Primary moves to hipFlexors and quadriceps (rectus femoris) becomes secondary. Primary meaning changes."
+        }
+      ]
     },
     {
       "id": "lib-hamstring-stretch",
@@ -2175,7 +3603,16 @@
         "staticStretch"
       ],
       "seedEquipment": [],
-      "flag": null
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Seated forward fold"
+      ],
+      "flags": []
     },
     {
       "id": "lib-childs-pose",
@@ -2196,10 +3633,21 @@
         "staticStretch"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Lats primary; lower back and shoulders also lengthen."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Balasana"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Lats primary; lower back and shoulders also lengthen."
+        }
+      ]
     },
     {
       "id": "lib-cat-cow",
@@ -2222,10 +3670,21 @@
         "spinalMobility"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Spinal mobility; erector spinae and thoracic spine."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Cat camel"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Spinal mobility; erector spinae and thoracic spine."
+        }
+      ]
     },
     {
       "id": "lib-thoracic-extension",
@@ -2246,10 +3705,36 @@
         "spinalMobility"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Upper back stands for thoracic spinal extensors and mid-back; lats secondary is doubtful."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Foam roller thoracic extension"
+      ],
+      "aliasesRemove": [
+        "Foam roller thoracic extension"
+      ],
+      "aliasesAdd": [
+        "Upper back extension"
+      ],
+      "doubtfulSecondaries": [
+        "lats"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Foam roller thoracic extension\" names a variant that needs a foam roller; an alias must refer to this exercise only. Remove, or add the variant after foamRoller is approved."
+        }
+      ],
+      "flags": [
+        {
+          "code": "M",
+          "text": "The seed tag upperBack means the scapular muscles in this model; the movement is thoracic spinal extension, whose muscle (erector spinae) is filed under Lower back. Candidates: erectorSpinae as primary, or keep upperBack with a stretched meaning. Owner decision. Lats secondary is doubtful."
+        }
+      ]
     },
     {
       "id": "lib-worlds-greatest-stretch",
@@ -2274,10 +3759,21 @@
         "dynamicMobility"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Multi-region movement; glutes primary is a choice. Hip flexors and thoracic spine are co-targets."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "intermediate",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Lunge with rotation"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Multi-region movement; glutes primary is a choice. Hip flexors and thoracic spine are co-targets."
+        }
+      ]
     },
     {
       "id": "lib-doorway-chest-stretch",
@@ -2298,7 +3794,16 @@
         "staticStretch"
       ],
       "seedEquipment": [],
-      "flag": null
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Pec stretch"
+      ],
+      "flags": []
     },
     {
       "id": "lib-pigeon-pose",
@@ -2319,10 +3824,24 @@
         "staticStretch"
       ],
       "seedEquipment": [],
-      "flag": {
-        "code": "D",
-        "text": "Deep hip rotators (piriformis) are arguably primary; abductors secondary is doubtful."
-      }
+      "proposedEquipment": [],
+      "proposedClass": "bodyweight",
+      "mechanics": null,
+      "laterality": "unilateral",
+      "difficulty": "intermediate",
+      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "seedAliases": [
+        "Figure-four stretch"
+      ],
+      "doubtfulSecondaries": [
+        "abductors"
+      ],
+      "flags": [
+        {
+          "code": "D",
+          "text": "Deep hip rotators (piriformis) are arguably primary; abductors secondary is doubtful."
+        }
+      ]
     }
   ]
 }
