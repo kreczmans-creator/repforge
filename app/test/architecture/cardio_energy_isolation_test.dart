@@ -46,4 +46,22 @@ void main() {
       isEmpty,
     );
   });
+
+  /// BCM-001(1), BCM-002(1): typed body weight and lengths go through the
+  /// strict `Kilograms.of` / `Centimetres.of` (reject, never round). The
+  /// stored-value readers (same strict rule, no snapping) are for the data
+  /// layer only.
+  test('stored body-value readers are used only by the data layer', () {
+    expect(
+      _offenders(
+        RegExp(r'(Kilograms|Centimetres)\.(tryFromStored|fromStored)'),
+        [
+          'lib/data/',
+          'lib/domain/units/units.dart',
+          'lib/domain/units/kilograms.dart',
+        ],
+      ),
+      isEmpty,
+    );
+  });
 }

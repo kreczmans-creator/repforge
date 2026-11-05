@@ -94,10 +94,10 @@ void main() {
   });
 
   group('Centimetres', () {
-    test('accepts bounds and rounds to 0.1', () {
+    test('accepts bounds and 0.1 steps', () {
       expect((Centimetres.of(10) as Ok<Centimetres>).value.value, 10);
       expect((Centimetres.of(300) as Ok<Centimetres>).value.value, 300);
-      expect((Centimetres.of(85.26) as Ok<Centimetres>).value.value, 85.3);
+      expect((Centimetres.of(85.3) as Ok<Centimetres>).value.value, 85.3);
     });
 
     test('rejects out of range, NaN and infinity', () {
@@ -116,8 +116,22 @@ void main() {
       }
     });
 
-    test('9.96 rounds up into range', () {
-      expect((Centimetres.of(9.96) as Ok<Centimetres>).value.value, 10);
+    test('stored reader is strict and never snaps', () {
+      expect(Centimetres.tryFromStored(9.96), isNull);
+      expect(Centimetres.tryFromStored(85.05), isNull);
+      expect(Centimetres.tryFromStored(300.04), isNull);
+      expect(Centimetres.tryFromStored(85.1)!.value, 85.1);
+      expect(Centimetres.tryFromStored(85.10000000000001)!.value, 85.1);
+      expect(() => Centimetres.fromStored(85.05), throwsStateError);
+      expect(Centimetres.of(9.96).isErr, isTrue);
+      expect(Centimetres.tryFromStored(5), isNull);
+      expect(
+        (Centimetres.parse(' 85,5 ') as Ok<Centimetres>).value.value,
+        85.5,
+      );
+      expect(Centimetres.parse('').isErr, isTrue);
+      expect(Centimetres.parse('abc').isErr, isTrue);
+      expect(Centimetres.parse('85.05').isErr, isTrue);
     });
 
     test('fromStored throws on corrupt values; label has one decimal', () {

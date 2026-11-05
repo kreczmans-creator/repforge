@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/units/format.dart';
+import 'package:repforge/domain/units/plain_decimal.dart';
 
 /// Unit of a [Quantity]: grams or millilitres (the reference basis of a
 /// food's nutrients, per 100 g or per 100 ml) or, for a recipe logged by
@@ -91,25 +92,45 @@ final class Quantity {
 }
 
 /// Length in centimetres for body measurements (10.0–300.0, 0.1 steps).
+///
+/// `of` and `parse` are strict (BCM-002(1)): out-of-range or off-step input
+/// is rejected, never rounded. `fromStored` and `tryFromStored` read stored
+/// values for the data layer only with the same strict rule; they never snap.
 @immutable
 final class Centimetres {
   const Centimetres._(this.value);
 
-  factory Centimetres.fromStored(double v) => switch (of(v)) {
-    Ok(:final value) => value,
-    Err(:final error) => throw StateError(error.message),
-  };
+  /// Reads a stored value; throws [StateError] when corrupt. Not for input.
+  factory Centimetres.fromStored(double v) =>
+      tryFromStored(v) ?? (throw StateError('Stored length invalid: $v'));
 
   static const double min = 10;
   static const double max = 300;
+  static const double _tolerance = 1e-9;
   final double value;
 
+  /// Read of a stored value with the strict rule of `of` (range and 0.1 step,
+  /// only 1e-9 of float noise tolerated). Never snaps: off-step or
+  /// out-of-range stored values are null so the caller reports them.
+  static Centimetres? tryFromStored(double raw) => switch (of(raw)) {
+    Ok(:final value) => value,
+    Err() => null,
+  };
+
+  /// Validates typed input: finite, a multiple of 0.1 cm (within 1e-9) and
+  /// 10.0 to 300.0 cm. Rejects, never rounds.
   static Result<Centimetres> of(double raw) {
     if (raw.isNaN || raw.isInfinite) {
       return const Err(ValidationError('Enter a number.', field: 'cm'));
     }
-    final rounded = (raw * 10).roundToDouble() / 10;
-    if (rounded < min || rounded > max) {
+    final steps = (raw * 10).roundToDouble();
+    if ((raw * 10 - steps).abs() > _tolerance) {
+      return const Err(
+        ValidationError('Measurement must be in steps of 0.1 cm.', field: 'cm'),
+      );
+    }
+    final snapped = steps / 10;
+    if (snapped < min || snapped > max) {
       return const Err(
         ValidationError(
           'Measurement must be between 10.0 cm and 300.0 cm.',
@@ -117,7 +138,20 @@ final class Centimetres {
         ),
       );
     }
-    return Ok(Centimetres._(rounded));
+    return Ok(Centimetres._(snapped));
+  }
+
+  /// Parses user text such as `85.5` or ` 85,5 ` (comma accepted). Plain
+  /// decimals only: `1e2` and `+85` are rejected.
+  static Result<Centimetres> parse(String text) {
+    if (text.trim().isEmpty) {
+      return const Err(ValidationError('Enter a number.', field: 'cm'));
+    }
+    final parsed = parsePlainDecimal(text);
+    if (parsed == null) {
+      return const Err(ValidationError('Enter a number.', field: 'cm'));
+    }
+    return of(parsed);
   }
 
   String get label => '${value.toStringAsFixed(1)} cm';

@@ -41,9 +41,18 @@ sealed class AppError {
 }
 
 /// Input failed validation. [field] names the offending input when known.
+///
+/// A multi-field form can fail on several inputs at once: [fieldErrors] then
+/// maps every offending field to its message, and [field]/[message] describe
+/// the first one.
 final class ValidationError extends AppError {
-  const ValidationError(super.message, {this.field});
+  const ValidationError(
+    super.message, {
+    this.field,
+    this.fieldErrors = const {},
+  });
   final String? field;
+  final Map<String, String> fieldErrors;
 }
 
 /// The persistence layer failed.

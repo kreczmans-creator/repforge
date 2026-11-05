@@ -38,8 +38,11 @@ import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/training_repository.dart';
+import 'package:repforge/features/measurements/application/delete_measurement.dart';
 import 'package:repforge/features/measurements/application/delete_weight_entry.dart';
 import 'package:repforge/features/measurements/application/record_body_weight.dart';
+import 'package:repforge/features/measurements/application/record_measurement_entry.dart';
+import 'package:repforge/features/measurements/application/update_measurement.dart';
 import 'package:repforge/features/settings/application/save_daily_targets.dart';
 import 'package:repforge/features/settings/application/save_meal_labels.dart';
 import 'package:repforge/features/settings/application/save_settings.dart';
@@ -89,6 +92,26 @@ final measurementRepositoryProvider = Provider<MeasurementRepository>(
     ref.watch(databaseProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+final recordMeasurementEntryProvider = Provider<RecordMeasurementEntry>(
+  (ref) => RecordMeasurementEntry(
+    repository: ref.watch(measurementRepositoryProvider),
+    clock: ref.watch(clockProvider),
+    newId: ref.watch(idGeneratorProvider),
+  ),
+);
+
+final updateMeasurementProvider = Provider<UpdateMeasurement>(
+  (ref) => UpdateMeasurement(
+    repository: ref.watch(measurementRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final deleteMeasurementProvider = Provider<DeleteMeasurement>(
+  (ref) =>
+      DeleteMeasurement(repository: ref.watch(measurementRepositoryProvider)),
 );
 
 final goalRepositoryProvider = Provider<GoalRepository>(
