@@ -1,6 +1,6 @@
 # ADR-0007: Rest-timer alerts through a notification adapter (flutter_local_notifications)
 
-- Status: **Proposed** (WP 9; owner approval requested at WP 9 delivery; OQ-05 remains open)
+- Status: **Accepted** (owner, 2026-11-05: Option 1, notification adapter). OQ-05 decided the same day: background rest alerts are required where the platform allows.
 - Date: 2026-11-05
 
 ## Context
@@ -11,7 +11,7 @@ WP 9 adds the rest timer (D04 TRN-021) and its end alert (TRN-022, P2): an alert
 2. A foreground service or background isolate that counts down: needs a persistent notification and battery cost, and contradicts PLT-008(2).
 3. Foreground alert only: meets TRN-022(1) only.
 
-## Decision (proposed)
+## Decision
 Option 1, behind a Flutter-free domain interface `RestAlertScheduler` (schedule at an end time, cancel, permission status and request). One adapter in `lib/data/platform/` owns every plugin import; a fake adapter drives widget and integration tests. The timer's state stays the pure wall-clock `RestTimer` rule (WP 9 stage 1), so on return to the app the remaining or elapsed time is computed from the clock and shown even if no notification fired. Notifications are scheduled only when the `restTimerNotifications` setting is on; enabling it requests permission (PLT-007(1)); disabling it cancels any scheduled alert (PLT-007(2)).
 - Version: `flutter_local_notifications` pinned to an exact release at least two weeks old (22.3.2 proposed), subject to the Android build with the current AGP and compileSdk; any SDK or desugaring change is recorded in D03.
 - Android: exact scheduling when the exact-alarm permission is available, otherwise inexact (the 2 s target may then be missed; recorded as a limitation).
@@ -21,6 +21,12 @@ Option 1, behind a Flutter-free domain interface `RestAlertScheduler` (schedule 
 Pinned `flutter_local_notifications` 22.3.2 and `timezone` 0.11.2 (compileSdk 36 and minSdk 24, so no SDK change; core library desugaring added to the app Gradle file; recorded in D03). Android mode: `exactAllowWhileIdle` when `canScheduleExactNotifications()` is true, otherwise `inexactAllowWhileIdle`; `SCHEDULE_EXACT_ALARM` is declared, `USE_EXACT_ALARM` is not, and the exact-alarm settings screen is not opened. The domain interface also has `openSettings()` for the denied-permission path. Status remains Proposed.
 
 Changes after the final review: notifications are scheduled only while the app is not in the foreground (scheduled on inactive, hidden or paused, cancelled on resume), and scheduler calls run in request order. The Android small icon is a monochrome vector (`ic_stat_rest`) kept by `res/raw/keep.xml`; Flutter release builds use R8 by default and plugin 22.3.2 ships its own Gson rules, so no ProGuard file is added; CI builds the release APK.
+
+### Exact-alarm permission flow (owner decision M1 / OQ-24, 2026-11-05)
+When the user enables rest alerts on Android and exact scheduling is not permitted, the app explains why exact-alarm access helps (the rest notification arrives at the timer's end more reliably) and offers the system exact-alarm settings route (`SCHEDULE_EXACT_ALARM`; `USE_EXACT_ALARM` is not used). If the user declines or does not grant it, notifications stay on with inexact delivery, and the setting says that timing may be delayed. Denial, return from settings, revocation and re-enablement are handled; notification permission is never needed to log sets or use the timer. All plugin calls stay behind the `RestAlertScheduler` port.
+
+### Verification status
+Foreground feedback (haptic pattern, visual state, accessibility announcement) and background notifications are distinct; there is no foreground sound. iOS background delivery and real-device timing are **not verified**; they belong to the owner's device campaign.
 
 ## Rationale
 One scheduled notification at a known end time is the smallest mechanism that meets TRN-022(2) without a background task. The adapter keeps platform code out of feature code (ADR-0006 standing constraint) and lets the timer be tested without a device.

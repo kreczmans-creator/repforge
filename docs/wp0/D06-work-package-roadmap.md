@@ -105,7 +105,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Sequencing: stage 3 code after WP 9 acceptance (shared code) and final authorisation; stage 4 documentation proceeds now; WP 10 proceeds independently, subject to schema version coordination; WP 11 depends on WP 8's expanded anatomy and exercise taxonomy (stage 3) for its training analytics.
 
 ### WP 9 — Workout planning and workout execution
-- Status: **Delivered — awaiting owner acceptance** (27dd8b0; `docs/delivery-record/WP9.md`). Open: M1 (OQ-24), M4 (OQ-25). Built on the WP 8 foundation; WP 9 scope unchanged.
+- Status: **Delivered — awaiting owner acceptance** (27dd8b0; `docs/delivery-record/WP9.md`). Owner decisions 2026-11-05: M1 (OQ-24) approved — exact-alarm permission flow being implemented before acceptance; M4 (OQ-25) allocated to WP 8 stage 6; assumptions confirmed; ADR-0007 accepted. Built on the WP 8 foundation; WP 9 scope unchanged.
 - Objective: fast in-gym logging.
 - Scope: plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
 - Dependencies: WP 8.

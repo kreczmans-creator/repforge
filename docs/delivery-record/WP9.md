@@ -191,10 +191,10 @@ No high findings. CI on 6a2d8ff all green, including the new full-session emulat
 
 | ID | Finding | Severity | Resolution |
 |---|---|---|---|
-| M1 | Android 14+ new installs lack `SCHEDULE_EXACT_ALARM`; the app never offers the grant, so alerts are usually inexact and may arrive much later than 2 s (TRN-022(2)) | Medium | **Owner decision** (OQ-05): offer the exact-alarm grant, or accept inexact as a recorded limitation |
+| M1 | Android 14+ new installs lack `SCHEDULE_EXACT_ALARM`; the app never offered the grant, so alerts were usually inexact (TRN-022(2)) | Medium | **Owner decision 2026-11-05 (OQ-24): implement the exact-alarm permission flow with inexact fallback** — implementation in progress |
 | M2 | Foreground alert is weak: `SystemSound.alert` is silent on Android and iOS; one haptic tick, suppressed when touch vibration is off; docs claim a sound | Medium | Fixed. `HapticRestAlert` is a pattern of three heavy-impact pulses 200 ms apart (no `SystemSound`); the panel switches to an emphasised "Rest over" state (accent background, icon, bold text), is a live region and announces "Rest over" once. Docs and ADR-0007 now state it honestly: haptic pattern + visual + announcement; a sound only from the notification in the background; touch-vibration can suppress haptics. Tests: haptic pattern (platform channel and spacing), panel announce and live region |
 | M3 | Pre-fill matches today's working sets against previous sets including warm-ups, so a warm-up can be logged as a working set in one tap (TRN-019(2), TRN-026) | Medium | Fixed. The matched previous set's kind pre-fills the row; warm-ups match previous warm-ups and working or failure sets match previous working or failure sets, position counted per kind group (`matchPrevious`). The hint names the same set. Only warm-up versus working carries over; a matched failure set pre-fills a working row (re-check N3). Tests: reviewer's probe as unit and widget test, skipped warm-up, no previous warm-ups, warm-ups only |
-| M4 | Exercise history (WP 8 screen) stops at 20 sessions with no way to load more (TRN-025(2)) | Medium | **Owner decision**: allocation (screen owned by WP 8) |
+| M4 | Exercise history (WP 8 screen) stops at 20 sessions with no way to load more (TRN-025(2)) | Medium | **Owner decision 2026-11-05 (OQ-25): allocated to WP 8 stage 6**; WP 9 limitation, not delivered here |
 | L1 | Schedule and cancel can reach the platform out of order; a stale notification can remain | Low | Fixed. Scheduler calls run on one future chain in request order; a stale schedule is dropped by generation. Tests: delayed `schedule` then skip leaves nothing scheduled; ordered pause/resume with delayed calls |
 | L2 | Notification scheduled while in the foreground; heads-up and channel sound can show before the in-app cancel | Low | Fixed. Scheduling follows the app lifecycle (`AppLifecycleListener`): scheduled on inactive/hidden/paused, cancelled on resume; nothing is scheduled in the foreground; the switch turned on mid-timer takes effect at the next background transition. Tests: foreground, background, resume, pause and skip in the background, timer ended while away, setting on mid-timer; integration test updated |
 | L3 | Docs say shrinking is off; release builds use R8 by default; release build untested; launcher icon as notification icon | Low | Fixed. Docs corrected (Flutter release builds use R8 by default; D03 and WP 9 updated). `android.yml` builds the release APK (debug-signed, no secrets). Monochrome `ic_stat_rest` vector icon used by the adapter; `res/raw/keep.xml` keeps it; no ProGuard file needed for 22.3.2 (README). Test: adapter initialises with the monochrome icon. The release build itself is verified by CI only |
@@ -237,15 +237,21 @@ Acceptance view (reviewer): D06 set logging ≤ 3 interactions met (one tap); PR
 TRN coverage (reviewer): TRN-013..017, 019..021, 023, 024 met; TRN-018(2) partly (keyboard autofocus only in the edit sheet); TRN-022(2) partly (M1); TRN-025(2) partly (M4); TRN-027 per muscle and per week: rules only, no screen (proposed for WP 11; OQ-19 terminology applies).
 
 ## Deviations and limitations
-- Exercise history paging (TRN-025(2)) not delivered — M4 / OQ-25.
-- Android background alert usually inexact on Android 14+ — M1 / OQ-24.
+- Exercise history paging (TRN-025(2)) **not delivered by WP 9** — allocated to WP 8 stage 6 (owner decision M4 / OQ-25, 2026-11-05).
+- Android background alert timing — M1 / OQ-24 approved: exact-alarm permission flow being implemented; inexact fallback remains.
 - No foreground sound; haptics can be switched off by the phone's touch-vibration setting.
 - A pending rest alert is lost on reboot; timer state survives backgrounding, not process death (the OS notification still fires).
 - Revoked notification permission leaves the setting shown as on.
 - Google Play exact-alarm policy to be verified before release.
 - Known Low items N1a, N1b (visible kind changes in the new-set row).
 
-## Owner decisions requested
+## Owner decisions (2026-11-05)
+- M1 / OQ-24: implement the exact-alarm permission flow with inexact fallback (in progress; acceptance waits for it).
+- M4 / OQ-25: exercise history paging allocated to WP 8 stage 6; WP 9 limitation.
+- All eight WP 9 assumptions confirmed (calculated personal records; date-specific schedule entries; wall-clock rest timer; several entries of the same exercise; 4,000-character notes; 12-second undo; archived exercises skipped on start; kg-only entry while OQ-02 stays open).
+- ADR-0007 accepted; OQ-05 decided.
+
+## Owner decisions requested (at delivery, now decided — see above)
 1. **M1 / OQ-24** — offer the Android exact-alarm grant with an explanation when the user enables rest alerts (recommended), or accept inexact alerts as a recorded limitation.
 2. **M4 / OQ-25** — exercise history paging: a narrow WP 9 fix, or allocation to WP 8 stage 6 with a recorded WP 9 gap.
 3. Confirm the WP 9 decisions and assumptions recorded per stage (derived PRs; dated schedule rows; wall-clock rest timer; several entries per exercise; 4000-character notes; skipped archived exercises on start; 12 s undo; kg-only entry pending OQ-02).
