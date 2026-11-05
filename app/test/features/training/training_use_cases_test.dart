@@ -257,7 +257,9 @@ void main() {
           newId: newId,
         );
         _ok(
-          await record(
+          await recordFor(
+            record,
+            sessions,
             sessionId: 's',
             exerciseId: e.id,
             data: SetData.weighted(load: LoadKg.fromStored(10), reps: 5),
@@ -448,7 +450,9 @@ void main() {
         newId: newId,
       );
       _ok(
-        await record(
+        await recordFor(
+          record,
+          sessions,
           sessionId: 's',
           exerciseId: e.id,
           data: SetData.weighted(load: LoadKg.fromStored(40), reps: 10),

@@ -15,7 +15,8 @@ const scheduleHorizonWeeks = 8;
 ///
 /// [day] is the date it is on now; [sourceDay] the date it was generated for
 /// (equal to [day] until it is moved). [sessionId] is the session started
-/// from it once [status] is done.
+/// from it once [status] is done; on a planned row it is the session whose
+/// deletion released it, so undoing that delete re-links only this row.
 class ScheduledWorkout {
   const ScheduledWorkout({
     required this.id,
@@ -44,6 +45,7 @@ class ScheduledWorkout {
     ScheduleStatus? status,
     String? sessionId,
     DateTime? updatedAt,
+    bool clearSession = false,
   }) => ScheduledWorkout(
     id: id,
     day: day ?? this.day,
@@ -51,14 +53,19 @@ class ScheduledWorkout {
     planId: planId,
     origin: origin,
     status: status ?? this.status,
-    sessionId: sessionId ?? this.sessionId,
+    sessionId: clearSession ? null : sessionId ?? this.sessionId,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
 }
 
-/// The calendar date of [d] as a local date-only value (midnight).
-DateTime scheduleDate(DateTime d) => DateTime(d.year, d.month, d.day);
+/// The calendar date of [d] as a local date-only value (midnight). A UTC
+/// instant is first converted to local time, so the date is the one the user
+/// is on, not the UTC one; a local value is taken as it is.
+DateTime scheduleDate(DateTime d) {
+  final local = d.isUtc ? d.toLocal() : d;
+  return DateTime(local.year, local.month, local.day);
+}
 
 /// Storage and comparison key of a scheduled date (`YYYY-MM-DD`).
 String scheduleDayKey(DateTime d) => dayKey(scheduleDate(d));

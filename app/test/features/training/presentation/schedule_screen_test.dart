@@ -254,6 +254,45 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('a skipped occurrence can be restored to planned; refused '
+      'when the date was taken meanwhile', (tester) async {
+    await open(tester);
+    await scheduleMondaysAndThursdays(tester);
+    final first = (await all()).first;
+    await tapKey(tester, 'schedule-skip-${first.id}');
+    await tapKey(tester, 'skip-confirm');
+    expect(find.byKey(Key('schedule-restore-${first.id}')), findsOneWidget);
+    // Only skipped occurrences offer Restore.
+    expect(find.text('Restore'), findsOneWidget);
+
+    // The date is taken meanwhile by another planned occurrence.
+    await scheduled.upsert(
+      ScheduledWorkout(
+        id: 'extra',
+        day: first.day,
+        sourceDay: first.day,
+        planId: first.planId,
+        origin: ScheduleOrigin.date,
+        status: ScheduleStatus.planned,
+        createdAt: _now.toUtc(),
+        updatedAt: _now.toUtc(),
+      ),
+    );
+    await tapKey(tester, 'schedule-restore-${first.id}');
+    expect(find.textContaining('planned or done'), findsOneWidget);
+    expect((await scheduled.byId(first.id))!.status, ScheduleStatus.skipped);
+
+    await scheduled.upsert(
+      (await scheduled.byId('extra'))!.copyWith(status: ScheduleStatus.skipped),
+    );
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+    await tapKey(tester, 'schedule-restore-${first.id}');
+    expect((await scheduled.byId(first.id))!.status, ScheduleStatus.planned);
+    expect(find.byKey(Key('schedule-restore-${first.id}')), findsNothing);
+    expect(find.byKey(Key('schedule-skip-${first.id}')), findsOneWidget);
+    await unmount(tester);
+  });
+
   testWidgets('schedules on a single date and refuses a duplicate', (
     tester,
   ) async {

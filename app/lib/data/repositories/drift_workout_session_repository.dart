@@ -110,6 +110,7 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
           )
           ..orderBy([
             OrderingTerm.asc(_db.workoutSessions.startedAt),
+            OrderingTerm.asc(_db.workoutSessions.createdAt),
             OrderingTerm.asc(_db.sessionSets.sessionId),
             OrderingTerm.asc(_db.sessionSets.exerciseOrder),
             OrderingTerm.asc(_db.sessionSets.setOrder),
@@ -122,6 +123,7 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
           PerformedSet(
             sessionId: set.sessionId,
             startedAt: r.readTable(_db.workoutSessions).startedAt,
+            createdAt: r.readTable(_db.workoutSessions).createdAt,
             set: set,
           ),
     ];
@@ -144,6 +146,7 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
           )
           ..orderBy([
             OrderingTerm.asc(_db.workoutSessions.startedAt),
+            OrderingTerm.asc(_db.workoutSessions.createdAt),
             OrderingTerm.asc(_db.sessionSets.sessionId),
             OrderingTerm.asc(_db.sessionSets.exerciseOrder),
             OrderingTerm.asc(_db.sessionSets.setOrder),
@@ -378,12 +381,29 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
               ]))
             .get();
     final bySession = groupByParent(sets, (s) => s.sessionId);
+    final entries =
+        await (_db.select(_db.sessionExercises)
+              ..where(
+                (t) =>
+                    t.exerciseId.equals(exerciseId) &
+                    t.note.isNotNull() &
+                    t.sessionId.isIn(sessions.map((s) => s.id)),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.position)]))
+            .get();
+    final notesBySession = groupByParent(entries, (e) => e.sessionId);
     return [
       for (final s in sessions)
         ExerciseSessionHistory(
           sessionId: s.id,
           sessionName: s.name,
           startedAt: s.startedAt,
+          sessionNote: s.notes,
+          entryNotes: [
+            for (final e
+                in notesBySession[s.id] ?? const <SessionExerciseRow>[])
+              if (e.note case final n? when n.trim().isNotEmpty) n,
+          ],
           sets: [
             for (final r in bySession[s.id] ?? const <SessionSetRow>[])
               ?TrainingMappers.sessionSetToEntity(r),

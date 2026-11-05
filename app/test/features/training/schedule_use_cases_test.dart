@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/db/drift_transactor.dart';
 import 'package:repforge/data/repositories/drift_scheduled_workout_repository.dart';
 import 'package:repforge/data/repositories/drift_training_split_repository.dart';
 import 'package:repforge/data/repositories/drift_workout_plan_repository.dart';
@@ -70,6 +71,7 @@ void main() {
     weekdays = ScheduleWeekdays(
       plans: plans,
       scheduled: scheduled,
+      transactor: DriftTransactor(db),
       clock: _clock,
       newId: newId,
     );
@@ -77,6 +79,7 @@ void main() {
       splits: splits,
       plans: plans,
       scheduled: scheduled,
+      transactor: DriftTransactor(db),
       clock: _clock,
       newId: newId,
     );

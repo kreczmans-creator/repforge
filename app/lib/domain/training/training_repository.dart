@@ -49,11 +49,20 @@ final class ExerciseSessionHistory {
     required this.sessionName,
     required this.startedAt,
     required this.sets,
+    this.sessionNote = '',
+    this.entryNotes = const [],
   });
 
   final String sessionId;
   final String sessionName;
   final DateTime startedAt;
+
+  /// The session's note (TRN-023); empty when none.
+  final String sessionNote;
+
+  /// Notes of this exercise's entries in the session, in session order (an
+  /// exercise can have several entries); entries without a note are left out.
+  final List<String> entryNotes;
 
   /// Completed sets of the exercise in this session, in performed order.
   final List<SessionSet> sets;

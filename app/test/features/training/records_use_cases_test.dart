@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/db/drift_transactor.dart';
 import 'package:repforge/data/repositories/drift_exercise_repository.dart';
+import 'package:repforge/data/repositories/drift_scheduled_workout_repository.dart';
 import 'package:repforge/data/repositories/drift_workout_session_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
@@ -11,6 +13,8 @@ import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/application/record_set.dart';
 import 'package:repforge/features/training/application/records_use_cases.dart';
 import 'package:repforge/features/training/application/session_use_cases.dart';
+
+import '../../helpers/seed_session.dart';
 
 final _clock = FixedClock(DateTime.utc(2026, 11, 5, 10));
 final _t = DateTime.utc(2026, 11, 1, 9);
@@ -31,6 +35,20 @@ void main() {
   late GetExerciseRecords records;
   var n = 0;
   String newId() => 'id${n++}';
+
+  DeleteSession deleteSession() => DeleteSession(
+    sessions: sessions,
+    scheduled: DriftScheduledWorkoutRepository(db),
+    transactor: DriftTransactor(db),
+    clock: _clock,
+  );
+
+  RestoreSession restoreSession() => RestoreSession(
+    sessions: sessions,
+    scheduled: DriftScheduledWorkoutRepository(db),
+    transactor: DriftTransactor(db),
+    clock: _clock,
+  );
 
   setUp(() async {
     db = AppDatabase.inMemory();
@@ -70,7 +88,9 @@ void main() {
     int reps, {
     SetKind kind = SetKind.working,
   }) async => _ok<SessionSet>(
-    await record(
+    await recordFor(
+      record,
+      sessions,
       sessionId: sessionId,
       exerciseId: 'bench',
       data: _w(kg, reps),
@@ -126,9 +146,9 @@ void main() {
     await session('s', DateTime.utc(2026, 11));
     final set = await rec('s', 100, 3);
     expect(_ok(await records('bench')).recordSetIds, {set.id});
-    _ok(await DeleteSession(sessions: sessions)('s'));
+    _ok(await deleteSession()('s'));
     expect(_ok(await records('bench')).recordSetIds, isEmpty);
-    _ok(await RestoreSession(sessions: sessions)('s'));
+    _ok(await restoreSession()('s'));
     expect(_ok(await records('bench')).recordSetIds, {set.id});
   });
 
@@ -142,8 +162,7 @@ void main() {
       await EditSet(exercises: exercises, sessions: sessions)(
         sessionId: 's',
         setId: warm.id,
-        data: _w(100, 5),
-        completed: true,
+        kind: SetKind.working,
       ),
     );
     final r = _ok(await records('bench'));
@@ -162,7 +181,7 @@ void main() {
       await rec('late', 100, 3);
       await session('gone', DateTime(2026, 11, 3, 18));
       await rec('gone', 200, 5);
-      _ok(await DeleteSession(sessions: sessions)('gone'));
+      _ok(await deleteSession()('gone'));
 
       final volume = GetWeeklyVolume(sessions: sessions, exercises: exercises);
       final from = DateTime(2026, 10, 26);

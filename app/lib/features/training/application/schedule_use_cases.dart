@@ -1,6 +1,7 @@
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/core/transactor.dart';
 import 'package:repforge/domain/training/scheduled_workout.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/training/training_repository.dart';
@@ -73,6 +74,18 @@ class _Scheduler {
   }
 }
 
+/// True when the plan's rows hold a planned or done occurrence on `date` other
+/// than `exceptId`. A skipped one does not count.
+bool _occupied(List<ScheduledWorkout> rows, DateTime date, {String? exceptId}) {
+  final key = scheduleDayKey(date);
+  return rows.any(
+    (o) =>
+        o.id != exceptId &&
+        o.status != ScheduleStatus.skipped &&
+        scheduleDayKey(o.day) == key,
+  );
+}
+
 Future<Result<WorkoutPlan>> _schedulablePlan(
   WorkoutPlanRepository plans,
   String planId,
@@ -92,8 +105,10 @@ Future<Result<WorkoutPlan>> _schedulablePlan(
   return Ok(plan);
 }
 
-/// Use case: schedule a workout on one date (TRN-015). Refused when the plan
-/// already has a planned or done occurrence on that date.
+/// Use case: schedule a workout on one date (TRN-015). Refused only when the
+/// plan already has a planned or done occurrence on that date; a skipped
+/// occurrence does not block it (the user may schedule that date again, or
+/// restore the skipped one with [UnskipScheduledWorkout]).
 final class ScheduleOnDate {
   const ScheduleOnDate({
     required this.plans,
@@ -114,20 +129,27 @@ final class ScheduleOnDate {
     try {
       final plan = await _schedulablePlan(plans, planId);
       if (plan case Err(:final error)) return Err(error);
-      final outcome = await _Scheduler(
-        scheduled,
-        clock,
-        newId,
-      ).generate(planId, ScheduleOrigin.date, [date]);
-      if (outcome.created.isEmpty) {
+      if (_occupied(await scheduled.forPlan(planId), date)) {
         return const Err(
           ValidationError(
-            'That workout is already scheduled on that date.',
+            'That workout is already planned or done on that date.',
             field: 'date',
           ),
         );
       }
-      return Ok(outcome.created.single);
+      final now = clock.now().toUtc();
+      final w = ScheduledWorkout(
+        id: newId(),
+        day: scheduleDate(date),
+        sourceDay: scheduleDate(date),
+        planId: planId,
+        origin: ScheduleOrigin.date,
+        status: ScheduleStatus.planned,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await scheduled.upsert(w);
+      return Ok(w);
     } on Object catch (e) {
       return Err(StorageError(_storageMessage, cause: e));
     }
@@ -137,17 +159,20 @@ final class ScheduleOnDate {
 /// Use case: schedule a workout on a weekday pattern for the next 8 weeks
 /// from `start` (TRN-015(1)). `weekdays` (1 Monday to 7 Sunday) defaults to
 /// the plan's own `scheduledWeekdays`; an empty pattern is refused. Safe to
-/// run again: existing occurrences are not duplicated.
+/// run again: existing occurrences are not duplicated. All rows are written
+/// in one transaction: a failure part-way stores none.
 final class ScheduleWeekdays {
   const ScheduleWeekdays({
     required this.plans,
     required this.scheduled,
+    required this.transactor,
     required this.clock,
     required this.newId,
   });
 
   final WorkoutPlanRepository plans;
   final ScheduledWorkoutRepository scheduled;
+  final Transactor transactor;
   final Clock clock;
   final IdGenerator newId;
 
@@ -172,11 +197,13 @@ final class ScheduleWeekdays {
         );
       }
       return Ok(
-        await _Scheduler(
-          scheduled,
-          clock,
-          newId,
-        ).generate(planId, ScheduleOrigin.weekday, weekdayDates(start, days)),
+        await transactor.run(
+          () => _Scheduler(
+            scheduled,
+            clock,
+            newId,
+          ).generate(planId, ScheduleOrigin.weekday, weekdayDates(start, days)),
+        ),
       );
     } on Object catch (e) {
       return Err(StorageError(_storageMessage, cause: e));
@@ -187,12 +214,14 @@ final class ScheduleWeekdays {
 /// Use case: schedule a split's cycle for the next 8 weeks (TRN-015, TRN-014):
 /// cycle day 0 on `start`, repeating; rest days produce nothing. A workout of
 /// the cycle that was deleted or archived is left out and counted in
-/// [SplitScheduleOutcome.missingPlans]. Safe to run again.
+/// [SplitScheduleOutcome.missingPlans]. Safe to run again. All rows are
+/// written in one transaction: a failure part-way stores none.
 final class ScheduleSplitCycle {
   const ScheduleSplitCycle({
     required this.splits,
     required this.plans,
     required this.scheduled,
+    required this.transactor,
     required this.clock,
     required this.newId,
   });
@@ -200,6 +229,7 @@ final class ScheduleSplitCycle {
   final TrainingSplitRepository splits;
   final WorkoutPlanRepository plans;
   final ScheduledWorkoutRepository scheduled;
+  final Transactor transactor;
   final Clock clock;
   final IdGenerator newId;
 
@@ -227,15 +257,17 @@ final class ScheduleSplitCycle {
       final created = <ScheduledWorkout>[];
       var already = 0;
       final scheduler = _Scheduler(scheduled, clock, newId);
-      for (final entry in byPlan.entries) {
-        final outcome = await scheduler.generate(
-          entry.key,
-          ScheduleOrigin.split,
-          entry.value,
-        );
-        created.addAll(outcome.created);
-        already += outcome.alreadyThere;
-      }
+      await transactor.run(() async {
+        for (final entry in byPlan.entries) {
+          final outcome = await scheduler.generate(
+            entry.key,
+            ScheduleOrigin.split,
+            entry.value,
+          );
+          created.addAll(outcome.created);
+          already += outcome.alreadyThere;
+        }
+      });
       created.sort((a, b) => a.day.compareTo(b.day));
       return Ok(
         SplitScheduleOutcome(
@@ -288,14 +320,11 @@ final class MoveScheduledWorkout {
           ValidationError('Only a planned workout can be moved.'),
         );
       }
-      final key = scheduleDayKey(newDate);
-      final clash = (await scheduled.forPlan(w.planId)).any(
-        (o) =>
-            o.id != w.id &&
-            o.status != ScheduleStatus.skipped &&
-            scheduleDayKey(o.day) == key,
-      );
-      if (clash) {
+      if (_occupied(
+        await scheduled.forPlan(w.planId),
+        newDate,
+        exceptId: w.id,
+      )) {
         return const Err(
           ValidationError(
             'That workout is already scheduled on that date.',
@@ -343,6 +372,49 @@ final class SkipScheduledWorkout {
       );
       await scheduled.upsert(skipped);
       return Ok(skipped);
+    } on Object catch (e) {
+      return Err(StorageError(_storageMessage, cause: e));
+    }
+  }
+}
+
+/// Use case: restore a skipped occurrence to planned (undo of
+/// [SkipScheduledWorkout]). Refused when it is not skipped or when the plan
+/// now has a planned or done occurrence on its date (for instance one
+/// scheduled there after the skip).
+final class UnskipScheduledWorkout {
+  const UnskipScheduledWorkout({required this.scheduled, required this.clock});
+
+  final ScheduledWorkoutRepository scheduled;
+  final Clock clock;
+
+  Future<Result<ScheduledWorkout>> call(String scheduledWorkoutId) async {
+    try {
+      final w = await scheduled.byId(scheduledWorkoutId);
+      if (w == null) {
+        return const Err(
+          NotFoundError('That scheduled workout no longer exists.'),
+        );
+      }
+      if (w.status != ScheduleStatus.skipped) {
+        return const Err(
+          ValidationError('Only a skipped workout can be restored.'),
+        );
+      }
+      if (_occupied(await scheduled.forPlan(w.planId), w.day, exceptId: w.id)) {
+        return const Err(
+          ValidationError(
+            'That workout is already planned or done on that date.',
+            field: 'date',
+          ),
+        );
+      }
+      final restored = w.copyWith(
+        status: ScheduleStatus.planned,
+        updatedAt: clock.now().toUtc(),
+      );
+      await scheduled.upsert(restored);
+      return Ok(restored);
     } on Object catch (e) {
       return Err(StorageError(_storageMessage, cause: e));
     }

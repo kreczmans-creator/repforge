@@ -13,6 +13,8 @@ import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/application/record_set.dart';
 import 'package:repforge/features/training/application/session_use_cases.dart';
 
+import '../../helpers/seed_session.dart';
+
 final _now = DateTime.utc(2026, 11, 5, 10);
 final _clock = FixedClock(_now);
 final _t = DateTime.utc(2026, 11, 1, 9);
@@ -56,6 +58,20 @@ void main() {
   var n = 0;
   String newId() => 'id${n++}';
 
+  DeleteSession deleteSession() => DeleteSession(
+    sessions: sessions,
+    scheduled: DriftScheduledWorkoutRepository(db),
+    transactor: DriftTransactor(db),
+    clock: _clock,
+  );
+
+  RestoreSession restoreSession() => RestoreSession(
+    sessions: sessions,
+    scheduled: DriftScheduledWorkoutRepository(db),
+    transactor: DriftTransactor(db),
+    clock: _clock,
+  );
+
   setUp(() async {
     db = AppDatabase.inMemory();
     n = 0;
@@ -96,7 +112,9 @@ void main() {
     SetData? data,
     SetKind kind = SetKind.working,
   }) async => _ok<SessionSet>(
-    await record(
+    await recordFor(
+      record,
+      sessions,
       sessionId: session,
       exerciseId: exercise,
       data: data ?? _w(80, 5),
@@ -190,7 +208,13 @@ void main() {
         ),
       );
       _ok(
-        await record(sessionId: 'old', exerciseId: 'bench', data: _w(77.5, 8)),
+        await recordFor(
+          record,
+          sessions,
+          sessionId: 'old',
+          exerciseId: 'bench',
+          data: _w(77.5, 8),
+        ),
       );
 
       final started = _ok(await fromPlan()(planId: 'plan'));
@@ -520,15 +544,11 @@ void main() {
       expect(stored.sets, isEmpty);
     });
 
-    test('add refuses a duplicate, an archived, a missing exercise and a '
+    test('add refuses an archived, a missing exercise and a '
         'missing session; nothing stored', () async {
       final s = await emptySession();
       await addEx(s.id, 'bench');
       await exercises.archive('fly', archived: true);
-      expect(
-        _err(await add()(sessionId: s.id, exerciseId: 'bench')),
-        isA<ValidationError>(),
-      );
       expect(
         _err(await add()(sessionId: s.id, exerciseId: 'fly')),
         isA<ValidationError>(),
@@ -677,14 +697,13 @@ void main() {
       expect(stored.sets.map((x) => x.exerciseId), ['bench', 'fly']);
     });
 
-    test('replace refuses a duplicate, the same, an archived, a missing '
+    test('replace refuses the same, an archived, a missing '
         'exercise or entry; nothing changes', () async {
       final s = await emptySession();
       final bench = await addEx(s.id, 'bench');
       await addEx(s.id, 'squat');
       await exercises.archive('fly', archived: true);
       for (final (newId_, matcher) in [
-        ('squat', isA<ValidationError>()),
         ('bench', isA<ValidationError>()),
         ('fly', isA<ValidationError>()),
         ('nope', isA<NotFoundError>()),
@@ -950,7 +969,7 @@ void main() {
       final s = await emptySession();
       await addEx(s.id, 'bench');
       await rec(s.id, 'bench');
-      _ok(await DeleteSession(sessions: sessions)(s.id));
+      _ok(await deleteSession()(s.id));
       expect(await sessions.byId(s.id), isNull);
       expect(await sessions.watchAll().first, isEmpty);
       expect(await sessions.hasHistory('bench'), isFalse);
@@ -959,12 +978,9 @@ void main() {
       expect(await db.select(db.sessionSets).get(), hasLength(1));
       expect(await db.select(db.sessionExercises).get(), hasLength(1));
       // Deleting again, or editing a deleted session, finds nothing.
-      expect(
-        _err(await DeleteSession(sessions: sessions)(s.id)),
-        isA<NotFoundError>(),
-      );
+      expect(_err(await deleteSession()(s.id)), isA<NotFoundError>());
 
-      final restored = _ok(await RestoreSession(sessions: sessions)(s.id));
+      final restored = _ok(await restoreSession()(s.id));
       expect(restored.sets, hasLength(1));
       expect(restored.exercises, hasLength(1));
       expect(await sessions.hasHistory('bench'), isTrue);
@@ -973,14 +989,8 @@ void main() {
         isNull,
       );
       // Restoring a session that is not deleted, or unknown, is refused.
-      expect(
-        _err(await RestoreSession(sessions: sessions)(s.id)),
-        isA<NotFoundError>(),
-      );
-      expect(
-        _err(await RestoreSession(sessions: sessions)('zzz')),
-        isA<NotFoundError>(),
-      );
+      expect(_err(await restoreSession()(s.id)), isA<NotFoundError>());
+      expect(_err(await restoreSession()('zzz')), isA<NotFoundError>());
     });
   });
 }

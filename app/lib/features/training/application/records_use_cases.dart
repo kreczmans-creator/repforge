@@ -38,8 +38,11 @@ final class GetExerciseRecords {
   }
 }
 
-/// Use case: weekly training volume for the weeks touched by sessions that
-/// started in [from, to), with the week start and day start from [settings].
+/// Use case: weekly training volume for the whole weeks touched by [from, to)
+/// (TRN-027(4)), with the week start and day start from `settings`. The range
+/// is widened to week boundaries (a week starts on `weekStartDay` at
+/// `dayStartHour`), so a mid-week `from` or `to` never yields a part-week
+/// total: every session of a returned week is counted.
 final class GetWeeklyVolume {
   const GetWeeklyVolume({required this.sessions, required this.exercises});
 
@@ -52,7 +55,27 @@ final class GetWeeklyVolume {
     required AppSettings settings,
   }) async {
     try {
-      final list = await sessions.sessionsBetween(from, to);
+      final first = VolumeRules.weekStart(
+        from,
+        weekStartDay: settings.weekStartDay,
+        dayStartHour: settings.dayStartHour,
+      );
+      final lastWeek = VolumeRules.weekStart(
+        to.isAfter(from) ? to.subtract(const Duration(microseconds: 1)) : from,
+        weekStartDay: settings.weekStartDay,
+        dayStartHour: settings.dayStartHour,
+      );
+      // Calendar arithmetic (not a 7-day Duration) so a DST change does not
+      // shift the boundary.
+      final list = await sessions.sessionsBetween(
+        DateTime(first.year, first.month, first.day, settings.dayStartHour),
+        DateTime(
+          lastWeek.year,
+          lastWeek.month,
+          lastWeek.day + 7,
+          settings.dayStartHour,
+        ),
+      );
       final byId = <String, Exercise>{};
       for (final id in {
         for (final s in list) ...s.sets.map((x) => x.exerciseId),

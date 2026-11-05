@@ -25,18 +25,19 @@ Result<String?> validateSetExtras({int? restSeconds, String? note}) {
   return Ok(trimmed == null || trimmed.isEmpty ? null : trimmed);
 }
 
-/// Use case: record one set in an existing session (TRN-001..007, D06 WP 8
-/// acceptance).
+/// Use case: record one set against an exercise entry of an existing session
+/// (TRN-001..007, TRN-017, D06 WP 8 acceptance).
 ///
-/// The set is validated against the stored exercise by
+/// The set is recorded against `sessionExerciseId`, an entry of the session,
+/// and is validated against that entry's exercise by
 /// [validateSetForExercise], so an invalid combination (a weighted set on a
 /// timed exercise, 0 or 101 reps, a zero duration, an unlabelled energy value,
 /// an exertion out of range...) is rejected here and nothing is stored. This
-/// is where `validReps` and `validExertion` are enforced on write. An
-/// archived or deleted exercise cannot receive new sets. Set and exercise
-/// order within the session are assigned: a set joins the session's entry for
-/// its exercise (TRN-017), or creates one after the last entry; a new set
-/// goes after the entry's last set. [SetKind] defaults to working (TRN-019).
+/// is where `validReps` and `validExertion` are enforced on write. A session
+/// may hold the same exercise in several entries; naming the entry is what
+/// tells them apart. An archived or deleted exercise cannot receive new sets.
+/// The set joins the entry and goes after its last set; [SetKind] defaults to
+/// working (TRN-019).
 final class RecordSet {
   const RecordSet({
     required this.exercises,
@@ -52,7 +53,7 @@ final class RecordSet {
   /// 0.1 m).
   Future<Result<SessionSet>> call({
     required String sessionId,
-    required String exerciseId,
+    required String sessionExerciseId,
     required SetData data,
     bool completed = true,
     Exertion? exertion,
@@ -61,7 +62,17 @@ final class RecordSet {
     SetKind kind = SetKind.working,
   }) async {
     try {
-      final exercise = await exercises.byId(exerciseId);
+      final session = await sessions.byId(sessionId);
+      if (session == null) {
+        return const Err(NotFoundError('That session no longer exists.'));
+      }
+      final entry = session.exercises
+          .where((e) => e.id == sessionExerciseId)
+          .firstOrNull;
+      if (entry == null) {
+        return const Err(NotFoundError('That exercise is not in the session.'));
+      }
+      final exercise = await exercises.byId(entry.exerciseId);
       if (exercise == null) {
         return const Err(NotFoundError('That exercise no longer exists.'));
       }
@@ -81,45 +92,19 @@ final class RecordSet {
       if (checked case Err(:final error)) return Err(error);
       final extras = validateSetExtras(restSeconds: restSeconds, note: note);
       if (extras case Err(:final error)) return Err(error);
-      final session = await sessions.byId(sessionId);
-      if (session == null) {
-        return const Err(NotFoundError('That session no longer exists.'));
-      }
-      final entry = session.exercises
-          .where((e) => e.exerciseId == exerciseId)
-          .firstOrNull;
-      final entrySets = entry == null
-          ? const <SessionSet>[]
-          : [
-              for (final s in session.sets)
-                if (s.sessionExerciseId == entry.id) s,
-            ];
-      final positions = [
-        ...session.exercises.map((e) => e.position),
-        ...session.sets.map((s) => s.exerciseOrder),
+      final entrySets = [
+        for (final s in session.sets)
+          if (s.sessionExerciseId == entry.id) s,
       ];
-      final exerciseOrder =
-          entry?.position ??
-          (positions.isEmpty
-              ? 0
-              : positions.reduce((a, b) => a > b ? a : b) + 1);
       final setOrder = entrySets.isEmpty
           ? 0
           : entrySets.map((s) => s.setOrder).reduce((a, b) => a > b ? a : b) +
                 1;
-      final created = entry != null
-          ? null
-          : SessionExercise(
-              id: newId(),
-              sessionId: sessionId,
-              exerciseId: exerciseId,
-              position: exerciseOrder,
-            );
       final stored = SessionSet(
         id: newId(),
         sessionId: sessionId,
-        exerciseId: exerciseId,
-        exerciseOrder: exerciseOrder,
+        exerciseId: entry.exerciseId,
+        exerciseOrder: entry.position,
         setOrder: setOrder,
         data: (checked as Ok<SetData>).value,
         completed: completed,
@@ -127,9 +112,9 @@ final class RecordSet {
         restSeconds: restSeconds,
         note: (extras as Ok<String?>).value,
         kind: kind,
-        sessionExerciseId: entry?.id ?? created!.id,
+        sessionExerciseId: entry.id,
       );
-      await sessions.addSet(stored, newEntry: created);
+      await sessions.addSet(stored);
       return Ok(stored);
     } on Object catch (e) {
       return Err(StorageError('Could not save the set.', cause: e));

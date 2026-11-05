@@ -179,12 +179,21 @@ final deleteSetProvider = Provider<DeleteSet>(
 );
 
 final deleteSessionProvider = Provider<DeleteSession>(
-  (ref) => DeleteSession(sessions: ref.watch(workoutSessionRepositoryProvider)),
+  (ref) => DeleteSession(
+    sessions: ref.watch(workoutSessionRepositoryProvider),
+    scheduled: ref.watch(scheduledWorkoutRepositoryProvider),
+    transactor: ref.watch(transactorProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
 
 final restoreSessionProvider = Provider<RestoreSession>(
-  (ref) =>
-      RestoreSession(sessions: ref.watch(workoutSessionRepositoryProvider)),
+  (ref) => RestoreSession(
+    sessions: ref.watch(workoutSessionRepositoryProvider),
+    scheduled: ref.watch(scheduledWorkoutRepositoryProvider),
+    transactor: ref.watch(transactorProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
 
 final scheduleOnDateProvider = Provider<ScheduleOnDate>(
@@ -200,6 +209,7 @@ final scheduleWeekdaysProvider = Provider<ScheduleWeekdays>(
   (ref) => ScheduleWeekdays(
     plans: ref.watch(workoutPlanRepositoryProvider),
     scheduled: ref.watch(scheduledWorkoutRepositoryProvider),
+    transactor: ref.watch(transactorProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
   ),
@@ -210,6 +220,7 @@ final scheduleSplitCycleProvider = Provider<ScheduleSplitCycle>(
     splits: ref.watch(trainingSplitRepositoryProvider),
     plans: ref.watch(workoutPlanRepositoryProvider),
     scheduled: ref.watch(scheduledWorkoutRepositoryProvider),
+    transactor: ref.watch(transactorProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
   ),
@@ -224,6 +235,13 @@ final moveScheduledWorkoutProvider = Provider<MoveScheduledWorkout>(
 
 final skipScheduledWorkoutProvider = Provider<SkipScheduledWorkout>(
   (ref) => SkipScheduledWorkout(
+    scheduled: ref.watch(scheduledWorkoutRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final unskipScheduledWorkoutProvider = Provider<UnskipScheduledWorkout>(
+  (ref) => UnskipScheduledWorkout(
     scheduled: ref.watch(scheduledWorkoutRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),

@@ -304,6 +304,23 @@ class _SessionCard extends StatelessWidget {
         children: [
           Text(session.sessionName, style: theme.textTheme.titleSmall),
           Text(date, style: context.rfText.caption),
+          if (session.sessionNote.trim().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: RfSpace.s1),
+              child: Text(
+                session.sessionNote,
+                key: Key('history-session-note-${session.sessionId}'),
+              ),
+            ),
+          for (var i = 0; i < session.entryNotes.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(top: RfSpace.s1),
+              child: Text(
+                session.entryNotes[i],
+                key: Key('history-entry-note-${session.sessionId}-$i'),
+                style: context.rfText.caption,
+              ),
+            ),
           const SizedBox(height: RfSpace.s2),
           for (var i = 0; i < session.sets.length; i++)
             Padding(

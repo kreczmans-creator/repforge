@@ -68,7 +68,7 @@ void main() {
     expect(
       (await container.read(recordSetProvider)(
         sessionId: 'none',
-        exerciseId: id,
+        sessionExerciseId: 'none',
         data: SetData.weighted(load: LoadKg.fromStored(60), reps: 5),
       )).isErr,
       isTrue,
@@ -140,7 +140,7 @@ void main() {
     expect(session.exercises.single.exerciseId, id);
     final set = await container.read(recordSetProvider)(
       sessionId: session.id,
-      exerciseId: id,
+      sessionExerciseId: session.exercises.single.id,
       data: SetData.weighted(load: LoadKg.fromStored(80), reps: 5),
     );
     expect(set.isOk, isTrue);

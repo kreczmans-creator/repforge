@@ -4,14 +4,19 @@ import 'package:repforge/domain/training/training.dart';
 /// A completed set with the moment of its session, the input of the PR and
 /// volume rules.
 class PerformedSet {
+  /// [createdAt] is when the session was created; it breaks a tie between
+  /// sessions with the same [startedAt] (the earlier-created one came first).
+  /// When omitted it equals [startedAt].
   const PerformedSet({
     required this.sessionId,
     required this.startedAt,
     required this.set,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? startedAt;
 
   final String sessionId;
   final DateTime startedAt;
+  final DateTime createdAt;
   final SessionSet set;
 }
 
@@ -87,7 +92,8 @@ class PersonalRecord {
 /// Only completed working and failure sets count; warm-ups never do. A set is
 /// a record when it strictly beats every earlier set in its slot, the first
 /// set in a slot included; a tie is not a record. "Earlier" is chronological:
-/// session start, then session id, then exercise order, then set order.
+/// session start, then session creation time, then session id, then exercise
+/// order, then set order.
 abstract final class PersonalRecordRules {
   /// The slot and value [set] competes in, or null when it competes in none
   /// (warm-up, not completed, a type without a record, more than 12 reps).
@@ -117,6 +123,8 @@ abstract final class PersonalRecordRules {
   static List<PerformedSet> chronological(Iterable<PerformedSet> history) =>
       [...history]..sort((a, b) {
         var c = a.startedAt.compareTo(b.startedAt);
+        if (c != 0) return c;
+        c = a.createdAt.compareTo(b.createdAt);
         if (c != 0) return c;
         c = a.sessionId.compareTo(b.sessionId);
         if (c != 0) return c;

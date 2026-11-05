@@ -141,6 +141,50 @@ void main() {
     expect(await rows(db, 'SELECT id FROM workout_plans'), hasLength(1));
   });
 
+  test('v6 upgrade gives the same exercise at two orders two entries '
+      '(A, B, A), changing no set value', () async {
+    final schema = await verifier.schemaAt(6);
+    final old = v6.DatabaseAtV6(schema.newConnection());
+    await session(old, 's3');
+    await set(old, 'a1', 's3', 'bench', 0, 0);
+    await set(old, 'a2', 's3', 'bench', 0, 1);
+    await set(old, 'b1', 's3', 'squat', 1, 0);
+    await set(old, 'a3', 's3', 'bench', 2, 0);
+    await old.close();
+
+    final db = AppDatabase(schema.newConnection());
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 7);
+
+    expect(
+      await rows(
+        db,
+        'SELECT position, exercise_id FROM session_exercises '
+        "WHERE session_id = 's3' ORDER BY position",
+      ),
+      [
+        {'position': 0, 'exercise_id': 'bench'},
+        {'position': 1, 'exercise_id': 'squat'},
+        {'position': 2, 'exercise_id': 'bench'},
+      ],
+      reason: 'one entry per (order, exercise); A at two orders stays two',
+    );
+    expect(
+      await rows(
+        db,
+        'SELECT s.id AS id, e.position AS position, s.exercise_order AS o '
+        'FROM session_sets s JOIN session_exercises e '
+        'ON e.id = s.session_exercise_id ORDER BY s.id',
+      ),
+      [
+        {'id': 'a1', 'position': 0, 'o': 0},
+        {'id': 'a2', 'position': 0, 'o': 0},
+        {'id': 'a3', 'position': 2, 'o': 2},
+        {'id': 'b1', 'position': 1, 'o': 1},
+      ],
+    );
+  });
+
   test('the v7 tables enforce their CHECK constraints', () async {
     final schema = await verifier.schemaAt(6);
     final old = v6.DatabaseAtV6(schema.newConnection());

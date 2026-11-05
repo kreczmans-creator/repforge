@@ -122,7 +122,9 @@ final class StartEmptySession {
 }
 
 /// Shared by the two "start from" use cases: creates the session with an
-/// entry for each usable exercise and builds the pre-fill.
+/// entry for each usable exercise (an exercise listed several times gets
+/// several entries, each with its own target and pre-fill) and builds the
+/// pre-fill.
 Future<StartedSession> _startWith({
   required WorkoutSessionRepository sessions,
   required ExerciseRepository exercises,
@@ -158,7 +160,6 @@ Future<StartedSession> _startWith({
       );
       continue;
     }
-    if (entries.any((e) => e.exerciseId == w.exerciseId)) continue;
     final entry = SessionExercise(
       id: newId(),
       sessionId: session.id,
@@ -192,8 +193,9 @@ Future<StartedSession> _startWith({
 
 /// Use case: start a session from a workout plan (TRN-016(1)).
 ///
-/// The session gets one entry per plan exercise in plan order and the plan's
-/// name and id. The pre-fill pairs each plan target with the previous
+/// The session gets one entry per plan exercise in plan order, repeats
+/// included (each with its own targets), and the plan's name and id.
+/// The pre-fill pairs each plan target with the previous
 /// performance (`lastPerformance`) of that exercise; it is returned as data
 /// and nothing is stored as a set. An archived or deleted exercise is skipped
 /// with a [StartWarning]. An archived or deleted plan is refused. With
@@ -286,7 +288,8 @@ final class StartSessionFromPlan {
   }
 }
 
-/// Use case: start a session from a past one (TRN-016): the same exercises in
+/// Use case: start a session from a past one (TRN-016): every entry of the
+/// past session (an exercise held several times is copied several times) in
 /// the same order, no sets and no notes. The pre-fill carries each exercise's
 /// previous performance; plan targets are not known (the plan, if any, is
 /// kept as the session's plan id). Archived or deleted exercises are skipped
@@ -506,9 +509,9 @@ final class SetSessionExerciseNote {
 }
 
 /// Use case: add an exercise to a session, last in order, before any set
-/// exists (TRN-017). The exercise must exist, not be archived and not already
-/// be in the session (a session holds an exercise once; to do more of it,
-/// add sets to its entry).
+/// exists (TRN-017). The exercise must exist and not be archived. A session
+/// may hold the same exercise in several entries (adding it again makes a
+/// new entry).
 final class AddSessionExercise {
   const AddSessionExercise({
     required this.sessions,
@@ -529,7 +532,7 @@ final class AddSessionExercise {
       if (session == null) {
         return const Err(NotFoundError('That session no longer exists.'));
       }
-      final problem = await _usable(exercises, session, exerciseId);
+      final problem = await _usable(exercises, exerciseId);
       if (problem != null) return Err(problem);
       final entry = SessionExercise(
         id: newId(),
@@ -547,7 +550,6 @@ final class AddSessionExercise {
 
 Future<AppError?> _usable(
   ExerciseRepository exercises,
-  WorkoutSession session,
   String exerciseId,
 ) async {
   final exercise = await exercises.byId(exerciseId);
@@ -557,12 +559,6 @@ Future<AppError?> _usable(
   if (exercise.archived) {
     return const ValidationError(
       'An archived exercise cannot be used. Restore it first.',
-      field: 'exerciseId',
-    );
-  }
-  if (session.exercises.any((e) => e.exerciseId == exerciseId)) {
-    return const ValidationError(
-      'That exercise is already in the session.',
       field: 'exerciseId',
     );
   }
@@ -617,9 +613,9 @@ final class RemoveSessionExercise {
 /// sets, the original entry is kept and the new exercise gets a new, empty
 /// entry directly after it for the sets still to come; when it has none, the
 /// entry itself changes to the new exercise (its note is kept). The new
-/// exercise must exist, not be archived, differ from the original and not
-/// already be in the session. Returns the entry that now holds the new
-/// exercise.
+/// exercise must exist, not be archived and differ from the original; it may
+/// already be elsewhere in the session. Returns the entry that now holds the
+/// new exercise.
 final class ReplaceSessionExercise {
   const ReplaceSessionExercise({
     required this.sessions,
@@ -645,7 +641,15 @@ final class ReplaceSessionExercise {
       }
       final entry = _entry(session, sessionExerciseId);
       if (entry == null) return const Err(_noEntry);
-      final problem = await _usable(exercises, session, newExerciseId);
+      if (entry.exerciseId == newExerciseId) {
+        return const Err(
+          ValidationError(
+            'Choose a different exercise to replace it with.',
+            field: 'exerciseId',
+          ),
+        );
+      }
+      final problem = await _usable(exercises, newExerciseId);
       if (problem != null) return Err(problem);
       final hasSets = session.sets.any(
         (s) => s.sessionExerciseId == sessionExerciseId,
@@ -729,6 +733,14 @@ final class ReorderSessionExercises {
 /// may since have been archived or deleted (history stays editable); the
 /// exercise, entry and order of the set do not change. Because records and
 /// volume are derived, they follow the edit.
+///
+/// Every argument is optional and null means "keep what is stored": a
+/// warm-up edited with new data stays a warm-up, and the exertion, rest and
+/// note stay unless changed. To remove one, pass `clearExertion`,
+/// `clearRest` or `clearNote` (a blank `note` also clears the note); giving a
+/// value together with its clear flag is refused. A set that already has an
+/// exertion keeps its scale (TRN-020(2)): a value on the other scale is
+/// refused and nothing is stored; a new value on the same scale is allowed.
 final class EditSet {
   const EditSet({required this.exercises, required this.sessions});
 
@@ -738,13 +750,21 @@ final class EditSet {
   Future<Result<SessionSet>> call({
     required String sessionId,
     required String setId,
-    required SetData data,
-    required bool completed,
-    SetKind kind = SetKind.working,
+    SetData? data,
+    bool? completed,
+    SetKind? kind,
     Exertion? exertion,
+    bool clearExertion = false,
     int? restSeconds,
+    bool clearRest = false,
     String? note,
+    bool clearNote = false,
   }) async {
+    if ((clearExertion && exertion != null) ||
+        (clearRest && restSeconds != null) ||
+        (clearNote && note != null)) {
+      return const Err(ValidationError('Give a value or clear it, not both.'));
+    }
     try {
       final session = await sessions.byId(sessionId);
       if (session == null) {
@@ -753,6 +773,17 @@ final class EditSet {
       final existing = session.sets.where((s) => s.id == setId).firstOrNull;
       if (existing == null) {
         return const Err(NotFoundError('That set no longer exists.'));
+      }
+      final before = existing.exertion;
+      if (exertion != null &&
+          before != null &&
+          exertion.scale != before.scale) {
+        return const Err(
+          ValidationError(
+            'A set keeps the exertion scale it was recorded in.',
+            field: 'exertion',
+          ),
+        );
       }
       final exercise =
           await exercises.byId(existing.exerciseId) ??
@@ -769,19 +800,29 @@ final class EditSet {
           );
       final checked = validateSetForExercise(
         exercise,
-        data,
+        data ?? existing.data,
         exertion: exertion,
       );
       if (checked case Err(:final error)) return Err(error);
       final extras = validateSetExtras(restSeconds: restSeconds, note: note);
       if (extras case Err(:final error)) return Err(error);
-      final updated = existing.copyWith(
+      final updated = SessionSet(
+        id: existing.id,
+        sessionId: existing.sessionId,
+        exerciseId: existing.exerciseId,
+        exerciseOrder: existing.exerciseOrder,
+        setOrder: existing.setOrder,
+        sessionExerciseId: existing.sessionExerciseId,
         data: (checked as Ok<SetData>).value,
-        completed: completed,
-        kind: kind,
-        exertion: exertion,
-        restSeconds: restSeconds,
-        note: (extras as Ok<String?>).value,
+        completed: completed ?? existing.completed,
+        kind: kind ?? existing.kind,
+        exertion: clearExertion ? null : exertion ?? before,
+        restSeconds: clearRest ? null : restSeconds ?? existing.restSeconds,
+        note: clearNote
+            ? null
+            : note == null
+            ? existing.note
+            : (extras as Ok<String?>).value,
       );
       await sessions.updateSet(updated);
       return Ok(updated);
@@ -821,17 +862,45 @@ final class DeleteSet {
 /// Use case: delete a session (TRN-024(2)). A soft delete (`deleted_at`):
 /// nothing is removed, and [RestoreSession] brings it back at any time. The
 /// confirmation and the undo window (at least 10 s) belong to the screen.
+///
+/// A scheduled occurrence that was started into this session goes from done
+/// back to planned and loses its link, in the same transaction, so the
+/// workout can be started again.
 final class DeleteSession {
-  const DeleteSession({required this.sessions});
+  const DeleteSession({
+    required this.sessions,
+    required this.scheduled,
+    required this.transactor,
+    required this.clock,
+  });
 
   final WorkoutSessionRepository sessions;
+  final ScheduledWorkoutRepository scheduled;
+  final Transactor transactor;
+  final Clock clock;
 
   Future<Result<void>> call(String sessionId) async {
     try {
-      if (await sessions.byId(sessionId) == null) {
+      final session = await sessions.byId(sessionId);
+      if (session == null) {
         return const Err(NotFoundError('That session no longer exists.'));
       }
-      await sessions.delete(sessionId);
+      final planId = session.planId;
+      await transactor.run(() async {
+        await sessions.delete(sessionId);
+        if (planId == null) return;
+        final now = clock.now().toUtc();
+        for (final o in await scheduled.forPlan(planId)) {
+          if (o.sessionId == sessionId && o.status == ScheduleStatus.done) {
+            await scheduled.upsert(
+              // Keep the link: it marks the occurrence this delete released,
+              // so RestoreSession re-links exactly this one (and nothing if
+              // the occurrence has been started again since).
+              o.copyWith(status: ScheduleStatus.planned, updatedAt: now),
+            );
+          }
+        }
+      });
       return const Ok(null);
     } on Object catch (e) {
       return Err(StorageError('Could not delete the session.', cause: e));
@@ -840,21 +909,52 @@ final class DeleteSession {
 }
 
 /// Use case: undo [DeleteSession]. Works at any time, as nothing is purged.
+/// Only the occurrence that [DeleteSession] released (still planned and still
+/// carrying this session's id) is marked done again. An occurrence started
+/// again since, skipped, or never linked to this session is left alone.
 final class RestoreSession {
-  const RestoreSession({required this.sessions});
+  const RestoreSession({
+    required this.sessions,
+    required this.scheduled,
+    required this.transactor,
+    required this.clock,
+  });
 
   final WorkoutSessionRepository sessions;
+  final ScheduledWorkoutRepository scheduled;
+  final Transactor transactor;
+  final Clock clock;
 
   Future<Result<WorkoutSession>> call(String sessionId) async {
     try {
-      if (!await sessions.restore(sessionId)) {
+      final restored = await transactor.run(() async {
+        if (!await sessions.restore(sessionId)) return null;
+        final session = await sessions.byId(sessionId);
+        final planId = session?.planId;
+        if (session != null && planId != null) {
+          final candidate = (await scheduled.forPlan(planId))
+              .where(
+                (o) =>
+                    o.sessionId == sessionId &&
+                    o.status == ScheduleStatus.planned,
+              )
+              .firstOrNull;
+          if (candidate != null) {
+            await scheduled.upsert(
+              candidate.copyWith(
+                status: ScheduleStatus.done,
+                sessionId: sessionId,
+                updatedAt: clock.now().toUtc(),
+              ),
+            );
+          }
+        }
+        return session;
+      });
+      if (restored == null) {
         return const Err(NotFoundError('That session is not deleted.'));
       }
-      final session = await sessions.byId(sessionId);
-      if (session == null) {
-        return const Err(NotFoundError('That session no longer exists.'));
-      }
-      return Ok(session);
+      return Ok(restored);
     } on Object catch (e) {
       return Err(StorageError('Could not restore the session.', cause: e));
     }

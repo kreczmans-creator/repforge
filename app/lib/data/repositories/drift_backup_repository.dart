@@ -18,8 +18,12 @@ final class DriftBackupRepository implements BackupRepository {
   final AppDatabase _db;
   final Clock _clock;
 
-  /// Bump when the JSON layout changes; a newer file is refused on import.
-  static const formatVersion = 1;
+  /// Bump when the JSON layout or meaning changes; a file with a newer
+  /// version than this is refused on import. 2: written with schema v7 data
+  /// (set kinds, session exercise entries, scheduled workouts), which an app
+  /// that only knows format 1 would silently drop; format 1 files (schema v6
+  /// and earlier) are still restored.
+  static const formatVersion = 2;
 
   @override
   Future<String> exportJson() async {

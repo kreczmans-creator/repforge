@@ -21,7 +21,8 @@ const int _rangeDays = scheduleHorizonWeeks * 7;
 
 /// Schedule (TRN-015): the scheduled workouts of the next 8 weeks grouped by
 /// date, with actions to schedule a workout on a date, on weekdays or from a
-/// split cycle, and to move or skip an occurrence without touching its plan.
+/// split cycle, and to move, skip or restore an occurrence without touching
+/// its plan.
 class ScheduleScreen extends ConsumerStatefulWidget {
   const ScheduleScreen({super.key});
 
@@ -126,6 +127,18 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     if (!mounted) return;
     ref.invalidate(scheduledRangeProvider);
     if (result case Err(:final error)) _snack(userMessageFor(error));
+  }
+
+  Future<void> _restore(ScheduledWorkout w) async {
+    final result = await ref.read(unskipScheduledWorkoutProvider)(w.id);
+    if (!mounted) return;
+    ref.invalidate(scheduledRangeProvider);
+    switch (result) {
+      case Ok():
+        _snack('Restored to planned.');
+      case Err(:final error):
+        _snack(userMessageFor(error));
+    }
   }
 
   @override
@@ -257,6 +270,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             planName: name,
             onMove: () => _move(w, name),
             onSkip: () => _skip(w, name),
+            onRestore: () => _restore(w),
           ),
         ),
       );
@@ -271,12 +285,14 @@ class _ScheduledRow extends StatelessWidget {
     required this.planName,
     required this.onMove,
     required this.onSkip,
+    required this.onRestore,
   });
 
   final ScheduledWorkout workout;
   final String planName;
   final VoidCallback onMove;
   final VoidCallback onSkip;
+  final VoidCallback onRestore;
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +349,16 @@ class _ScheduledRow extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          if (skipped)
+            Tooltip(
+              message: 'Restore $planName on ${formatScheduleDate(w.day)}',
+              child: TextButton.icon(
+                key: Key('schedule-restore-${w.id}'),
+                onPressed: onRestore,
+                icon: const Icon(Icons.undo),
+                label: const Text('Restore'),
+              ),
             ),
         ],
       ),

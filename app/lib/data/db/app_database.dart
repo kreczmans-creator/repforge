@@ -389,13 +389,14 @@ class AppDatabase extends _$AppDatabase {
   /// Gives every set that has no `session_exercise_id` an entry (schema v7).
   /// Used by the v6 → v7 migration and by restoring a backup made before v7.
   ///
-  /// Sets are grouped by (session, exercise_order, exercise); a group whose
-  /// session already has an entry for the exercise joins it, any other group
-  /// gets a new entry (id `legacy:<session>:<position>`) at the next free
-  /// position, groups taken in `exercise_order` then first-row order, so the
-  /// existing order is kept and two exercises that shared an
-  /// `exercise_order` get distinct positions. `exercise_order` and every
-  /// other existing set value stay as they are. Safe to run again.
+  /// Sets are grouped by (session, exercise_order, exercise) and every group
+  /// gets its own new entry (id `legacy:<session>:<position>`) at the next
+  /// free position, groups taken in `exercise_order` then first-row order, so
+  /// the existing order is kept, two exercises that shared an
+  /// `exercise_order` get distinct positions, and the same exercise at two
+  /// orders (A, B, A) becomes two entries (a session may hold an exercise
+  /// more than once). `exercise_order` and every other existing set value stay
+  /// as they are. Safe to run again: it only touches sets with no entry.
   Future<void> backfillSessionExercises() async {
     final groups = await customSelect(
       'SELECT session_id, exercise_order, exercise_id, '
@@ -408,31 +409,18 @@ class AppDatabase extends _$AppDatabase {
       final sessionId = g.read<String>('session_id');
       final exerciseId = g.read<String>('exercise_id');
       final order = g.read<int>('exercise_order');
-      final existing = await customSelect(
-        'SELECT id FROM session_exercises '
-        'WHERE session_id = ? AND exercise_id = ? ORDER BY position LIMIT 1',
-        variables: [
-          Variable.withString(sessionId),
-          Variable.withString(exerciseId),
-        ],
-      ).get();
-      String entryId;
-      if (existing.isNotEmpty) {
-        entryId = existing.first.read<String>('id');
-      } else {
-        final next = await customSelect(
-          'SELECT COALESCE(MAX(position) + 1, 0) AS p '
-          'FROM session_exercises WHERE session_id = ?',
-          variables: [Variable.withString(sessionId)],
-        ).getSingle();
-        final position = next.read<int>('p');
-        entryId = 'legacy:$sessionId:$position';
-        await customStatement(
-          'INSERT INTO session_exercises (id, session_id, position, '
-          'exercise_id) VALUES (?, ?, ?, ?)',
-          [entryId, sessionId, position, exerciseId],
-        );
-      }
+      final next = await customSelect(
+        'SELECT COALESCE(MAX(position) + 1, 0) AS p '
+        'FROM session_exercises WHERE session_id = ?',
+        variables: [Variable.withString(sessionId)],
+      ).getSingle();
+      final position = next.read<int>('p');
+      final entryId = 'legacy:$sessionId:$position';
+      await customStatement(
+        'INSERT INTO session_exercises (id, session_id, position, '
+        'exercise_id) VALUES (?, ?, ?, ?)',
+        [entryId, sessionId, position, exerciseId],
+      );
       await customStatement(
         'UPDATE session_sets SET session_exercise_id = ? '
         'WHERE session_id = ? AND exercise_id = ? AND exercise_order = ? '

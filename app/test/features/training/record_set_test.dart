@@ -65,7 +65,9 @@ void main() {
     Exertion? exertion,
     int? restSeconds,
     String? note,
-  }) => record(
+  }) => recordFor(
+    record,
+    sessions,
     sessionId: 's',
     exerciseId: exerciseId,
     data: data,
@@ -386,7 +388,9 @@ void main() {
           isA<NotFoundError>(),
         );
         expect(((await rec('nope', set)) as Err).error, isA<NotFoundError>());
-        final r = await record(
+        final r = await recordFor(
+          record,
+          sessions,
           sessionId: 'missing',
           exerciseId: 'bodyweight',
           data: const SetData.bodyweight(reps: 5),

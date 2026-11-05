@@ -94,7 +94,9 @@ void main() {
   );
 
   Future<void> rec(String sessionId, String exerciseId, SetData data) async {
-    final r = await record(
+    final r = await recordFor(
+      record,
+      sessions,
       sessionId: sessionId,
       exerciseId: exerciseId,
       data: data,
@@ -596,6 +598,32 @@ void main() {
     );
     expect(find.text('Session s-c'), findsOneWidget);
     expect(find.text('4 Nov 2026'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('history shows the session note and the entry notes of the '
+      'exercise', (tester) async {
+    await exercises.upsert(_custom('hist', 'Cable fly', ExerciseType.weighted));
+    await session('s');
+    await rec('s', 'hist', SetData.weighted(load: _kg(25), reps: 10));
+    await sessions.upsert(
+      (await sessions.byId('s'))!.copyWith(notes: 'Felt flat today'),
+    );
+    final entry = (await sessions.byId('s'))!.exercises.single;
+    await sessions.updateExercise(
+      SessionExercise(
+        id: entry.id,
+        sessionId: 's',
+        exerciseId: 'hist',
+        position: entry.position,
+        note: 'Left shoulder pinched',
+      ),
+    );
+    await open(tester, location: RfRoutes.trainExercise('hist'));
+    expect(find.byKey(const Key('history-session-note-s')), findsOneWidget);
+    expect(find.text('Felt flat today'), findsOneWidget);
+    expect(find.byKey(const Key('history-entry-note-s-0')), findsOneWidget);
+    expect(find.text('Left shoulder pinched'), findsOneWidget);
     await unmount(tester);
   });
 

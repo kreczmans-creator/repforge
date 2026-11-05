@@ -252,7 +252,7 @@ void main() {
       final doc = _decode(await repo.exportJson());
 
       expect(doc['app'], 'repforge');
-      expect(doc['formatVersion'], 1);
+      expect(doc['formatVersion'], 2);
       expect(doc['schemaVersion'], 7);
       expect(DateTime.tryParse(doc['exportedAt']! as String), isNotNull);
       final tables = doc['tables']! as Map<String, Object?>;
@@ -289,7 +289,7 @@ void main() {
 
       expect(result, isA<Ok<BackupSummary>>());
       final summary = (result as Ok<BackupSummary>).value;
-      expect(summary.formatVersion, 1);
+      expect(summary.formatVersion, 2);
       expect(summary.rowCounts['measurements'], 1);
       expect(summary.rowCounts['session_sets'], 1);
 
@@ -679,6 +679,89 @@ void main() {
       );
     });
 
+    test(
+      'a v6 backup with A at two orders restores two entries for it',
+      () async {
+        const ts = '2026-11-01T08:00:00.000Z';
+        Map<String, Object?> set(String id, String ex, int order, int n) => {
+          'id': id,
+          'session_id': 's',
+          'exercise_id': ex,
+          'exercise_order': order,
+          'set_order': n,
+          'type': 'weighted',
+          'load_kg': 80.0,
+          'reps': 5,
+          'completed': 1,
+        };
+        final result = await repo.importJson(
+          jsonEncode({
+            'app': 'repforge',
+            'formatVersion': 1,
+            'schemaVersion': 6,
+            'tables': {
+              'workout_sessions': [
+                {
+                  'id': 's',
+                  'created_at': ts,
+                  'updated_at': ts,
+                  'deleted_at': null,
+                  'name': 'S',
+                  'plan_id': null,
+                  'started_at': ts,
+                  'ended_at': null,
+                  'notes': '',
+                },
+              ],
+              'session_sets': [
+                set('a1', 'bench', 0, 0),
+                set('b1', 'squat', 1, 0),
+                set('a2', 'bench', 2, 0),
+              ],
+            },
+          }),
+        );
+        expect(result.isOk, isTrue);
+        final entries = await db.select(db.sessionExercises).get()
+          ..sort((a, b) => a.position.compareTo(b.position));
+        expect(entries.map((e) => (e.exerciseId, e.position)), [
+          ('bench', 0),
+          ('squat', 1),
+          ('bench', 2),
+        ]);
+        final sets = {
+          for (final x in await db.select(db.sessionSets).get()) x.id: x,
+        };
+        expect(sets['a1']!.sessionExerciseId, entries[0].id);
+        expect(sets['a2']!.sessionExerciseId, entries[2].id);
+      },
+    );
+
+    test(
+      'format versions 1 and 2 are restored, 3 is refused '
+      '(a format-1 app refuses version 2: it refuses anything above 1)',
+      () async {
+        for (final v in [1, 2]) {
+          final r = await repo.importJson(
+            jsonEncode({
+              'app': 'repforge',
+              'formatVersion': v,
+              'tables': <String, Object?>{},
+            }),
+          );
+          expect(r.isOk, isTrue, reason: 'version $v');
+        }
+        final r = await repo.importJson(
+          jsonEncode({
+            'app': 'repforge',
+            'formatVersion': 3,
+            'tables': <String, Object?>{},
+          }),
+        );
+        expect((r as Err).error, isA<ValidationError>());
+      },
+    );
+
     test('a v7 backup keeps set kinds, entries, notes and scheduled '
         'workouts, and no entry is invented', () async {
       await _seed(db);
@@ -811,7 +894,7 @@ void main() {
 
     test('newer or non-integer formatVersion is refused', () async {
       await _seed(db);
-      for (final v in [2, '1', null]) {
+      for (final v in [3, '1', null]) {
         final r = await repo.importJson(
           jsonEncode({
             'app': 'repforge',
