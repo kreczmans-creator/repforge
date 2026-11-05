@@ -6,6 +6,7 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/files/user_file_gateway.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/domain/units/kilograms.dart';
 import 'package:repforge/domain/units/units.dart';
@@ -40,7 +41,8 @@ Measurement reading(MeasurementSite site, double value, DateTime at) {
 }
 
 /// Pumps the real app at [location] with an in-memory database that holds
-/// [seed], a fixed clock and the given view size and text scale. Returns the
+/// [seed], a fixed clock, an optional file [gateway] (default: unavailable)
+/// and the given view size and text scale. Returns the
 /// container for assertions.
 Future<ProviderContainer> pumpTrack(
   WidgetTester tester,
@@ -48,6 +50,7 @@ Future<ProviderContainer> pumpTrack(
   String location = RfRoutes.track,
   List<Measurement> seed = const [],
   Clock? clock,
+  UserFileGateway? gateway,
   Size size = const Size(390, 3000),
   double textScale = 1,
 }) async {
@@ -60,6 +63,7 @@ Future<ProviderContainer> pumpTrack(
     overrides: [
       databaseProvider.overrideWithValue(db),
       clockProvider.overrideWithValue(clock ?? FixedClock(testNow)),
+      if (gateway != null) userFileGatewayProvider.overrideWithValue(gateway),
     ],
   );
   addTearDown(container.dispose);

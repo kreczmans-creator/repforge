@@ -21,6 +21,7 @@ import 'package:repforge/features/planning/presentation/meal_plan_screen.dart';
 import 'package:repforge/features/recipes/presentation/recipe_detail_screen.dart';
 import 'package:repforge/features/recipes/presentation/recipe_editor_screen.dart';
 import 'package:repforge/features/recipes/presentation/recipe_list_screen.dart';
+import 'package:repforge/features/settings/presentation/backup_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
 import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_detail_screen.dart';
@@ -116,6 +117,9 @@ abstract final class RfRoutes {
   static const goals = '/goals';
 
   static const settings = '/settings';
+
+  /// Backup and restore (DAT-004, BCM-009(2)).
+  static const settingsBackup = '/settings/backup';
 
   /// Debug-only component gallery.
   static const gallery = '/gallery';
@@ -394,6 +398,12 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
     GoRoute(
       path: RfRoutes.settings,
       builder: (context, state) => const SettingsScreen(),
+      routes: [
+        GoRoute(
+          path: 'backup',
+          builder: (context, state) => const BackupScreen(),
+        ),
+      ],
     ),
     if (kDebugMode)
       GoRoute(

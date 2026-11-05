@@ -89,13 +89,14 @@ List<Measurement> filterByPeriod(
   ]..sort(compareOldestFirst);
 }
 
-/// Chart gap rule (BCM-005(2), UXD-009): a line may join two consecutive
-/// readings of a series only when their local calendar dates are at most this
-/// many days apart (same day or the next day). With any date in between that
-/// has no reading, the line is broken and nothing is drawn across the gap.
-/// Readings are always drawn as points, and no value is ever computed for a
-/// date without a reading. One constant, so the owner can relax the rule.
-const int chartJoinMaxDayGap = 1;
+/// Chart gap rule (BCM-005(2), UXD-009; owner decision B, 2026-11-05): a line
+/// may join two consecutive readings of a series when their **local calendar
+/// dates** are at most this many days apart (difference in dates, not in
+/// elapsed hours: 7 days apart joins, 8 days apart breaks, also across a
+/// daylight-saving change). A longer gap breaks the line. The join is only a
+/// visual link between two recorded observations: readings are always drawn
+/// as points, and no value is ever computed for a date without a reading.
+const int chartJoinMaxDayGap = 7;
 
 /// Whether a chart line may join [earlier] to [later] (see
 /// [chartJoinMaxDayGap]).

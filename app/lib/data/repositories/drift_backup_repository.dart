@@ -45,33 +45,46 @@ final class DriftBackupRepository implements BackupRepository {
   }
 
   @override
+  Result<BackupPreview> previewJson(String json) {
+    final envelope = parseBackupEnvelope(
+      json,
+      supportedFormatVersion: formatVersion,
+    );
+    if (envelope is Err<BackupEnvelope>) return Err(envelope.error);
+    final parsed = (envelope as Ok<BackupEnvelope>).value;
+    final counts = <String, int>{};
+    for (final table in _db.allTables) {
+      final name = table.actualTableName;
+      final rows = parsed.tables[name];
+      if (rows is! List) continue;
+      var n = 0;
+      for (final r in rows) {
+        if (r is! Map<String, Object?>) continue;
+        // The same mapping the restore applies: a legacy row that cannot be
+        // restored is not counted.
+        if (_fromOlderSchema(name, r, <Map<String, Object?>>[]) != null) n++;
+      }
+      counts[name] = n;
+    }
+    return Ok(
+      BackupPreview(
+        formatVersion: parsed.formatVersion,
+        exportedAt: parsed.exportedAt,
+        rowCounts: counts,
+      ),
+    );
+  }
+
+  @override
   Future<Result<BackupSummary>> importJson(String json) async {
-    final Object? decoded;
-    try {
-      decoded = jsonDecode(json);
-    } on FormatException {
-      return const Err(
-        ValidationError('Backup is not valid JSON.', field: 'file'),
-      );
-    }
-    if (decoded is! Map<String, Object?> || decoded['app'] != 'repforge') {
-      return const Err(
-        ValidationError('This file is not a RepForge backup.', field: 'file'),
-      );
-    }
-    final version = decoded['formatVersion'];
-    if (version is! int || version > formatVersion) {
-      return const Err(
-        ValidationError(
-          'This backup was made by a newer version of RepForge.',
-          field: 'file',
-        ),
-      );
-    }
-    final tables = decoded['tables'];
-    if (tables is! Map<String, Object?>) {
-      return const Err(ValidationError('Backup has no tables.', field: 'file'));
-    }
+    final envelope = parseBackupEnvelope(
+      json,
+      supportedFormatVersion: formatVersion,
+    );
+    if (envelope is Err<BackupEnvelope>) return Err(envelope.error);
+    final parsed = (envelope as Ok<BackupEnvelope>).value;
+    final version = parsed.formatVersion;
+    final tables = parsed.tables;
     final byName = {for (final t in _db.allTables) t.actualTableName: t};
     final counts = <String, int>{};
     final quarantined = <Map<String, Object?>>[];

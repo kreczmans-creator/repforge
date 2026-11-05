@@ -28,6 +28,18 @@ final class SiteChartData {
   final int readingCount;
 }
 
+/// Note added to a chart summary when a drawn line actually joins readings
+/// (accessible text, read by screen readers with the summary). Owner decision
+/// B, 2026-11-05.
+const String chartLineNote =
+    'Lines connect readings up to $chartJoinMaxDayGap days apart; they are '
+    'not measurements.';
+
+/// Weight variant: only the trend line is drawn, so the note is about it.
+const String chartTrendLineNote =
+    'The trend line connects values up to $chartJoinMaxDayGap days apart; it '
+    'is not a measurement.';
+
 /// Series for [site] over [period] ending on the local date of [now].
 ///
 /// - Weight: the raw readings as points only, plus the D1 trend as a separate
@@ -110,7 +122,9 @@ SiteChartData siteChartData(
     return SiteChartData(
       series: series,
       unit: 'kg',
-      summary: _describe('Weight', raw, 'kg', period) + trendText,
+      summary: _withNote(_describe('Weight', raw, 'kg', period) + trendText, [
+        series[1],
+      ], chartTrendLineNote),
       readingCount: raw.length,
     );
   }
@@ -121,29 +135,36 @@ SiteChartData siteChartData(
     final right = left.counterpart ?? site;
     final l = inPeriod(left);
     final r = inPeriod(right);
+    final sides = [
+      RfTrendSeries(label: left.label, points: pointsOf(l)),
+      RfTrendSeries(
+        label: right.label,
+        points: pointsOf(r),
+        marker: RfTrendMarker.diamond,
+        dashed: true,
+      ),
+    ];
     return SiteChartData(
-      series: [
-        RfTrendSeries(label: left.label, points: pointsOf(l)),
-        RfTrendSeries(
-          label: right.label,
-          points: pointsOf(r),
-          marker: RfTrendMarker.diamond,
-          dashed: true,
-        ),
-      ],
+      series: sides,
       unit: 'cm',
-      summary:
-          '${_describe(left.label, l, 'cm', period)} '
-          '${_describe(right.label, r, 'cm', period)}',
+      summary: _withNote(
+        '${_describe(left.label, l, 'cm', period)} '
+        '${_describe(right.label, r, 'cm', period)}',
+        sides,
+        chartLineNote,
+      ),
       readingCount: l.length + r.length,
     );
   }
 
   final readings = inPeriod(site);
+  final single = RfTrendSeries(label: site.label, points: pointsOf(readings));
   return SiteChartData(
-    series: [RfTrendSeries(label: site.label, points: pointsOf(readings))],
+    series: [single],
     unit: site.unit,
-    summary: _describe(site.label, readings, site.unit, period),
+    summary: _withNote(_describe(site.label, readings, site.unit, period), [
+      single,
+    ], chartLineNote),
     readingCount: readings.length,
   );
 }
@@ -168,3 +189,13 @@ String _describe(
       'lowest ${lo.toStringAsFixed(1)} $unit, '
       'highest ${hi.toStringAsFixed(1)} $unit.';
 }
+
+/// Whether [s] draws at least one line segment: lines are on and a point is
+/// joined to the previous one.
+bool _drawsLine(RfTrendSeries s) =>
+    s.showLine && s.points.any((p) => p.joinPrevious);
+
+/// [text] plus [note] when one of [series] draws a line (otherwise there is
+/// no line to explain).
+String _withNote(String text, Iterable<RfTrendSeries> series, String note) =>
+    series.any(_drawsLine) ? '$text $note' : text;

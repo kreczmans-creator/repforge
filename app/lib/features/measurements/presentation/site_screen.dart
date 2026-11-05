@@ -6,6 +6,7 @@ import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurement_site_help.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/measurements/application/measurement_providers.dart';
+import 'package:repforge/features/measurements/presentation/csv_export_action.dart';
 import 'package:repforge/features/measurements/presentation/measurement_chart_data.dart';
 import 'package:repforge/features/measurements/presentation/measurement_edit_sheet.dart';
 import 'package:repforge/features/measurements/presentation/measurement_format.dart';
@@ -32,6 +33,23 @@ class SiteScreen extends ConsumerStatefulWidget {
 
 class _SiteScreenState extends ConsumerState<SiteScreen> {
   MeasurementPeriod _period = MeasurementPeriod.weeks12;
+  final GlobalKey _exportKey = GlobalKey();
+  bool _exporting = false;
+
+  Future<void> _export() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      await runMeasurementsCsvExport(
+        context,
+        ref,
+        anchorContext: _exportKey.currentContext,
+        site: widget.site,
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +61,20 @@ class _SiteScreenState extends ConsumerState<SiteScreen> {
         : ref.watch(measurementsForSiteProvider(other));
     final now = clockNow(ref);
     return Scaffold(
-      appBar: AppBar(title: Text(site.label)),
+      appBar: AppBar(
+        title: Text(site.label),
+        actions: [
+          IconButton(
+            key: const Key('export-site-csv'),
+            icon: KeyedSubtree(
+              key: _exportKey,
+              child: const Icon(Icons.ios_share),
+            ),
+            tooltip: 'Export ${site.label.toLowerCase()} as CSV',
+            onPressed: _exporting ? null : _export,
+          ),
+        ],
+      ),
       body: CustomScrollView(
         slivers: [
           SliverPadding(

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/daily_targets.dart';
 import 'package:repforge/domain/goals/goals.dart';
@@ -225,6 +227,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               : null;
         });
     }
+  }
+
+  /// Opens the backup screen. A restore replaces targets, meal names and
+  /// preferences, so the fields are filled again from the stored values when
+  /// the user comes back.
+  Future<void> _openBackup() async {
+    await context.push<void>(RfRoutes.settingsBackup);
+    if (!mounted) return;
+    setState(() {
+      _seeded = false;
+      _restSeeded = false;
+      _mealsSeeded = false;
+    });
   }
 
   /// Applies [change] to the settings as currently stored (not to the
@@ -609,9 +624,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Text(
                   'Everything is stored on this device only. The database is '
                   'protected by your device lock and is excluded from '
-                  'automatic cloud backup. Export and restore arrive in a '
-                  'later work package.',
+                  'automatic cloud backup. Use a backup file to keep a copy '
+                  'or to move to another device.',
                   style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: RfSpace.s3),
+                RfButton(
+                  key: const Key('open-backup'),
+                  label: 'Backup and restore',
+                  variant: RfButtonVariant.secondary,
+                  icon: Icons.backup_outlined,
+                  onPressed: _openBackup,
                 ),
               ],
             ),

@@ -60,6 +60,10 @@ class _MeasurementEntryScreenState
     for (final s in MeasurementSite.values) s: FocusNode(),
   };
   final _note = TextEditingController();
+  final _noteFocus = FocusNode();
+  final Map<MeasurementSite, GlobalKey> _fieldKeys = {
+    for (final s in MeasurementSite.values) s: GlobalKey(),
+  };
   final GlobalKey _whenKey = GlobalKey();
   String? _summary;
   final _helpShown = <MeasurementSite>{};
@@ -89,6 +93,7 @@ class _MeasurementEntryScreenState
       f.dispose();
     }
     _note.dispose();
+    _noteFocus.dispose();
     super.dispose();
   }
 
@@ -208,19 +213,33 @@ class _MeasurementEntryScreenState
     }
     for (final s in _order) {
       if (_errors.containsKey(s.name)) {
-        final ctx = _focus[s]!.context;
-        if (ctx != null) {
-          Scrollable.ensureVisible(ctx, alignment: 0.3);
-        }
         _focus[s]!.requestFocus();
+        // After the summary has been laid out (it shrinks the form), bring the
+        // whole field, including its own error line, into view (N4).
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = _fieldKeys[s]!.currentContext;
+          if (mounted && ctx != null && ctx.mounted) {
+            Scrollable.ensureVisible(ctx, alignment: 0.3);
+          }
+        });
         return;
       }
     }
   }
 
+  /// Keyboard Next: the next field in display order, then the note. Chosen
+  /// here because the platform traversal would stop on each info button first
+  /// (N3); the buttons stay reachable by touch and by screen reader.
+  void _focusAfter(MeasurementSite site) {
+    final i = _order.indexOf(site);
+    (i + 1 < _order.length ? _focus[_order[i + 1]]! : _noteFocus)
+        .requestFocus();
+  }
+
   Widget _field(MeasurementSite site) {
     final shown = _helpShown.contains(site);
     return Column(
+      key: _fieldKeys[site],
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -242,6 +261,9 @@ class _MeasurementEntryScreenState
                     ? TextInputAction.done
                     : TextInputAction.next,
                 onSubmitted: widget.focusSite == site ? (_) => _save() : null,
+                onEditingComplete: widget.focusSite == site
+                    ? null
+                    : () => _focusAfter(site),
                 onChanged: (_) {
                   if (_errors.containsKey(site.name)) {
                     setState(() {
@@ -349,6 +371,7 @@ class _MeasurementEntryScreenState
                   RfTextField(
                     key: const Key('note-input'),
                     controller: _note,
+                    focusNode: _noteFocus,
                     label: 'Note (optional)',
                     textInputAction: TextInputAction.done,
                   ),
@@ -373,7 +396,12 @@ class _MeasurementEntryScreenState
                         child: Text(
                           _summary ?? _generalError!,
                           key: const Key('entry-error'),
-                          maxLines: 3,
+                          // One line while the keyboard is up: a tall summary
+                          // would cover the focused field's own error (N4).
+                          // The field errors carry the detail.
+                          maxLines: MediaQuery.viewInsetsOf(context).bottom > 0
+                              ? 1
+                              : 3,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.error,

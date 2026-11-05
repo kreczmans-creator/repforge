@@ -8,6 +8,7 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/platform/fake_barcode_scanner.dart';
 import 'package:repforge/data/platform/fake_rest_alert_scheduler.dart';
+import 'package:repforge/data/platform/fake_user_file_gateway.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/food_lookup_service.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
@@ -212,6 +213,53 @@ void main() {
     await pumpUntil(tester, find.text('570 of 2100'));
     expect(find.text('570 of 2100'), findsOneWidget);
     expect(find.text('83.2'), findsOneWidget);
+  });
+
+  testWidgets('export measurements CSV and a backup through the fake file '
+      'gateway (in-memory db, WP 10 stage 3b)', (tester) async {
+    final db = AppDatabase.inMemory();
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
+    // No real share sheet: the fake records what would have been shared.
+    final gateway = FakeUserFileGateway();
+    await pumpApp(
+      tester,
+      db: db,
+      overrides: [userFileGatewayProvider.overrideWithValue(gateway)],
+    );
+
+    await logWeight(tester, '83.2');
+
+    // Track home: Export CSV hands the CSV to the gateway.
+    await scrollTo(tester, find.byKey(const Key('export-csv')));
+    await tester.tap(find.byKey(const Key('export-csv')));
+    await pumpUntil(tester, find.byKey(const Key('export-feedback')));
+    final csv = gateway.exports.single;
+    expect(csv.mimeType, 'text/csv');
+    expect(csv.fileName, startsWith('repforge-measurements-'));
+    final lines = csv.text.split('\r\n');
+    expect(lines.first, 'date,type,value,unit');
+    expect(lines[1], endsWith(',Weight,83.2,kg'));
+    expect(find.textContaining('saved'), findsNothing);
+    await pumpUntilGone(tester, find.byKey(const Key('export-feedback')));
+
+    // Settings > Backup and restore: the JSON backup contains the reading.
+    await tester.tap(find.byKey(const Key('nav-home')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const Key('open-backup')));
+    await tester.tap(find.byKey(const Key('open-backup')));
+    await pumpUntil(tester, find.byKey(const Key('export-backup')));
+    await tester.tap(find.byKey(const Key('export-backup')));
+    await pumpUntil(tester, find.byKey(const Key('backup-status')));
+    final backup = gateway.exports.last;
+    expect(backup.mimeType, 'application/json');
+    expect(backup.fileName, startsWith('repforge-backup-'));
+    expect(backup.text, contains('"app": "repforge"'));
+    expect(backup.text, contains('83.2'));
+    expect(gateway.exports, hasLength(2));
   });
 
   testWidgets('recipe logged earlier keeps its values after the recipe is '

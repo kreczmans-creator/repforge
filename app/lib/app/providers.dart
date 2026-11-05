@@ -41,9 +41,11 @@ import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/training_repository.dart';
 import 'package:repforge/features/measurements/application/delete_measurement.dart';
 import 'package:repforge/features/measurements/application/delete_weight_entry.dart';
+import 'package:repforge/features/measurements/application/export_measurements_csv.dart';
 import 'package:repforge/features/measurements/application/record_body_weight.dart';
 import 'package:repforge/features/measurements/application/record_measurement_entry.dart';
 import 'package:repforge/features/measurements/application/update_measurement.dart';
+import 'package:repforge/features/settings/application/backup_use_cases.dart';
 import 'package:repforge/features/settings/application/save_daily_targets.dart';
 import 'package:repforge/features/settings/application/save_meal_labels.dart';
 import 'package:repforge/features/settings/application/save_settings.dart';
@@ -115,6 +117,14 @@ final deleteMeasurementProvider = Provider<DeleteMeasurement>(
       DeleteMeasurement(repository: ref.watch(measurementRepositoryProvider)),
 );
 
+final exportMeasurementsCsvProvider = Provider<ExportMeasurementsCsv>(
+  (ref) => ExportMeasurementsCsv(
+    repository: ref.watch(measurementRepositoryProvider),
+    gateway: ref.watch(userFileGatewayProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
 final goalRepositoryProvider = Provider<GoalRepository>(
   (ref) => DriftGoalRepository(
     ref.watch(databaseProvider),
@@ -134,6 +144,25 @@ final backupRepositoryProvider = Provider<BackupRepository>(
     ref.watch(databaseProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+final exportBackupProvider = Provider<ExportBackup>(
+  (ref) => ExportBackup(
+    repository: ref.watch(backupRepositoryProvider),
+    gateway: ref.watch(userFileGatewayProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final previewBackupProvider = Provider<PreviewBackup>(
+  (ref) => PreviewBackup(
+    repository: ref.watch(backupRepositoryProvider),
+    gateway: ref.watch(userFileGatewayProvider),
+  ),
+);
+
+final restoreBackupProvider = Provider<RestoreBackup>(
+  (ref) => RestoreBackup(repository: ref.watch(backupRepositoryProvider)),
 );
 
 /// Live settings; defaults until the first save.

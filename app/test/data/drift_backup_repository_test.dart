@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show OrderingTerm, Value;
+import 'package:drift/drift.dart' show OrderingTerm, Value, driftRuntimeOptions;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
@@ -233,6 +233,8 @@ Map<String, Object?> _decode(String json) =>
 final _clock = FixedClock(DateTime.utc(2026, 11, 3, 12));
 
 void main() {
+  setUpAll(() => driftRuntimeOptions.dontWarnAboutMultipleDatabases = true);
+
   group('DriftBackupRepository (in-memory)', () {
     late AppDatabase db;
     late DriftBackupRepository repo;
@@ -957,6 +959,147 @@ void main() {
       );
       expect(r.isOk, isTrue);
       expect(await measurementIds(), isEmpty);
+    });
+
+    group('previewJson (side-effect-free validation, DAT-004)', () {
+      BackupPreview preview(String json) =>
+          (repo.previewJson(json) as Ok<BackupPreview>).value;
+
+      test(
+        'reports the format, the backup date and the rows per table',
+        () async {
+          await _seed(db);
+          final p = preview(await repo.exportJson());
+          expect(p.formatVersion, 2);
+          expect(p.exportedAt, DateTime.utc(2026, 11, 3, 12));
+          expect(p.rowCounts['measurements'], 1);
+          expect(p.rowCounts['session_sets'], 1);
+          expect(p.rowCounts['legacy_quarantine'], 0);
+          expect(p.rowCounts.keys, containsAll(_tableNames));
+          expect(p.totalRows, greaterThan(10));
+        },
+      );
+
+      test('counts equal what a restore writes', () async {
+        await _seed(db);
+        final json = await repo.exportJson();
+        final fresh = AppDatabase.inMemory();
+        addTearDown(fresh.close);
+        final summary = (await DriftBackupRepository(
+          fresh,
+          clock: _clock,
+        ).importJson(json) as Ok<BackupSummary>).value;
+        expect(preview(json).rowCounts, summary.rowCounts);
+      });
+
+      test('a legacy row that cannot be restored is not counted', () async {
+        // Same mapping as the restore.
+        final json = jsonEncode({
+          'app': 'repforge',
+          'formatVersion': 1,
+          'tables': {
+            'recipes': [
+              {
+                'id': 'a',
+                'name': 'Old',
+                'category': 'dinner',
+                'description': '',
+                'portions': 4,
+                'freezer_friendly': 1,
+                'method_steps_json': '["Simmer"]',
+                'favourite': 0,
+                'created_at': '2026-11-01T08:00:00.000Z',
+                'updated_at': '2026-11-01T08:00:00.000Z',
+              },
+              'not a row',
+            ],
+            // v5 shape with target_sets 0: dropped by the restore (and
+            // quarantined), so it must not be counted.
+            'plan_exercises': [
+              {'id': 'p1', 'target_reps': 8, 'target_sets': 0, 'sort_order': 0},
+            ],
+            'mystery': [
+              {'id': 1},
+            ],
+          },
+        });
+        final p = preview(json);
+        final restored = await repo.importJson(json);
+        expect(p.rowCounts, (restored as Ok<BackupSummary>).value.rowCounts);
+        expect(p.rowCounts, {'recipes': 1, 'plan_exercises': 0});
+        expect(p.exportedAt, isNull);
+      });
+
+      test('a missing or unreadable date is null, not an error', () {
+        for (final v in [null, 5, 'yesterday']) {
+          final p = preview(
+            jsonEncode({
+              'app': 'repforge',
+              'formatVersion': 2,
+              'exportedAt': v,
+              'tables': <String, Object?>{},
+            }),
+          );
+          expect(p.exportedAt, isNull, reason: '$v');
+          expect(p.totalRows, 0);
+        }
+      });
+
+      test('rejects what the restore rejects, with the same error', () async {
+        await _seed(db);
+        final before = await repo.exportJson();
+        for (final json in [
+          '{oops',
+          '[1,2]',
+          jsonEncode({
+            'app': 'other',
+            'formatVersion': 1,
+            'tables': <String, Object?>{},
+          }),
+          jsonEncode({
+            'app': 'repforge',
+            'formatVersion': 3,
+            'tables': <String, Object?>{},
+          }),
+          jsonEncode({
+            'app': 'repforge',
+            'formatVersion': '2',
+            'tables': <String, Object?>{},
+          }),
+          jsonEncode({'app': 'repforge', 'formatVersion': 2}),
+          jsonEncode({
+            'app': 'repforge',
+            'formatVersion': 2,
+            'tables': <Object?>[],
+          }),
+        ]) {
+          final p = repo.previewJson(json);
+          final i = await repo.importJson(json);
+          expect(p, isA<Err<BackupPreview>>(), reason: json);
+          expect(i, isA<Err<BackupSummary>>(), reason: json);
+          expect(
+            (p as Err<BackupPreview>).error.message,
+            (i as Err<BackupSummary>).error.message,
+            reason: json,
+          );
+        }
+        expect(await measurementIds(), ['m']);
+        expect(await repo.exportJson(), before);
+      });
+
+      test('previewing never changes the database', () async {
+        await _seed(db);
+        final before = await repo.exportJson();
+        final other = AppDatabase.inMemory();
+        addTearDown(other.close);
+        await _seed(other, suffix: '2');
+        final otherJson = await DriftBackupRepository(
+          other,
+          clock: _clock,
+        ).exportJson();
+        preview(otherJson);
+        expect(await repo.exportJson(), before);
+      });
     });
   });
 }

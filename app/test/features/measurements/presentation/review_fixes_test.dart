@@ -25,12 +25,15 @@ void main() {
       final data = siteChartData(
         MeasurementSite.weight,
         [
-          for (var i = 0; i < 8; i++)
-            reading(
-              MeasurementSite.weight,
-              80 + i * 0.1,
-              DateTime(2026, 10, 20 + i * 2, 8),
-            ),
+          // Three-day blocks 11 days apart: each block yields one trend
+          // value, more than 7 days from the next, so they stay isolated.
+          for (var b = 0; b < 3; b++)
+            for (var d = 0; d < 3; d++)
+              reading(
+                MeasurementSite.weight,
+                80 + b * 0.5 + d * 0.1,
+                DateTime(2026, 10, 1 + b * 11 + d, 8),
+              ),
         ],
         MeasurementPeriod.weeks12,
         testNow,
@@ -44,9 +47,7 @@ void main() {
             i + 1 < trend.points.length && trend.points[i + 1].joinPrevious;
         if (!before && !after) isolated++;
       }
-      // Under the current gap rule these are all isolated; if the owner
-      // relaxes the rule the lines join and no marker is needed.
-      if (chartJoinMaxDayGap < 2) expect(isolated, trend.points.length);
+      expect(isolated, 3);
       expect(data.summary, contains('7-day trend, latest'));
 
       await tester.pumpWidget(

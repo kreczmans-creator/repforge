@@ -19,6 +19,7 @@ class RfTextField extends StatelessWidget {
     this.textInputAction,
     this.onChanged,
     this.onSubmitted,
+    this.onEditingComplete,
     this.autofocus = false,
     this.enabled = true,
     this.maxLines = 1,
@@ -39,6 +40,7 @@ class RfTextField extends StatelessWidget {
     this.textInputAction,
     this.onChanged,
     this.onSubmitted,
+    this.onEditingComplete,
     this.autofocus = false,
     this.enabled = true,
   }) : keyboardType = TextInputType.numberWithOptions(decimal: decimals > 0),
@@ -58,6 +60,7 @@ class RfTextField extends StatelessWidget {
     this.textInputAction,
     this.onChanged,
     this.onSubmitted,
+    this.onEditingComplete,
     this.autofocus = false,
     this.enabled = true,
   }) : keyboardType = TextInputType.number,
@@ -78,6 +81,11 @@ class RfTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+
+  /// Replaces the default handling of the keyboard action (for `next`: the
+  /// platform's focus traversal), for forms that choose the next field
+  /// themselves.
+  final VoidCallback? onEditingComplete;
   final bool autofocus;
   final bool enabled;
   final int maxLines;
@@ -93,6 +101,7 @@ class RfTextField extends StatelessWidget {
       textInputAction: textInputAction,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
       autofocus: autofocus,
       enabled: enabled,
       maxLines: maxLines,

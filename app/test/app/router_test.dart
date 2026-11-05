@@ -87,6 +87,7 @@ void main() {
   });
 
   testWidgets('measurement routes resolve (WP 10)', (tester) async {
+    expect(RfRoutes.settingsBackup, '/settings/backup');
     expect(RfRoutes.trackEntry, '/track/entry');
     expect(RfRoutes.trackUnreadable, '/track/unreadable');
     expect(RfRoutes.trackProgress, '/track/progress');
@@ -102,6 +103,7 @@ void main() {
 
     final expected = <String, String>{
       RfRoutes.trackEntry: 'field-weight',
+      RfRoutes.settingsBackup: 'export-backup',
       RfRoutes.trackUnreadable: 'unreadable-empty',
       RfRoutes.trackProgress: 'progress-empty',
       RfRoutes.trackSite(MeasurementSite.weight): 'site-empty',

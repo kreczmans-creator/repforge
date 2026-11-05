@@ -5,6 +5,7 @@ import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/measurements/application/measurement_providers.dart';
+import 'package:repforge/features/measurements/presentation/csv_export_action.dart';
 import 'package:repforge/features/measurements/presentation/measurement_format.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -17,11 +18,35 @@ import 'package:repforge/ui/tokens.dart';
 /// Track tab: the 13 measurement types with the latest value and date, an
 /// entry action, links to progress and comparison, and a notice when stored
 /// readings cannot be shown.
-class MeasurementsHomeScreen extends ConsumerWidget {
+class MeasurementsHomeScreen extends ConsumerStatefulWidget {
   const MeasurementsHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MeasurementsHomeScreen> createState() =>
+      _MeasurementsHomeScreenState();
+}
+
+class _MeasurementsHomeScreenState
+    extends ConsumerState<MeasurementsHomeScreen> {
+  final GlobalKey _exportKey = GlobalKey();
+  bool _exporting = false;
+
+  Future<void> _export() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      await runMeasurementsCsvExport(
+        context,
+        ref,
+        anchorContext: _exportKey.currentContext,
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final all = ref.watch(allMeasurementsProvider);
     final unreadable = ref.watch(unreadableMeasurementCountProvider);
     return ListView(
@@ -61,6 +86,18 @@ class MeasurementsHomeScreen extends ConsumerWidget {
           variant: RfButtonVariant.secondary,
           icon: Icons.compare_arrows,
           onPressed: () => context.push(RfRoutes.trackCompare()),
+        ),
+        const SizedBox(height: RfSpace.sm),
+        KeyedSubtree(
+          key: _exportKey,
+          child: RfButton(
+            key: const Key('export-csv'),
+            label: 'Export CSV',
+            variant: RfButtonVariant.secondary,
+            icon: Icons.ios_share,
+            loading: _exporting,
+            onPressed: _export,
+          ),
         ),
         if (unreadable > 0) ...[
           const SizedBox(height: RfSpace.s4),
