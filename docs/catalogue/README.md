@@ -116,3 +116,8 @@ Anatomy placement items (adductors under Hip, the L3 convention, deep hip rotato
 
 ## 8. Not in scope
 Catalogue content beyond the example in the editorial guide, code, schemas, assets, tests, screens, media and translation.
+
+## Independent review status (2026-11-05)
+- Review of e9e00f1: findings F01–F25 (3 High). Revision 2 (2a384c3) re-verified: 21 resolved, 4 partial; new N1–N10. Revision 3 (45ec71c) spot re-check: N1, N2, N4–N9 resolved; N3 and N10 partial (non-blocking).
+- **Verdict: OQ-22 and OQ-23 are ready for owner review.** Reviewer recomputed independently: 126 anatomy nodes, 79 patterns, 33 equipment entries; 325 slot minimums in 21 groups, 70 conditioning and mobility set entries; seed fill 67/325 and 20/70; IC-412 worklist 16 pairs; class cap holds.
+- Deferred to stage 3a or the 5.1 pilot (not owner decisions): **X1** make attribute boundaries contiguous (angle 10–15°, arm 20–90°, knee angles); **X2** IC-412 token gate hides attribute-only variations with different names (sumo deadlift, chin-up, hammer curl, assisted dip) — skip the gate when a recorded attribute differs, and correct the §6 claim; **X3** `trunkExtension` includes machine back extensions only "when the spine moves"; **X4** thruster and trap bar deadlift count toward no group; 400 m run seed fill relies on an optional entry — note in the gap report.
