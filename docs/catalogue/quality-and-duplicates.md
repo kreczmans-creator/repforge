@@ -79,7 +79,7 @@ Stored kinds: `variationOf`, `progressionOf`, `alternativeTo`, `unilateralCounte
 | IC-409 | `alternativeTo` between two members of one `variationOf` family | warning |
 | IC-410 | `variationOf` pair has different primary patterns and disjoint primary targets (probably not the same movement) | warning |
 | IC-411 | A unilateral or alternating entry with a bilateral twin by structure (same primary-target lift, primary pattern, load items and mechanics) and no `unilateralCounterpartOf` | warning (error at tranche acceptance) |
-| IC-412 | Two exercises with the same primary-target lift, primary pattern, laterality and mechanics, whose load-item sets differ, whose recorded attributes do not differ, whose names share at least 40 % of their tokens, and which are not in one family: "probable variation without a family link". A difference in grip, stance, angle or arm position counts **only when both exercises record the attribute** (coverage-matrix.md section 3); otherwise it is a review checklist item (editorial guide section 3, test 4), not an automatic flag | warning |
+| IC-412 | Two exercises with the same primary-target lift, primary pattern, laterality and mechanics, whose names share at least 40 % of their tokens, which are not in one family, and **either** whose load-item sets differ **or** whose recorded attributes differ: "probable variation without a family link". A recorded attribute difference does **not** clear this check (it shows the pair is a variation and so needs its `variationOf` link); it clears only IC-601 to IC-603. A difference in grip, stance, angle or arm position counts only when both exercises record the attribute; otherwise it is a review checklist item (editorial guide section 3, test 4) | warning |
 | IC-413 | Relationship to a retired exercise from an active system exercise | error |
 | IC-414 | The longest `progressionOf` chain in the catalogue exceeds 6 steps (a reviewer note is required that the chain is a real ladder) | warning |
 
@@ -116,7 +116,7 @@ score = 0.25 * Jaccard(lifted primary nodes)
       + 0.05 * (same category ? 1 : 0)
       + 0.15 * Jaccard(name tokens)
 ```
-**Attribute clearing.** If both exercises record an attribute and the values differ (angle, arm position, grip, body position, knee position, stance), the pair is **distinguished** and is not flagged by IC-601 to IC-603 or IC-412. An unrecorded attribute never clears a pair.
+**Attribute clearing (IC-601 to IC-603 only).** If both exercises record an attribute and the values differ (angle, arm position, grip, grip width, body position, knee position, stance), the pair is **distinguished** and is not flagged by IC-601 to IC-603. It is still reported by IC-412 when the rest of the signature matches, because it needs a family link. An unrecorded attribute never clears a pair.
 
 | Code | Rule | Severity |
 |---|---|---|
@@ -299,7 +299,7 @@ A throwaway script applied the checks of IC-200 to IC-500 and IC-600 to the prop
 Before the fix, the three alias collisions (*Pullup*, *Chinup*, *Farmers walk*) would have raised IC-502 and IC-503 errors; they are removed in the proposal (`mapping-existing.md` section 7). No other collision exists after `norm` and `squash`.
 
 ### 6.1 Near-duplicate pairs after the signature fix (IC-600)
-Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-411 0; IC-412 12.
+Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-411 0; IC-412 16.
 
 **IC-601 probable duplicates:** none.
 
@@ -322,9 +322,12 @@ Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-
 | `lib-plank` (Plank) | `lib-ab-wheel` (Ab wheel rollout) | 0.800 | Distinct (info). |
 | `lib-romanian-deadlift` (Romanian deadlift) | `lib-dumbbell-rdl` (Dumbbell Romanian deadlift) | 0.750 | Relationship: `lib-dumbbell-rdl` is a `variationOf` the Romanian deadlift (also listed under IC-412). |
 
-**Pairs cleared by recorded attributes** (would otherwise be flagged): `lib-leg-curl` and `lib-lying-leg-curl` (body position seated and lying); `lib-bench-press` and `lib-incline-bench-press`, `lib-db-bench-press` and `lib-incline-db-press` (angle); `lib-deadlift` and `lib-sumo-deadlift` (stance); `lib-db-curl` and `lib-hammer-curl` (grip); `lib-pull-up` and `lib-chin-up` (grip). Corrected from the first draft: `lib-treadmill-run` and `lib-outdoor-run` are not a close pair any more (they differ in equipment, logging type and name); the real structural pair is `lib-run-400m` and `lib-outdoor-run`.
+**Pairs distinguished by recorded attributes** (cleared from IC-601 to IC-603, which they would otherwise have triggered; where the rest of the signature matches they appear below under IC-412 instead): `lib-leg-curl` and `lib-lying-leg-curl` (body position seated and lying); `lib-bench-press` and `lib-incline-bench-press`, `lib-db-bench-press` and `lib-incline-db-press` (angle); `lib-deadlift` and `lib-sumo-deadlift` (stance); `lib-db-curl` and `lib-hammer-curl` (grip); `lib-pull-up` and `lib-chin-up` (grip). Corrected from the first draft: `lib-treadmill-run` and `lib-outdoor-run` are not a close pair any more (they differ in equipment, logging type and name); the real structural pair is `lib-run-400m` and `lib-outdoor-run`.
 
-**IC-412 probable variations without a family link (12 pairs).** These are the family-link worklist for the tranche releases, not defects of release 2 (the seed has no relationships):
+**IC-412 probable variations without a family link (16 pairs).** This is the family-link worklist for the tranche releases, not a defect of release 2 (the seed has no relationships). Pairs separated only by recorded attributes are included:
+- `lib-bench-press` and `lib-incline-bench-press` (0.963)
+- `lib-leg-curl` and `lib-lying-leg-curl` (0.925)
+- `lib-db-bench-press` and `lib-incline-db-press` (0.925)
 - `lib-romanian-deadlift` and `lib-dumbbell-rdl` (0.750)
 - `lib-assisted-pull-up` and `lib-band-assisted-pull-up` (0.740)
 - `lib-bench-press` and `lib-db-bench-press` (0.725)
@@ -333,6 +336,7 @@ Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-
 - `lib-barbell-curl` and `lib-cable-curl` (0.725)
 - `lib-db-curl` and `lib-cable-curl` (0.725)
 - `lib-plank` and `lib-weighted-plank` (0.725)
+- `lib-db-bench-press` and `lib-incline-bench-press` (0.710)
 - `lib-incline-bench-press` and `lib-incline-db-press` (0.710)
 - `lib-pull-up` and `lib-assisted-pull-up` (0.675)
 - `lib-pull-up` and `lib-band-assisted-pull-up` (0.675)
@@ -345,5 +349,5 @@ Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-
 2. Confirm that signature flags stay non-blocking (ADR-0009) but must be cleared at tranche acceptance.
 3. Confirm the mechanics default for cardio and mobility (Q-M, IC-207).
 4. Confirm that IC-304 is a warning for system content until Q-F (the role of `fullBody`) is answered.
-5. Confirm the optional exercise attributes (Q-A), which the duplicate check and some coverage slots use.
+5. Confirm the optional exercise attributes (Q-A), which the duplicate check and some coverage slots use. If declined, IC-601 to IC-603 lose the attribute clearing and the slots fall back to measurable pattern-level minimums.
 6. Confirm the blocked words and phrases list (a short list is held with the tool and reviewed by the owner).

@@ -3,7 +3,7 @@
   "status": "Proposed — for owner approval",
   "description": "Machine-readable slot inventory behind coverage-matrix.md (revision 2). Every number is derived from the enumerated entries: a slot minimum is the number of counted entries; a group minimum is the sum of its slot minimums; mechanics, laterality and equipment-class minimums are the counts of those values among the counted entries. Entries marked counted:false are optional and legitimate but never a minimum. Entry names are intended exercises, not required names: CI counts catalogue exercises by the slot rules below, not by name. Minimums are measurable from catalogue data alone.",
   "countingRules": {
-    "group": "An exercise counts toward a group when one of its PRIMARY targets is a node listed in the group nodes or a descendant, AND its primary pattern (first pattern) is one of the patterns of at least one slot of that group. Secondary targets never count. fullBody never counts. Exercises of category cardio or mobility never count toward an anatomical group; they are measured in the conditioning and mobility sets (section 5.7). Retired, user and imported exercises never count.",
+    "group": "An exercise counts toward a group when one of its PRIMARY targets is a node listed in the group nodes or a descendant, AND its primary pattern (first pattern) is one of the patterns of at least one slot of that group. Secondary targets never count. fullBody never counts. Only exercises of category push, pull, legs or core count toward an anatomical group (revision 3, N6); fullBody, cardio and mobility exercises are measured in the conditioning, power and mobility sets (tranche 5.7). Retired, user and imported exercises never count.",
     "slot": "An exercise fills at most ONE slot per group. A slot accepts an exercise when the group rule holds, the primary pattern is one of the slot patterns, and every discriminator term holds. Assignment of exercises to slots is a deterministic maximum bipartite matching (ties broken by exercise id); slots are met when the matching fills slot.min of them.",
     "discriminatorKinds": {
       "attribute": "recorded optional controlled exercise attribute equals one of values (an unrecorded attribute never matches)",
@@ -14,46 +14,81 @@
     },
     "noL4Primary": "No slot or minimum depends on an L4 primary tag (F03). L4 tagging stays optional. A discriminator of kind subTarget names an L2 or L3 node only.",
     "dimensions": "Compound, isolation, bilateral, unilateral-or-alternating and equipment-class minimums are counted over the exercises that fill slots (not over all exercises of the group).",
-    "variationFamilies": "Minimum number of variationOf families in the group with a root and at least three variations. Derived: the number of slots with at least four counted entries.",
+    "variationFamilies": "Minimum number of variationOf families in the group with a root and at least three variations. Derived: the number of slots with at least four counted entries. There is no cap on family size.",
     "caps": {
-      "family": "At most max(30 percent of the group total, 4 exercises) in one variationOf family. Chosen form for F06: the floor of 4 exercises replaces a minimum-size threshold, so small groups are not capped below a workable family size.",
-      "equipmentClass": "At most max(55 percent of the group total, 4 exercises) in one equipment class; the bodyweight class is exempt in groups with bodyweightExempt true (abs, obliques, lowerBack)."
+      "family": "No family cap (revision 3, N1). A cap on the share of one variationOf family contradicts the variation rules (a flat bench press family can legitimately hold 18 variations, a biceps curl group is one family of 17). Diversity is enforced by the slots themselves: each slot names a distinct function, class or position and has its own minimum. The minimum number of families remains (variationFamilies).",
+      "equipmentClass": "At most max(55 percent of the group total, 4 exercises) in one equipment class; the bodyweight class is exempt in groups with bodyweightExempt true (abs, obliques, lowerBack). The inventory itself satisfies this cap by construction (checked by the validation script)."
     }
   },
   "exerciseAttributesProposed": {
-    "status": "Proposed. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate check. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format. If the owner declines, the attribute-discriminated slots fall back to review checklist items and the minimums that use them become informational.",
+    "status": "Proposed. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate checks. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format.",
+    "ifDeclined": "If the owner declines (Q-A), the attribute-discriminated slots are replaced by PATTERN-LEVEL minimums that CI can measure from catalogue data alone: for each (group, primary pattern) pair that has at least one attribute-discriminated slot, the minimum is the sum of the minimums of ALL slots of that pair (see attributeFallback). The class, laterality and subTarget slots of unaffected pairs are unchanged. Nothing becomes informational; only the position-level distinction is lost.",
     "attributes": {
-      "angle": [
-        "flat",
-        "incline",
-        "decline"
-      ],
-      "armPosition": [
-        "besideBody",
-        "behindBody",
-        "supportedInFront",
-        "overhead",
-        "abducted90"
-      ],
-      "grip": [
-        "pronated",
-        "supinated",
-        "neutral"
-      ],
-      "bodyPosition": [
-        "standing",
-        "seated",
-        "lying",
-        "bentOver"
-      ],
-      "kneePosition": [
-        "straight",
-        "bent"
-      ],
-      "stance": [
-        "standard",
-        "wide"
-      ]
+      "angle": {
+        "definition": "Angle of the bench or the body to the horizontal in a press or fly.",
+        "values": {
+          "flat": "Bench or body within about 10 degrees of horizontal.",
+          "incline": "Bench raised about 15 to 45 degrees (steeper is a vertical push, rule R2).",
+          "decline": "Bench lowered with the head below the hips."
+        }
+      },
+      "armPosition": {
+        "definition": "Position of the working upper arm relative to the trunk at the start of the movement.",
+        "values": {
+          "besideBody": "Upper arm hangs by the side, within about 20 degrees of the trunk line.",
+          "behindBody": "Elbow behind the trunk line by more than about 20 degrees (for example an incline curl).",
+          "supportedInFront": "Upper arm rests on a pad, bench or thigh in front of the trunk.",
+          "overhead": "Upper arm above the head, elbow at or above ear height.",
+          "flexed90": "Upper arm raised forward to about 90 degrees (level with the floor).",
+          "abducted90": "Upper arm out to the side at about 90 degrees with the elbow bent (90/90)."
+        }
+      },
+      "bodyPosition": {
+        "definition": "Position of the trunk and the support while the exercise is performed.",
+        "values": {
+          "standing": "Upright on the feet.",
+          "seated": "Sitting, back supported or not.",
+          "lying": "On the back or side, supported along the length of the trunk.",
+          "prone": "Face down, trunk supported on a bench or the floor.",
+          "bentOver": "Standing with the hips hinged forward and the trunk unsupported.",
+          "kneeling": "On both knees or on all fours.",
+          "halfKneeling": "One knee down, one foot forward.",
+          "inclined": "Back or chest supported on an inclined surface, or the upper back on a bench with the hips free (hip thrust)."
+        }
+      },
+      "grip": {
+        "definition": "Hand orientation on the handle or bar.",
+        "values": {
+          "pronated": "Palms facing down or away.",
+          "supinated": "Palms facing up or towards the face.",
+          "neutral": "Palms facing each other.",
+          "mixed": "One hand pronated, one supinated."
+        }
+      },
+      "gripWidth": {
+        "definition": "Distance between the hands relative to the shoulders.",
+        "values": {
+          "close": "Hands inside shoulder width.",
+          "standard": "Hands about shoulder width.",
+          "wide": "Hands outside shoulder width by more than a hand width."
+        }
+      },
+      "kneePosition": {
+        "definition": "Knee angle during a calf or lower-leg movement.",
+        "values": {
+          "straight": "Knee within about 10 degrees of straight.",
+          "bent": "Knee bent to about 90 degrees."
+        }
+      },
+      "stance": {
+        "definition": "Foot placement relative to the hips.",
+        "values": {
+          "narrow": "Feet inside hip width.",
+          "standard": "Feet hip to shoulder width.",
+          "wide": "Feet outside shoulder width.",
+          "split": "One foot ahead of the other."
+        }
+      }
     },
     "usedBySlots": [
       "biceps.armBehindBody",
@@ -66,6 +101,10 @@
       "chest.flatPress",
       "chest.inclinePress",
       "forearms.brachioradialis",
+      "glutes.bridgeBodyweight",
+      "glutes.kickback",
+      "glutes.reverseHyper",
+      "glutes.thrustLoaded",
       "rotatorCuff.externalRotationArmAbducted",
       "rotatorCuff.externalRotationArmAtSide",
       "triceps.kickback",
@@ -74,6 +113,80 @@
       "triceps.pushdown"
     ]
   },
+  "attributeFallback": [
+    {
+      "group": "chest",
+      "pattern": "horizontalPush",
+      "minimum": 24,
+      "slots": [
+        "chest.flatPress",
+        "chest.inclinePress",
+        "chest.declinePress",
+        "chest.pushUp",
+        "chest.unilateralPress"
+      ]
+    },
+    {
+      "group": "rotatorCuff",
+      "pattern": "shoulderExternalRotation",
+      "minimum": 5,
+      "slots": [
+        "rotatorCuff.externalRotationArmAtSide",
+        "rotatorCuff.externalRotationArmAbducted"
+      ]
+    },
+    {
+      "group": "biceps",
+      "pattern": "elbowFlexion",
+      "minimum": 17,
+      "slots": [
+        "biceps.armBesideBody",
+        "biceps.armBehindBody",
+        "biceps.armSupported",
+        "biceps.neutralGrip"
+      ]
+    },
+    {
+      "group": "triceps",
+      "pattern": "elbowExtension",
+      "minimum": 17,
+      "slots": [
+        "triceps.overhead",
+        "triceps.pushdown",
+        "triceps.lying",
+        "triceps.kickback",
+        "triceps.machine"
+      ]
+    },
+    {
+      "group": "forearms",
+      "pattern": "elbowFlexion",
+      "minimum": 3,
+      "slots": [
+        "forearms.brachioradialis"
+      ]
+    },
+    {
+      "group": "glutes",
+      "pattern": "hipExtension",
+      "minimum": 15,
+      "slots": [
+        "glutes.thrustLoaded",
+        "glutes.bridgeBodyweight",
+        "glutes.kickback",
+        "glutes.reverseHyper"
+      ]
+    },
+    {
+      "group": "calves",
+      "pattern": "plantarFlexion",
+      "minimum": 9,
+      "slots": [
+        "calves.straightKnee",
+        "calves.bentKnee"
+      ]
+    }
+  ],
   "metrics": {
     "primariesPerExercise": {
       "description": "Per tranche, over the new system exercises of the tranche.",
@@ -634,7 +747,6 @@
           "other": 0
         },
         "variationFamilies": 5,
-        "familyCap": 10.8,
         "classCap": 19.8
       }
     },
@@ -970,7 +1082,6 @@
           "other": 0
         },
         "variationFamilies": 3,
-        "familyCap": 7.5,
         "classCap": 13.75
       }
     },
@@ -1054,7 +1165,7 @@
               ]
             }
           ],
-          "min": 6,
+          "min": 5,
           "entries": [
             {
               "name": "Wide-grip lat pulldown",
@@ -1088,7 +1199,7 @@
               "name": "Plate-loaded pulldown machine",
               "equipmentClass": "machine",
               "laterality": "bilateral",
-              "counted": true,
+              "counted": false,
               "mechanics": "compound"
             },
             {
@@ -1227,19 +1338,19 @@
           ]
         }
       ],
-      "slotTotal": 21,
+      "slotTotal": 20,
       "derived": {
         "mechanics": {
-          "compound": 17,
+          "compound": 16,
           "isolation": 4
         },
         "laterality": {
-          "bilateral": 17,
+          "bilateral": 16,
           "unilateralOrAlternating": 4
         },
         "equipmentClasses": {
           "freeWeight": 3,
-          "machine": 4,
+          "machine": 3,
           "cable": 7,
           "smithMachine": 0,
           "band": 2,
@@ -1248,8 +1359,7 @@
           "other": 0
         },
         "variationFamilies": 3,
-        "familyCap": 6.3,
-        "classCap": 11.55
+        "classCap": 11.0
       }
     },
     {
@@ -1684,7 +1794,6 @@
           "other": 0
         },
         "variationFamilies": 5,
-        "familyCap": 10.5,
         "classCap": 19.25
       }
     },
@@ -1858,7 +1967,6 @@
           "other": 0
         },
         "variationFamilies": 0,
-        "familyCap": 4,
         "classCap": 5.5
       }
     },
@@ -2009,7 +2117,6 @@
           "other": 0
         },
         "variationFamilies": 0,
-        "familyCap": 4,
         "classCap": 5.5
       }
     },
@@ -2262,7 +2369,6 @@
           "other": 0
         },
         "variationFamilies": 2,
-        "familyCap": 5.1,
         "classCap": 9.35
       }
     },
@@ -2583,7 +2689,6 @@
           "other": 0
         },
         "variationFamilies": 3,
-        "familyCap": 7.2,
         "classCap": 13.2
       }
     },
@@ -2828,7 +2933,6 @@
           "other": 0
         },
         "variationFamilies": 2,
-        "familyCap": 5.7,
         "classCap": 10.45
       }
     },
@@ -2839,17 +2943,25 @@
       "nodes": [
         "glutes"
       ],
-      "basis": "Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by class, laterality and mechanics so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on Q-P.",
+      "basis": "Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by recorded body position (lying or inclined, kneeling or standing, prone), class and laterality, so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on Q-P.",
       "ownerScope": false,
       "bodyweightExempt": false,
       "slots": [
         {
           "id": "glutes.thrustLoaded",
-          "label": "Loaded hip thrusts",
+          "label": "Loaded hip thrusts and bridges",
           "patterns": [
             "hipExtension"
           ],
           "discriminator": [
+            {
+              "kind": "attribute",
+              "attribute": "bodyPosition",
+              "values": [
+                "inclined",
+                "lying"
+              ]
+            },
             {
               "kind": "equipmentClass",
               "values": [
@@ -2857,12 +2969,6 @@
                 "machine",
                 "smithMachine",
                 "band"
-              ]
-            },
-            {
-              "kind": "mechanics",
-              "values": [
-                "compound"
               ]
             }
           ],
@@ -2873,35 +2979,35 @@
               "equipmentClass": "freeWeight",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Dumbbell hip thrust",
               "equipmentClass": "freeWeight",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Smith machine hip thrust",
               "equipmentClass": "smithMachine",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Machine hip thrust",
               "equipmentClass": "machine",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Banded hip thrust",
               "equipmentClass": "band",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             }
           ]
         },
@@ -2913,15 +3019,17 @@
           ],
           "discriminator": [
             {
-              "kind": "equipmentClass",
+              "kind": "attribute",
+              "attribute": "bodyPosition",
               "values": [
-                "bodyweight"
+                "inclined",
+                "lying"
               ]
             },
             {
-              "kind": "mechanics",
+              "kind": "equipmentClass",
               "values": [
-                "compound"
+                "bodyweight"
               ]
             }
           ],
@@ -2932,42 +3040,44 @@
               "equipmentClass": "bodyweight",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Single-leg glute bridge",
               "equipmentClass": "bodyweight",
               "laterality": "unilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Single-leg hip thrust",
               "equipmentClass": "bodyweight",
               "laterality": "unilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             },
             {
               "name": "Feet-elevated glute bridge",
               "equipmentClass": "bodyweight",
               "laterality": "bilateral",
               "counted": true,
-              "mechanics": "compound"
+              "mechanics": "isolation"
             }
           ]
         },
         {
           "id": "glutes.kickback",
-          "label": "Kickbacks (single-leg isolation)",
+          "label": "Kickbacks (single-leg, kneeling or standing)",
           "patterns": [
             "hipExtension"
           ],
           "discriminator": [
             {
-              "kind": "mechanics",
+              "kind": "attribute",
+              "attribute": "bodyPosition",
               "values": [
-                "isolation"
+                "kneeling",
+                "standing"
               ]
             },
             {
@@ -3012,21 +3122,16 @@
         },
         {
           "id": "glutes.reverseHyper",
-          "label": "Reverse hyperextension (decision rule R5)",
+          "label": "Reverse and hip-driven extensions (prone; decision rule R5)",
           "patterns": [
             "hipExtension"
           ],
           "discriminator": [
             {
-              "kind": "mechanics",
+              "kind": "attribute",
+              "attribute": "bodyPosition",
               "values": [
-                "isolation"
-              ]
-            },
-            {
-              "kind": "laterality",
-              "values": [
-                "bilateral"
+                "prone"
               ]
             }
           ],
@@ -3045,6 +3150,13 @@
               "laterality": "bilateral",
               "counted": true,
               "mechanics": "isolation"
+            },
+            {
+              "name": "Hip-driven back extension (neutral spine)",
+              "equipmentClass": "bodyweight",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "isolation"
             }
           ]
         },
@@ -3055,7 +3167,7 @@
             "hinge"
           ],
           "discriminator": [],
-          "min": 4,
+          "min": 3,
           "entries": [
             {
               "name": "Conventional deadlift",
@@ -3074,13 +3186,6 @@
             {
               "name": "Cable pull-through",
               "equipmentClass": "cable",
-              "laterality": "bilateral",
-              "counted": true,
-              "mechanics": "compound"
-            },
-            {
-              "name": "Kettlebell swing",
-              "equipmentClass": "kettlebell",
               "laterality": "bilateral",
               "counted": true,
               "mechanics": "compound"
@@ -3165,14 +3270,14 @@
           ]
         }
       ],
-      "slotTotal": 26,
+      "slotTotal": 25,
       "derived": {
         "mechanics": {
-          "compound": 15,
-          "isolation": 11
+          "compound": 5,
+          "isolation": 20
         },
         "laterality": {
-          "bilateral": 14,
+          "bilateral": 13,
           "unilateralOrAlternating": 12
         },
         "equipmentClasses": {
@@ -3181,13 +3286,12 @@
           "cable": 2,
           "smithMachine": 1,
           "band": 4,
-          "kettlebell": 1,
+          "kettlebell": 0,
           "bodyweight": 9,
           "other": 0
         },
-        "variationFamilies": 5,
-        "familyCap": 7.8,
-        "classCap": 14.3
+        "variationFamilies": 4,
+        "classCap": 13.75
       }
     },
     {
@@ -3255,7 +3359,6 @@
           "other": 0
         },
         "variationFamilies": 0,
-        "familyCap": 4,
         "classCap": 4
       }
     },
@@ -3331,7 +3434,6 @@
           "other": 0
         },
         "variationFamilies": 1,
-        "familyCap": 4,
         "classCap": 4
       }
     },
@@ -3407,7 +3509,6 @@
           "other": 0
         },
         "variationFamilies": 1,
-        "familyCap": 4,
         "classCap": 4
       }
     },
@@ -3483,7 +3584,6 @@
           "other": 0
         },
         "variationFamilies": 0,
-        "familyCap": 4,
         "classCap": 4
       }
     },
@@ -3854,7 +3954,6 @@
           "other": 0
         },
         "variationFamilies": 4,
-        "familyCap": 8.4,
         "classCap": 15.4
       }
     },
@@ -4004,7 +4103,6 @@
           "other": 0
         },
         "variationFamilies": 2,
-        "familyCap": 4,
         "classCap": 7.15
       }
     },
@@ -4142,7 +4240,6 @@
           "other": 0
         },
         "variationFamilies": 1,
-        "familyCap": 4,
         "classCap": 4.95
       }
     },
@@ -4231,7 +4328,6 @@
           "other": 0
         },
         "variationFamilies": 0,
-        "familyCap": 4,
         "classCap": 4
       }
     },
@@ -4322,7 +4418,7 @@
               ]
             }
           ],
-          "min": 3,
+          "min": 2,
           "entries": [
             {
               "name": "Cable crunch",
@@ -4342,7 +4438,7 @@
               "name": "Weighted crunch (plate)",
               "equipmentClass": "freeWeight",
               "laterality": "bilateral",
-              "counted": true,
+              "counted": false,
               "mechanics": "isolation"
             }
           ]
@@ -4354,7 +4450,7 @@
             "antiExtension"
           ],
           "discriminator": [],
-          "min": 7,
+          "min": 6,
           "entries": [
             {
               "name": "Plank",
@@ -4367,7 +4463,7 @@
               "name": "Weighted plank",
               "equipmentClass": "freeWeight",
               "laterality": "bilateral",
-              "counted": true,
+              "counted": false,
               "mechanics": "compound"
             },
             {
@@ -4454,18 +4550,18 @@
           ]
         }
       ],
-      "slotTotal": 20,
+      "slotTotal": 18,
       "derived": {
         "mechanics": {
-          "compound": 12,
-          "isolation": 8
+          "compound": 11,
+          "isolation": 7
         },
         "laterality": {
-          "bilateral": 19,
+          "bilateral": 17,
           "unilateralOrAlternating": 1
         },
         "equipmentClasses": {
-          "freeWeight": 2,
+          "freeWeight": 0,
           "machine": 1,
           "cable": 1,
           "smithMachine": 0,
@@ -4475,8 +4571,7 @@
           "other": 0
         },
         "variationFamilies": 3,
-        "familyCap": 6.0,
-        "classCap": 11.0
+        "classCap": 9.9
       }
     },
     {
@@ -4587,14 +4682,14 @@
             {
               "name": "Cable Pallof press",
               "equipmentClass": "cable",
-              "laterality": "unilateral",
+              "laterality": "bilateral",
               "counted": true,
               "mechanics": "compound"
             },
             {
               "name": "Band Pallof press",
               "equipmentClass": "band",
-              "laterality": "unilateral",
+              "laterality": "bilateral",
               "counted": true,
               "mechanics": "compound"
             },
@@ -4614,7 +4709,7 @@
             "antiLateralFlexion"
           ],
           "discriminator": [],
-          "min": 2,
+          "min": 1,
           "entries": [
             {
               "name": "Side plank",
@@ -4627,7 +4722,7 @@
               "name": "Weighted side plank",
               "equipmentClass": "freeWeight",
               "laterality": "unilateral",
-              "counted": true,
+              "counted": false,
               "mechanics": "compound"
             },
             {
@@ -4640,18 +4735,18 @@
           ]
         }
       ],
-      "slotTotal": 14,
+      "slotTotal": 13,
       "derived": {
         "mechanics": {
-          "compound": 8,
+          "compound": 7,
           "isolation": 6
         },
         "laterality": {
-          "bilateral": 0,
-          "unilateralOrAlternating": 14
+          "bilateral": 2,
+          "unilateralOrAlternating": 11
         },
         "equipmentClasses": {
-          "freeWeight": 2,
+          "freeWeight": 1,
           "machine": 1,
           "cable": 4,
           "smithMachine": 0,
@@ -4661,8 +4756,7 @@
           "other": 0
         },
         "variationFamilies": 2,
-        "familyCap": 4.2,
-        "classCap": 7.7
+        "classCap": 7.15
       }
     },
     {
@@ -4672,29 +4766,22 @@
       "nodes": [
         "lowerBack"
       ],
-      "basis": "Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. The reverse hyperextension counts under Glutes (rule R5). The earlier quadratus lumborum slot was removed as a forced entry (F07).",
+      "basis": "Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. Classified by the joint that moves (rule R5): only exercises in which the spine itself moves into extension, or holds against it, have a lower-back primary and the pattern trunkExtension. Back extensions done with a neutral spine and the hips as the hinge, reverse hyperextensions and good mornings are hip-dominant: their primaries are glutes or hamstrings as Q-P settles, with lowerBack as a secondary, and they count in those groups. The lower-back minimum is therefore small and honest (revision 3).",
       "ownerScope": false,
       "bodyweightExempt": true,
       "slots": [
         {
           "id": "lowerBack.extension",
-          "label": "Trunk extension",
+          "label": "Trunk extension (the spine moves)",
           "patterns": [
             "trunkExtension"
           ],
           "discriminator": [],
-          "min": 5,
+          "min": 4,
           "entries": [
             {
-              "name": "Back extension (45 degree)",
+              "name": "Back extension (moving spine)",
               "equipmentClass": "bodyweight",
-              "laterality": "bilateral",
-              "counted": true,
-              "mechanics": "isolation"
-            },
-            {
-              "name": "Weighted back extension",
-              "equipmentClass": "freeWeight",
               "laterality": "bilateral",
               "counted": true,
               "mechanics": "isolation"
@@ -4719,30 +4806,37 @@
               "laterality": "bilateral",
               "counted": true,
               "mechanics": "isolation"
+            },
+            {
+              "name": "Weighted back extension",
+              "equipmentClass": "freeWeight",
+              "laterality": "bilateral",
+              "counted": false,
+              "mechanics": "isolation"
             }
           ]
         },
         {
           "id": "lowerBack.hinge",
-          "label": "Hinges with a lower-back primary",
+          "label": "Hinges with a lower-back primary (primary depends on Q-P; optional only)",
           "patterns": [
             "hinge"
           ],
           "discriminator": [],
-          "min": 2,
+          "min": 0,
           "entries": [
             {
               "name": "Barbell good morning",
               "equipmentClass": "freeWeight",
               "laterality": "bilateral",
-              "counted": true,
+              "counted": false,
               "mechanics": "compound"
             },
             {
               "name": "Smith machine good morning",
               "equipmentClass": "smithMachine",
               "laterality": "bilateral",
-              "counted": true,
+              "counted": false,
               "mechanics": "compound"
             }
           ]
@@ -4766,29 +4860,28 @@
           ]
         }
       ],
-      "slotTotal": 8,
+      "slotTotal": 5,
       "derived": {
         "mechanics": {
-          "compound": 3,
-          "isolation": 5
+          "compound": 1,
+          "isolation": 4
         },
         "laterality": {
-          "bilateral": 7,
+          "bilateral": 4,
           "unilateralOrAlternating": 1
         },
         "equipmentClasses": {
-          "freeWeight": 2,
+          "freeWeight": 0,
           "machine": 1,
           "cable": 0,
-          "smithMachine": 1,
+          "smithMachine": 0,
           "band": 0,
           "kettlebell": 0,
           "bodyweight": 4,
           "other": 0
         },
         "variationFamilies": 1,
-        "familyCap": 4,
-        "classCap": 4.4
+        "classCap": 4
       }
     }
   ],
@@ -4799,7 +4892,7 @@
       "patterns": [
         "walkRun"
       ],
-      "min": 6,
+      "min": 4,
       "entries": [
         {
           "name": "Walking",
@@ -4829,13 +4922,13 @@
           "name": "400 m run",
           "equipmentClass": "bodyweight",
           "laterality": "alternating",
-          "counted": true
+          "counted": false
         },
         {
           "name": "Interval run",
           "equipmentClass": "bodyweight",
           "laterality": "alternating",
-          "counted": true
+          "counted": false
         }
       ],
       "requiresEquipment": []
@@ -4846,7 +4939,7 @@
       "patterns": [
         "ergometer"
       ],
-      "min": 7,
+      "min": 5,
       "entries": [
         {
           "name": "Exercise bike",
@@ -4858,7 +4951,7 @@
           "name": "Interval cycling",
           "equipmentClass": "other",
           "laterality": "alternating",
-          "counted": true
+          "counted": false
         },
         {
           "name": "Rowing machine",
@@ -4870,7 +4963,7 @@
           "name": "Interval rowing",
           "equipmentClass": "other",
           "laterality": "bilateral",
-          "counted": true
+          "counted": false
         },
         {
           "name": "Cross-trainer",
@@ -4951,6 +5044,27 @@
         "sled"
       ],
       "note": "Needs the proposed sled item."
+    },
+    {
+      "id": "conditioning.ballisticHinge",
+      "label": "Ballistic hinge (category fullBody)",
+      "patterns": [
+        "hinge"
+      ],
+      "min": 1,
+      "entries": [
+        {
+          "name": "Kettlebell swing",
+          "equipmentClass": "kettlebell",
+          "laterality": "bilateral",
+          "counted": true
+        }
+      ],
+      "requiresEquipment": [],
+      "categories": [
+        "fullBody"
+      ],
+      "note": "Counts only exercises of category fullBody, so that deadlifts are not counted here."
     },
     {
       "id": "conditioning.crawl",

@@ -70,7 +70,7 @@ A new entry must differ from every existing entry in **at least one** of these w
 | Angle or position | Body or implement angle changes the movement | Incline versus flat press; seated versus standing |
 | Range | A different start or end position changes demand | Deficit deadlift; partial range |
 | Laterality | One limb works at a time | Single-arm row |
-| Arm or body position, knee position, grip, stance | Changes which part of the movement is loaded; record it as an **optional exercise attribute** where one exists (`coverage-matrix.md` section 3: angle, arm position, grip, body position, knee position, stance) | Incline versus flat press; arm behind the body versus beside it |
+| Arm or body position, knee position, grip, stance | Changes which part of the movement is loaded; record it as an **optional exercise attribute** where one exists (`coverage-matrix.md` section 3: angle, arm position, grip, grip width, body position, knee position, stance) | Incline versus flat press; arm behind the body versus beside it |
 
 An entry is **not** a legitimate variation when it differs only by:
 - tempo, pauses, repetition scheme, rest or intensity technique (these are ways to perform an exercise; future metadata may record tempo);
@@ -83,7 +83,7 @@ An entry is **not** a legitimate variation when it differs only by:
 1. Which of the six dimensions changes? If none, stop.
 2. Would a trainee choose it for a reason the existing entry cannot meet (equipment they have, a joint angle, a progression step, balance demand, one side at a time)? If not, stop.
 3. Does it have a canonical exercise to point to (`variationOf`)? If it is a new movement, it becomes a new canonical exercise.
-4. Does the near-duplicate check (`quality-and-duplicates.md`, IC-600) flag it? If yes, record a reason or merge. A pair whose recorded attributes differ is cleared automatically; a pair that differs only in an unrecorded grip or stance is a review item (checklist), not an automatic flag.
+4. Does the near-duplicate check (`quality-and-duplicates.md`, IC-600) flag it? If yes, record a reason or merge. A recorded attribute difference clears IC-601 to IC-603 but IC-412 still asks for the family link; a pair that differs only in an unrecorded grip or stance is a review item (checklist), not an automatic flag.
 
 ## 4. Relationships
 Four stored kinds. ADR-0008 decision 5 lists five kinds; at revision 2 the guide proposes to **store `progressionOf` only** and to derive the regression view (F19), so that one ladder step has one spelling. Relationships describe the catalogue; they do not schedule or prescribe training. Each pair is stored once; the inverse is derived.
@@ -133,12 +133,12 @@ Difficulty describes **technical complexity**, not load, volume or fitness (owne
 | Level | Owner definition | Typical drivers |
 |---|---|---|
 | `beginner` | Simple movement, stable setup, straightforward execution | One main joint pattern; supported or guided path; low balance demand; little set-up |
-| `intermediate` | Moderate coordination, technique or control | Several joints coordinating; a free bar path to control; two independent loads to balance; moderate balance or mobility demand; some set-up steps; ballistic movement with simple timing |
+| `intermediate` | Moderate coordination, technique or control | Several joints coordinating; a free bar path to control; two independent loads to balance in a multi-joint press or hinge; moderate balance or mobility demand; some set-up steps; ballistic movement with simple timing |
 | `advanced` | High technical demand, stability or complex execution | High balance or mobility demand; complex timing (multi-phase lifts, catches, transitions); inversion; difficult set-up |
 
 Rules:
 1. Choose by the highest single driver. Do not raise a level because a lift is heavy, and do not lower it because it is easy for a strong person.
-2. **An implement is not a driver.** A free weight does not make an exercise intermediate. What the implement demands does: a bar path to control, two loads to balance, a rack position.
+2. **An implement is not a driver.** A free weight does not make an exercise intermediate. What the implement demands does: a bar path to control, two independent loads to balance in a multi-joint press or hinge, a rack position.
 3. **Ballistic movement is intermediate** unless it is combined with complex timing (a catch, several phases) or a high mobility demand; then it is advanced.
 
 Worked examples:
@@ -151,7 +151,7 @@ Worked examples:
 | Dumbbell lateral raise | beginner | One joint, simple path |
 | Lat pulldown | beginner | Guided path, simple set-up |
 | Plank | beginner | Static, one position |
-| Dumbbell bench press | intermediate | Two independent loads to balance and to get into position |
+| Dumbbell bench press | intermediate | Two independent loads to balance and to get into position in a multi-joint press |
 | Dumbbell Romanian deadlift | intermediate | Hinge pattern and bracing; the implement is not the driver |
 | Barbell bench press | intermediate | Bar path, shoulder blade position and bracing |
 | Barbell back squat | intermediate | Bar position, depth and bracing |
@@ -172,7 +172,7 @@ The 89 seed exercises were assigned difficulties under these rules (`mapping-exi
 - `compound`: two or more joints produce the main work (squat, row, press, pull-up).
 - `isolation`: one joint produces the main work (curl, lateral raise, leg extension, calf raise, **face pull**: the main work is at the shoulder joint and the elbow only follows, F25).
 - Static holds follow the joints that bear the load: a plank is `compound`; a dead hang is `isolation` (the grip).
-- Hip thrusts and glute bridges are `compound` by decision: hip extension with the knee held under load.
+- Hip thrusts and glute bridges are `isolation`: the main work is hip extension and the knee only holds its angle (consistent with reverse hyperextensions and kickbacks).
 - Cardio and mobility entries: the proposed default is an **empty** mechanics value, not checked by IC-207. This is an open owner question (Q-M, `coverage-matrix.md` section 13); the alternative is to force a value.
 
 ### Laterality
@@ -262,7 +262,7 @@ This entry shows the shape proposed in `docs/wp8-delivery-plan.md` section 7. It
 
 Why the choices were made:
 - **Name.** Laterality, equipment, then the traditional movement name. UK spelling not at issue.
-- **Targets.** `sideDelts` is the only primary: the movement is single-joint abduction. Supraspinatus starts the movement and the upper trapezius assists; both are clear assistants. No percentages.
+- **Targets.** `sideDelts` is the only primary: the movement is single-joint abduction. Supraspinatus helps start the movement and the upper trapezius assists; both are clear assistants. No percentages.
 - **Pattern.** One pattern, `shoulderAbduction`.
 - **Equipment class.** Cable. No support item.
 - **Mechanics, laterality, difficulty.** One joint (`isolation`); one arm at a time (`unilateral`); simple movement, guided by a cable path (`beginner`).

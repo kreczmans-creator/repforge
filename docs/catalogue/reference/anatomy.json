@@ -212,7 +212,7 @@
       "label": "Side delts",
       "definition": "Lateral head of the deltoid.",
       "includes": "Shoulder abduction (raising the arm out to the side).",
-      "excludes": "Supraspinatus, which starts abduction but sits in the rotator cuff.",
+      "excludes": "Supraspinatus, which helps start abduction but sits in the rotator cuff.",
       "note": "Lateral deltoid. Preserved WP 8 id (L4 head).",
       "lifecycle": "active"
     },

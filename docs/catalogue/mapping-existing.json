@@ -767,10 +767,13 @@
         "bench"
       ],
       "proposedClass": "freeWeight",
-      "mechanics": "compound",
+      "mechanics": "isolation",
       "laterality": "bilateral",
       "difficulty": "intermediate",
-      "assignmentNote": "Compound by decision rule: hip extension with the knee held under load (bridges and thrusts).",
+      "assignmentNote": "Isolation: the main work is hip extension; the knee only holds its angle (consistent with reverse hyperextension and kickbacks).",
+      "attributes": {
+        "bodyPosition": "inclined"
+      },
       "seedAliases": [
         "Hip thrust"
       ],
@@ -805,10 +808,13 @@
       "seedEquipment": [],
       "proposedEquipment": [],
       "proposedClass": "bodyweight",
-      "mechanics": "compound",
+      "mechanics": "isolation",
       "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Compound by the same rule as the hip thrust.",
+      "assignmentNote": "Isolation by the same rule as the hip thrust.",
+      "attributes": {
+        "bodyPosition": "lying"
+      },
       "seedAliases": [
         "Bodyweight glute bridge"
       ],
@@ -1037,6 +1043,12 @@
       "seedAliases": [
         "Calf raise"
       ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Calf raise\" is generic (seated and single-leg raises exist). Review."
+        }
+      ],
       "flags": [
         {
           "code": "R",
@@ -1205,7 +1217,7 @@
       "mechanics": "compound",
       "laterality": "bilateral",
       "difficulty": "intermediate",
-      "assignmentNote": "Intermediate: two independent loads to balance and to get into position.",
+      "assignmentNote": "Intermediate: two independent loads to balance and to get into position in a multi-joint press.",
       "attributes": {
         "angle": "flat"
       },
@@ -1550,7 +1562,7 @@
       "mechanics": "compound",
       "laterality": "bilateral",
       "difficulty": "intermediate",
-      "assignmentNote": "Intermediate: two independent loads to balance and to get into position (seated).",
+      "assignmentNote": "Intermediate: two independent loads to balance and to get into position in a multi-joint press (seated).",
       "seedAliases": [
         "Seated dumbbell press"
       ],
@@ -1744,6 +1756,12 @@
       "seedAliases": [
         "Parallel bar dip",
         "Triceps dip"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Triceps dip\" can mean the bench dip, a different exercise. Review."
+        }
       ],
       "flags": [
         {
@@ -2157,6 +2175,12 @@
       "seedAliases": [
         "Dumbbell row",
         "Single-arm row"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Single-arm row\" is generic (cable and machine single-arm rows exist). Review."
+        }
       ],
       "flags": [
         {
@@ -2757,6 +2781,9 @@
       "seedAliases": [
         "Wall squat hold"
       ],
+      "doubtfulSecondaries": [
+        "calves"
+      ],
       "flags": [
         {
           "code": "N",
@@ -2802,6 +2829,12 @@
       ],
       "doubtfulSecondaries": [
         "frontDelts"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Hanging knee raise\" names a different exercise (knees bent). It belongs to its own entry. Review."
+        }
       ],
       "flags": [
         {
@@ -2876,6 +2909,12 @@
       "seedAliases": [
         "Sit-up crunch"
       ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Sit-up crunch\" mixes two different exercises (a sit-up is not a crunch). Review."
+        }
+      ],
       "flags": []
     },
     {
@@ -2906,9 +2945,9 @@
       ],
       "proposedClass": "cable",
       "mechanics": "compound",
-      "laterality": "unilateral",
+      "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Unilateral: performed one side at a time. Compound: the trunk resists while shoulder and elbow move.",
+      "assignmentNote": "Bilateral: both arms press the handle together; the load is offset to one side but the limbs do the same job. Compound: the trunk resists while shoulder and elbow move.",
       "seedAliases": [
         "Cable anti-rotation press"
       ],
@@ -3049,6 +3088,12 @@
       "assignmentNote": "",
       "seedAliases": [
         "Prowler push"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasSpelling",
+          "text": "Alias \"Prowler push\" uses a trade name for a sled (IC-506 blocked-word candidate). Review."
+        }
       ],
       "flags": [
         {
@@ -3391,6 +3436,12 @@
         "Rowing",
         "Rower",
         "Ergometer row"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasAmbiguous",
+          "text": "Alias \"Rowing\" is ambiguous with rowing exercises and the sport. Review."
+        }
       ],
       "flags": [
         {
@@ -3835,6 +3886,12 @@
       ],
       "doubtfulSecondaries": [
         "abductors"
+      ],
+      "cleanup": [
+        {
+          "type": "aliasMeaning",
+          "text": "Alias \"Figure-four stretch\" names a different stretch (supine or seated). Review."
+        }
       ],
       "flags": [
         {

@@ -39,7 +39,7 @@
       "label": "Hinge",
       "definition": "The hips travel back and forward with a near-neutral spine; knees bend only a little.",
       "includes": "Deadlifts, Romanian deadlifts, good mornings, kettlebell swings, pull-throughs.",
-      "excludes": "Squats; isolated hip thrusts (Hip extension); back extensions of any angle (Trunk extension).",
+      "excludes": "Squats; isolated hip thrusts (Hip extension); back extensions (Trunk extension or Hip extension, decision rule R5).",
       "note": "Kettlebell swing is a ballistic hinge.",
       "lifecycle": "active"
     },
@@ -377,9 +377,9 @@
       "sort": 10,
       "label": "Hip extension",
       "definition": "Driving the thigh back with the knee and trunk largely fixed.",
-      "includes": "Hip thrusts, glute bridges, kickbacks, reverse hyperextensions.",
-      "excludes": "Hinges (Hinge); back extensions where the torso moves on fixed legs (Trunk extension).",
-      "note": "Reverse hyperextension is hip extension (legs move, torso fixed): decision rule R5.",
+      "includes": "Hip thrusts, glute bridges, kickbacks, reverse hyperextensions, back extensions done with a neutral spine and the hips as the hinge (hip-driven).",
+      "excludes": "Hinges (Hinge); back extensions in which the spine itself moves (Trunk extension).",
+      "note": "Decision rule R5: classified by the joint that moves, set by technique. Reverse hyperextension and hip-driven back extension are hip extension, with lowerBack as a secondary.",
       "lifecycle": "active"
     },
     {
@@ -506,9 +506,9 @@
       "sort": 20,
       "label": "Trunk extension",
       "definition": "Arching the spine or lifting the trunk against gravity.",
-      "includes": "Back extensions at any angle, supermans, loaded or machine back extensions.",
-      "excludes": "Hip thrusts (Hip extension); hinges; reverse hyperextensions (Hip extension).",
-      "note": "Decision rule R5: if the torso moves on fixed legs, or both ends lift (superman), it is trunk extension. If the legs move on a fixed torso, it is hip extension.",
+      "includes": "Back extensions in which the spine itself moves into extension, supermans, machine back extensions.",
+      "excludes": "Hip thrusts (Hip extension); hinges; reverse hyperextensions and hip-driven back extensions (Hip extension).",
+      "note": "Decision rule R5: classified by the joint that moves, set by technique. Only a moving spine is trunk extension; primary lowerBack.",
       "lifecycle": "active"
     },
     {
@@ -761,7 +761,7 @@
       "level": 2,
       "sort": 50,
       "label": "Explosive lift",
-      "definition": "Fast lifts that finish with a hip and knee extension and catch the load.",
+      "definition": "Fast lifts that finish with a hip and knee extension; cleans and snatches also catch the load.",
       "includes": "Cleans, snatches, high pulls and their dumbbell or kettlebell forms.",
       "excludes": "Kettlebell swings (Hinge); push presses (Vertical push, decision rule R1).",
       "lifecycle": "active"

@@ -75,8 +75,8 @@ Columns show the seed tag and the proposed tag side by side. Where they match, n
 | 11 | `lib-deadlift` | Conventional deadlift | legs | `glutes` | `glutes` | `hamstrings`, `lowerBack`, `upperBack`, `forearms`, `quadriceps` | `hamstrings`, `lowerBack`, `upperBack`, `forearms`, `quadriceps` | `hinge` | `barbell` | freeWeight | compound | bilateral | intermediate | **D** Seed primary is glutes alone. Hamstrings and lower back are arguably co-primary. Adding a primary changes attributed set counts, so the owner decides (Q-P). |
 | 12 | `lib-sumo-deadlift` | Sumo deadlift | legs | `glutes` | `glutes` | `adductors`, `hamstrings`, `quadriceps`, `lowerBack` | `adductors`, `hamstrings`, `quadriceps`, `lowerBack` | `hinge` | `barbell` | freeWeight | compound | bilateral | intermediate | **D** As conventional deadlift; adductors tagged secondary (Q-P). |
 | 13 | `lib-trap-bar-deadlift` | Trap bar deadlift | legs | `quadriceps` | `quadriceps` | `glutes`, `hamstrings`, `upperBack`, `forearms` | `glutes`, `hamstrings`, `upperBack`, `forearms` | `hinge`, `squat` | `trapBar` | freeWeight | compound | bilateral | intermediate | **D** Hybrid of hinge and squat; hinge listed first (rule R7). Quadriceps primary is defensible, but the primary pattern is hinge, so the exercise counts toward no quadriceps slot (coverage-matrix.md section 11). |
-| 14 | `lib-hip-thrust` | Barbell hip thrust | legs | `glutes` | `glutes` | `hamstrings`, `quadriceps` | `hamstrings`, `quadriceps` | `hipExtension` | `barbell`, `bench` | freeWeight | compound | bilateral | intermediate | **D** Quadriceps as secondary is doubtful; listed for release-2 clean-up. |
-| 15 | `lib-glute-bridge` | Glute bridge | legs | `glutes` | `glutes` | `hamstrings` | `hamstrings` | `hipExtension` | none | bodyweight | compound | bilateral | beginner |  |
+| 14 | `lib-hip-thrust` | Barbell hip thrust | legs | `glutes` | `glutes` | `hamstrings`, `quadriceps` | `hamstrings`, `quadriceps` | `hipExtension` | `barbell`, `bench` | freeWeight | isolation | bilateral | intermediate | **D** Quadriceps as secondary is doubtful; listed for release-2 clean-up. |
+| 15 | `lib-glute-bridge` | Glute bridge | legs | `glutes` | `glutes` | `hamstrings` | `hamstrings` | `hipExtension` | none | bodyweight | isolation | bilateral | beginner |  |
 | 16 | `lib-walking-lunge` | Dumbbell walking lunge | legs | `quadriceps` | `quadriceps` | `glutes`, `hamstrings`, `adductors` | `glutes`, `hamstrings`, `adductors` | `lunge` | `dumbbell` | freeWeight | compound | alternating | intermediate |  |
 | 17 | `lib-bodyweight-lunge` | Bodyweight lunge | legs | `quadriceps` | `quadriceps` | `glutes`, `hamstrings` | `glutes`, `hamstrings` | `lunge` | none | bodyweight | compound | unilateral | beginner |  |
 | 18 | `lib-bulgarian-split-squat` | Bulgarian split squat | legs | `quadriceps` | `quadriceps` | `glutes`, `adductors` | `glutes`, `adductors` | `lunge` | `dumbbell`, `bench` | freeWeight | compound | unilateral | intermediate |  |
@@ -127,7 +127,7 @@ Columns show the seed tag and the proposed tag side by side. Where they match, n
 | 63 | `lib-hanging-leg-raise` | Hanging leg raise | core | `abs` | `abs` | `forearms`, `frontDelts` | `forearms`, `frontDelts`, `hipFlexors` | `hipFlexion`, `trunkFlexion` | `pullUpBar` | bodyweight | compound | bilateral | intermediate | **S** hipFlexors added as secondary (the pattern is hip flexion first). **D** Hip flexors arguably co-primary (Q-P); front delts as secondary is doubtful. |
 | 64 | `lib-cable-crunch` | Cable crunch | core | `abs` | `abs` | `obliques` | `obliques` | `trunkFlexion` | `cable` | cable | isolation | bilateral | beginner |  |
 | 65 | `lib-crunch` | Crunch | core | `abs` | `abs` | `obliques` | `obliques` | `trunkFlexion` | none | bodyweight | isolation | bilateral | beginner |  |
-| 66 | `lib-pallof-press` | Pallof press | core | `obliques` | `obliques` | `abs`, `frontDelts` | `abs`, `frontDelts` | `antiRotation` | `cable` | cable | compound | unilateral | beginner | **D** Primary obliques stands for anti-rotation bracing; front delts secondary is doubtful. |
+| 66 | `lib-pallof-press` | Pallof press | core | `obliques` | `obliques` | `abs`, `frontDelts` | `abs`, `frontDelts` | `antiRotation` | `cable` | cable | compound | bilateral | beginner | **D** Primary obliques stands for anti-rotation bracing; front delts secondary is doubtful. |
 | 67 | `lib-ab-wheel` | Ab wheel rollout | core | `abs` | `abs` | `lats`, `obliques` | `lats`, `obliques` | `antiExtension` | `abWheel` | bodyweight | compound | bilateral | intermediate | **E** Seed lists no equipment so it shows as bodyweight-only; abWheel proposed. |
 | 68 | `lib-farmers-carry` | Farmer's carry | core | `forearms` | `forearms` | `upperBack`, `abs`, `obliques` | `upperBack`, `abs`, `obliques` | `carryBilateral` | `dumbbell` | freeWeight | compound | bilateral | beginner | **N** Category core; forearms primary. Upper trapezius and trunk bracing are co-targets. |
 | 69 | `lib-sled-push` | Sled push | fullBody | `quadriceps` | `quadriceps` | `glutes`, `calves`, `frontDelts` | `glutes`, `calves`, `frontDelts` | `sledPushPull` | `sled` | other | compound | bilateral | beginner | **E** Seed tags plate; sled proposed. Category fullBody. |
@@ -166,14 +166,14 @@ Mechanics, laterality and difficulty follow `editorial-guide.md` sections 6 and 
 
 | Dimension | Distribution over the 89 |
 |---|---|
-| Mechanics | compound 50, isolation 23, empty 16 (cardio and mobility) |
-| Laterality | bilateral 73, unilateral 8, alternating 8 |
+| Mechanics | compound 48, isolation 25, empty 16 (cardio and mobility) |
+| Laterality | bilateral 74, unilateral 7, alternating 8 |
 | Difficulty | beginner 55, intermediate 34, advanced 0 |
 | Equipment class (derived) | band 1, bodyweight 26, cable 8, freeWeight 33, kettlebell 1, machine 13, other 7 |
 
 Difficulty by category: cardio: beginner 6, intermediate 2; core: beginner 7, intermediate 3; fullBody: beginner 1, intermediate 4; legs: beginner 14, intermediate 10; mobility: beginner 6, intermediate 2; pull: beginner 14, intermediate 4; push: beginner 7, intermediate 9. No exercise is assigned `advanced` in the seed: none meets the owner definition (high technical demand, stability or complex execution); the first advanced entries (snatch, muscle-up, pistol squat) arrive with the population tranches. The distribution targets in `coverage-matrix.md` section 8 apply to tranches, not to release 2.
 
-Proposed attributes (optional controlled attributes, `coverage-matrix.md` section 3) are recorded for rows where a slot or a duplicate check needs them: angle on the presses, grip on the curls and pull-ups, arm position on curls and triceps work, body position on leg curls and the skull crusher, knee position on the calf raise, stance on the deadlifts. They are proposals and optional.
+Proposed attributes (optional controlled attributes, `coverage-matrix.md` section 3) are recorded for rows where a slot or a duplicate check needs them: angle on the presses, grip on the curls and pull-ups, arm position on curls and triceps work, body position on leg curls, the skull crusher, the hip thrust and the glute bridge, knee position on the calf raise, stance on the deadlifts. They are proposals and optional.
 
 Rows where the assignment needs a reason are explained in the JSON field `assignmentNote`.
 
@@ -197,15 +197,23 @@ A script over the seed finds exactly these three collisions (names and aliases, 
 | `lib-deadlift` | Alias "Deadlift" is generic. Review. |
 | `lib-sumo-deadlift` | No alias (IC-211 warning). Proposed aliases added. |
 | `lib-bodyweight-lunge` | Alias "Lunge" is generic; walking and reverse lunges are different movements. Review. |
+| `lib-standing-calf-raise` | Alias "Calf raise" is generic (seated and single-leg raises exist). Review. |
 | `lib-cable-fly` | Alias "Cable crossover" names a specific cable fly (high pulleys). Review. |
 | `lib-triceps-pushdown` | Alias "Tricep pushdown" is a misspelling of "triceps pushdown". Review. |
 | `lib-overhead-triceps-extension` | Aliases "French press" and "Dumbbell triceps extension" are generic or ambiguous. Review. |
+| `lib-dips` | Alias "Triceps dip" can mean the bench dip, a different exercise. Review. |
 | `lib-lat-pulldown` | Alias "Wide-grip pulldown" names a grip variation. Review. |
 | `lib-seated-cable-row` | Alias "Cable row" is generic (standing and single-arm cable rows exist). Review. |
+| `lib-db-row` | Alias "Single-arm row" is generic (cable and machine single-arm rows exist). Review. |
 | `lib-db-curl` | Alias "Bicep curl" is a misspelling of "biceps curl". Review. |
+| `lib-hanging-leg-raise` | Alias "Hanging knee raise" names a different exercise (knees bent). It belongs to its own entry. Review. |
+| `lib-crunch` | Alias "Sit-up crunch" mixes two different exercises (a sit-up is not a crunch). Review. |
+| `lib-sled-push` | Alias "Prowler push" uses a trade name for a sled (IC-506 blocked-word candidate). Review. |
 | `lib-treadmill-run` | Alias "Running" overlaps the outdoor run. Review. |
 | `lib-stationary-bike` | Alias "Cycling" also names outdoor cycling. Review. |
+| `lib-rowing-machine` | Alias "Rowing" is ambiguous with rowing exercises and the sport. Review. |
 | `lib-thoracic-extension` | Alias "Foam roller thoracic extension" names a variant that needs a foam roller; an alias must refer to this exercise only. Remove, or add the variant after foamRoller is approved. |
+| `lib-pigeon-pose` | Alias "Figure-four stretch" names a different stretch (supine or seated). Review. |
 
 ### 7.3 Doubtful secondaries (editor review)
 These secondaries are kept in release 2 and listed for confirmation. A secondary that "stands for" a finer muscle is a refinement candidate.
@@ -216,6 +224,7 @@ These secondaries are kept in release 2 and listed for confirmation. A secondary
 | `lib-lateral-raise` | `upperBack` | Stands for upper trapezius. |
 | `lib-plank` | `frontDelts` | Isometric hold; front delts are a weak claim. |
 | `lib-side-plank` | `abductors` | Stands for gluteus medius, which sits under Glutes. |
+| `lib-wall-sit` | `calves` | Calves are a weak claim for an isometric squat hold. |
 | `lib-hanging-leg-raise` | `frontDelts` | Front delts are a weak claim. |
 | `lib-pallof-press` | `frontDelts` | Front delts are a weak claim. |
 | `lib-kettlebell-swing` | `frontDelts` | Front delts are a weak claim. |
@@ -224,9 +233,9 @@ These secondaries are kept in release 2 and listed for confirmation. A secondary
 
 ## 8. Open questions in this mapping
 - **Q-P (primary-target principle).** One question: when a compound movement is shared by several muscles, are the primaries (a) only the muscle or muscles the movement is designed to load, one per exercise by default (the seed's practice), or (b) every muscle that does main work through the main range? The lead example is the row (`lats` for the one-arm row, `upperBack` for the barbell and cable rows). The same principle decides the other multi-primary candidates: deadlifts and Romanian deadlifts (glutes, hamstrings, lower back), dips (triceps, chest), chin-up (lats, biceps), hip abduction (abductors, gluteus medius), hanging leg raise (abs, hip flexors), clean and press, and thoracic extension. Any extra primary changes the attributed set counts WP 9 reports (OQ-19).
-- **Q-F (fullBody role).** May `fullBody` be a secondary target, and may it be a primary beside anatomical primaries? Affects `lib-skipping` and the migration report (ADR-0010).
+- **Q-F (fullBody role).** May `fullBody` be a secondary target, and may it be a primary beside anatomical primaries? Affects `lib-skipping`, the migration report, the reporting of non-anatomical values and the user exercises that already store it (ADR-0010).
 - **Q-M (mechanics for cardio and mobility).** Empty by default (proposed), or forced.
-- **Q-T (thoracic extension).** Primary `upperBack` with a stretched meaning, or `erectorSpinae`.
+- Thoracic extension (flag M) is part of Q-P: primary `upperBack` with a stretched meaning, or `erectorSpinae`.
 
 ## 9. Structural near-duplicates already in the seed
 The revised signature and score (`quality-and-duplicates.md` section 2, IC-600) flag these pairs on the proposed mapping: `lib-back-squat` and `lib-front-squat`; `lib-run-400m` and `lib-outdoor-run`; `lib-hack-squat` and `lib-leg-press`; `lib-bulgarian-split-squat` and `lib-step-up` (close matches), plus seven informational pairs. `lib-treadmill-run` and `lib-outdoor-run` are no longer flagged as a close pair: equipment, logging type and name differ. `lib-leg-curl` and `lib-lying-leg-curl` are cleared by their recorded body position. Full results and dispositions are in `quality-and-duplicates.md` section 6.
