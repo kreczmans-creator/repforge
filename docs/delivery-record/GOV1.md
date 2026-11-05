@@ -78,7 +78,19 @@ ERROR docs/ai-coordination/handoffs/HO-0102.md: Status APPROVED_FOR_OWNER_ACCEPT
 DEMO RESULT: all stages behaved as the protocol specifies
 ```
 
-The live part demonstrated on this repository: the workflow validated the records and created the review issue for the GOV 1 handoff. **Not demonstrated**: a ChatGPT review retrieved and published through the system (steps 4–5 of the owner's demonstration list) — that requires the owner's ChatGPT conversation and has not happened; the protocol is therefore not reported as live.
+The live part demonstrated on this repository (2026-11-04/05):
+
+| Step | Evidence |
+|---|---|
+| Automation detects the handoff | Run 41916119691 on 8ac106d: validate success; notify created issue #2 `[AI review] HO-0001` with commit, compare, raw-diff, checks, handoff and record links |
+| Idempotence | Run 41916214670 on 901c728: validate success; notify printed `unchanged #2`, no duplicate issue, no comment |
+| Owner sees the review is required | Issue #2 and `DASHBOARD.md` "Awaiting independent review" |
+| ChatGPT retrieves the evidence | RV-0001 §2: records and selected source retrieved through the GitHub connector |
+| ChatGPT publishes an outcome | RV-0001 (REVIEW_INCOMPLETE) relayed by the owner and committed verbatim to `reviews/` |
+| Claude Code retrieves and processes the findings | This session: HO-0001 set to REVIEW_INCOMPLETE, MSG-IN-0001 indexed, records reconciled, correction handoff HO-0002 submitted |
+| Corrected commit requires re-review | HO-0002 supersedes HO-0001 with a new commit; the checker and the issue mirror treat it as a new review item |
+
+**Not yet demonstrated**: the re-review being published and processed, which completes a full round-trip; the protocol is not reported as live until then. ChatGPT did not execute the test suite or reproduce the workflow runs (RV-0001 §2), so technical approval is outstanding.
 
 ## Author-side pre-review (not independent review)
 Before delivery, a separate Claude subagent (not the author) reviewed the version-1 design and checker: 3 High, 8 Medium, 9 Low findings. Disposition is in the GOV 1 handoff §4. This is author-side quality control; the independent review is ChatGPT's and has not happened.
