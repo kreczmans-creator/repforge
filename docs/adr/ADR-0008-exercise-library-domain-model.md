@@ -1,6 +1,6 @@
 # ADR-0008: Exercise library domain model — Engineering Objects, hierarchical anatomy, classifications and relationships
 
-- Status: **Proposed** (WP 8 stage 3; owner approval required before implementation)
+- Status: **Accepted — architectural direction** (owner, 2026-11-05). Implementation gated: WP 8 stage 3 starts only after WP 9 delivery is accepted and the stage 3 plan is finally authorised (D04 §7).
 - Date: 2026-11-05
 - History: proposed on 2026-11-05 for the WP 16a proposal; re-scoped the same day to **WP 8 stage 3** by owner decision (WP 16 superseded; D04 §7). Number and content kept.
 - Implements owner decisions of 2026-11-05 (D04 §7, "WP 8 library decisions"): Engineering Object definition, four-level anatomy, difficulty, relationship kinds, English (UK) first, preservation of identifiers.
@@ -13,7 +13,7 @@ WP 8 models an exercise with one primary muscle and a secondary list from a flat
 2. **Reference data with stable string identifiers**, loaded from a versioned bundled asset into reference tables; code uses typed identifier wrappers; small owner-defined closed sets stay enums.
 3. **Generic attribute store** (entity–attribute–value) for all classifications: maximally flexible, weak integrity and poor queryability.
 
-## Decision (proposed)
+## Decision
 Option 2.
 1. **Engineering Object** (owner definition) applies to: exercise, anatomy node, movement pattern, equipment item, exercise relationship, content section, media reference, content provider, catalogue release. Each has a stable identifier, a defined type and schema, source and provenance, validation rules and constraints, creation and modification times, defined relationships, lifecycle-appropriate versioning, and persistence with query, backup and restore. Exercises carry a revision number; reference data is versioned by catalogue release; user state is not versioned.
 2. **Anatomy**: one hierarchy of nodes `L1 region › L2 muscle group › L3 anatomical muscle › L4 subdivision or head`, each node with a parent (none at L1), a level and a sort order. Exercises are tagged at the most meaningful defensible level. The 19 WP 8 identifiers are kept as node identifiers at their anatomically correct level (mapping in the WP 8 delivery plan (`docs/wp8-delivery-plan.md`)); `fullBody` becomes a non-anatomical target kind, not an anatomy node, because it names no muscle.
@@ -29,6 +29,6 @@ Reference data keeps the controlled vocabulary maintainable and localisable with
 
 ## Consequences
 - WP 8 and WP 9 code that uses the `MuscleGroup` and `Equipment` enums moves to identifier types; stored values do not change.
-- D04 TRN-010(1) ("exactly one primary group") is superseded by the owner's decision (one or more primary targets); TRN-027 volume attribution with several primary targets: OQ-19 approved 2026-11-05 — each primary target receives the full recorded set volume; secondary targets reported separately, excluded from primary totals; attributions of recorded sets, not physiological measurements.
+- D04 TRN-010(1) ("exactly one primary group") is superseded by the owner's decision (one or more primary targets); TRN-027 volume attribution with several primary targets: OQ-19 approved 2026-11-05 — each primary target receives the full recorded set volume; each primary muscle target receives the full recorded exercise-set count; secondary muscles reported separately and excluded from primary totals; set counts, not physiological volume measurements (kg-volume attribution under TRN-027(3): clarification pending, D04 §7).
 - Reference data is approved as content (anatomy node list, movement pattern list) before WP 8 stage 5 population.
 - Schema v8 (additive) introduces the tables; see the WP 8 delivery plan (`docs/wp8-delivery-plan.md`).

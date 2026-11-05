@@ -19,6 +19,8 @@ WP 9 builds on the WP 8 implementation and must not settle WP 8 decisions 1–5 
 4. **TRN-020 exertion rule** — validate only through `TrainingRules.validExertion`, so the owner's decision changes one function.
 5. **UI scope** — WP 9 adds the plan, schedule and session screens; it does not rework the WP 8 library screens beyond links into them.
 
+Update 2026-11-05 (D04 §7): WP 8 is active with expanded scope; its decisions 2 (OQ-09), 3 (legacy values), 4 (TRN-020: RIR integer 0–5) and 5 (screen ownership: WP 9 owns planning, execution, sessions, sets, rest timers) are decided; decision 1 is folded into the approved anatomy hierarchy. WP 9 scope is unchanged and WP 9 code already follows these decisions. OQ-19 is decided (set counts per primary target; kg-volume clarification pending) and affects only the per-muscle rule, which has no WP 9 screen.
+
 ## Open questions this package touches (not decided here)
 | Question | WP 9 handling | Owner decision needed |
 |---|---|---|

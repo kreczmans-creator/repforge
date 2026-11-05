@@ -105,10 +105,11 @@ Requirements: LIB-001..LIB-010 (§1) and decisions 1–10 (§5). Additional deri
 ## 8. Open questions and dependencies
 | ID | Item | Status |
 |---|---|---|
-| OQ-19 | Volume attribution when an exercise has several primary targets (TRN-027) | **Approved 2026-11-05**: full recorded set volume to each primary target; secondary separate and excluded; attribution, not physiology |
+| OQ-19 | Volume attribution when an exercise has several primary targets (TRN-027) | **Approved 2026-11-05**: full recorded exercise-set count to each primary target; secondary separate and excluded; set counts, not physiological measurements |
 | OQ-20 | TRN-010(1) wording ("exactly one primary group") versus decision 3 (multiple primary targets) | Amended by decision 3; wording update recorded in D04 §7 |
 | OQ-21 | Definition of "imported" exercises | **Approved 2026-11-05**: brought in by a user from an external file, application or user-controlled source; open datasets in the catalogue are system content |
 | OQ-22 | Anatomy node list and movement pattern list | Open; proposed in WP 8 stage 4, approved before stage 5 |
 | OQ-23 | Coverage matrix minimum targets per region | Open; defined in WP 8 stage 4, approved before stage 5 |
-| — | Earlier WP 8 decisions | 1 taxonomy: folded into decision 3 and OQ-22 (current lists stay in force until stage 3); 2 OQ-09: answered; 3 legacy-data policy: **open**; 4 TRN-020 correction: **open**; 5 UI scope (library in WP 8, plans and sessions in WP 9): consistent with the revised scope, **open for confirmation** |
+| — | Earlier WP 8 decisions | 1 taxonomy: folded into decision 3 and OQ-22; 2 OQ-09: answered; 3 legacy values, 4 TRN-020 and 5 screen ownership: **approved 2026-11-05** (D04 §7) |
+| — | OQ-19 kg-volume attribution under TRN-027(3) | Clarification requested (D04 §7) |
 | — | Schema version coordination with WP 10 | Coordination at WP 8 stage 3 start |

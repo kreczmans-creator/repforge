@@ -1,11 +1,11 @@
 # WP 8 — Revised delivery plan (expanded exercise library)
 
-- Status: **Proposed — for owner review. Implementation not authorised.** WP 8 is the active work package; no WP 16 implementation exists or is authorised.
+- Status: **Structure, scope and architectural direction approved (2026-11-05). Stage 4 authorised (documentation and reference data only). Stage 3 implementation gated** (§18). WP 8 is the active work package; no WP 16 implementation exists or is authorised.
 - History: drafted as the WP 16a plan (2026-11-05), re-scoped the same day into WP 8 by owner decision (D04 §7); technical design unchanged; revised with OQ-19/OQ-21 decisions and the owner's technical qualifications (§17).
 - Date: 2026-11-05
 - Governance: owner decision of 2026-11-05 — the expanded exercise library is delivered **within WP 8**, which stays the active work package. WP 8 is not created as a delivery package. WP 9 is unchanged.
 - Requirements: D04 TRN-001..012 (original), LIB-001..LIB-014 and the owner's library decisions (D04 §7; `docs/exercise-library-expansion.md`).
-- ADRs: ADR-0008 (domain model), ADR-0009 (catalogue provenance and updates) — both Proposed.
+- ADRs: ADR-0008 (domain model), ADR-0009 (catalogue provenance and updates) — direction accepted 2026-11-05; implementation gated.
 
 ## 0. WP 8 at a glance
 | Category | Content |
@@ -128,7 +128,7 @@ Per ADR-0009: bundled JSON per provider and release, holding reference data, exe
 ## 8. Changes to WP 8 and WP 9 code (behaviour preserved)
 - `Exercise`: `primaryMuscle`/`secondaryMuscles` → `targets`; `supplied` → `source`; new classification fields. Library queries filter by node with descendants; equipment filter unchanged; search unchanged.
 - WP 8 screens: show primary targets where they showed the primary muscle; editor requires at least one primary target. No new discovery features (WP 8 stage 6).
-- WP 9 volume per muscle group (TRN-027(3)), **OQ-19 approved 2026-11-05**: each primary target receives the full recorded set volume (and the set is counted for it); secondary targets are reported separately and excluded from primary totals; a set is attributed once per distinct primary target. These figures are attributions of recorded sets, **not physiological measurements** of muscle work, and screens say so. Session and exercise volume are unchanged.
+- WP 9 volume per muscle group (TRN-027(3)), **OQ-19 approved 2026-11-05**: each primary muscle target receives the full recorded exercise-set count; secondary muscles are reported separately and excluded from primary totals; a set is attributed once per distinct primary target. These are **set counts, not physiological volume measurements**, and screens say so. **Clarification pending** (D04 §7): whether kg volume per muscle (TRN-027(3)) follows the same attribution. Session and exercise volume are unchanged.
 - Custom copies: copy targets, patterns and content; source `user`.
 - `TRN-010(1)` amended by owner decision (one or more primary targets); TRN-010(2) behaviour kept.
 
@@ -230,4 +230,18 @@ Retiring sets `retired_at`; system exercises are never deleted and identifiers n
 
 ### 17.6 Atomic, repeatable and auditable releases
 Atomic: validation of the whole release before any write; one transaction per release; a failure leaves no partial state (test with a fault injected mid-release). Repeatable: applying the same release again performs no writes (row hashes and `updated_at` unchanged). Auditable: `catalogue_releases` records provider, release, content hash, counts inserted/updated/retired, app version and time; every system exercise records provider and revision; the log is included in backups; CI publishes the integrity and coverage report for each release.
+
+## 18. Decisions of 2026-11-05 and their effect on this plan
+| Item | Decision | Effect |
+|---|---|---|
+| ADR-0008, ADR-0009 | direction approved | implement as written in stage 3 |
+| 19 muscle ids, `fullBody` | approved (§4) | mapping as §4 |
+| `exercises` rebuild | approved, conditional | §17.1 spike and §17.2 equality evidence are acceptance conditions for sub-stage 3b |
+| OQ-19 | set counts per primary target | §8; kg-volume attribution clarification pending |
+| OQ-21 | approved | ADR-0009 §1 |
+| Legacy invalid values | approved rule incl. **report of every affected record** | stage 3 adds a migration report (in-app Settings › Data and in the backup), resolving TD-41's visibility gap; applies to v6 quarantine rows and any v8 findings |
+| TRN-020 | RIR integer 0–5 at domain **and persistence** boundaries | stage 3b adds persistence enforcement for `session_sets` exertion (CHECK via table rebuild, or validation triggers — chosen by the same evidence method as §17.1); stored out-of-range values quarantined, cleared (exertion is optional) and reported |
+| Screen ownership | WP 8: library, taxonomy, discovery, detail, favourites; WP 9: planning, execution, sessions, sets, rest timers | stage 6 scope; exercise detail history stays a WP 8 screen reading WP 9 data |
+| Stage 4 | authorised now | documentation and reference data only; no production code, schema or WP 9 change |
+| Stage 3 | gated | starts after: WP 9 stage 3b CI green; Android/iOS builds reviewed (desugaring); emulator full-session test passed; independent WP 9 review complete; WP 9 accepted; then final authorisation of this stage |
 
