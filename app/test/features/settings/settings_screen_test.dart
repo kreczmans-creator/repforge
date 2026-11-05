@@ -117,7 +117,11 @@ void main() {
     ) async {
       final scheduler = FakeRestAlertScheduler();
       await openAndScroll(tester, scheduler);
-      expect(scheduler.calls, isEmpty);
+      // Opening only reads the state; it never prompts or opens a screen.
+      expect(scheduler.of('request'), isEmpty);
+      expect(scheduler.of('openSettings'), isEmpty);
+      expect(scheduler.of('requestExactTiming'), isEmpty);
+      expect(scheduler.of('schedule'), isEmpty);
       await unmount(tester);
     });
 
@@ -201,6 +205,210 @@ void main() {
       await tester.tap(find.byKey(const Key('rest-notifications-switch')));
       await tester.pumpAndSettle();
       expect(await stored(), isFalse);
+      await unmount(tester);
+    });
+  });
+
+  group('rest alerts: exact timing and permission lifecycle (OQ-24)', () {
+    late FakeRestAlertScheduler scheduler;
+
+    Future<bool> stored() async => (await DriftSettingsRepository(
+      db,
+      clock: FixedClock(DateTime.utc(2026, 11, 3, 9)),
+    ).read()).restTimerNotifications;
+
+    Future<void> open(WidgetTester tester, {bool preferenceOn = false}) async {
+      if (preferenceOn) {
+        final repo = DriftSettingsRepository(
+          db,
+          clock: FixedClock(DateTime.utc(2026, 11, 3, 9)),
+        );
+        await repo.save(
+          (await repo.read()).copyWith(restTimerNotifications: true),
+        );
+      }
+      await tester.pumpWidget(_harness(db, scheduler));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('rest-notifications-switch')),
+        300,
+        scrollable: lastPageScrollable(),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> toggle(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('rest-notifications-switch')));
+      await tester.pumpAndSettle();
+    }
+
+    String status(WidgetTester tester) =>
+        tester.widget<Text>(find.byKey(const Key('rest-alerts-status'))).data!;
+
+    // The real binding checks transitions, so walk the path an OS does.
+    Future<void> awayAndBack(WidgetTester tester) async {
+      final b = TestWidgetsFlutterBinding.instance;
+      [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ].forEach(b.handleAppLifecycleStateChanged);
+      await tester.pumpAndSettle();
+    }
+
+    setUp(() => scheduler = FakeRestAlertScheduler());
+
+    testWidgets('exact available: enabling shows no prompt, precise label', (
+      tester,
+    ) async {
+      await open(tester);
+      expect(status(tester), 'Off');
+      await toggle(tester);
+      expect(find.byKey(const Key('exact-timing-dialog')), findsNothing);
+      expect(scheduler.of('requestExactTiming'), isEmpty);
+      expect(await stored(), isTrue);
+      expect(status(tester), contains('precise timing'));
+      expect(find.byKey(const Key('rest-alerts-allow-exact')), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('exact unavailable: explains, Not now keeps inexact and says '
+        'timing may be delayed', (tester) async {
+      scheduler.exactTiming = ExactTiming.unavailable;
+      await open(tester);
+      await toggle(tester);
+      expect(find.byKey(const Key('exact-timing-dialog')), findsOneWidget);
+      expect(find.textContaining('more reliably'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('exact-timing-not-now')));
+      await tester.pumpAndSettle();
+      expect(scheduler.of('requestExactTiming'), isEmpty);
+      expect(await stored(), isTrue);
+      expect(status(tester), contains('may be delayed'));
+      expect(status(tester), isNot(contains('precise timing:')));
+      expect(find.byKey(const Key('rest-alerts-allow-exact')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('Allow precise timing opens the route; return with the grant '
+        'shows precise', (tester) async {
+      scheduler
+        ..exactTiming = ExactTiming.unavailable
+        ..exactGrantedByRequest = true;
+      await open(tester);
+      await toggle(tester);
+      await tester.tap(find.byKey(const Key('exact-timing-allow')));
+      await tester.pumpAndSettle();
+      expect(scheduler.of('requestExactTiming'), hasLength(1));
+      expect(status(tester), contains('precise timing'));
+      expect(find.byKey(const Key('rest-alerts-allow-exact')), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('return from settings without the grant stays delayed; a '
+        'later resume after granting there turns precise', (tester) async {
+      scheduler.exactTiming = ExactTiming.unavailable;
+      await open(tester);
+      await toggle(tester);
+      await tester.tap(find.byKey(const Key('exact-timing-allow')));
+      await tester.pumpAndSettle();
+      expect(scheduler.of('requestExactTiming'), hasLength(1));
+      expect(status(tester), contains('may be delayed'));
+      await awayAndBack(tester);
+      expect(status(tester), contains('may be delayed'));
+      // The user grants it later in system settings and comes back.
+      scheduler.exactTiming = ExactTiming.available;
+      await awayAndBack(tester);
+      expect(status(tester), contains('precise timing'));
+      await unmount(tester);
+    });
+
+    testWidgets('the delayed state offers the route again; revoking exact '
+        'access later is shown on resume', (tester) async {
+      await open(tester);
+      await toggle(tester);
+      expect(status(tester), contains('precise timing'));
+      scheduler.exactTiming = ExactTiming.unavailable;
+      await awayAndBack(tester);
+      expect(status(tester), contains('may be delayed'));
+      scheduler.exactGrantedByRequest = true;
+      await tester.tap(find.byKey(const Key('rest-alerts-allow-exact')));
+      await tester.pumpAndSettle();
+      expect(scheduler.of('requestExactTiming'), hasLength(1));
+      expect(status(tester), contains('precise timing'));
+      await unmount(tester);
+    });
+
+    testWidgets('notification permission denied: stays off and explains', (
+      tester,
+    ) async {
+      scheduler.permission = NotificationPermission.denied;
+      await open(tester);
+      await toggle(tester);
+      expect(await stored(), isFalse);
+      expect(find.byKey(const Key('exact-timing-dialog')), findsNothing);
+      expect(find.byKey(const Key('rest-notifications-denied')), findsOne);
+      expect(status(tester), 'Off');
+      await unmount(tester);
+    });
+
+    testWidgets('revoked while on: shown as blocked, never as on; re-granting '
+        'works again without re-toggling', (tester) async {
+      await open(tester, preferenceOn: true);
+      expect(status(tester), contains('precise timing'));
+      scheduler.permission = NotificationPermission.denied;
+      await awayAndBack(tester);
+      expect(status(tester), startsWith('Blocked'));
+      expect(status(tester), isNot(startsWith('On')));
+      expect(find.byKey(const Key('rest-alerts-allow-exact')), findsNothing);
+      await tester.tap(find.byKey(const Key('rest-alerts-open-settings')));
+      await tester.pumpAndSettle();
+      expect(scheduler.of('openSettings'), hasLength(1));
+      // The stored preference is kept, so allowing it again is enough.
+      expect(await stored(), isTrue);
+      scheduler.permission = NotificationPermission.granted;
+      await awayAndBack(tester);
+      expect(status(tester), contains('precise timing'));
+      expect(scheduler.of('request'), isEmpty);
+      await unmount(tester);
+    });
+
+    testWidgets('re-enabling after turning off asks and explains again', (
+      tester,
+    ) async {
+      scheduler.exactTiming = ExactTiming.unavailable;
+      await open(tester);
+      await toggle(tester);
+      await tester.tap(find.byKey(const Key('exact-timing-not-now')));
+      await tester.pumpAndSettle();
+      await toggle(tester);
+      expect(await stored(), isFalse);
+      expect(status(tester), 'Off');
+      await toggle(tester);
+      expect(find.byKey(const Key('exact-timing-dialog')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('exact-timing-not-now')));
+      await tester.pumpAndSettle();
+      await unmount(tester);
+    });
+
+    testWidgets('iOS-like: no precision claim at all', (tester) async {
+      scheduler.exactTiming = ExactTiming.notApplicable;
+      await open(tester);
+      await toggle(tester);
+      expect(status(tester), 'On');
+      expect(find.byKey(const Key('exact-timing-dialog')), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('a failing platform is shown as blocked and never precise', (
+      tester,
+    ) async {
+      scheduler.failing = true;
+      await open(tester, preferenceOn: true);
+      expect(status(tester), startsWith('Blocked'));
+      expect(status(tester), isNot(contains('precise')));
       await unmount(tester);
     });
   });

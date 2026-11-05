@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/training/rest_alert.dart';
+import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/rest_timer.dart';
 import 'package:repforge/features/training/application/haptic_rest_alert.dart';
 
@@ -128,15 +129,18 @@ class RestTimerController extends Notifier<RestTimerState> {
     // ... or while the settings were read.
     if (generation != _syncGeneration) return;
     if (!settings.restTimerNotifications) return;
+    // Notifications revoked in system settings: nothing to schedule. The
+    // timer itself is unaffected (PLT-008(2)).
+    final scheduler = ref.read(restAlertSchedulerProvider);
+    if (await scheduler.status() != NotificationPermission.granted) return;
+    if (generation != _syncGeneration) return;
     _scheduled = true;
-    await ref
-        .read(restAlertSchedulerProvider)
-        .schedule(
-          id: restNotificationId,
-          endsAt: endsAt,
-          title: restNotificationTitle,
-          body: restNotificationBody,
-        );
+    await scheduler.schedule(
+      id: restNotificationId,
+      endsAt: endsAt,
+      title: restNotificationTitle,
+      body: restNotificationBody,
+    );
   }
 
   Future<void> _cancelScheduled() async {

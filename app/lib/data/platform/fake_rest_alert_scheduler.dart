@@ -4,7 +4,8 @@ import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 final class SchedulerCall {
   const SchedulerCall(this.kind, {this.id, this.endsAt});
 
-  /// `schedule`, `cancel`, `cancelAll`, `request`, `status` or `openSettings`.
+  /// `schedule`, `cancel`, `cancelAll`, `request`, `status`, `openSettings`,
+  /// `exactTimingStatus` or `requestExactTiming`.
   final String kind;
   final String? id;
   final DateTime? endsAt;
@@ -20,6 +21,9 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
     this.permission = NotificationPermission.granted,
     this.requestResult,
     this.settingsOpens = true,
+    this.exactTiming = ExactTiming.available,
+    this.exactGrantedByRequest = false,
+    this.exactDelay = Duration.zero,
     this.failing = false,
     this.scheduleDelay = Duration.zero,
     this.cancelDelay = Duration.zero,
@@ -33,6 +37,16 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
 
   /// What [openSettings] returns.
   bool settingsOpens;
+
+  /// Answer of [exactTimingStatus]; tests change it to script the system.
+  ExactTiming exactTiming;
+
+  /// When true [requestExactTiming] turns [exactTiming] to available (the
+  /// user allows it on the system screen); otherwise it is left as is.
+  bool exactGrantedByRequest;
+
+  /// How long [requestExactTiming] stays open (the user is in settings).
+  Duration exactDelay;
 
   /// When true every operation throws (the real adapter never does; this
   /// proves callers also survive a misbehaving port).
@@ -79,6 +93,19 @@ final class FakeRestAlertScheduler implements RestAlertScheduler {
   Future<bool> openSettings() async {
     _record(const SchedulerCall('openSettings'));
     return settingsOpens;
+  }
+
+  @override
+  Future<ExactTiming> exactTimingStatus() async {
+    _record(const SchedulerCall('exactTimingStatus'));
+    return exactTiming;
+  }
+
+  @override
+  Future<void> requestExactTiming() async {
+    _record(const SchedulerCall('requestExactTiming'));
+    if (exactDelay > Duration.zero) await Future<void>.delayed(exactDelay);
+    if (exactGrantedByRequest) exactTiming = ExactTiming.available;
   }
 
   @override

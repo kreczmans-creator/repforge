@@ -9,6 +9,22 @@ enum NotificationPermission {
   denied,
 }
 
+/// Whether the OS lets the app deliver the rest notification at the exact end
+/// time (Android exact alarms, ADR-0007). Read it fresh each time: the user
+/// can change it in system settings at any moment.
+enum ExactTiming {
+  /// The OS currently allows exact alarms: delivery at the timer's end.
+  available,
+
+  /// Android 12+ without the exact-alarm grant: the notification may arrive
+  /// late. The user can allow it via [RestAlertScheduler.requestExactTiming].
+  unavailable,
+
+  /// No separate grant exists or is needed here (iOS, desktop, no adapter):
+  /// the app makes no claim about precise timing.
+  notApplicable,
+}
+
 /// Schedules the rest-timer end notification for the time the app is in the
 /// background (D04 TRN-022(2), ADR-0007). Flutter-free so the timer logic and
 /// its tests need no platform.
@@ -29,6 +45,17 @@ abstract interface class RestAlertScheduler {
   /// Opens the system notification settings of this app. Returns whether a
   /// settings screen could be opened.
   Future<bool> openSettings();
+
+  /// Whether exact delivery is possible right now, without prompting. A
+  /// failure reads as [ExactTiming.unavailable] so precise timing is never
+  /// claimed without proof.
+  Future<ExactTiming> exactTimingStatus();
+
+  /// Opens the system route where the user can allow exact alarms (Android
+  /// "Alarms & reminders"). Completes when the user comes back; the outcome
+  /// is read with [exactTimingStatus], not taken from this call. A no-op where
+  /// the route does not exist.
+  Future<void> requestExactTiming();
 
   /// Shows a notification at [endsAt]. Scheduling an [id] that is already
   /// scheduled replaces it.
@@ -69,6 +96,12 @@ final class NoopRestAlertScheduler implements RestAlertScheduler {
     required String title,
     required String body,
   }) async {}
+
+  @override
+  Future<ExactTiming> exactTimingStatus() async => ExactTiming.notApplicable;
+
+  @override
+  Future<void> requestExactTiming() async {}
 
   @override
   Future<void> cancel(String id) async {}

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/settings/settings.dart';
+import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/domain/training/training.dart';
 
 import '../../../helpers/pump.dart';
@@ -165,6 +166,37 @@ void main() {
     await h.tap(tester, 'finish-session');
     await h.settle(tester);
     expect(h.scheduler.scheduled, isEmpty);
+    await unmount(tester);
+  });
+
+  testWidgets('revoked notification permission never blocks logging or the '
+      'timer; re-granting schedules again (OQ-24)', (tester) async {
+    await h.setSettings(
+      (await h.settings.read()).copyWith(restTimerNotifications: true),
+    );
+    h.scheduler.permission = NotificationPermission.denied;
+    await h.plans.upsert(_plan(h.now));
+    await h.open(tester, location: RfRoutes.trainPlans);
+    await h.tap(tester, 'plan-start-plan');
+    final id = (await h.latest()).exercises.single.id;
+
+    final binding = TestWidgetsFlutterBinding.instance;
+    addTearDown(
+      () => binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed),
+    );
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await h.settle(tester);
+    await h.tap(tester, 'newset-log-$id');
+    await h.settle(tester);
+    expect((await h.latest()).sets, hasLength(1));
+    expect(h.textOf(tester, 'rest-remaining'), '1:00');
+    expect(h.scheduler.scheduled, isEmpty);
+    expect(h.scheduler.of('schedule'), isEmpty);
+
+    h.scheduler.permission = NotificationPermission.granted;
+    await h.tap(tester, 'rest-extend');
+    await h.settle(tester);
+    expect(h.scheduler.scheduled, hasLength(1));
     await unmount(tester);
   });
 

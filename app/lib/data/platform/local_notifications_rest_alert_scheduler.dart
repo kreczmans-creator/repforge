@@ -23,7 +23,9 @@ int notificationIdFor(String id) {
 ///   (PLT-007(1)): iOS prompts only from [request].
 /// - Android 12+: exact scheduling when the OS says the app may schedule exact
 ///   alarms (`canScheduleExactNotifications`), otherwise an inexact alarm that
-///   may arrive late. The exact-alarm settings screen is never opened.
+///   may arrive late. The exact-alarm settings screen is opened only from
+///   [requestExactTiming], which the Settings screen calls after explaining
+///   why (OQ-24). Below Android 12 the plugin reports exact as allowed.
 /// - Every plugin failure is swallowed (permission `denied`, or a no-op): an
 ///   alert that cannot be scheduled must never break logging or the screen.
 final class LocalNotificationsRestAlertScheduler implements RestAlertScheduler {
@@ -145,6 +147,36 @@ final class LocalNotificationsRestAlertScheduler implements RestAlertScheduler {
     } on Object catch (e) {
       debugPrint('Opening notification settings failed: $e');
       return false;
+    }
+  }
+
+  @override
+  Future<ExactTiming> exactTimingStatus() async {
+    // Only Android has a separate exact-alarm grant; elsewhere the app makes
+    // no precision claim.
+    if (!_isAndroid) return ExactTiming.notApplicable;
+    try {
+      if (!await _ensureInitialised()) return ExactTiming.unavailable;
+      return await _android?.canScheduleExactNotifications() ?? false
+          ? ExactTiming.available
+          : ExactTiming.unavailable;
+    } on Object catch (e) {
+      debugPrint('Rest alert exact status failed: $e');
+      return ExactTiming.unavailable;
+    }
+  }
+
+  @override
+  Future<void> requestExactTiming() async {
+    if (!_isAndroid) return;
+    try {
+      if (!await _ensureInitialised()) return;
+      // Opens "Alarms & reminders" on Android 12+ when not allowed and
+      // completes on return; returns at once when allowed or below Android
+      // 12. The boolean is ignored: the caller reads exactTimingStatus().
+      await _android?.requestExactAlarmsPermission();
+    } on Object catch (e) {
+      debugPrint('Opening exact alarm settings failed: $e');
     }
   }
 

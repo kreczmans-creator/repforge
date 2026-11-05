@@ -6,6 +6,7 @@ import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/platform/fake_rest_alert_scheduler.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/training/rest_alert_scheduler.dart';
 import 'package:repforge/features/training/application/rest_timer_controller.dart';
 
 import '../../helpers/session_harness.dart';
@@ -349,4 +350,33 @@ void main() {
       expect(scheduledEnd(), clock.now().add(const Duration(seconds: 60)));
     },
   );
+
+  test('notification permission revoked while the setting is on: nothing is '
+      'scheduled and the timer still runs (OQ-24)', () async {
+    await setup(enabled: true);
+    scheduler.permission = NotificationPermission.denied;
+    background();
+    ctl().start(defaultRestSeconds: 60);
+    await flush();
+    expect(scheduler.of('schedule'), isEmpty);
+    expect(scheduler.scheduled, isEmpty);
+    expect(container.read(restTimerProvider).timer.status.name, 'running');
+    // Re-granted: the next change schedules again without touching the
+    // setting.
+    scheduler.permission = NotificationPermission.granted;
+    ctl().extend();
+    await flush();
+    expect(scheduledEnd(), isNotNull);
+  });
+
+  test('scheduling does not depend on the exact timing status', () async {
+    await setup(enabled: true);
+    scheduler.exactTiming = ExactTiming.unavailable;
+    background();
+    ctl().start(defaultRestSeconds: 60);
+    await flush();
+    // The adapter picks exact or inexact on its own at schedule time.
+    expect(scheduledEnd(), clock.now().add(const Duration(seconds: 60)));
+    expect(scheduler.of('requestExactTiming'), isEmpty);
+  });
 }

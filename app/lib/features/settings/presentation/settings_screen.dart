@@ -67,8 +67,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _targetError;
   GoalKind? _targetErrorKind;
 
+  // Rest alert system state, re-read on start and on every resume (the user
+  // can change it in system settings). Null until first read.
+  AppLifecycleListener? _lifecycle;
+  NotificationPermission? _permission;
+  ExactTiming? _exact;
+  int _statusGeneration = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _refreshAlertState);
+    unawaited(_refreshAlertState());
+  }
+
+  /// Reads notification permission and exact timing from the platform. A
+  /// failing platform reads as blocked and not precise: nothing is claimed
+  /// without proof.
+  Future<void> _refreshAlertState() async {
+    final generation = ++_statusGeneration;
+    final scheduler = ref.read(restAlertSchedulerProvider);
+    var permission = NotificationPermission.denied;
+    var exact = ExactTiming.unavailable;
+    try {
+      permission = await scheduler.status();
+    } on Object {
+      // Counts as not allowed.
+    }
+    try {
+      exact = await scheduler.exactTimingStatus();
+    } on Object {
+      // Counts as not precise.
+    }
+    if (!mounted || generation != _statusGeneration) return;
+    setState(() {
+      _permission = permission;
+      _exact = exact;
+    });
+  }
+
   @override
   void dispose() {
+    _lifecycle?.dispose();
     _restController.dispose();
     for (final c in _controllers.values) {
       c.dispose();
@@ -234,6 +274,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return;
       }
       await _saveSettings((s) => s.copyWith(restTimerNotifications: true));
+      await _refreshAlertState();
+      if (!mounted || _exact != ExactTiming.unavailable) return;
+      await _offerExactTiming(scheduler);
       return;
     }
     await _saveSettings((s) => s.copyWith(restTimerNotifications: false));
@@ -242,6 +285,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } on Object {
       // Nothing may block turning the setting off.
     }
+    await _refreshAlertState();
+  }
+
+  /// OQ-24: explains why exact-alarm access helps and offers the system
+  /// route. Declining keeps the notifications on, delivered inexactly.
+  Future<void> _offerExactTiming(RestAlertScheduler scheduler) async {
+    final allow = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('exact-timing-dialog'),
+        title: const Text('Allow precise timing?'),
+        content: const Text(
+          'Letting RepForge set exact alarms makes Android deliver the rest '
+          'notification more reliably when the rest ends. Without it the '
+          'notification still arrives, but Android may delay it. Notifications '
+          'stay on either way, and logging sets and the timer never depend '
+          'on this.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('exact-timing-not-now'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            key: const Key('exact-timing-allow'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Allow precise timing'),
+          ),
+        ],
+      ),
+    );
+    if (allow ?? false) await _openExactTimingRoute(scheduler);
+  }
+
+  /// Opens the system exact-alarm screen, then reads the result from the
+  /// platform (the call itself is not trusted).
+  Future<void> _openExactTimingRoute(RestAlertScheduler scheduler) async {
+    try {
+      await scheduler.requestExactTiming();
+    } on Object {
+      // A failure leaves the inexact fallback.
+    }
+    await _refreshAlertState();
+  }
+
+  /// The effective rest alert state as text, from the stored preference and
+  /// what the system allows right now. Precise timing is claimed only when
+  /// the platform says so at this moment.
+  String? _alertStatusText(bool preferenceOn) {
+    final permission = _permission;
+    if (permission == null) return null;
+    if (!preferenceOn) return 'Off';
+    if (permission != NotificationPermission.granted) {
+      return 'Blocked: notifications are off for RepForge in system '
+          'settings, so no rest alerts arrive until you allow them.';
+    }
+    return switch (_exact) {
+      ExactTiming.available =>
+        'On, with precise timing: Android can deliver the notification when '
+            'the rest ends.',
+      ExactTiming.unavailable =>
+        'On, but timing may be delayed by Android. Allow precise timing for '
+            'more reliable delivery.',
+      _ => 'On',
+    };
   }
 
   @override
@@ -484,6 +593,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     value: s.restTimerNotifications,
                     onChanged: _setRestNotifications,
                   ),
+                  ..._alertStatus(s.restTimerNotifications),
                 ],
               ),
             ),
@@ -510,6 +620,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  /// Status line of the rest alerts and the action that fixes it.
+  List<Widget> _alertStatus(bool preferenceOn) {
+    final text = _alertStatusText(preferenceOn);
+    if (text == null) return const [];
+    final scheduler = ref.read(restAlertSchedulerProvider);
+    final blocked =
+        preferenceOn && _permission != NotificationPermission.granted;
+    final delayed =
+        preferenceOn && !blocked && _exact == ExactTiming.unavailable;
+    return [
+      Text(
+        text,
+        key: const Key('rest-alerts-status'),
+        style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: blocked ? context.rf.alertText : null),
+      ),
+      if (blocked)
+        TextButton(
+          key: const Key('rest-alerts-open-settings'),
+          onPressed: () {
+            unawaited(scheduler.openSettings().catchError((_) => false));
+          },
+          child: const Text('Open settings'),
+        ),
+      if (delayed)
+        TextButton(
+          key: const Key('rest-alerts-allow-exact'),
+          onPressed: () => unawaited(_openExactTimingRoute(scheduler)),
+          child: const Text('Allow precise timing'),
+        ),
+    ];
   }
 
   Widget _targetField(GoalKind kind, String label, String unit) =>

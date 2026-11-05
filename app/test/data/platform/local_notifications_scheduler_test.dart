@@ -143,4 +143,89 @@ void main() {
     await s.cancelAll();
     expect(calls, isEmpty);
   });
+
+  group('exact timing (OQ-24)', () {
+    test('status maps the plugin answer and never prompts', () async {
+      final s = LocalNotificationsRestAlertScheduler();
+      expect(await s.exactTimingStatus(), ExactTiming.available);
+      handler = (call) =>
+          call.method == 'canScheduleExactNotifications' ? false : null;
+      expect(await s.exactTimingStatus(), ExactTiming.unavailable);
+      expect(names(), isNot(contains('requestExactAlarmsPermission')));
+    });
+
+    test('a null or failing answer is never read as precise', () async {
+      final s = LocalNotificationsRestAlertScheduler();
+      handler = (call) => call.method == 'canScheduleExactNotifications'
+          ? null
+          : (call.method == 'initialize' ? true : null);
+      expect(await s.exactTimingStatus(), ExactTiming.unavailable);
+      handler = (call) => throw PlatformException(code: 'boom');
+      expect(await s.exactTimingStatus(), ExactTiming.unavailable);
+    });
+
+    test(
+      'request opens the exact-alarm route and ignores its result',
+      () async {
+        final s = LocalNotificationsRestAlertScheduler();
+        // The plugin completes when the user returns; the answer is not used.
+        handler = (call) => call.method == 'requestExactAlarmsPermission'
+            ? false
+            : (call.method == 'initialize' ? true : null);
+        await s.requestExactTiming();
+        expect(names(), contains('requestExactAlarmsPermission'));
+      },
+    );
+
+    test(
+      'request failures (route missing, one already open) are safe',
+      () async {
+        final s = LocalNotificationsRestAlertScheduler();
+        handler = (call) => call.method == 'requestExactAlarmsPermission'
+            ? throw PlatformException(code: 'permissionRequestInProgress')
+            : (call.method == 'initialize' ? true : null);
+        await s.requestExactTiming();
+        handler = (call) => throw PlatformException(code: 'boom');
+        await LocalNotificationsRestAlertScheduler().requestExactTiming();
+      },
+    );
+
+    test('iOS and other platforms: not applicable, no plugin call', () async {
+      for (final p in [TargetPlatform.iOS, TargetPlatform.linux]) {
+        debugDefaultTargetPlatformOverride = p;
+        calls.clear();
+        final s = LocalNotificationsRestAlertScheduler();
+        expect(await s.exactTimingStatus(), ExactTiming.notApplicable);
+        await s.requestExactTiming();
+        expect(calls, isEmpty);
+      }
+    });
+
+    test(
+      'each schedule re-checks, so a grant or revoke applies at once',
+      () async {
+        final s = LocalNotificationsRestAlertScheduler();
+        final at = DateTime.now().add(const Duration(minutes: 2));
+        String mode() =>
+            ((calls.lastWhere((c) => c.method == 'zonedSchedule').arguments
+                        as Map)['platformSpecifics']
+                    as Map)['scheduleMode']
+                as String;
+        var allowed = false;
+        handler = (call) => switch (call.method) {
+          'canScheduleExactNotifications' => allowed,
+          'initialize' => true,
+          _ => null,
+        };
+        await s.schedule(id: 'r', endsAt: at, title: 't', body: 'b');
+        expect(mode(), 'inexactAllowWhileIdle');
+        allowed = true;
+        await s.schedule(id: 'r', endsAt: at, title: 't', body: 'b');
+        expect(mode(), 'exactAllowWhileIdle');
+        allowed = false;
+        await s.schedule(id: 'r', endsAt: at, title: 't', body: 'b');
+        expect(mode(), 'inexactAllowWhileIdle');
+      },
+    );
+  });
 }
