@@ -88,3 +88,28 @@ List<Measurement> filterByPeriod(
       if (range == null || range.containsInstant(m.recordedAt)) m,
   ]..sort(compareOldestFirst);
 }
+
+/// Chart gap rule (BCM-005(2), UXD-009): a line may join two consecutive
+/// readings of a series only when their local calendar dates are at most this
+/// many days apart (same day or the next day). With any date in between that
+/// has no reading, the line is broken and nothing is drawn across the gap.
+/// Readings are always drawn as points, and no value is ever computed for a
+/// date without a reading. One constant, so the owner can relax the rule.
+const int chartJoinMaxDayGap = 1;
+
+/// Whether a chart line may join [earlier] to [later] (see
+/// [chartJoinMaxDayGap]).
+bool chartJoins(DateTime earlier, DateTime later) =>
+    CalendarDate.fromInstant(earlier)
+        .daysUntil(CalendarDate.fromInstant(later)) <=
+    chartJoinMaxDayGap;
+
+/// The newest reading of each site in [all] (any order).
+Map<MeasurementSite, Measurement> latestPerSite(Iterable<Measurement> all) {
+  final out = <MeasurementSite, Measurement>{};
+  for (final m in all) {
+    final cur = out[m.site];
+    if (cur == null || compareOldestFirst(cur, m) < 0) out[m.site] = m;
+  }
+  return out;
+}

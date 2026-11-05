@@ -117,6 +117,35 @@ void main() {
     fail('Could not keep $finder in view');
   }
 
+  Finder keyWithPrefix(String prefix) => find.byWidgetPredicate((w) {
+    final k = w.key;
+    return k is ValueKey<String> && k.value.startsWith(prefix);
+  });
+
+  /// Track tab -> Add measurements -> weight (and optional note) -> Save.
+  /// Save sits below the form, above the keyboard; the keyboard is dismissed
+  /// first anyway so its inset animation cannot move the target under the
+  /// tap.
+  Future<void> logWeight(WidgetTester tester, String kg, {String? note}) async {
+    await tester.tap(find.byKey(const Key('nav-track')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-measurements')));
+    await pumpUntil(tester, find.byKey(const Key('field-weight')));
+    await tester.enterText(find.byKey(const Key('field-weight')), kg);
+    if (note != null) {
+      await scrollTo(tester, find.byKey(const Key('note-input')));
+      await tester.enterText(find.byKey(const Key('note-input')), note);
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('save-measurements')));
+    // Saving returns to the Track home, which lists the latest weight.
+    await pumpUntil(tester, find.textContaining('$kg kg'));
+    // The confirmation snackbar covers the bottom of the screen for a few
+    // seconds; wait for it so it cannot swallow a later tap.
+    await pumpUntilGone(tester, find.text('Saved 1 measurement'));
+  }
+
   Future<void> restart(WidgetTester tester, {AppDatabase? db}) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
@@ -139,12 +168,8 @@ void main() {
     expect(find.text('—'), findsOneWidget);
 
     // Track: log a weight.
-    await tester.tap(find.byKey(const Key('nav-track')));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('weight-input')), '83.2');
-    await tester.tap(find.byKey(const Key('save-weight')));
-    await pumpUntil(tester, find.text('83.2 kg'));
-    expect(find.text('83.2 kg'), findsOneWidget);
+    await logWeight(tester, '83.2');
+    expect(find.textContaining('83.2 kg'), findsOneWidget);
 
     // Settings: calorie target.
     await tester.tap(find.byKey(const Key('open-settings')));
@@ -534,16 +559,8 @@ void main() {
   testWidgets('real on-device database opens, migrates, persists a weight '
       'and a target across a fresh connection', (tester) async {
     await pumpApp(tester); // production providers: real file database
-    await tester.tap(find.byKey(const Key('nav-track')));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('weight-input')), '77.7');
-    await tester.enterText(
-      find.byKey(const Key('note-input')),
-      'integration-test',
-    );
-    await tester.tap(find.byKey(const Key('save-weight')));
-    await pumpUntil(tester, find.text('77.7 kg'));
-    expect(find.text('77.7 kg'), findsOneWidget);
+    await logWeight(tester, '77.7', note: 'integration-test');
+    expect(find.textContaining('77.7 kg'), findsOneWidget);
 
     // WP 4 B1: a target written through Settings must survive a restart.
     // restart() disposes the ProviderScope, which closes the file database
@@ -573,17 +590,24 @@ void main() {
     await pumpUntilGone(tester, find.text('0 of 2345'));
 
     await tester.tap(find.byKey(const Key('nav-track')));
-    await pumpUntil(tester, find.textContaining('integration-test'));
+    await pumpUntil(tester, find.byKey(const Key('site-weight')));
+    await tester.tap(find.byKey(const Key('site-weight')));
+    await pumpUntil(tester, find.byKey(const Key('chart-summary')));
+    // The history is a lazy sliver list: scroll the reading into view.
+    await scrollTo(tester, find.textContaining('integration-test'));
     expect(find.textContaining('integration-test'), findsOneWidget);
 
-    // Clean up so repeated runs on one device do not accumulate rows.
-    final tile = find.ancestor(
+    // Clean up so repeated runs on one device do not accumulate rows: delete
+    // the reading through its delete button and the confirmation.
+    final row = find.ancestor(
       of: find.textContaining('integration-test'),
-      matching: find.byType(ListTile),
+      matching: keyWithPrefix('reading-'),
     );
     await tester.tap(
-      find.descendant(of: tile, matching: find.byTooltip('Delete entry')),
+      find.descendant(of: row, matching: keyWithPrefix('delete-')),
     );
+    await pumpUntil(tester, find.byKey(const Key('delete-confirm')));
+    await tester.tap(find.byKey(const Key('delete-confirm')));
     await pumpUntilGone(tester, find.textContaining('integration-test'));
     expect(find.textContaining('integration-test'), findsNothing);
   });

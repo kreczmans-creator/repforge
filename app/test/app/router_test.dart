@@ -5,6 +5,7 @@ import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/domain/measurements/measurements.dart';
 
 import '../helpers/pump.dart';
 
@@ -28,7 +29,8 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-track')));
     await tester.pumpAndSettle();
     expect(find.text('Track'), findsWidgets);
-    expect(find.byKey(const Key('weight-input')), findsOneWidget);
+    expect(find.byKey(const Key('add-measurements')), findsOneWidget);
+    expect(find.byKey(const Key('site-weight')), findsOneWidget);
     await tester.tap(find.byKey(const Key('nav-fuel')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('log-food')), findsOneWidget);
@@ -69,6 +71,44 @@ void main() {
       RfRoutes.trainSession('missing'): 'session-missing',
       RfRoutes.trainHistory: 'history-list-empty',
       RfRoutes.trainHistoryDetail('missing'): 'detail-missing',
+    };
+    for (final entry in expected.entries) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [databaseProvider.overrideWithValue(db)],
+          child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(entry.value)), findsOneWidget, reason: entry.key);
+      await unmount(tester);
+    }
+  });
+
+  testWidgets('measurement routes resolve (WP 10)', (tester) async {
+    expect(RfRoutes.trackEntry, '/track/entry');
+    expect(RfRoutes.trackUnreadable, '/track/unreadable');
+    expect(RfRoutes.trackProgress, '/track/progress');
+    expect(
+      RfRoutes.trackSite(MeasurementSite.thighLeft),
+      '/track/site/thighLeft',
+    );
+    expect(RfRoutes.trackCompare(), '/track/compare');
+    expect(
+      RfRoutes.trackCompare(MeasurementSite.waist),
+      '/track/compare?site=waist',
+    );
+
+    final expected = <String, String>{
+      RfRoutes.trackEntry: 'field-weight',
+      RfRoutes.trackUnreadable: 'unreadable-empty',
+      RfRoutes.trackProgress: 'progress-empty',
+      RfRoutes.trackSite(MeasurementSite.weight): 'site-empty',
+      '/track/site/nonsense': 'site-unknown',
+      RfRoutes.trackCompare(): 'compare-site-picker',
+      RfRoutes.trackCompare(MeasurementSite.waist): 'outcome-nodata-first',
+      '/track/compare?mode=periods': 'period-empty-first',
     };
     for (final entry in expected.entries) {
       await tester.pumpWidget(

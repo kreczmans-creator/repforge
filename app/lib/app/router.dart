@@ -1,8 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:repforge/domain/core/calendar_date.dart';
+import 'package:repforge/domain/measurements/measurement_period.dart';
+import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
-import 'package:repforge/features/measurements/presentation/weight_screen.dart';
+import 'package:repforge/features/measurements/presentation/comparison_screen.dart';
+import 'package:repforge/features/measurements/presentation/measurement_entry_screen.dart';
+import 'package:repforge/features/measurements/presentation/measurements_home_screen.dart';
+import 'package:repforge/features/measurements/presentation/progress_screen.dart';
+import 'package:repforge/features/measurements/presentation/site_screen.dart';
+import 'package:repforge/features/measurements/presentation/unreadable_screen.dart';
 import 'package:repforge/features/nutrition/presentation/custom_food_screen.dart';
 import 'package:repforge/features/nutrition/presentation/food_search_screen.dart';
 import 'package:repforge/features/nutrition/presentation/fuel_screen.dart';
@@ -85,6 +93,26 @@ abstract final class RfRoutes {
   /// Recipe editor for [id].
   static String fuelRecipeEdit(String id) => '/fuel/recipes/$id/edit';
   static const track = '/track';
+
+  /// Entry form for any subset of measurements (BCM-001..004).
+  static const trackEntry = '/track/entry';
+
+  /// Entry form with the field of [site] focused (quick weight logging).
+  static String trackEntryFor(MeasurementSite site) =>
+      '/track/entry?focus=${site.name}';
+
+  /// Stored readings that cannot be shown (listed raw, deletable).
+  static const trackUnreadable = '/track/unreadable';
+
+  /// Progress summary (BCM-008).
+  static const trackProgress = '/track/progress';
+
+  /// Chart and history of one measurement type (BCM-004..006).
+  static String trackSite(MeasurementSite site) => '/track/site/${site.name}';
+
+  /// Comparison of two dates or periods (BCM-007), optionally for [site].
+  static String trackCompare([MeasurementSite? site]) =>
+      site == null ? '/track/compare' : '/track/compare?site=${site.name}';
   static const goals = '/goals';
 
   static const settings = '/settings';
@@ -287,7 +315,64 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
           routes: [
             GoRoute(
               path: RfRoutes.track,
-              builder: (context, state) => const WeightScreen(),
+              builder: (context, state) => const MeasurementsHomeScreen(),
+              routes: [
+                GoRoute(
+                  path: 'entry',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => MeasurementEntryScreen(
+                    focusSite: _siteNamed(state.uri.queryParameters['focus']),
+                  ),
+                ),
+                GoRoute(
+                  path: 'unreadable',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const UnreadableScreen(),
+                ),
+                GoRoute(
+                  path: 'progress',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const ProgressScreen(),
+                ),
+                GoRoute(
+                  path: 'site/:site',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) {
+                    final site = _siteNamed(state.pathParameters['site']);
+                    return site == null
+                        ? const _UnknownMeasurementScreen()
+                        : SiteScreen(site: site);
+                  },
+                ),
+                GoRoute(
+                  path: 'compare',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) {
+                    final q = state.uri.queryParameters;
+                    CalendarDate? date(String key) {
+                      final d = DateTime.tryParse(q[key] ?? '');
+                      return d == null
+                          ? null
+                          : CalendarDate(d.year, d.month, d.day);
+                    }
+
+                    DateRange? period(String from, String to) {
+                      final a = date(from);
+                      final b = date(to);
+                      return a == null || b == null ? null : DateRange(a, b);
+                    }
+
+                    return ComparisonScreen(
+                      site: _siteNamed(q['site']),
+                      periods: q['mode'] == 'periods',
+                      dateA: date('a'),
+                      dateB: date('b'),
+                      periodA: period('a1', 'a2'),
+                      periodB: period('b1', 'b2'),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -317,6 +402,23 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
       ),
   ],
 );
+
+MeasurementSite? _siteNamed(String? name) =>
+    MeasurementSite.values.where((s) => s.name == name).firstOrNull;
+
+/// Shown for `/track/site/<unknown>`.
+class _UnknownMeasurementScreen extends StatelessWidget {
+  const _UnknownMeasurementScreen();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Measurement')),
+    body: const Padding(
+      padding: EdgeInsets.all(RfSpace.gutter),
+      child: Text('Unknown measurement type.', key: Key('site-unknown')),
+    ),
+  );
+}
 
 class _Shell extends StatelessWidget {
   const _Shell({required this.shell});

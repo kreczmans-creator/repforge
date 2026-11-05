@@ -494,7 +494,8 @@ void main() {
               ) as Err<MeasurementValue>).error
               as ValidationError;
       expect(e.field, 'thighRight');
-      expect(e.message, contains('Right thigh'));
+      expect(e.message, isNot(contains('thigh'))); // no label repeated (N3)
+      expect(e.message, contains('0.1 cm'));
     });
   });
 }

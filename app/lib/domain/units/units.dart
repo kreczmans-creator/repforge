@@ -125,17 +125,12 @@ final class Centimetres {
     }
     final steps = (raw * 10).roundToDouble();
     if ((raw * 10 - steps).abs() > _tolerance) {
-      return const Err(
-        ValidationError('Measurement must be in steps of 0.1 cm.', field: 'cm'),
-      );
+      return const Err(ValidationError('Use steps of 0.1 cm.', field: 'cm'));
     }
     final snapped = steps / 10;
     if (snapped < min || snapped > max) {
       return const Err(
-        ValidationError(
-          'Measurement must be between 10.0 cm and 300.0 cm.',
-          field: 'cm',
-        ),
+        ValidationError('Enter a value from 10.0 to 300.0 cm.', field: 'cm'),
       );
     }
     return Ok(Centimetres._(snapped));

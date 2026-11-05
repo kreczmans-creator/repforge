@@ -1,3 +1,4 @@
+import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/domain/units/kilograms.dart';
@@ -13,7 +14,7 @@ const Duration futureTolerance = Duration(minutes: 1);
 ValidationError? checkNotInFuture(DateTime recordedAt, DateTime now) =>
     recordedAt.toUtc().isAfter(now.toUtc().add(futureTolerance))
     ? const ValidationError(
-        'The date cannot be in the future.',
+        'The date and time cannot be in the future.',
         field: 'recordedAt',
       )
     : null;
@@ -26,7 +27,8 @@ String? normaliseNote(String? note) {
 
 /// Strictly parses typed text for [site] (BCM-001(1), BCM-002(1)): kg for
 /// weight, cm otherwise. Out-of-range and off-step input is rejected, never
-/// rounded. The error's `field` is the site name.
+/// rounded. The error's `field` is the site name and its message does not
+/// repeat the site's label (review N3).
 Result<MeasurementValue> parseMeasurementValue(
   MeasurementSite site,
   String text,
@@ -43,8 +45,10 @@ Result<MeasurementValue> parseMeasurementValue(
   };
 }
 
+/// Keeps the message as is (it does not repeat the site name: a form shows it
+/// next to the labelled field) and sets the field to the site name.
 AppError _forSite(MeasurementSite site, AppError e) =>
-    ValidationError('${site.label}: ${e.message}', field: site.name);
+    ValidationError(e.message, field: site.name);
 
 /// Combines field errors into one [ValidationError] carrying all of them in
 /// [ValidationError.fieldErrors]; the first error supplies `message`/`field`.
@@ -59,4 +63,22 @@ ValidationError combineValidationErrors(List<ValidationError> errors) {
         if (e.field != null) e.field!: e.message,
     },
   );
+}
+
+/// Default local date and time of a new entry for [date] (BCM-004(1)): the
+/// current time (to the minute) when [date] is today, otherwise 12:00 local on
+/// that date. Never later than [now]: a future [date] falls back to [now].
+DateTime defaultRecordedAt(CalendarDate date, DateTime now) {
+  final local = now.toLocal();
+  final today = CalendarDate.fromInstant(local);
+  if (date.compareTo(today) >= 0) {
+    return DateTime(
+      local.year,
+      local.month,
+      local.day,
+      local.hour,
+      local.minute,
+    );
+  }
+  return DateTime(date.year, date.month, date.day, 12);
 }

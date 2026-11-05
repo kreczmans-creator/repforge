@@ -45,24 +45,19 @@ final class Kilograms implements Comparable<Kilograms> {
   /// floating-point noise) and 20.0 to 500.0 kg. Rejects, never rounds.
   static Result<Kilograms> of(double raw) {
     if (raw.isNaN || raw.isInfinite) {
-      return const Err(
-        ValidationError('Weight must be a number.', field: 'weightKg'),
-      );
+      return const Err(ValidationError('Enter a number.', field: 'weightKg'));
     }
     final steps = (raw * 10).roundToDouble();
     if ((raw * 10 - steps).abs() > _tolerance) {
       return const Err(
-        ValidationError(
-          'Weight must be in steps of 0.1 kg.',
-          field: 'weightKg',
-        ),
+        ValidationError('Use steps of 0.1 kg.', field: 'weightKg'),
       );
     }
     final snapped = steps / 10;
     if (snapped < min || snapped > max) {
       return const Err(
         ValidationError(
-          'Weight must be between 20.0 kg and 500.0 kg.',
+          'Enter a value from 20.0 to 500.0 kg.',
           field: 'weightKg',
         ),
       );
@@ -80,9 +75,7 @@ final class Kilograms implements Comparable<Kilograms> {
     }
     final parsed = parsePlainDecimal(text);
     if (parsed == null) {
-      return const Err(
-        ValidationError('Weight must be a number.', field: 'weightKg'),
-      );
+      return const Err(ValidationError('Enter a number.', field: 'weightKg'));
     }
     return of(parsed);
   }

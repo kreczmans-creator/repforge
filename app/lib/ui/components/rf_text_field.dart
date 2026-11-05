@@ -9,6 +9,7 @@ class RfTextField extends StatelessWidget {
     required this.label,
     super.key,
     this.controller,
+    this.focusNode,
     this.hint,
     this.helper,
     this.errorText,
@@ -29,6 +30,7 @@ class RfTextField extends StatelessWidget {
     required this.label,
     super.key,
     this.controller,
+    this.focusNode,
     this.hint,
     this.helper,
     this.errorText,
@@ -48,6 +50,7 @@ class RfTextField extends StatelessWidget {
     required this.label,
     super.key,
     this.controller,
+    this.focusNode,
     this.hint,
     this.helper,
     this.errorText,
@@ -63,6 +66,7 @@ class RfTextField extends StatelessWidget {
 
   final String label;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? hint;
   final String? helper;
   final String? errorText;
@@ -83,6 +87,7 @@ class RfTextField extends StatelessWidget {
     final theme = Theme.of(context);
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       textInputAction: textInputAction,
