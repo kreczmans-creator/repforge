@@ -106,5 +106,8 @@ TD-25 (logging of skipped rows, with TD-32), TD-41 (unreadable legacy exercises,
 4. Approve the TRN-020 exertion correction (RIR 0–5 whole numbers, RPE 1–10 in 0.5 steps).
 5. Approve UI scope: library only in WP 8; plan builder and sessions in WP 9.
 
+## Owner disposition (2026-11-05)
+The owner deferred acceptance and decisions 1–5. WP 8 stays **Delivered — awaiting owner acceptance**; it is not accepted or closed, and silence is not approval. TD-41 and TD-42 stay tracked. The owner authorised WP 9 to proceed on top of the WP 8 implementation, without resolving decisions 1–5 (see WP9.md "Constraints from WP 8").
+
 ## Recommendation
 Accept WP 8 at b1ab45a, subject to decisions 1–5. All D06 criteria are met with code-level evidence, four workflows are green on the final commit, and the independent re-verification found no open medium or high findings.
