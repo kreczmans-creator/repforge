@@ -1,0 +1,2328 @@
+{
+  "formatVersion": 1,
+  "status": "Proposed — for owner approval",
+  "description": "Proposed re-expression of the 89 seed exercises in the new model. Ids unchanged. Flag codes: M meaning of a tag changes; D debatable tag; E equipment tag inaccurate (proposed item); R refinement to a finer node; N note.",
+  "exercises": [
+    {
+      "id": "lib-back-squat",
+      "name": "Barbell back squat",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "adductors",
+        "lowerBack"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "adductors",
+        "lowerBack"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [
+        "barbell",
+        "squatRack"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-front-squat",
+      "name": "Barbell front squat",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "abs"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "abs"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [
+        "barbell",
+        "squatRack"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-goblet-squat",
+      "name": "Goblet squat",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "adductors"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "adductors"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-hack-squat",
+      "name": "Hack squat",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-leg-press",
+      "name": "Leg press",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "adductors"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "adductors"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Classed as squat; a leg press is a machine press with a supported back. Reviewer may prefer a separate pattern."
+      }
+    },
+    {
+      "id": "lib-leg-extension",
+      "name": "Leg extension",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "kneeExtension"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-leg-curl",
+      "name": "Seated leg curl",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "hamstrings",
+      "seedSecondary": [
+        "calves"
+      ],
+      "proposedPrimary": [
+        "hamstrings"
+      ],
+      "proposedSecondary": [
+        "calves"
+      ],
+      "proposedPatterns": [
+        "kneeFlexion"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": {
+        "code": "R",
+        "text": "Secondary calves stands for gastrocnemius."
+      }
+    },
+    {
+      "id": "lib-lying-leg-curl",
+      "name": "Lying leg curl",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "hamstrings",
+      "seedSecondary": [
+        "calves"
+      ],
+      "proposedPrimary": [
+        "hamstrings"
+      ],
+      "proposedSecondary": [
+        "calves"
+      ],
+      "proposedPatterns": [
+        "kneeFlexion"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": {
+        "code": "R",
+        "text": "Secondary calves stands for gastrocnemius."
+      }
+    },
+    {
+      "id": "lib-romanian-deadlift",
+      "name": "Romanian deadlift",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "hamstrings",
+      "seedSecondary": [
+        "glutes",
+        "lowerBack",
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "hamstrings"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "lowerBack",
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "hinge"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Glutes and lower back are arguably co-primary with hamstrings. Seed primary kept."
+      }
+    },
+    {
+      "id": "lib-dumbbell-rdl",
+      "name": "Dumbbell Romanian deadlift",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "hamstrings",
+      "seedSecondary": [
+        "glutes",
+        "lowerBack",
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "hamstrings"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "lowerBack",
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "hinge"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "As Romanian deadlift."
+      }
+    },
+    {
+      "id": "lib-deadlift",
+      "name": "Conventional deadlift",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "hamstrings",
+        "lowerBack",
+        "upperBack",
+        "forearms",
+        "quadriceps"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "hamstrings",
+        "lowerBack",
+        "upperBack",
+        "forearms",
+        "quadriceps"
+      ],
+      "proposedPatterns": [
+        "hinge"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Seed primary is glutes alone. Hamstrings and lower back are arguably co-primary. Adding a primary changes attributed set counts, so the owner decides."
+      }
+    },
+    {
+      "id": "lib-sumo-deadlift",
+      "name": "Sumo deadlift",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "adductors",
+        "hamstrings",
+        "quadriceps",
+        "lowerBack"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "adductors",
+        "hamstrings",
+        "quadriceps",
+        "lowerBack"
+      ],
+      "proposedPatterns": [
+        "hinge"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "As conventional deadlift; adductors tagged secondary."
+      }
+    },
+    {
+      "id": "lib-trap-bar-deadlift",
+      "name": "Trap bar deadlift",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "hamstrings",
+        "upperBack",
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "hamstrings",
+        "upperBack",
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "hinge",
+        "squat"
+      ],
+      "seedEquipment": [
+        "trapBar"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Hybrid of hinge and squat; hinge listed first. Quadriceps primary is defensible."
+      }
+    },
+    {
+      "id": "lib-hip-thrust",
+      "name": "Barbell hip thrust",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "hamstrings",
+        "quadriceps"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "hamstrings",
+        "quadriceps"
+      ],
+      "proposedPatterns": [
+        "hipExtension"
+      ],
+      "seedEquipment": [
+        "barbell",
+        "bench"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Quadriceps as secondary is doubtful; review."
+      }
+    },
+    {
+      "id": "lib-glute-bridge",
+      "name": "Glute bridge",
+      "category": "legs",
+      "loggingType": "bodyweight",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "hamstrings"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "hamstrings"
+      ],
+      "proposedPatterns": [
+        "hipExtension"
+      ],
+      "seedEquipment": [],
+      "flag": null
+    },
+    {
+      "id": "lib-walking-lunge",
+      "name": "Dumbbell walking lunge",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "hamstrings",
+        "adductors"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "hamstrings",
+        "adductors"
+      ],
+      "proposedPatterns": [
+        "lunge"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-bodyweight-lunge",
+      "name": "Bodyweight lunge",
+      "category": "legs",
+      "loggingType": "bodyweight",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "hamstrings"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "hamstrings"
+      ],
+      "proposedPatterns": [
+        "lunge"
+      ],
+      "seedEquipment": [],
+      "flag": null
+    },
+    {
+      "id": "lib-bulgarian-split-squat",
+      "name": "Bulgarian split squat",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "adductors"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "adductors"
+      ],
+      "proposedPatterns": [
+        "lunge"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-step-up",
+      "name": "Dumbbell step-up",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes"
+      ],
+      "proposedPatterns": [
+        "lunge"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Step-up is classed with lunge and split stance. Equipment: bench in seed; plyoBox is the closer requirement."
+      }
+    },
+    {
+      "id": "lib-bodyweight-squat",
+      "name": "Bodyweight squat",
+      "category": "legs",
+      "loggingType": "bodyweight",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [],
+      "flag": null
+    },
+    {
+      "id": "lib-standing-calf-raise",
+      "name": "Standing calf raise",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "calves",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "gastrocnemius"
+      ],
+      "proposedSecondary": [
+        "soleus"
+      ],
+      "proposedPatterns": [
+        "plantarFlexion"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": {
+        "code": "R",
+        "text": "Refined to gastrocnemius (primary) and soleus (secondary); standing with the knee straight."
+      }
+    },
+    {
+      "id": "lib-hip-abduction",
+      "name": "Machine hip abduction",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "abductors",
+      "seedSecondary": [
+        "glutes"
+      ],
+      "proposedPrimary": [
+        "abductors"
+      ],
+      "proposedSecondary": [
+        "glutes"
+      ],
+      "proposedPatterns": [
+        "hipAbduction"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Gluteus medius is the main mover but sits under Glutes; the seed primary abductors holds only tensor fasciae latae. Consider adding gluteusMedius as primary (changes attributed counts)."
+      }
+    },
+    {
+      "id": "lib-hip-adduction",
+      "name": "Machine hip adduction",
+      "category": "legs",
+      "loggingType": "weighted",
+      "seedPrimary": "adductors",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "adductors"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "hipAdduction"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-bench-press",
+      "name": "Barbell bench press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "horizontalPush"
+      ],
+      "seedEquipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-db-bench-press",
+      "name": "Dumbbell bench press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "horizontalPush"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-incline-bench-press",
+      "name": "Incline barbell bench press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "horizontalPush"
+      ],
+      "seedEquipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Incline emphasises the clavicular head only qualitatively. Optional refinement to pectoralisMajorClavicular."
+      }
+    },
+    {
+      "id": "lib-incline-db-press",
+      "name": "Incline dumbbell press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "horizontalPush"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "As incline barbell press."
+      }
+    },
+    {
+      "id": "lib-machine-chest-press",
+      "name": "Machine chest press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "horizontalPush"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-cable-fly",
+      "name": "Cable chest fly",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "shoulderHorizontalAdduction"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-db-fly",
+      "name": "Dumbbell chest fly",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "shoulderHorizontalAdduction"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-push-up",
+      "name": "Push-up",
+      "category": "push",
+      "loggingType": "bodyweight",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts",
+        "triceps",
+        "abs"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "triceps",
+        "abs"
+      ],
+      "proposedPatterns": [
+        "horizontalPush",
+        "antiExtension"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "R",
+        "text": "Abs retained as secondary; anti-extension listed as second pattern."
+      }
+    },
+    {
+      "id": "lib-overhead-press",
+      "name": "Barbell overhead press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "frontDelts",
+      "seedSecondary": [
+        "triceps",
+        "sideDelts",
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "frontDelts"
+      ],
+      "proposedSecondary": [
+        "triceps",
+        "sideDelts",
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "verticalPush"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Upper back as secondary stands for upper trapezius."
+      }
+    },
+    {
+      "id": "lib-db-shoulder-press",
+      "name": "Dumbbell shoulder press",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "frontDelts",
+      "seedSecondary": [
+        "triceps",
+        "sideDelts"
+      ],
+      "proposedPrimary": [
+        "frontDelts"
+      ],
+      "proposedSecondary": [
+        "triceps",
+        "sideDelts"
+      ],
+      "proposedPatterns": [
+        "verticalPush"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-lateral-raise",
+      "name": "Dumbbell lateral raise",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "sideDelts",
+      "seedSecondary": [
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "sideDelts"
+      ],
+      "proposedSecondary": [
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "shoulderAbduction"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-triceps-pushdown",
+      "name": "Triceps pushdown",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "triceps",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "triceps"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "elbowExtension"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-skull-crusher",
+      "name": "EZ bar skull crusher",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "triceps",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "triceps"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "elbowExtension"
+      ],
+      "seedEquipment": [
+        "ezBar",
+        "bench"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-overhead-triceps-extension",
+      "name": "Overhead triceps extension",
+      "category": "push",
+      "loggingType": "weighted",
+      "seedPrimary": "triceps",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "triceps"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "elbowExtension"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-dips",
+      "name": "Dips",
+      "category": "push",
+      "loggingType": "bodyweight",
+      "seedPrimary": "triceps",
+      "seedSecondary": [
+        "chest",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "triceps"
+      ],
+      "proposedSecondary": [
+        "chest",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "verticalPush"
+      ],
+      "seedEquipment": [
+        "dipBars"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Triceps and chest are co-primary in practice, depending on lean. Pattern classed as vertical push: debatable."
+      }
+    },
+    {
+      "id": "lib-assisted-dip",
+      "name": "Assisted dip (machine)",
+      "category": "push",
+      "loggingType": "assisted",
+      "seedPrimary": "triceps",
+      "seedSecondary": [
+        "chest",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "triceps"
+      ],
+      "proposedSecondary": [
+        "chest",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "verticalPush"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "As dips."
+      }
+    },
+    {
+      "id": "lib-pull-up",
+      "name": "Pull-up",
+      "category": "pull",
+      "loggingType": "bodyweight",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "biceps",
+        "upperBack",
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "biceps",
+        "upperBack",
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "verticalPull"
+      ],
+      "seedEquipment": [
+        "pullUpBar"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-chin-up",
+      "name": "Chin-up",
+      "category": "pull",
+      "loggingType": "bodyweight",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "biceps",
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "biceps",
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "verticalPull"
+      ],
+      "seedEquipment": [
+        "pullUpBar"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Biceps is arguably co-primary."
+      }
+    },
+    {
+      "id": "lib-assisted-pull-up",
+      "name": "Assisted pull-up (machine)",
+      "category": "pull",
+      "loggingType": "assisted",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "biceps",
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "biceps",
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "verticalPull"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-band-assisted-pull-up",
+      "name": "Band-assisted pull-up",
+      "category": "pull",
+      "loggingType": "assisted",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "biceps",
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "biceps",
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "verticalPull"
+      ],
+      "seedEquipment": [
+        "pullUpBar",
+        "resistanceBand"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-lat-pulldown",
+      "name": "Lat pulldown",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "biceps",
+        "upperBack",
+        "rearDelts"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "biceps",
+        "upperBack",
+        "rearDelts"
+      ],
+      "proposedPatterns": [
+        "verticalPull"
+      ],
+      "seedEquipment": [
+        "cable",
+        "machine"
+      ],
+      "flag": {
+        "code": "E",
+        "text": "Equipment lists cable and machine together; a single class applies at coverage (cable)."
+      }
+    },
+    {
+      "id": "lib-seated-cable-row",
+      "name": "Seated cable row",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "upperBack",
+      "seedSecondary": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPrimary": [
+        "upperBack"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPatterns": [
+        "horizontalPull"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Lats arguably co-primary. Row primaries are inconsistent across the seed (upperBack here, lats for one-arm row)."
+      }
+    },
+    {
+      "id": "lib-barbell-row",
+      "name": "Barbell bent-over row",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "upperBack",
+      "seedSecondary": [
+        "lats",
+        "biceps",
+        "lowerBack",
+        "rearDelts"
+      ],
+      "proposedPrimary": [
+        "upperBack"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "biceps",
+        "lowerBack",
+        "rearDelts"
+      ],
+      "proposedPatterns": [
+        "horizontalPull"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "As seated cable row."
+      }
+    },
+    {
+      "id": "lib-db-row",
+      "name": "One-arm dumbbell row",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "upperBack",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "upperBack",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPatterns": [
+        "horizontalPull"
+      ],
+      "seedEquipment": [
+        "dumbbell",
+        "bench"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Primary lats while barbell and cable rows use upperBack. Harmonise during enrichment."
+      }
+    },
+    {
+      "id": "lib-chest-supported-row",
+      "name": "Chest-supported machine row",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "upperBack",
+      "seedSecondary": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPrimary": [
+        "upperBack"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPatterns": [
+        "horizontalPull"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-inverted-row",
+      "name": "Inverted row",
+      "category": "pull",
+      "loggingType": "bodyweight",
+      "seedPrimary": "upperBack",
+      "seedSecondary": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPrimary": [
+        "upperBack"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "proposedPatterns": [
+        "horizontalPull"
+      ],
+      "seedEquipment": [
+        "barbell",
+        "squatRack"
+      ],
+      "flag": {
+        "code": "E",
+        "text": "Equipment lists barbell and squatRack; the barbell is a fixed bar here. Coverage baseline counts it as bodyweight."
+      }
+    },
+    {
+      "id": "lib-face-pull",
+      "name": "Face pull",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "rearDelts",
+      "seedSecondary": [
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "rearDelts"
+      ],
+      "proposedSecondary": [
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "shoulderHorizontalAbduction",
+        "shoulderExternalRotation"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Rear delts primary; infraspinatus and middle trapezius are likely co-targets. Second pattern external rotation."
+      }
+    },
+    {
+      "id": "lib-rear-delt-fly",
+      "name": "Reverse pec deck",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "rearDelts",
+      "seedSecondary": [
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "rearDelts"
+      ],
+      "proposedSecondary": [
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "shoulderHorizontalAbduction"
+      ],
+      "seedEquipment": [
+        "machine"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-shrug",
+      "name": "Dumbbell shrug",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "upperBack",
+      "seedSecondary": [
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "trapeziusUpper"
+      ],
+      "proposedSecondary": [
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "scapularElevation"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": {
+        "code": "R",
+        "text": "Refined from upperBack to trapeziusUpper; filters by upperBack still match."
+      }
+    },
+    {
+      "id": "lib-barbell-curl",
+      "name": "Barbell biceps curl",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "biceps",
+      "seedSecondary": [
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "biceps"
+      ],
+      "proposedSecondary": [
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "elbowFlexion"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-db-curl",
+      "name": "Dumbbell biceps curl",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "biceps",
+      "seedSecondary": [
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "biceps"
+      ],
+      "proposedSecondary": [
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "elbowFlexion"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-hammer-curl",
+      "name": "Hammer curl",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "biceps",
+      "seedSecondary": [
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "biceps"
+      ],
+      "proposedSecondary": [
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "elbowFlexion"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Brachialis and brachioradialis emphasis is qualitative. Promoting either to primary would change meaning."
+      }
+    },
+    {
+      "id": "lib-preacher-curl",
+      "name": "EZ bar preacher curl",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "biceps",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "biceps"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "elbowFlexion"
+      ],
+      "seedEquipment": [
+        "ezBar",
+        "bench"
+      ],
+      "flag": {
+        "code": "E",
+        "text": "Equipment ezBar and bench; preacherBench proposed."
+      }
+    },
+    {
+      "id": "lib-cable-curl",
+      "name": "Cable biceps curl",
+      "category": "pull",
+      "loggingType": "weighted",
+      "seedPrimary": "biceps",
+      "seedSecondary": [
+        "forearms"
+      ],
+      "proposedPrimary": [
+        "biceps"
+      ],
+      "proposedSecondary": [
+        "forearms"
+      ],
+      "proposedPatterns": [
+        "elbowFlexion"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-plank",
+      "name": "Plank",
+      "category": "core",
+      "loggingType": "timed",
+      "seedPrimary": "abs",
+      "seedSecondary": [
+        "obliques",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "abs"
+      ],
+      "proposedSecondary": [
+        "obliques",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "antiExtension"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Front delts as secondary is doubtful; isometric hold."
+      }
+    },
+    {
+      "id": "lib-side-plank",
+      "name": "Side plank",
+      "category": "core",
+      "loggingType": "timed",
+      "seedPrimary": "obliques",
+      "seedSecondary": [
+        "abs",
+        "abductors"
+      ],
+      "proposedPrimary": [
+        "obliques"
+      ],
+      "proposedSecondary": [
+        "abs",
+        "abductors"
+      ],
+      "proposedPatterns": [
+        "antiLateralFlexion"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Abductors secondary stands for gluteus medius, which sits under Glutes."
+      }
+    },
+    {
+      "id": "lib-weighted-plank",
+      "name": "Weighted plank",
+      "category": "core",
+      "loggingType": "timed",
+      "seedPrimary": "abs",
+      "seedSecondary": [
+        "obliques"
+      ],
+      "proposedPrimary": [
+        "abs"
+      ],
+      "proposedSecondary": [
+        "obliques"
+      ],
+      "proposedPatterns": [
+        "antiExtension"
+      ],
+      "seedEquipment": [
+        "plate"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-dead-hang",
+      "name": "Dead hang",
+      "category": "core",
+      "loggingType": "timed",
+      "seedPrimary": "forearms",
+      "seedSecondary": [
+        "lats",
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "forearms"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "gripHold"
+      ],
+      "seedEquipment": [
+        "pullUpBar"
+      ],
+      "flag": {
+        "code": "N",
+        "text": "Category core; pattern gripHold. Category and pattern differ; allowed."
+      }
+    },
+    {
+      "id": "lib-wall-sit",
+      "name": "Wall sit",
+      "category": "legs",
+      "loggingType": "timed",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "calves"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "calves"
+      ],
+      "proposedPatterns": [
+        "squat"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "N",
+        "text": "Category legs; timed isometric squat pattern."
+      }
+    },
+    {
+      "id": "lib-hanging-leg-raise",
+      "name": "Hanging leg raise",
+      "category": "core",
+      "loggingType": "bodyweight",
+      "seedPrimary": "abs",
+      "seedSecondary": [
+        "forearms",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "abs"
+      ],
+      "proposedSecondary": [
+        "forearms",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "hipFlexion",
+        "trunkFlexion"
+      ],
+      "seedEquipment": [
+        "pullUpBar"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Hip flexors arguably co-primary; front delts as secondary is doubtful."
+      }
+    },
+    {
+      "id": "lib-cable-crunch",
+      "name": "Cable crunch",
+      "category": "core",
+      "loggingType": "weighted",
+      "seedPrimary": "abs",
+      "seedSecondary": [
+        "obliques"
+      ],
+      "proposedPrimary": [
+        "abs"
+      ],
+      "proposedSecondary": [
+        "obliques"
+      ],
+      "proposedPatterns": [
+        "trunkFlexion"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-crunch",
+      "name": "Crunch",
+      "category": "core",
+      "loggingType": "bodyweight",
+      "seedPrimary": "abs",
+      "seedSecondary": [
+        "obliques"
+      ],
+      "proposedPrimary": [
+        "abs"
+      ],
+      "proposedSecondary": [
+        "obliques"
+      ],
+      "proposedPatterns": [
+        "trunkFlexion"
+      ],
+      "seedEquipment": [],
+      "flag": null
+    },
+    {
+      "id": "lib-pallof-press",
+      "name": "Pallof press",
+      "category": "core",
+      "loggingType": "weighted",
+      "seedPrimary": "obliques",
+      "seedSecondary": [
+        "abs",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "obliques"
+      ],
+      "proposedSecondary": [
+        "abs",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "antiRotation"
+      ],
+      "seedEquipment": [
+        "cable"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Primary obliques stands for anti-rotation bracing."
+      }
+    },
+    {
+      "id": "lib-ab-wheel",
+      "name": "Ab wheel rollout",
+      "category": "core",
+      "loggingType": "bodyweight",
+      "seedPrimary": "abs",
+      "seedSecondary": [
+        "lats",
+        "obliques"
+      ],
+      "proposedPrimary": [
+        "abs"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "obliques"
+      ],
+      "proposedPatterns": [
+        "antiExtension"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "E",
+        "text": "Seed lists no equipment so it shows as bodyweight-only; abWheel proposed."
+      }
+    },
+    {
+      "id": "lib-farmers-carry",
+      "name": "Farmer's carry",
+      "category": "core",
+      "loggingType": "distance",
+      "seedPrimary": "forearms",
+      "seedSecondary": [
+        "upperBack",
+        "abs",
+        "obliques"
+      ],
+      "proposedPrimary": [
+        "forearms"
+      ],
+      "proposedSecondary": [
+        "upperBack",
+        "abs",
+        "obliques"
+      ],
+      "proposedPatterns": [
+        "carryBilateral"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": {
+        "code": "N",
+        "text": "Category core; forearms primary. Upper trapezius and trunk bracing are co-targets."
+      }
+    },
+    {
+      "id": "lib-sled-push",
+      "name": "Sled push",
+      "category": "fullBody",
+      "loggingType": "distance",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "calves",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "calves",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "sledPushPull"
+      ],
+      "seedEquipment": [
+        "plate"
+      ],
+      "flag": {
+        "code": "E",
+        "text": "Seed tags plate; sled proposed. Category fullBody."
+      }
+    },
+    {
+      "id": "lib-kettlebell-swing",
+      "name": "Kettlebell swing",
+      "category": "fullBody",
+      "loggingType": "weighted",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "hamstrings",
+        "lowerBack",
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "hamstrings",
+        "lowerBack",
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "hinge"
+      ],
+      "seedEquipment": [
+        "kettlebell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Front delts as secondary is doubtful; hinge listed as pattern (ballistic)."
+      }
+    },
+    {
+      "id": "lib-clean-and-press",
+      "name": "Dumbbell clean and press",
+      "category": "fullBody",
+      "loggingType": "weighted",
+      "seedPrimary": "frontDelts",
+      "seedSecondary": [
+        "glutes",
+        "quadriceps",
+        "upperBack",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "frontDelts"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "quadriceps",
+        "upperBack",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "explosiveLift",
+        "verticalPush"
+      ],
+      "seedEquipment": [
+        "dumbbell"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Primary frontDelts understates the lower-body drive. Candidate multiple primaries (changes attributed counts)."
+      }
+    },
+    {
+      "id": "lib-burpee",
+      "name": "Burpee",
+      "category": "fullBody",
+      "loggingType": "bodyweight",
+      "seedPrimary": "fullBody",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "fullBody"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "fullBodyConditioning"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Only fullBody target. Consider anatomical secondaries."
+      }
+    },
+    {
+      "id": "lib-thruster",
+      "name": "Barbell thruster",
+      "category": "fullBody",
+      "loggingType": "weighted",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "frontDelts",
+        "glutes",
+        "triceps"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "frontDelts",
+        "glutes",
+        "triceps"
+      ],
+      "proposedPatterns": [
+        "squat",
+        "verticalPush"
+      ],
+      "seedEquipment": [
+        "barbell"
+      ],
+      "flag": {
+        "code": "N",
+        "text": "Two patterns: squat then vertical push."
+      }
+    },
+    {
+      "id": "lib-treadmill-run",
+      "name": "Treadmill run",
+      "category": "cardio",
+      "loggingType": "cardio",
+      "seedPrimary": "fullBody",
+      "seedSecondary": [
+        "quadriceps",
+        "calves"
+      ],
+      "proposedPrimary": [
+        "fullBody"
+      ],
+      "proposedSecondary": [
+        "quadriceps",
+        "calves"
+      ],
+      "proposedPatterns": [
+        "walkRun"
+      ],
+      "seedEquipment": [
+        "treadmill"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Structural near-duplicate of outdoor run; differs by equipment only. Legitimate (equipment) variation."
+      }
+    },
+    {
+      "id": "lib-incline-walk",
+      "name": "Incline treadmill walk",
+      "category": "cardio",
+      "loggingType": "cardio",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "calves",
+        "hamstrings"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "calves",
+        "hamstrings"
+      ],
+      "proposedPatterns": [
+        "walkRun"
+      ],
+      "seedEquipment": [
+        "treadmill"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "Primary glutes is a strong claim for incline walking; quadriceps and calves are as defensible."
+      }
+    },
+    {
+      "id": "lib-stationary-bike",
+      "name": "Exercise bike",
+      "category": "cardio",
+      "loggingType": "cardio",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes",
+        "calves"
+      ],
+      "proposedPrimary": [
+        "quadriceps"
+      ],
+      "proposedSecondary": [
+        "glutes",
+        "calves"
+      ],
+      "proposedPatterns": [
+        "ergometer"
+      ],
+      "seedEquipment": [
+        "bike"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-rowing-machine",
+      "name": "Rowing machine",
+      "category": "cardio",
+      "loggingType": "cardio",
+      "seedPrimary": "fullBody",
+      "seedSecondary": [
+        "lats",
+        "quadriceps"
+      ],
+      "proposedPrimary": [
+        "fullBody"
+      ],
+      "proposedSecondary": [
+        "lats",
+        "quadriceps"
+      ],
+      "proposedPatterns": [
+        "ergometer"
+      ],
+      "seedEquipment": [
+        "rower"
+      ],
+      "flag": {
+        "code": "D",
+        "text": "fullBody primary with lats and quadriceps secondary; acceptable."
+      }
+    },
+    {
+      "id": "lib-cross-trainer",
+      "name": "Cross-trainer",
+      "category": "cardio",
+      "loggingType": "cardio",
+      "seedPrimary": "fullBody",
+      "seedSecondary": [],
+      "proposedPrimary": [
+        "fullBody"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "ergometer"
+      ],
+      "seedEquipment": [
+        "elliptical"
+      ],
+      "flag": null
+    },
+    {
+      "id": "lib-skipping",
+      "name": "Skipping",
+      "category": "cardio",
+      "loggingType": "cardio",
+      "seedPrimary": "calves",
+      "seedSecondary": [
+        "fullBody"
+      ],
+      "proposedPrimary": [
+        "calves",
+        "fullBody"
+      ],
+      "proposedSecondary": [],
+      "proposedPatterns": [
+        "skipping"
+      ],
+      "seedEquipment": [
+        "skippingRope"
+      ],
+      "flag": {
+        "code": "M",
+        "text": "Seed lists fullBody as a secondary target. fullBody is non-anatomical and valid only as a primary target, so it moves to primary beside calves."
+      }
+    },
+    {
+      "id": "lib-run-400m",
+      "name": "400 m run",
+      "category": "cardio",
+      "loggingType": "distance",
+      "seedPrimary": "fullBody",
+      "seedSecondary": [
+        "quadriceps",
+        "calves",
+        "hamstrings"
+      ],
+      "proposedPrimary": [
+        "fullBody"
+      ],
+      "proposedSecondary": [
+        "quadriceps",
+        "calves",
+        "hamstrings"
+      ],
+      "proposedPatterns": [
+        "walkRun"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Near-duplicate of outdoor run and treadmill run by structure. Review for merge or relationship."
+      }
+    },
+    {
+      "id": "lib-outdoor-run",
+      "name": "Outdoor run",
+      "category": "cardio",
+      "loggingType": "distance",
+      "seedPrimary": "fullBody",
+      "seedSecondary": [
+        "quadriceps",
+        "calves"
+      ],
+      "proposedPrimary": [
+        "fullBody"
+      ],
+      "proposedSecondary": [
+        "quadriceps",
+        "calves"
+      ],
+      "proposedPatterns": [
+        "walkRun"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "As 400 m run."
+      }
+    },
+    {
+      "id": "lib-hip-flexor-stretch",
+      "name": "Hip flexor stretch",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "quadriceps",
+      "seedSecondary": [
+        "glutes"
+      ],
+      "proposedPrimary": [
+        "hipFlexors"
+      ],
+      "proposedSecondary": [
+        "quadriceps",
+        "glutes"
+      ],
+      "proposedPatterns": [
+        "staticStretch"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "M",
+        "text": "Seed primary quadriceps; the stretch targets iliopsoas. Primary moves to hipFlexors and quadriceps (rectus femoris) becomes secondary. Primary meaning changes."
+      }
+    },
+    {
+      "id": "lib-hamstring-stretch",
+      "name": "Hamstring stretch",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "hamstrings",
+      "seedSecondary": [
+        "lowerBack"
+      ],
+      "proposedPrimary": [
+        "hamstrings"
+      ],
+      "proposedSecondary": [
+        "lowerBack"
+      ],
+      "proposedPatterns": [
+        "staticStretch"
+      ],
+      "seedEquipment": [],
+      "flag": null
+    },
+    {
+      "id": "lib-childs-pose",
+      "name": "Child's pose",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "lats",
+      "seedSecondary": [
+        "lowerBack"
+      ],
+      "proposedPrimary": [
+        "lats"
+      ],
+      "proposedSecondary": [
+        "lowerBack"
+      ],
+      "proposedPatterns": [
+        "staticStretch"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Lats primary; lower back and shoulders also lengthen."
+      }
+    },
+    {
+      "id": "lib-cat-cow",
+      "name": "Cat-cow",
+      "category": "mobility",
+      "loggingType": "bodyweight",
+      "seedPrimary": "lowerBack",
+      "seedSecondary": [
+        "abs",
+        "upperBack"
+      ],
+      "proposedPrimary": [
+        "lowerBack"
+      ],
+      "proposedSecondary": [
+        "abs",
+        "upperBack"
+      ],
+      "proposedPatterns": [
+        "spinalMobility"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Spinal mobility; erector spinae and thoracic spine."
+      }
+    },
+    {
+      "id": "lib-thoracic-extension",
+      "name": "Thoracic spine extension",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "upperBack",
+      "seedSecondary": [
+        "lats"
+      ],
+      "proposedPrimary": [
+        "upperBack"
+      ],
+      "proposedSecondary": [
+        "lats"
+      ],
+      "proposedPatterns": [
+        "spinalMobility"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Upper back stands for thoracic spinal extensors and mid-back; lats secondary is doubtful."
+      }
+    },
+    {
+      "id": "lib-worlds-greatest-stretch",
+      "name": "World's greatest stretch",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "quadriceps",
+        "hamstrings",
+        "obliques"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "quadriceps",
+        "hamstrings",
+        "obliques"
+      ],
+      "proposedPatterns": [
+        "dynamicMobility"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Multi-region movement; glutes primary is a choice. Hip flexors and thoracic spine are co-targets."
+      }
+    },
+    {
+      "id": "lib-doorway-chest-stretch",
+      "name": "Doorway chest stretch",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "chest",
+      "seedSecondary": [
+        "frontDelts"
+      ],
+      "proposedPrimary": [
+        "chest"
+      ],
+      "proposedSecondary": [
+        "frontDelts"
+      ],
+      "proposedPatterns": [
+        "staticStretch"
+      ],
+      "seedEquipment": [],
+      "flag": null
+    },
+    {
+      "id": "lib-pigeon-pose",
+      "name": "Pigeon pose",
+      "category": "mobility",
+      "loggingType": "timed",
+      "seedPrimary": "glutes",
+      "seedSecondary": [
+        "abductors"
+      ],
+      "proposedPrimary": [
+        "glutes"
+      ],
+      "proposedSecondary": [
+        "abductors"
+      ],
+      "proposedPatterns": [
+        "staticStretch"
+      ],
+      "seedEquipment": [],
+      "flag": {
+        "code": "D",
+        "text": "Deep hip rotators (piriformis) are arguably primary; abductors secondary is doubtful."
+      }
+    }
+  ]
+}
