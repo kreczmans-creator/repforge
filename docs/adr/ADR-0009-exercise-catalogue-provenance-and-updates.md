@@ -2,6 +2,7 @@
 
 - Status: **Proposed** (WP 8 stage 3; owner approval required before implementation)
 - Date: 2026-11-05
+- History: proposed on 2026-11-05 for the WP 16a proposal; re-scoped the same day to **WP 8 stage 3** by owner decision (WP 16 superseded; D04 §7). Number and content kept. OQ-21 (definition of imported) approved 2026-11-05.
 - Implements owner decisions of 2026-11-05: original RepForge-authored content with compatible openly licensed datasets allowed; multiple content providers; separation of system-supplied, user-created and imported exercises; catalogue updates never silently overwrite user customisations; idempotent import and update; provenance, validation, duplicate detection and integrity reporting.
 
 ## Context
@@ -14,7 +15,7 @@ WP 8's `ImportExerciseLibrary` imports a bundled file once per seed version and 
 
 ## Decision (proposed)
 Option 2.
-1. **Source** of an exercise: `system` (from a content provider's catalogue release), `user` (created in the app, including a custom copy of a system exercise), `imported` (brought in by the user from a file or another app; proposed definition, OQ-21). Source is immutable after creation.
+1. **Source** of an exercise: `system` (from a content provider's catalogue release), `user` (created in the app, including a custom copy of a system exercise), `imported` (brought into RepForge by a user from an external file, application or user-controlled source — **OQ-21 approved 2026-11-05**). Open datasets incorporated into the official catalogue are `system` content with recorded provenance and licence. Source is immutable after creation.
 2. **Providers**: a registry of content providers (identifier, name, licence, attribution text, source URL). RepForge's own content is provider `repforge`. An openly licensed dataset is admitted only with its licence recorded and compatible with distribution in the app, and attribution shown where required. No proprietary third-party content.
 3. **Catalogue release**: per provider, a versioned bundled asset (format version 2) containing reference data and exercises with `id`, `revision` and content. Validation is all-or-nothing per release.
 4. **Reconciler** (one transaction per release, recorded in an import log with provider, release, counts and content hash):

@@ -1,6 +1,7 @@
 # WP 8 — Revised delivery plan (expanded exercise library)
 
-- Status: **Proposed — for owner review. Implementation not authorised.**
+- Status: **Proposed — for owner review. Implementation not authorised.** WP 8 is the active work package; no WP 16 implementation exists or is authorised.
+- History: drafted as the WP 16a plan (2026-11-05), re-scoped the same day into WP 8 by owner decision (D04 §7); technical design unchanged; revised with OQ-19/OQ-21 decisions and the owner's technical qualifications (§17).
 - Date: 2026-11-05
 - Governance: owner decision of 2026-11-05 — the expanded exercise library is delivered **within WP 8**, which stays the active work package. WP 8 is not created as a delivery package. WP 9 is unchanged.
 - Requirements: D04 TRN-001..012 (original), LIB-001..LIB-014 and the owner's library decisions (D04 §7; `docs/exercise-library-expansion.md`).
@@ -42,8 +43,8 @@ Out of scope: catalogue population beyond re-expressing the existing 89 exercise
 | WP 9 delivered (schema v7) | in progress | WP 8 stage 3 starts after WP 9 delivery so the two do not change the same code |
 | ADR-0008, ADR-0009 approved | proposed | required before implementation |
 | This plan authorised | proposed | required before implementation |
-| OQ-19 volume attribution with several primary targets | open | needed for the WP 9 volume rule change; proposal in §8 |
-| OQ-21 definition of "imported" source | open | proposal in ADR-0009 |
+| OQ-19 volume attribution with several primary targets | **approved 2026-11-05** | rule in §8 |
+| OQ-21 definition of "imported" source | **approved 2026-11-05** | ADR-0009 §1 |
 | OQ-22 anatomy node list and movement pattern list | open | WP 8 stage 3 ships the structure and a proposed list; owner approves the lists before WP 8 stage 5 |
 | WP 8 decisions 1 (taxonomy) and acceptance | open | WP 8 stage 3 extends the 19 identifiers; it does not decide WP 8 acceptance |
 | Schema numbering with WP 10 | coordination | WP 8 stage 3 takes v8 if it lands first; otherwise the next free version. No data dependency |
@@ -127,7 +128,7 @@ Per ADR-0009: bundled JSON per provider and release, holding reference data, exe
 ## 8. Changes to WP 8 and WP 9 code (behaviour preserved)
 - `Exercise`: `primaryMuscle`/`secondaryMuscles` → `targets`; `supplied` → `source`; new classification fields. Library queries filter by node with descendants; equipment filter unchanged; search unchanged.
 - WP 8 screens: show primary targets where they showed the primary muscle; editor requires at least one primary target. No new discovery features (WP 8 stage 6).
-- WP 9 volume per muscle group (TRN-027(3)): **proposal for OQ-19** — each primary target counts the set's volume in full at its L2 group (or at the node itself above L2); secondary targets are reported separately and never added; a set is counted once per distinct L2 group. Session and exercise volume are unchanged.
+- WP 9 volume per muscle group (TRN-027(3)), **OQ-19 approved 2026-11-05**: each primary target receives the full recorded set volume (and the set is counted for it); secondary targets are reported separately and excluded from primary totals; a set is attributed once per distinct primary target. These figures are attributions of recorded sets, **not physiological measurements** of muscle work, and screens say so. Session and exercise volume are unchanged.
 - Custom copies: copy targets, patterns and content; source `user`.
 - `TRN-010(1)` amended by owner decision (one or more primary targets); TRN-010(2) behaviour kept.
 
@@ -181,9 +182,9 @@ Backup `formatVersion` 3 with the new tables. Restore accepts 1, 2 and 3; files 
 ## 14. Decisions requested to authorise stage 3
 1. Approve ADR-0008 and ADR-0009.
 2. Approve the identifier mapping in §4 and the `fullBody` treatment.
-3. Approve the `exercises` table rebuild in v8 (§5) instead of keeping unread columns.
-4. Decide OQ-19 (volume attribution) — proposal in §8.
-5. Confirm the "imported" definition (OQ-21).
+3. Approve the `exercises` table rebuild in v8 (§5), on the evidence plan in §17.1.
+4. ~~OQ-19~~ approved 2026-11-05 (§8).
+5. ~~OQ-21~~ approved 2026-11-05 (ADR-0009).
 6. Confirm sequencing (§16).
 7. Authorise implementation of stage 3.
 
@@ -204,3 +205,29 @@ WP 8 is accepted when all of the following hold:
 - **WP 10**: depends on WP 3 and WP 4 only; not blocked; schema version numbers coordinated (v8 to whichever lands first).
 - **WP 11**: depends on WP 5, WP 9, WP 10 as before; its training-volume-per-muscle reporting follows WP 8 stage 3 (soft dependency).
 - Established roadmap order otherwise unchanged.
+
+## 17. Owner technical qualifications (2026-11-05) and how the plan meets them
+### 17.1 Table rebuild versus incremental migration
+| Option | How | Integrity | Risk | Verdict |
+|---|---|---|---|---|
+| A. Rebuild `exercises` (drift `TableMigration`) | copy rows into the new shape inside one transaction; foreign keys off during the copy, as v6 did on the same table | one source of truth for targets and source; CHECKs on new columns apply to every row | proven on this table in v6; verified by `SchemaVerifier` | **proposed** |
+| B1. Add columns, keep old ones and write both | `ALTER TABLE ADD COLUMN`; repository writes old and new | two stores of one fact; drift between them is possible | permanent dual-write code | rejected |
+| B2. Add columns, keep old ones unread | as B1, old columns frozen | `primary_muscle` is NOT NULL, so new rows need a meaningless placeholder | misleading data in backups and exports | rejected |
+| B3. `ALTER TABLE DROP COLUMN` | SQLite drops the three columns in place | as A | not modelled by drift's migration tooling; refused if a column is in an index or constraint; SQLite rewrites the table anyway | fallback only |
+Supporting facts (verified in code): `session_sets.exercise_id` and `plan_exercises.exercise_id` have no foreign key to `exercises`, so a rebuild cannot cascade or break them; identifiers are copied unchanged. **Evidence before commitment:** sub-stage 3b starts with a spike that runs option A and option B3 on the same v7 fixture (including a large fixture, for example 5 000 exercises and 100 000 sets). It compares value equality, constraint enforcement, crash re-run and duration, and records the result in the WP 8 record before the migration is finalised.
+
+### 17.2 Value equality across supported schema versions
+For each supported starting version v1–v7 (generated schemas in `test/data/generated_migrations`), a table-driven harness seeds representative data, migrates to v8 and asserts: every retained column of every row is equal; old muscle and supplied values equal their mapped targets and source; row counts per table are equal; foreign-key check passes; nothing is invented (unmapped values go to `legacy_quarantine`). The same harness covers a crash before `user_version` is written (re-run completes without duplicates).
+
+### 17.3 Backup and restore compatibility
+Golden backup files of format 1 (v1–v5 era), format 2 (v7) and format 3 (v8) restore into v8 with the same backfill as the migration; format 3 round-trips every new table, the release log and user state; older apps refuse format 3 (version check present since WP 3, verified at b1ab45a).
+
+### 17.4 User customisations never overwritten
+The reconciler writes only system-owned fields of `system` exercises and system relationships, content, media and reference data. Test: snapshot (row hashes) of all user-owned data — user and imported exercises, custom copies, user relationships, user state, plans, sessions, sets, schedules — before and after applying, re-applying, updating and retiring releases; snapshots must be equal. An architecture test confirms only the reconciler writes system catalogue fields.
+
+### 17.5 Retired exercises keep historical references
+Retiring sets `retired_at`; system exercises are never deleted and identifiers never reused. Because sets and plan exercises reference exercises without a foreign key, an integrity check (CI and in-app at startup, reported not repaired) asserts that every referenced exercise id exists. History, PR and volume queries include retired exercises; discovery hides them; starting a session from a plan with a retired exercise follows the WP 9 archived-exercise behaviour (skipped with a warning). Tests for each.
+
+### 17.6 Atomic, repeatable and auditable releases
+Atomic: validation of the whole release before any write; one transaction per release; a failure leaves no partial state (test with a fault injected mid-release). Repeatable: applying the same release again performs no writes (row hashes and `updated_at` unchanged). Auditable: `catalogue_releases` records provider, release, content hash, counts inserted/updated/retired, app version and time; every system exercise records provider and revision; the log is included in backups; CI publishes the integrity and coverage report for each release.
+

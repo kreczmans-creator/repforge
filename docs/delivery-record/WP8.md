@@ -13,7 +13,9 @@ Status: **Active — scope expanded 2026-11-05** (owner decision: the comprehens
 | **4. Remaining implementation work** | Stage 3 architecture and reference data (3a–3d), stage 4 catalogue tooling and quality assurance, stage 5 anatomical catalogue population (tranches 5.1–5.7), stage 6 search, discovery and exercise screens; media workstream deferred | `docs/wp8-delivery-plan.md` §0.1 |
 | **5. Final WP 8 acceptance criteria** | Original criteria plus stage 3–6 criteria, coverage matrix, no WP 9 regressions, open decisions dispositioned, final independent review | `docs/wp8-delivery-plan.md` §15 |
 
-Open owner decisions for WP 8: legacy-data policy (earlier decision 3), TRN-020 correction (earlier decision 4), UI scope confirmation (earlier decision 5), OQ-19, OQ-21, OQ-22, OQ-23; authorisation of stage 3. Earlier decision 1 (taxonomy) is folded into the anatomy decision and OQ-22 (current lists stay in force until stage 3); earlier decision 2 (OQ-09) is answered.
+Open owner decisions for WP 8: legacy-data policy (earlier decision 3), TRN-020 correction (earlier decision 4), UI scope confirmation (earlier decision 5), OQ-22, OQ-23; approval of ADR-0008 and ADR-0009; authorisation of stage 3. OQ-19 and OQ-21 decided 2026-11-05.
+
+**Architecture records for WP 8 stage 3:** ADR-0008 (exercise library domain model) and ADR-0009 (catalogue provenance and updates), both Proposed. They were first drafted for the WP 16 proposal and keep their numbers and history; the WP 16 proposal is superseded by the WP 8 scope decision and no WP 16 implementation is authorised. Earlier decision 1 (taxonomy) is folded into the anatomy decision and OQ-22 (current lists stay in force until stage 3); earlier decision 2 (OQ-09) is answered.
 
 ## Scope (D06 WP 8)
 Exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries.

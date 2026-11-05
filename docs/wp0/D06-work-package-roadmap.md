@@ -16,7 +16,7 @@ flowchart LR
   WP5 & WP9 & WP10 --> WP11
   WP3 --> WP12
   WP10 & WP9 --> WP13
-  WP8 -.->|stage 3: per-muscle volume| WP11
+  WP8 -->|expanded anatomy and taxonomy| WP11
   WP1 -.-> WP14
 ```
 
@@ -102,7 +102,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Dependencies: WP 4.
 - Acceptance: a set of each exercise type can be stored and read back with correct fields; invalid combinations rejected at use-case level (original; met with evidence). **Final acceptance (expanded)**: `docs/wp8-delivery-plan.md` §15, including the structured coverage matrix for catalogue population.
 - Verification: unit tests; schema migration test; integrity and coverage reports in CI; owner content review per regional tranche.
-- Sequencing: stage 3 code after WP 9 delivery (shared code); stage 4 documents and lists may proceed now; WP 10 not blocked; WP 11 per-muscle training volume follows stage 3 (soft).
+- Sequencing: stage 3 code after WP 9 delivery (shared code) and owner authorisation; stage 4 documents and lists may proceed earlier if authorised; WP 10 proceeds independently, subject to schema version coordination; WP 11 depends on WP 8's expanded anatomy and exercise taxonomy (stage 3) for its training analytics.
 
 ### WP 9 — Workout planning and workout execution
 - Status: **In progress** (started 2026-11-05 by owner instruction on the WP 8 foundation — stages 1–2 and review fixes; WP 8 remains active with expanded scope; WP 9 scope unchanged; `docs/delivery-record/WP9.md`).
@@ -115,7 +115,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 ### WP 10 — Body composition and measurement tracking
 - Objective: dated measurements, trends and export.
 - Scope: measurement entry (weight + 12 sites, left/right separate), date picker with validation, history with edit/delete, trend chart with axes and date range, comparisons between two dates, CSV export, export/import UI from WP 3.
-- Dependencies: WP 4, WP 3.
+- Dependencies: WP 4, WP 3. Proceeds independently of WP 8's library stages, subject to schema version coordination (2026-11-05).
 - Acceptance: BCM P1 criteria pass; chart renders correctly for 1, 2 and 100 points; export opens in a spreadsheet.
 - Verification: widget and golden tests for chart; unit tests for comparisons.
 
@@ -123,7 +123,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Objective: goals and weekly insight without automated coaching.
 - Scope: calorie/macro/weight/measurement/training goals, weekly summary screen, progress indicators, historical comparison; explicit gate recorded that no recommendations ship until data-quality criteria (GOL) are met.
 - Added 2026-11-04 (owner allocation from WP 7 review): **NUT-019** day-total provenance badge (weakest provenance shown on daily and weekly nutrition totals; the shared rule already exists, spec §8).
-- Dependencies: WP 5, WP 9, WP 10; training volume per muscle group after WP 8 stage 3 (soft, 2026-11-05).
+- Dependencies: WP 5, WP 9, WP 10; and WP 8's expanded anatomy and exercise taxonomy (stage 3) for training analytics such as volume per muscle (OQ-19 rule).
 - Acceptance: GOL P1 criteria pass; summaries match fixture data.
 
 ### WP 12 — User accounts, backup and synchronisation (optional)
@@ -151,8 +151,8 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Acceptance: NUT-022 criteria pass (0.25 kg stored and shown as 250 g; 1 kg = 1000 g and 1 l = 1000 ml exactly; round-trip within 0.001); spec §2.3 worked examples executed as tests; the chosen imperial units documented.
 - Verification: unit tests for conversions; widget tests for entry in each unit; spec examples.
 
-### WP 16 — withdrawn (2026-11-05)
-- Proposed earlier on 2026-11-05 for the library expansion; withdrawn the same day by owner decision. Its scope is WP 8 stages 3–6 and a deferred media workstream. Not a delivery package.
+### WP 16 — superseded (2026-11-05)
+- Historical only. The WP 16 proposal (2026-11-05) is **superseded by the WP 8 scope decision**: its scope is WP 8 internal stages 3–6 and a deferred media workstream. Not a delivery package and not a dependency of any work package. No WP 16 implementation is authorised.
 
 ## Sizing guidance
 

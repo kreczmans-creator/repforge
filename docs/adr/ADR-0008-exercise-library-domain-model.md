@@ -2,6 +2,7 @@
 
 - Status: **Proposed** (WP 8 stage 3; owner approval required before implementation)
 - Date: 2026-11-05
+- History: proposed on 2026-11-05 for the WP 16a proposal; re-scoped the same day to **WP 8 stage 3** by owner decision (WP 16 superseded; D04 §7). Number and content kept.
 - Implements owner decisions of 2026-11-05 (D04 §7, "WP 8 library decisions"): Engineering Object definition, four-level anatomy, difficulty, relationship kinds, English (UK) first, preservation of identifiers.
 
 ## Context
@@ -28,6 +29,6 @@ Reference data keeps the controlled vocabulary maintainable and localisable with
 
 ## Consequences
 - WP 8 and WP 9 code that uses the `MuscleGroup` and `Equipment` enums moves to identifier types; stored values do not change.
-- D04 TRN-010(1) ("exactly one primary group") is superseded by the owner's decision (one or more primary targets); TRN-027 volume attribution with several primary targets needs a rule (OQ-19).
+- D04 TRN-010(1) ("exactly one primary group") is superseded by the owner's decision (one or more primary targets); TRN-027 volume attribution with several primary targets: OQ-19 approved 2026-11-05 — each primary target receives the full recorded set volume; secondary targets reported separately, excluded from primary totals; attributions of recorded sets, not physiological measurements.
 - Reference data is approved as content (anatomy node list, movement pattern list) before WP 8 stage 5 population.
 - Schema v8 (additive) introduces the tables; see the WP 8 delivery plan (`docs/wp8-delivery-plan.md`).

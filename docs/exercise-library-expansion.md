@@ -1,6 +1,6 @@
 # Exercise library expansion — gap analysis and work-package proposal
 
-- Status: **Scope incorporated into WP 8 (owner decision, 2026-11-05).** WP 8 is the active work package; WP 16 is not created as a delivery package (the earlier WP 16 proposal is withdrawn). Remaining work and final acceptance criteria: `docs/wp8-delivery-plan.md`. Stage 3 implementation awaits owner authorisation.
+- Status: **Scope incorporated into WP 8 (owner decision, 2026-11-05).** WP 8 is the active work package; WP 16 is not created as a delivery package; **the WP 16 proposal in this document's history is superseded by the WP 8 scope decision**; no WP 16 implementation is authorised. Remaining work and final acceptance criteria: `docs/wp8-delivery-plan.md`. Stage 3 implementation awaits owner authorisation.
 - Scope of this document: review of the WP 8 implementation against the amended requirement, architectural gaps, proposed work packages and the decisions needed. Nothing here is implemented. WP 9 stays focused on planning and execution.
 - Evidence: code and seed asset at commit fb0a8d4 (WP 8 implementation b1ab45a plus WP 9 stages to date).
 
@@ -99,14 +99,15 @@ Requirements: LIB-001..LIB-010 (§1) and decisions 1–10 (§5). Additional deri
 - WP 10 (body composition) depends on WP 3 and WP 4 only and shares no data with the library work: **not blocked**; it can run before, after or alongside WP 8's remaining stages. Only schema version numbers need coordination.
 - WP 11 (analytics) depends on WP 5, WP 9, WP 10 and reports training volume, including per muscle group (TRN-027 reporting proposed for WP 11). Per-muscle reporting should follow WP 8 stage 3 so it is built once on the new anatomy: **soft dependency WP 8 stage 3 → WP 11 (training-volume parts only)**.
 - WP 13 (health integrations): no dependency.
+- WP 11 depends on WP 8's expanded anatomy and exercise taxonomy for training analytics (owner, 2026-11-05).
 - Order: WP 9 delivery (in progress) → WP 8 stage 3 → stage 5 tranches with stage 6 → WP 8 final acceptance → WP 11. WP 8 stage 4 documents and lists can proceed now; WP 10 may run in parallel. Media deferred.
 
 ## 8. Open questions and dependencies
 | ID | Item | Status |
 |---|---|---|
-| OQ-19 | Volume attribution when an exercise has several primary targets (TRN-027) | Open; proposal in WP 8 delivery plan §8 |
+| OQ-19 | Volume attribution when an exercise has several primary targets (TRN-027) | **Approved 2026-11-05**: full recorded set volume to each primary target; secondary separate and excluded; attribution, not physiology |
 | OQ-20 | TRN-010(1) wording ("exactly one primary group") versus decision 3 (multiple primary targets) | Amended by decision 3; wording update recorded in D04 §7 |
-| OQ-21 | Definition of "imported" exercises | Open; proposal in ADR-0009 |
+| OQ-21 | Definition of "imported" exercises | **Approved 2026-11-05**: brought in by a user from an external file, application or user-controlled source; open datasets in the catalogue are system content |
 | OQ-22 | Anatomy node list and movement pattern list | Open; proposed in WP 8 stage 4, approved before stage 5 |
 | OQ-23 | Coverage matrix minimum targets per region | Open; defined in WP 8 stage 4, approved before stage 5 |
 | — | Earlier WP 8 decisions | 1 taxonomy: folded into decision 3 and OQ-22 (current lists stay in force until stage 3); 2 OQ-09: answered; 3 legacy-data policy: **open**; 4 TRN-020 correction: **open**; 5 UI scope (library in WP 8, plans and sessions in WP 9): consistent with the revised scope, **open for confirmation** |
