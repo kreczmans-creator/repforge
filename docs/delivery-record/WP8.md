@@ -111,6 +111,7 @@ The owner deferred acceptance and decisions 1–5. WP 8 stays **Delivered — aw
 
 ## Exercise library scope amendment (owner, 2026-11-05)
 The owner amended the library scope (D04 §7, LIB-001..010). WP 8 was reviewed against it and does **not** satisfy it (gap analysis: `docs/exercise-library-expansion.md` §2). The amendment is proposed as WP 16; WP 8 is not reopened and remains delivered for its D06 scope, awaiting acceptance.
+On 2026-11-05 the owner decided OQ-09 (WP 8 decision 2): original RepForge-authored content, which the existing seed is. This answers decision 2 only; WP 8 acceptance and decisions 1, 3, 4 and 5 remain open.
 
 ## Recommendation
 Accept WP 8 at b1ab45a, subject to decisions 1–5. All D06 criteria are met with code-level evidence, four workflows are green on the final commit, and the independent re-verification found no open medium or high findings.

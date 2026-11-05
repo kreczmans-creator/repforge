@@ -1,6 +1,6 @@
 # Exercise library expansion — gap analysis and work-package proposal
 
-- Status: **Proposed for owner approval** (2026-11-05). Responds to the owner's "Exercise Library Scope Amendment" (recorded in D04 §7, 2026-11-05).
+- Status: **Structure and decisions approved by the owner (2026-11-05)**; WP 16 remains a proposed work package; WP 16a implementation awaits authorisation of `docs/wp16a-implementation-plan.md`. Responds to the owner's "Exercise Library Scope Amendment" (D04 §7, 2026-11-05).
 - Scope of this document: review of the WP 8 implementation against the amended requirement, architectural gaps, proposed work packages and the decisions needed. Nothing here is implemented. WP 9 stays focused on planning and execution.
 - Evidence: code and seed asset at commit fb0a8d4 (WP 8 implementation b1ab45a plus WP 9 stages to date).
 
@@ -54,26 +54,60 @@ Conclusion: WP 8 delivers a sound logging-oriented exercise model and a starter 
 
 Schema impact: one schema version (v8) adds reference and relationship tables and columns; additive, following the v6/v7 migration discipline. Existing exercise ids, stored set data and WP 9 contracts are preserved.
 
-## 4. Proposed work packages
-Keep WP 9 unchanged. Add **WP 16 — Exercise library expansion**, after WP 9 delivery, in sub-packages:
+## 4. Work packages (structure approved 2026-11-05)
+WP 9 unchanged; WP 8 not reopened or renumbered. **WP 16 — Exercise library expansion**, sub-packages as approved (titles per owner):
 
 | Sub-package | Content | Acceptance (proposed) |
 |---|---|---|
-| 16a Architecture and reference data | ADR for the library model; hierarchical anatomy, movement pattern, mechanics, laterality, difficulty, equipment additions; variation relationships; content sections and media references; favourites; catalogue versioning with update/retire; schema v8 migration; domain rules and tests. Supersedes the flat lists in `docs/training-taxonomy.md` by extension (identifiers kept) | Model and migration tests; existing data and WP 9 flows unchanged; ADR approved |
-| 16b Catalogue tooling and integrity | Catalogue source format (versioned, reviewable text), import with update/retire, integrity tests (duplicates, aliases, graph, completeness), coverage report generated from the catalogue, editorial guide (naming, variation rules, instruction style), licence register | Integrity tests run in CI; coverage report in the record |
-| 16c Catalogue content, in tranches by region | Chest; back; shoulders; arms (biceps, triceps, forearms); hips and legs (quadriceps, hamstrings, glutes, adductors, abductors, calves); trunk (abdominals, obliques, lower back); conditioning and mobility. Each tranche: compound and isolation, unilateral and bilateral, free weight, machine, cable, Smith machine, band, kettlebell and bodyweight where legitimate; instructions for every exercise | Per tranche: coverage matrix meets agreed minimums; zero integrity failures; owner content review |
-| 16d Discovery and detail UI | Extended filters and sorting, favourites, variations navigation, instruction sections, media placeholders, custom exercises with the new fields | Widget and integration tests; accessibility as WP 8/9 |
-| 16e Media (deferred) | Images and video display, storage and licensing | Not scheduled; enabled by 16a |
+| 16a Architecture and Reference Data | ADR for the library model; hierarchical anatomy, movement pattern, mechanics, laterality, difficulty, equipment additions; variation relationships; content sections and media references; favourites; catalogue versioning with update/retire; schema v8 migration; domain rules and tests. Supersedes the flat lists in `docs/training-taxonomy.md` by extension (identifiers kept) | Model and migration tests; existing data and WP 9 flows unchanged; ADR approved |
+| 16b Catalogue Tooling and Quality Assurance | Catalogue source format (versioned, reviewable text), import with update/retire, integrity tests (duplicates, aliases, graph, completeness), coverage report generated from the catalogue, editorial guide (naming, variation rules, instruction style), licence register | Integrity tests run in CI; coverage report in the record |
+| 16c Anatomical Catalogue Population (tranches by region) | Chest; back; shoulders; arms (biceps, triceps, forearms); hips and legs (quadriceps, hamstrings, glutes, adductors, abductors, calves); trunk (abdominals, obliques, lower back); conditioning and mobility. Each tranche: compound and isolation, unilateral and bilateral, free weight, machine, cable, Smith machine, band, kettlebell and bodyweight where legitimate; instructions for every exercise | Per tranche: coverage matrix meets agreed minimums; zero integrity failures; owner content review |
+| 16d Search, Discovery and Exercise Screens | Extended filters and sorting, favourites, variations navigation, instruction sections, media placeholders, custom exercises with the new fields | Widget and integration tests; accessibility as WP 8/9 |
+| 16e Exercise Media (deferred implementation) | Images and video display, storage and licensing | Not scheduled; enabled by 16a |
 
-Proposed order: WP 9 → 16a → 16b → 16c tranches and 16d in parallel → WP 10. Owner may reorder against WP 10–11.
 
-## 5. Decisions needed from the owner
-1. **"Engineering Objects"**: the term is not defined in RepForge documents. Proposed reading: first-class domain entities with a stable identifier, provenance (supplied/custom), versioning and validation rules. Please confirm or define.
-2. **OQ-09 content source and licence** (open since WP 8): own authored content, an openly licensed dataset (licence and attribution obligations recorded), or a commercial licence. Content from Bodybuilding.com or any other proprietary app must not be copied; "comparable in breadth" is read as a scope benchmark only.
-3. **Taxonomy depth**: anatomy levels (region › group › muscle/head) and the level at which exercises are tagged. This extends WP 8 decision 1 (taxonomy approval); WP 8's 19 identifiers would be kept as nodes.
-4. **Difficulty**: scale (e.g. beginner/intermediate/advanced) and the criteria that place an exercise, so it is not arbitrary.
-5. **Variation relation kinds**: confirm the kinds; confirm whether "progression/regression" links are wanted (they are relationships, not programmes).
-6. **Coverage acceptance**: approve a coverage matrix (per muscle node × equipment class × mechanics/laterality minimums) instead of a raw count.
-7. **Localisation**: which locales, and when.
-8. **Numbering and sequencing**: WP 16 with sub-packages 16a–16e (alternative: WP 8A–8E); position relative to WP 10 and WP 11.
-9. **WP 8 status**: WP 8 stays as delivered for its D06 scope and awaits acceptance; the amendment is delivered by WP 16 and does not reopen WP 8.
+## 5. Owner decisions (2026-11-05) — recorded in D04 §7
+| # | Question | Decision |
+|---|---|---|
+| 1 | Engineering Objects | First-class persistent domain entity: stable identity; defined type and schema; explicit source and provenance; validation and integrity constraints; creation and modification metadata; defined relationships; lifecycle-appropriate versioning; persistence, query, backup and restore. Not every object needs its own version history or table. Exercises are persistent entities, not disposable entries |
+| 2 | Content source (OQ-09) | Original RepForge-authored content; compatible openly licensed datasets allowed with recorded provenance; no Bodybuilding.com content (benchmark only); multiple providers supported; commercial licensing deferred |
+| 3 | Anatomy | Four levels: L1 region, L2 muscle group, L3 anatomical muscle, L4 subdivision or head; tag at the most meaningful defensible level; multiple primary and secondary targets; existing exercise ids and the 19 muscle-group ids preserved; no qualitative classification presented as precise biomechanics |
+| 4 | Difficulty | Beginner (simple movement, stable setup, straightforward execution); Intermediate (moderate coordination, technique or control); Advanced (high technical demand, stability or complex execution). Describes technical complexity, not load or fitness |
+| 5 | Relationships | Variation of; progression of; regression of; alternative to; unilateral counterpart. Validated, directional where appropriate, protected against circular or invalid references. Not programme functionality |
+| 6 | Coverage acceptance | Structured coverage matrix is the formal WP 16c acceptance mechanism: anatomy, diversity, compound/isolation, unilateral/bilateral, movement patterns, equipment, difficulty distribution, variation depth; minimum targets per region defined before population; explicit gap report; raw count insufficient |
+| 7 | Languages | English (UK) first; localisation without duplicating identities or records; translation deferred |
+| 8 | Governance | WP 16 separate; WP 8 not reopened or renumbered; WP 9 scope unchanged; inspect WP 10/11 before sequencing; do not block unrelated work |
+| 9 | Structure | 16a–16e approved; schema v8 approved as target subject to architectural review; ids preserved |
+| 10 | Additional | Separate system-supplied, user-created and imported exercises; catalogue updates never silently overwrite user customisations; idempotent import/update; provenance, validation, duplicate detection, integrity reporting; discovery by anatomy, equipment, pattern, classification and difficulty; accommodate future metrics, tempo, range of motion, execution guidance and recommendations outside current acceptance |
+
+## 6. WP 16 requirements and acceptance criteria
+Requirements: LIB-001..LIB-010 (§1) and decisions 1–10 (§5). Additional derived requirements:
+- LIB-011 Source separation (system, user, imported) and provider provenance with licence.
+- LIB-012 Idempotent, versioned catalogue import and update; retire instead of delete; user-owned data never overwritten.
+- LIB-013 Duplicate detection and integrity reporting in CI.
+- LIB-014 Localisation-ready identity and content (`en-GB` first).
+
+| Sub-package | Acceptance criteria |
+|---|---|
+| 16a | As `docs/wp16a-implementation-plan.md` §11 (model, schema v8 migration preserving ids and data, reference data structure, targets, classifications, relationships, content and media references, providers and releases, user state, integrity report, unchanged WP 8/9 behaviour, CI green) |
+| 16b | Catalogue source format and editorial guide (naming, variation rules against superficial variants, instruction style for setup, execution, breathing, common mistakes; anatomical tagging guidance); licence register; integrity checks and coverage report generated in CI; **coverage matrix with measurable minimum targets per region, approved by the owner before 16c starts** |
+| 16c | Per regional tranche: coverage matrix minimums met (anatomy, diversity, compound/isolation, unilateral/bilateral, patterns, equipment incl. free weights, machines, cables, Smith machine, bands, kettlebells, bodyweight, difficulty distribution, variation depth); instructions for every exercise; zero integrity failures; explicit gap report; owner content review |
+| 16d | Search by name and aliases; filters by anatomy node (with descendants), equipment, movement pattern, mechanics, laterality, difficulty, logging type; sorting; favourites; variations and relationship navigation; instruction sections; custom exercise creation with the new fields; accessibility as WP 8/9; widget and integration tests |
+| 16e | Deferred: media display, storage and licensing; enabled by 16a references |
+
+## 7. Sequencing (WP 10 and WP 11 inspected)
+- WP 10 (body composition) depends on WP 3 and WP 4 only and shares no data with WP 16: **not blocked**; it can run before, after or alongside WP 16. Only schema version numbers need coordination.
+- WP 11 (analytics) depends on WP 5, WP 9, WP 10 and reports training volume, including per muscle group (TRN-027 reporting proposed for WP 11). Per-muscle reporting should follow WP 16a so it is built once on the new anatomy: **soft dependency WP 16a → WP 11 (training-volume parts only)**.
+- WP 13 (health integrations): no dependency.
+- Proposed order: WP 9 delivery → WP 16a → WP 16b (WP 10 may run in parallel) → WP 16c tranches with WP 16d → WP 11. WP 16e deferred.
+
+## 8. Open questions and dependencies
+| ID | Item | Status |
+|---|---|---|
+| OQ-19 | Volume attribution when an exercise has several primary targets (TRN-027) | Open; proposal in WP 16a plan §8 |
+| OQ-20 | TRN-010(1) wording ("exactly one primary group") versus decision 3 (multiple primary targets) | Amended by decision 3; wording update recorded in D04 §7 |
+| OQ-21 | Definition of "imported" exercises | Open; proposal in ADR-0009 |
+| OQ-22 | Anatomy node list and movement pattern list | Open; proposed in WP 16a, approved before WP 16c |
+| OQ-23 | Coverage matrix minimum targets per region | Open; defined in WP 16b, approved before WP 16c |
+| — | WP 8 acceptance and its decisions 1, 3, 4, 5 | Open (owner); WP 8 decision 2 (OQ-09) answered by decision 2 above |
+| — | Schema version coordination with WP 10 | Coordination at WP 16a start |

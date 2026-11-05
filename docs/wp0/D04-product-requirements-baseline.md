@@ -269,7 +269,7 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-06 | What is the retention policy for local backups, cloud data after account deletion, and deleted records (immediate purge or recoverable for a period)? | Drives privacy commitments, storage use and the deletion wording. | DAT-008, DAT-012, DAT-013 |
 | OQ-07 | When a scanned barcode is not in the local database, may the app query an online source? If so, which, and is the barcode sent off the device? | Conflicts with offline-first and privacy minimisation unless handled as an explicit opt-in. | NUT-006, GEN-009 |
 | OQ-08 | Is cloud sync intended at all, and if so which provider, which sign-in methods and which data is in scope? | Determines whether the sync, authentication and secure storage work packages are needed. | DAT-009 to DAT-011, PLT-009 |
-| OQ-09 | What is the source and licence of the exercise library (own content, licensed dataset, or open source)? Are demonstration images or videos required? | Affects content creation effort, app size and licence compliance. | TRN-008 |
+| OQ-09 | What is the source and licence of the exercise library (own content, licensed dataset, or open source)? Are demonstration images or videos required? | Affects content creation effort, app size and licence compliance. | TRN-008, LIB-001..014 | **Decided 2026-11-05** (§7): original RepForge-authored content; compatible open datasets with provenance; no proprietary content; media deferred (WP 16e).
 | OQ-10 | Is any crash reporting or usage analytics acceptable, and if so is it opt-in and which data may it contain? | Conflicts with data minimisation unless defined; affects the ability to find defects in the field. | GEN-009 |
 | OQ-11 | Which devices and operating system versions are the reference for performance targets and minimum support (for example the oldest supported Android API level and iOS version)? What barcode scan success rate is acceptable? | The proposed performance targets cannot be verified without reference devices. | GEN-013, GEN-014, PLT-002 |
 | OQ-12 | Should the default exertion scale be RPE or RIR, and may users switch? | Affects defaults, training copy and the meaning of stored values. | TRN-020 |
@@ -279,6 +279,10 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-16 | Should Health Connect and HealthKit integrations be read-only, or also write workouts, weight and nutrition back? | Write access widens the permission scope and the privacy review. | PLT-005, PLT-006 |
 | OQ-17 | On restore, should the default be replace-all or merge? How are duplicates handled? | Affects data-loss risk and the complexity of the restore flow. | DAT-004 |
 | OQ-18 | What are the day boundary and week start rules (local midnight, Monday start)? Should users be able to change them? | Affects every daily and weekly total and the consistency of comparisons. | NUT-001, NUT-016, TRN-028 |
+| OQ-19 | How is training volume attributed when an exercise has several primary anatomical targets? | TRN-027 per-muscle volume and WP 11 reporting. Proposal: WP 16a plan §8. | TRN-027 |
+| OQ-21 | What counts as an "imported" exercise (versus system-supplied and user-created)? | Source separation and update rules. Proposal: ADR-0009. | LIB-011 |
+| OQ-22 | Which anatomy nodes (L1–L4) and movement patterns form the controlled reference lists? | Classification quality and coverage. Proposed in WP 16a; approved before WP 16c. | LIB-004, LIB-005 |
+| OQ-23 | What are the minimum coverage targets per anatomical region? | Formal WP 16c acceptance. Defined in WP 16b; approved before WP 16c. | LIB-001, LIB-002 |
 
 ## 7. Amendments (owner decisions)
 
@@ -300,4 +304,18 @@ These questions need an owner decision. Until answered, the linked requirements 
 ### 2026-11-05 — Exercise library scope amendment (owner requirement)
 - The exercise library shall be a comprehensive, extensible exercise reference and discovery system (breadth benchmark: historical bodybuilding and strength-training reference apps), not a minimal set for logging. Ten capabilities recorded as **LIB-001..LIB-010** (identifiers proposed) in `docs/exercise-library-expansion.md` §1, with the owner's architectural, content and acceptance requirements (anatomical coverage, diversity, classification quality, discoverability, extensibility, integrity over raw count). No built-in programmes or programme generation at this stage.
 - WP 8 is not assumed to satisfy it: gap analysis and proposed WP 16 in `docs/exercise-library-expansion.md` (proposed, pending owner decisions §5). WP 9 scope unchanged.
+
+### 2026-11-05 — WP 16 exercise library decisions (owner)
+Full text: `docs/exercise-library-expansion.md` §5.
+1. **Engineering Object** defined: first-class persistent domain entity with stable identity, defined type and schema, explicit source and provenance, validation and integrity constraints, creation and modification metadata, defined relationships, lifecycle-appropriate versioning, and persistence, query, backup and restore. Not every object needs its own history or table. Exercises are persistent entities.
+2. **OQ-09 decided**: original RepForge-authored content; compatible openly licensed datasets allowed with recorded provenance; no Bodybuilding.com content (breadth benchmark only); multiple providers; commercial licensing deferred.
+3. **Anatomy**: four levels (region, muscle group, anatomical muscle, subdivision or head); tag at the most meaningful defensible level; multiple primary and secondary targets; existing exercise ids and the 19 muscle-group ids preserved; qualitative classifications not presented as precise biomechanics. **TRN-010(1) amended**: "one or more primary targets" replaces "exactly one primary group" (OQ-20 closed by this decision).
+4. **Difficulty**: beginner, intermediate, advanced as defined; technical complexity, not load or fitness.
+5. **Relationships**: variation of, progression of, regression of, alternative to, unilateral counterpart; validated, directional where appropriate, no circular or invalid references; not programme functionality.
+6. **Coverage**: structured coverage matrix is the formal WP 16c acceptance mechanism; regional minimums defined before population (OQ-23); explicit gap report; raw count insufficient.
+7. **Languages**: English (UK) first; localisation without duplicate identities; translation deferred.
+8. **Governance**: WP 16 separate; WP 8 not reopened or renumbered; WP 9 unchanged; WP 10/11 inspected before sequencing; unrelated work not blocked.
+9. **Structure**: WP 16a–16e approved; schema v8 approved as target subject to architectural review.
+10. **Additional**: separate system, user and imported exercises (LIB-011); catalogue updates never silently overwrite user customisations, idempotent import and update (LIB-012); provenance, validation, duplicate detection, integrity reporting (LIB-013); discovery by anatomy, equipment, pattern, classification, difficulty; future metrics, tempo, range of motion, execution guidance and recommendations accommodated but outside current acceptance.
+- Owner retains approval of architectural decisions, work-package acceptance, merges and releases. WP 16a implementation awaits authorisation of `docs/wp16a-implementation-plan.md` (ADR-0008, ADR-0009 proposed).
 

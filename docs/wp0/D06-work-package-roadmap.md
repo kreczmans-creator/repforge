@@ -16,6 +16,9 @@ flowchart LR
   WP5 & WP9 & WP10 --> WP11
   WP3 --> WP12
   WP10 & WP9 --> WP13
+  WP9 --> WP16a --> WP16b --> WP16c
+  WP16a --> WP16d
+  WP16a -.-> WP11
   WP1 -.-> WP14
 ```
 
@@ -149,12 +152,11 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Acceptance: NUT-022 criteria pass (0.25 kg stored and shown as 250 g; 1 kg = 1000 g and 1 l = 1000 ml exactly; round-trip within 0.001); spec §2.3 worked examples executed as tests; the chosen imperial units documented.
 - Verification: unit tests for conversions; widget tests for entry in each unit; spec examples.
 
-### WP 16 — Exercise library expansion (proposed 2026-11-05, pending owner approval)
-- Origin: owner's exercise library scope amendment (D04 §7, LIB-001..010). Proposal and gap analysis: `docs/exercise-library-expansion.md`.
-- Sub-packages: 16a architecture and reference data (hierarchical anatomy, movement pattern, mechanics, laterality, difficulty, variation relationships, content sections, media references, favourites, catalogue versioning; schema v8; ADR); 16b catalogue tooling and integrity; 16c catalogue content by region; 16d discovery and detail UI; 16e media (deferred).
-- Dependencies: WP 8 (delivered, awaiting acceptance), WP 9; owner decisions in the proposal §5 (incl. OQ-09).
-- Acceptance (proposed): coverage matrix, classification completeness and integrity tests rather than a raw count; owner content review per tranche.
-- Status: **Proposed**; not started.
+### WP 16 — Exercise library expansion (structure approved 2026-11-05)
+- Origin: owner's exercise library scope amendment and decisions (D04 §7, LIB-001..014). Requirements, acceptance criteria, sequencing and open items: `docs/exercise-library-expansion.md`.
+- Sub-packages (approved): **16a** Architecture and Reference Data (plan: `docs/wp16a-implementation-plan.md`; ADR-0008, ADR-0009 proposed; schema v8 target); **16b** Catalogue Tooling and Quality Assurance (incl. coverage matrix minimums, OQ-23); **16c** Anatomical Catalogue Population (coverage matrix acceptance); **16d** Search, Discovery and Exercise Screens; **16e** Exercise Media (deferred implementation).
+- Dependencies: WP 9 delivery (hard, code overlap); WP 8 delivered (acceptance pending, not reopened). WP 10 not blocked (parallel allowed; schema numbering coordinated). WP 11 training-volume reporting follows WP 16a (soft).
+- Status: **Proposed — WP 16a plan awaiting owner authorisation; not started.**
 
 ## Sizing guidance
 
