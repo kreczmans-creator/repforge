@@ -24,7 +24,7 @@ Update 2026-11-05 (D04 §7): WP 8 is active with expanded scope; its decisions 2
 ## Open questions this package touches (not decided here)
 | Question | WP 9 handling | Owner decision needed |
 |---|---|---|
-| OQ-05 rest-timer alert in background or locked | Follows D06 acceptance: Android background notification, iOS foreground alert with documented limitation; notifications off until the user opts in (PLT-007). Plugin choice in a proposed ADR. | Yes |
+| OQ-05 rest-timer alert in background or locked | Opt-in local notifications (PLT-007) through the ADR-0007 adapter; Android exact-alarm permission offered with inexact fallback (OQ-24, 0c35ef1); iOS foreground alert as the documented baseline. | **Decided 2026-11-05** (D04 §7): background rest alerts are required where the platform allows; Android exact scheduling offered, inexact fallback; iOS background delivery unverified until device evidence exists |
 | OQ-12 default exertion scale | Keeps the existing setting (default RPE since WP 3) and per-set stored scale; changes no default. | Yes |
 | OQ-18 day boundary and week start | Uses the existing settings (`dayStartHour`, `weekStartDay`, default Monday as TRN-027 states); changes no default. | Yes |
 | OQ-02 imperial units | Loads are entered and shown in kg only; no pound entry or display is added (GEN-003 metric default). | Yes |
@@ -274,7 +274,7 @@ TRN coverage (reviewer): TRN-013..017, 019..021, 023, 024 met; TRN-018(2) partly
 1. **M1 / OQ-24** — offer the Android exact-alarm grant with an explanation when the user enables rest alerts (recommended), or accept inexact alerts as a recorded limitation.
 2. **M4 / OQ-25** — exercise history paging: a narrow WP 9 fix, or allocation to WP 8 stage 6 with a recorded WP 9 gap.
 3. Confirm the WP 9 decisions and assumptions recorded per stage (derived PRs; dated schedule rows; wall-clock rest timer; several entries per exercise; 4000-character notes; skipped archived exercises on start; 12 s undo; kg-only entry pending OQ-02).
-4. ADR-0007 (rest-timer alerts) — approve (status Proposed); OQ-05 stays open unless decided with M1.
+4. ADR-0007 (rest-timer alerts) — approve (status Proposed). *Decided 2026-11-05: ADR-0007 accepted; OQ-05 decided (see Owner decisions above).*
 
 ## Recommendation
 Accept WP 9 at **0c35ef1**. All D06 criteria are met in code, tests and CI; the manual device test of the timer, iOS background delivery and real-device exact-alarm behaviour remain for the owner's device campaign. No High or Medium findings are open. Limitations: exercise history paging allocated to WP 8 stage 6 (M4); Low items N1a, N1b, M1-F1..F4 recorded.
