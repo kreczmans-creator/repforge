@@ -396,3 +396,8 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **Android restore picker unfiltered**: the picker does not filter by file type on Android (providers such as Drive or mail often report `.json` as `text/plain`); the backup validator remains the guard; iOS keeps the `public.json` filter.
 - **CSV columns**: D5 (a `unit` column) supersedes DAT-006(1) "metric units in column names" for the body-measurements CSV.
 
+### 2026-11-05 — WP 10 accepted (owner)
+- **WP 10 ACCEPTED at bb5f788**; the delivery evidence and acceptance matrix in `docs/delivery-record/WP10.md` are accepted.
+- **D3 decisions retained with clarification**: reject structurally empty or invalid backups, but do not reject a valid full backup merely because it contains zero measurement records; the Android restore picker needs no file-type filter and the restore validator remains authoritative. The implemented rule (reject only when no restorable row exists in any table) meets this; the brand-new-app export edge case is noted in the WP 10 record for owner confirmation.
+- **OQ-18 and OQ-02 remain open.** Device-campaign and spreadsheet-compatibility checks remain deferred verification, not completed evidence.
+
