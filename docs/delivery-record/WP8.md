@@ -34,7 +34,7 @@ Debt owned here: TD-23 (exercise archive guard), TD-25 (database CHECK constrain
 | Stage | Commit | Content |
 |---|---|---|
 | Seed content | df326db | 89-exercise library (own content), asset test |
-| 1 — domain, schema v6, use cases | 6d401e6 | taxonomy enums; exercise aliases/supplied/copy; timed added load; cardio energy; rep ranges; splits; validation rules; `RecordSet`; library and history queries; schema v6 with CHECK constraints and legacy quarantine; library import. CI 41981492310, Android 41981492309, iOS 41981492295, integration 41981492328 — all success (the on-device test ran the v6 migration). |
+| 1 — domain, schema v6, use cases | 6d401e6 | taxonomy enums; exercise aliases/supplied/copy; timed added load; cardio energy; rep ranges; splits; validation rules; `RecordSet`; library and history queries; schema v6 with CHECK constraints and legacy quarantine; library import. CI 41981492310, Android 41981492309, iOS 41981492295, integration 41981492328 — all success (the on-device test opened a real database file at schema v6; a fresh install, so it exercised creation, not the v5→v6 upgrade — corrected at delivery). |
 | 2 — Train tab library | 058d433 | library with search, category/muscle/equipment filters, persisted equipment selection, supplied/custom badges, archived toggle; exercise detail with per-type history formatting; custom exercise editor; copy-on-edit for supplied exercises. CI 41987520072, Android 41987519880, iOS 41987519687, integration 41987519799 — all success. |
 | Review fixes | b1ab45a | M1–M4, L1–L6 below; architecture guards; D05 TD-23, TD-25, TD-41, TD-42 |
 
@@ -88,7 +88,7 @@ Both guards were shown to fail on a planted probe file under `lib/features/dashb
 | A set of each exercise type is stored and read back with correct fields | `record_set_test.dart` group "a set of each type is stored and read back…" (weighted, bodyweight, assisted, timed, distance, cardio, through `RecordSet`); `drift_workout_session_repository_test.dart` "round-trips one set of each variant with all fields"; `drift_training_queries_test.dart` "a set of each type round-trips…" | Met |
 | Invalid combinations rejected at use-case level | `record_set_test.dart` group "invalid combinations are rejected and nothing is stored" (type mismatch, reps 0/101, off-step and negative load, zero duration/distance, heart rate, energy label, exertion per TRN-020, rest range, archived exercise); `training_use_cases_test.dart` (plans, splits, custom exercises) | Met |
 | Verification: unit tests | 875 tests, coverage 90.3 % | Met |
-| Verification: schema migration test | `migration_v6_test.dart` (v5→v6 with a set of every type, CHECK enforcement, no clamping with quarantine, crash re-run, taxonomy mapping); v1–v5 upgrade tests; pre-v6 backup restore test; the emulator integration run opens and migrates a fresh database | Met |
+| Verification: schema migration test | `migration_v6_test.dart` (v5→v6 with a set of every type, CHECK enforcement, no clamping with quarantine, crash re-run, taxonomy mapping); v1–v5 upgrade tests; pre-v6 backup restore test; the emulator integration run opens a real on-device file at v6 through the production open path (fresh install: creation, not upgrade; the upgrade itself is proven by the migration tests only) | Met |
 
 ## Deviations
 - UI scope: the plan builder, scheduling and session screens are WP 9 (decision 3). TRN-013 (model, validation, reorder) and TRN-014 (split model) are delivered without screens.
