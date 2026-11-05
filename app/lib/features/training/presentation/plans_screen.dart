@@ -5,6 +5,7 @@ import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/training/application/plan_providers.dart';
+import 'package:repforge/features/training/presentation/session_starter.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
@@ -119,6 +120,13 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
                             ],
                           ),
                         ),
+                        if (!p.archived)
+                          IconButton(
+                            key: Key('plan-start-${p.id}'),
+                            tooltip: 'Start ${p.name}',
+                            icon: const Icon(Icons.play_arrow),
+                            onPressed: () => ref.startFromPlan(context, p.id),
+                          ),
                         if (p.archived)
                           IconButton(
                             key: Key('plan-unarchive-${p.id}'),

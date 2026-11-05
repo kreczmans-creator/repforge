@@ -18,9 +18,12 @@ import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_detail_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_editor_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_library_screen.dart';
+import 'package:repforge/features/training/presentation/history_screen.dart';
 import 'package:repforge/features/training/presentation/plan_editor_screen.dart';
 import 'package:repforge/features/training/presentation/plans_screen.dart';
 import 'package:repforge/features/training/presentation/schedule_screen.dart';
+import 'package:repforge/features/training/presentation/session_detail_screen.dart';
+import 'package:repforge/features/training/presentation/session_screen.dart';
 import 'package:repforge/features/training/presentation/split_editor_screen.dart';
 import 'package:repforge/ui/components/rf_brand_mark.dart';
 import 'package:repforge/ui/gallery/gallery_screen.dart';
@@ -52,6 +55,15 @@ abstract final class RfRoutes {
 
   /// Scheduled workouts (TRN-015).
   static const trainSchedule = '/train/schedule';
+
+  /// The workout session screen for [id] (TRN-016..027).
+  static String trainSession(String id) => '/train/session/$id';
+
+  /// Workout history (TRN-024, TRN-025).
+  static const trainHistory = '/train/history';
+
+  /// One workout of the history for [id].
+  static String trainHistoryDetail(String id) => '/train/history/$id';
   static const fuel = '/fuel';
   static const fuelSearch = '/fuel/search';
 
@@ -144,6 +156,26 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                   path: 'schedule',
                   parentNavigatorKey: _rootKey,
                   builder: (context, state) => const ScheduleScreen(),
+                ),
+                GoRoute(
+                  path: 'session/:id',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) =>
+                      SessionScreen(sessionId: state.pathParameters['id']!),
+                ),
+                GoRoute(
+                  path: 'history',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const HistoryScreen(),
+                  routes: [
+                    GoRoute(
+                      path: ':id',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => SessionDetailScreen(
+                        sessionId: state.pathParameters['id']!,
+                      ),
+                    ),
+                  ],
                 ),
                 // 'new' is declared before ':id' so it is not an id.
                 GoRoute(

@@ -9,6 +9,7 @@ import 'package:repforge/features/training/application/plan_providers.dart';
 import 'package:repforge/features/training/application/training_providers.dart';
 import 'package:repforge/features/training/presentation/plan_format.dart';
 import 'package:repforge/features/training/presentation/schedule_sheet.dart';
+import 'package:repforge/features/training/presentation/session_starter.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
@@ -271,6 +272,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             onMove: () => _move(w, name),
             onSkip: () => _skip(w, name),
             onRestore: () => _restore(w),
+            onStart: () =>
+                ref.startFromPlan(context, w.planId, scheduledWorkoutId: w.id),
           ),
         ),
       );
@@ -286,6 +289,7 @@ class _ScheduledRow extends StatelessWidget {
     required this.onMove,
     required this.onSkip,
     required this.onRestore,
+    required this.onStart,
   });
 
   final ScheduledWorkout workout;
@@ -293,6 +297,7 @@ class _ScheduledRow extends StatelessWidget {
   final VoidCallback onMove;
   final VoidCallback onSkip;
   final VoidCallback onRestore;
+  final VoidCallback onStart;
 
   @override
   Widget build(BuildContext context) {
@@ -330,6 +335,15 @@ class _ScheduledRow extends StatelessWidget {
             Wrap(
               spacing: RfSpace.s2,
               children: [
+                Tooltip(
+                  message: 'Start $planName',
+                  child: TextButton.icon(
+                    key: Key('schedule-start-${w.id}'),
+                    onPressed: onStart,
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Start'),
+                  ),
+                ),
                 Tooltip(
                   message: 'Move $planName to another date',
                   child: TextButton.icon(

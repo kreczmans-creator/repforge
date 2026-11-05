@@ -9,7 +9,11 @@ import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/training/training_repository.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/application/exercise_library_providers.dart';
+import 'package:repforge/features/training/application/session_view.dart';
 import 'package:repforge/features/training/application/training_providers.dart';
+import 'package:repforge/features/training/presentation/session_set_widgets.dart';
+import 'package:repforge/features/training/presentation/set_form.dart'
+    show setKindLabel;
 import 'package:repforge/features/training/presentation/set_format.dart';
 import 'package:repforge/features/training/presentation/source_badge.dart';
 import 'package:repforge/features/training/presentation/training_labels.dart';
@@ -259,6 +263,9 @@ class _History extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(exerciseHistoryProvider(exerciseId));
+    final records =
+        ref.watch(exerciseRecordSetIdsProvider(exerciseId)).value ??
+        const <String>{};
     final units =
         ref.watch(settingsProvider.select((s) => s.value?.units)) ??
         UnitSystem.metric;
@@ -277,7 +284,7 @@ class _History extends ConsumerWidget {
         return Column(
           children: [
             for (final s in sessions) ...[
-              _SessionCard(session: s, units: units),
+              _SessionCard(session: s, units: units, records: records),
               const SizedBox(height: RfSpace.s2),
             ],
           ],
@@ -288,10 +295,15 @@ class _History extends ConsumerWidget {
 }
 
 class _SessionCard extends StatelessWidget {
-  const _SessionCard({required this.session, required this.units});
+  const _SessionCard({
+    required this.session,
+    required this.units,
+    required this.records,
+  });
 
   final ExerciseSessionHistory session;
   final UnitSystem units;
+  final Set<String> records;
 
   @override
   Widget build(BuildContext context) {
@@ -337,6 +349,20 @@ class _SessionCard extends StatelessWidget {
                       key: Key('history-set-${session.sets[i].id}'),
                     ),
                   ),
+                  if (session.sets[i].kind != SetKind.working)
+                    Padding(
+                      padding: const EdgeInsets.only(right: RfSpace.s2),
+                      child: Text(
+                        setKindLabel(session.sets[i].kind),
+                        key: Key('history-kind-${session.sets[i].id}'),
+                        style: context.rfText.caption,
+                      ),
+                    ),
+                  if (records.contains(session.sets[i].id))
+                    Padding(
+                      padding: const EdgeInsets.only(right: RfSpace.s2),
+                      child: PrBadge(setId: session.sets[i].id),
+                    ),
                   if (session.sets[i].exertion case final x?)
                     Text(formatExertion(x), style: context.rfText.caption),
                 ],

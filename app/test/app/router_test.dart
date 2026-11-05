@@ -55,6 +55,9 @@ void main() {
     expect(RfRoutes.trainSplitNew, '/train/splits/new');
     expect(RfRoutes.trainSplit('s1'), '/train/splits/s1');
     expect(RfRoutes.trainSchedule, '/train/schedule');
+    expect(RfRoutes.trainSession('s1'), '/train/session/s1');
+    expect(RfRoutes.trainHistory, '/train/history');
+    expect(RfRoutes.trainHistoryDetail('s1'), '/train/history/s1');
 
     final expected = <String, String>{
       RfRoutes.trainPlans: 'new-plan',
@@ -63,6 +66,9 @@ void main() {
       RfRoutes.trainSplitNew: 'split-name-field',
       RfRoutes.trainSplit('missing'): 'split-missing',
       RfRoutes.trainSchedule: 'schedule-on-date',
+      RfRoutes.trainSession('missing'): 'session-missing',
+      RfRoutes.trainHistory: 'history-list-empty',
+      RfRoutes.trainHistoryDetail('missing'): 'detail-missing',
     };
     for (final entry in expected.entries) {
       await tester.pumpWidget(

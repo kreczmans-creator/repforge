@@ -41,6 +41,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       k: TextEditingController(),
   };
   bool _seeded = false;
+  final _restController = TextEditingController();
+  bool _restSeeded = false;
+  String? _restError;
   final Map<MealSlot, TextEditingController> _mealControllers = {
     for (final m in MealSlot.values) m: TextEditingController(),
   };
@@ -55,6 +58,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   void dispose() {
+    _restController.dispose();
     for (final c in _controllers.values) {
       c.dispose();
     }
@@ -73,6 +77,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _controllers[GoalKind.carbs]!.text = s(t.carbsG);
     _controllers[GoalKind.fat]!.text = s(t.fatG);
     _controllers[GoalKind.fibre]!.text = s(t.fibreG);
+  }
+
+  void _seedRest(AppSettings s) {
+    if (_restSeeded) return;
+    _restSeeded = true;
+    _restController.text = '${s.defaultRestSeconds}';
+  }
+
+  Future<void> _saveRest() async {
+    final seconds = int.tryParse(_restController.text.trim());
+    if (seconds == null) {
+      setState(() => _restError = 'Enter whole seconds, 0 to 3600.');
+      return;
+    }
+    setState(() => _restError = null);
+    final current = await ref.read(settingsRepositoryProvider).read();
+    final result = await ref.read(saveSettingsProvider)(
+      current.copyWith(defaultRestSeconds: seconds),
+    );
+    if (!mounted) return;
+    switch (result) {
+      case Ok():
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Default rest saved')));
+      case Err(:final error):
+        setState(() => _restError = userMessageFor(error));
+    }
   }
 
   void _seedMeals(MealLabels labels) {
@@ -165,6 +196,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final targets = ref.watch(dailyTargetsProvider);
     final settings = ref.watch(settingsProvider);
     targets.whenData(_seed);
+    settings.whenData(_seedRest);
     ref.watch(mealLabelsProvider).whenData(_seedMeals);
 
     return Scaffold(
@@ -350,8 +382,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChanged: (v) =>
                         _saveSettings((s) => s.copyWith(exertionScale: v)),
                     note:
-                        'RPE: rate of perceived exertion 1–10. '
-                        'RIR: reps in reserve 0–10.',
+                        'RPE: rate of perceived exertion 1–10 in steps '
+                        'of 0.5. RIR: reps in reserve 0–5, whole numbers.',
                   ),
                   const SizedBox(height: RfSpace.s4),
                   _choice<int>(
@@ -361,6 +393,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     options: const {1: 'Monday', 7: 'Sunday'},
                     onChanged: (v) =>
                         _saveSettings((s) => s.copyWith(weekStartDay: v)),
+                  ),
+                  const SizedBox(height: RfSpace.s4),
+                  Text('REST TIMER', style: context.rfText.kicker),
+                  const SizedBox(height: RfSpace.s2),
+                  RfTextField.integer(
+                    key: const Key('default-rest'),
+                    controller: _restController,
+                    label: 'Default rest',
+                    unit: 's',
+                    helper:
+                        'Used when a set has no planned rest (0 to 3600 s).',
+                    errorText: _restError,
+                    onChanged: (_) {
+                      if (_restError != null) {
+                        setState(() => _restError = null);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: RfSpace.s2),
+                  RfButton(
+                    key: const Key('save-default-rest'),
+                    label: 'Save default rest',
+                    variant: RfButtonVariant.secondary,
+                    onPressed: _saveRest,
+                  ),
+                  const SizedBox(height: RfSpace.s2),
+                  SwitchListTile(
+                    key: const Key('rest-notifications-switch'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Rest timer notifications'),
+                    subtitle: const Text(
+                      'Saves your choice only. Alerts when the app is in the '
+                      'background arrive in a later update; for now the timer '
+                      'alerts while the app is open.',
+                    ),
+                    value: s.restTimerNotifications,
+                    onChanged: (v) => _saveSettings(
+                      (s) => s.copyWith(restTimerNotifications: v),
+                    ),
                   ),
                 ],
               ),

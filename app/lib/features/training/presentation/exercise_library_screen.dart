@@ -6,7 +6,9 @@ import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/training/exercise_query.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/training/application/exercise_library_providers.dart';
+import 'package:repforge/features/training/application/session_view.dart';
 import 'package:repforge/features/training/application/training_providers.dart';
+import 'package:repforge/features/training/presentation/session_starter.dart';
 import 'package:repforge/features/training/presentation/source_badge.dart';
 import 'package:repforge/features/training/presentation/training_labels.dart';
 import 'package:repforge/features/training/presentation/training_pickers.dart';
@@ -117,6 +119,14 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
           title: 'Train',
           caption: 'Exercise library, available offline',
         ),
+        const _ContinueSessionCard(),
+        RfButton(
+          key: const Key('start-empty-session'),
+          label: 'Start empty workout',
+          icon: Icons.play_arrow,
+          onPressed: () => ref.startEmpty(context),
+        ),
+        const SizedBox(height: RfSpace.s2),
         RfButton(
           key: const Key('new-exercise'),
           label: 'New exercise',
@@ -135,6 +145,14 @@ class _ExerciseLibraryScreenState extends ConsumerState<ExerciseLibraryScreen> {
               variant: RfButtonVariant.secondary,
               expand: false,
               onPressed: () => context.push(RfRoutes.trainPlans),
+            ),
+            RfButton(
+              key: const Key('open-history'),
+              label: 'History',
+              icon: Icons.history,
+              variant: RfButtonVariant.secondary,
+              expand: false,
+              onPressed: () => context.push(RfRoutes.trainHistory),
             ),
             RfButton(
               key: const Key('open-schedule'),
@@ -315,6 +333,44 @@ class _ExerciseRow extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Continue workout" for a session that was started and not finished.
+class _ContinueSessionCard extends ConsumerWidget {
+  const _ContinueSessionCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final active = ref.watch(activeSessionProvider).value;
+    if (active == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: RfSpace.s2),
+      child: RfCard(
+        key: const Key('continue-session'),
+        accentEdge: true,
+        onTap: () => context.push(RfRoutes.trainSession(active.id)),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Workout in progress', style: context.rfText.caption),
+                  Text(
+                    active.name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
       ),
     );
   }
