@@ -126,11 +126,33 @@ void main() {
       expect(e.day, '2026-11-04');
     });
 
-    test('the count is rounded to 0.1 and the snapshot follows the rounded '
+    test('the count is rounded to 0.01 and the snapshot follows the rounded '
         'count', () async {
-      final e = await logPortions(1.26);
-      expect(e.quantity.amount, 1.3);
-      expect(e.nutrients.kcal, closeTo(520, 1e-9));
+      final e = await logPortions(1.256);
+      expect(e.quantity.amount, 1.26);
+      expect(e.nutrients.kcal, closeTo(504, 1e-9));
+    });
+
+    test('1.25 portions are stored as 1.25 with nutrients x1.25, and an edit '
+        'to 1.75 rescales exactly', () async {
+      final e = await logPortions(1.25);
+      expect(e.quantity.amount, 1.25);
+      expect(e.nutrients.kcal, closeTo(500, 1e-9));
+      expect(e.nutrients.proteinG, closeTo(100, 1e-9));
+      final stored = (await entries()).single;
+      expect(stored.quantity.amount, 1.25);
+      expect(stored.quantity.label, '1.25 portions');
+      final updated = await UpdateFoodLogEntry(log: log, clock: clock)(
+        stored,
+        amount: 1.75,
+      );
+      final entry = (updated as Ok<FoodLogEntry>).value;
+      expect(entry.quantity.amount, 1.75);
+      expect(entry.nutrients.kcal, closeTo(700, 1e-9));
+      expect(entry.nutrients.proteinG, closeTo(140, 1e-9));
+      final reread = (await entries()).single;
+      expect(reread.quantity.amount, 1.75);
+      expect(reread.nutrients.kcal, closeTo(700, 1e-9));
     });
 
     test('an entry can be edited like any other: portions rescale the '
@@ -211,7 +233,7 @@ void main() {
     });
 
     test('zero, negative and rounds-to-zero amounts are rejected', () async {
-      for (final n in [0.0, -1.0, 0.04]) {
+      for (final n in [0.0, -1.0, 0.004]) {
         final r = await logRecipe(
           recipeId: 'r1',
           meal: MealSlot.lunch,

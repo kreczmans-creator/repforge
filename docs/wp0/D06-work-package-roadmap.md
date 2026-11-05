@@ -86,7 +86,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: integration test with fake adapter; manual device checklist for both platforms recorded with device models.
 
 ### WP 7 — Recipe management and meal planning
-- Status: **Conditionally accepted by the owner 2026-11-04** (delivered at 110b8bb, `docs/delivery-record/WP7.md`). Closure condition: NUT-017 revision 1.3 (portion counts to 0.01), its implementation and regression tests, a fresh independent review, and four workflows green on the final commit. OQ-14 decided (UK/EU available carbohydrate).
+- Status: **Accepted and closed by the owner 2026-11-05 at 7c62e9c** (closure record eb8f769; `docs/delivery-record/WP7.md`). NUT-017 calculation specification rev 1.3 approved. TD-40 open as debt.
 - Objective: recipes as first-class, calculable entities.
 - Scope: recipe CRUD, ingredients with quantities linked to foods, per-portion nutrition computed from ingredients (not typed in), portion scaling, prep/cook/storage/freezing/reheating fields, favourites, substitutions, seed import of the 22 legacy recipes flagged `estimated`, log a portion to the diary, weekly meal plan and prep list (P2).
 - Added 2026-11-04 (owner allocation from WP 5): **NUT-011** named meals rename/reorder, with its D04 acceptance criteria.
@@ -95,6 +95,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for recipe maths; widget tests.
 
 ### WP 8 — Exercise library and training architecture
+- Status: **Delivered — awaiting owner acceptance** (b1ab45a; `docs/delivery-record/WP8.md`). Controlled lists proposed in `docs/training-taxonomy.md`; OQ-09 (library source) pending owner decision.
 - Objective: structured exercise and set model supporting all six exercise types.
 - Scope: exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries.
 - Dependencies: WP 4.

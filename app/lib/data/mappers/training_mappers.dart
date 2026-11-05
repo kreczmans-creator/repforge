@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:repforge/data/db/app_database.dart';
-import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart' show DataProvenance;
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
 
@@ -26,30 +26,54 @@ abstract final class TrainingMappers {
 
   static LoadKg? _load(double? raw) {
     if (raw == null) return null;
-    return switch (LoadKg.of(raw)) {
-      Ok(:final value) => value,
-      Err() => null,
-    };
+    return LoadKg.tryFromStored(raw);
   }
 
   static Duration? _seconds(int? s) => s == null ? null : Duration(seconds: s);
 
   // ---- Exercise ----------------------------------------------------------
 
+  static List<T>? _enumList<T extends Enum>(String json, List<T> values) {
+    final names = decodeList<String>(json);
+    if (names == null) return null;
+    final map = {for (final v in values) v.name: v};
+    final out = <T>[];
+    for (final n in names) {
+      final v = map[n];
+      if (v == null) return null;
+      out.add(v);
+    }
+    return out;
+  }
+
+  /// Maps a row; null when a stored identifier is not in the taxonomy (the
+  /// repositories then skip the row rather than guess).
   static Exercise? exerciseToEntity(ExerciseRow row) {
     final type = ExerciseType.values.asNameMap()[row.type];
-    final secondary = decodeList<String>(row.secondaryMusclesJson);
-    final equipment = decodeList<String>(row.equipmentJson);
-    if (type == null || secondary == null || equipment == null) return null;
+    final category = ExerciseCategory.values.asNameMap()[row.category];
+    final primary = MuscleGroup.values.asNameMap()[row.primaryMuscle];
+    final secondary = _enumList(row.secondaryMusclesJson, MuscleGroup.values);
+    final equipment = _enumList(row.equipmentJson, Equipment.values);
+    final aliases = decodeList<String>(row.aliasesJson);
+    if (type == null ||
+        category == null ||
+        primary == null ||
+        secondary == null ||
+        equipment == null ||
+        aliases == null) {
+      return null;
+    }
     return Exercise(
       id: row.id,
       name: row.name,
       type: type,
-      category: row.category,
-      primaryMuscle: row.primaryMuscle,
+      category: category,
+      primaryMuscle: primary,
       secondaryMuscles: secondary,
       equipment: equipment,
-      isCustom: row.isCustom,
+      aliases: aliases,
+      supplied: row.supplied,
+      copiedFromId: row.copiedFromId,
       archived: row.archived,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -61,11 +85,16 @@ abstract final class TrainingMappers {
         id: e.id,
         name: e.name,
         type: e.type.name,
-        category: e.category,
-        primaryMuscle: e.primaryMuscle,
-        secondaryMusclesJson: encodeList(e.secondaryMuscles),
-        equipmentJson: encodeList(e.equipment),
-        isCustom: Value(e.isCustom),
+        category: e.category.name,
+        primaryMuscle: e.primaryMuscle.name,
+        secondaryMusclesJson: encodeList([
+          for (final m in e.secondaryMuscles) m.name,
+        ]),
+        equipmentJson: encodeList([for (final q in e.equipment) q.name]),
+        aliasesJson: Value(encodeList(e.aliases)),
+        searchKey: Value(e.searchKey),
+        supplied: Value(e.supplied),
+        copiedFromId: Value(e.copiedFromId),
         archived: Value(e.archived),
         createdAt: e.createdAt,
         updatedAt: e.updatedAt,
@@ -84,9 +113,11 @@ abstract final class TrainingMappers {
       exerciseId: row.exerciseId,
       sortOrder: row.sortOrder,
       targetSets: row.targetSets,
-      targetReps: row.targetReps,
+      repsMin: row.repsMin,
+      repsMax: row.repsMax,
       targetLoad: load,
       targetDuration: _seconds(row.targetDurationSec),
+      targetMetres: row.targetMetres,
       restSeconds: row.restSeconds,
     );
   }
@@ -100,9 +131,11 @@ abstract final class TrainingMappers {
     exerciseId: e.exerciseId,
     sortOrder: e.sortOrder,
     targetSets: e.targetSets,
-    targetReps: Value(e.targetReps),
+    repsMin: Value(e.repsMin),
+    repsMax: Value(e.repsMax),
     targetLoadKg: Value(e.targetLoad?.value),
     targetDurationSec: Value(e.targetDuration?.inSeconds),
+    targetMetres: Value(e.targetMetres),
     restSeconds: Value(e.restSeconds),
   );
 
@@ -160,17 +193,26 @@ abstract final class TrainingMappers {
         return SetData.assisted(reps: reps, assistance: assistance);
       case ExerciseType.timed:
         if (dur == null) return null;
-        return SetData.timed(duration: dur);
+        final added = _load(r.loadKg);
+        if (r.loadKg != null && added == null) return null;
+        return SetData.timed(duration: dur, addedLoad: added);
       case ExerciseType.distance:
         final metres = r.metres;
         if (metres == null) return null;
         return SetData.distance(metres: metres, duration: dur);
       case ExerciseType.cardio:
         if (dur == null) return null;
+        final kcal = r.energyKcal;
+        final provenance = DataProvenance.values
+            .asNameMap()[r.energyProvenance];
+        // Energy needs its label; one without (or the reverse) is corrupt.
+        if ((kcal == null) != (provenance == null)) return null;
         return SetData.cardio(
           duration: dur,
           metres: r.metres,
           averageHeartRate: r.averageHeartRate,
+          energyKcal: kcal,
+          energyProvenance: provenance,
         );
     }
   }
@@ -208,6 +250,7 @@ abstract final class TrainingMappers {
       loadKg: Value(switch (d) {
         WeightedSet(:final load) => load.value,
         BodyweightSet(:final addedLoad) => addedLoad?.value,
+        TimedSet(:final addedLoad) => addedLoad?.value,
         _ => null,
       }),
       reps: Value(switch (d) {
@@ -233,6 +276,14 @@ abstract final class TrainingMappers {
       }),
       averageHeartRate: Value(switch (d) {
         CardioSet(:final averageHeartRate) => averageHeartRate,
+        _ => null,
+      }),
+      energyKcal: Value(switch (d) {
+        CardioSet(:final energyKcal) => energyKcal,
+        _ => null,
+      }),
+      energyProvenance: Value(switch (d) {
+        CardioSet(:final energyProvenance) => energyProvenance?.name,
         _ => null,
       }),
       completed: Value(s.completed),
@@ -276,4 +327,41 @@ abstract final class TrainingMappers {
         createdAt: s.createdAt,
         updatedAt: s.updatedAt,
       );
+
+  // ---- Splits ------------------------------------------------------------
+
+  static TrainingSplit splitToEntity(
+    TrainingSplitRow row,
+    List<SplitDayRow> days,
+  ) {
+    final sorted = [...days]..sort((a, b) => a.dayIndex.compareTo(b.dayIndex));
+    return TrainingSplit(
+      id: row.id,
+      name: row.name,
+      sortOrder: row.sortOrder,
+      days: [for (final d in sorted) SplitDay(planId: d.planId)],
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    );
+  }
+
+  static TrainingSplitsCompanion splitToRow(TrainingSplit s) =>
+      TrainingSplitsCompanion.insert(
+        id: s.id,
+        name: s.name,
+        cycleDays: s.cycleDays,
+        sortOrder: Value(s.sortOrder),
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      );
+
+  static List<SplitDaysCompanion> splitDaysToRows(TrainingSplit s) => [
+    for (var i = 0; i < s.days.length; i++)
+      SplitDaysCompanion.insert(
+        id: '${s.id}:$i',
+        splitId: s.id,
+        dayIndex: i,
+        planId: Value(s.days[i].planId),
+      ),
+  ];
 }

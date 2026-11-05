@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Exercise {
 
- String get id; String get name; ExerciseType get type; String get category; String get primaryMuscle; DateTime get createdAt; DateTime get updatedAt; List<String> get secondaryMuscles; List<String> get equipment; bool get isCustom; bool get archived;
+ String get id; String get name; ExerciseType get type; ExerciseCategory get category; MuscleGroup get primaryMuscle; DateTime get createdAt; DateTime get updatedAt; List<MuscleGroup> get secondaryMuscles; List<Equipment> get equipment;/// Alternative names the search also matches (TRN-008(3)).
+ List<String> get aliases; bool get supplied;/// For a custom copy of a supplied exercise (TRN-008(2)): the id of the
+/// supplied original. Null otherwise.
+ String? get copiedFromId; bool get archived;
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +30,20 @@ $ExerciseCopyWith<Exercise> get copyWith => _$ExerciseCopyWithImpl<Exercise>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as Exercise;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Exercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.primaryMuscle, _this.primaryMuscle) || other.primaryMuscle == _this.primaryMuscle)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&const DeepCollectionEquality().equals(other.secondaryMuscles, _this.secondaryMuscles)&&const DeepCollectionEquality().equals(other.equipment, _this.equipment)&&(identical(other.isCustom, _this.isCustom) || other.isCustom == _this.isCustom)&&(identical(other.archived, _this.archived) || other.archived == _this.archived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Exercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.primaryMuscle, _this.primaryMuscle) || other.primaryMuscle == _this.primaryMuscle)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&const DeepCollectionEquality().equals(other.secondaryMuscles, _this.secondaryMuscles)&&const DeepCollectionEquality().equals(other.equipment, _this.equipment)&&const DeepCollectionEquality().equals(other.aliases, _this.aliases)&&(identical(other.supplied, _this.supplied) || other.supplied == _this.supplied)&&(identical(other.copiedFromId, _this.copiedFromId) || other.copiedFromId == _this.copiedFromId)&&(identical(other.archived, _this.archived) || other.archived == _this.archived));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Exercise;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.type,_this.category,_this.primaryMuscle,_this.createdAt,_this.updatedAt,const DeepCollectionEquality().hash(_this.secondaryMuscles),const DeepCollectionEquality().hash(_this.equipment),_this.isCustom,_this.archived);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.type,_this.category,_this.primaryMuscle,_this.createdAt,_this.updatedAt,const DeepCollectionEquality().hash(_this.secondaryMuscles),const DeepCollectionEquality().hash(_this.equipment),const DeepCollectionEquality().hash(_this.aliases),_this.supplied,_this.copiedFromId,_this.archived);
 }
 
 @override
 String toString() {
   final _this = this as Exercise;
-  return 'Exercise(id: ${_this.id}, name: ${_this.name}, type: ${_this.type}, category: ${_this.category}, primaryMuscle: ${_this.primaryMuscle}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, secondaryMuscles: ${_this.secondaryMuscles}, equipment: ${_this.equipment}, isCustom: ${_this.isCustom}, archived: ${_this.archived})';
+  return 'Exercise(id: ${_this.id}, name: ${_this.name}, type: ${_this.type}, category: ${_this.category}, primaryMuscle: ${_this.primaryMuscle}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, secondaryMuscles: ${_this.secondaryMuscles}, equipment: ${_this.equipment}, aliases: ${_this.aliases}, supplied: ${_this.supplied}, copiedFromId: ${_this.copiedFromId}, archived: ${_this.archived})';
 }
 
 
@@ -51,7 +54,7 @@ abstract mixin class $ExerciseCopyWith<$Res>  {
   factory $ExerciseCopyWith(Exercise value, $Res Function(Exercise) _then) = _$ExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, ExerciseType type, String category, String primaryMuscle, DateTime createdAt, DateTime updatedAt, List<String> secondaryMuscles, List<String> equipment, bool isCustom, bool archived
+ String id, String name, ExerciseType type, ExerciseCategory category, MuscleGroup primaryMuscle, DateTime createdAt, DateTime updatedAt, List<MuscleGroup> secondaryMuscles, List<Equipment> equipment, List<String> aliases, bool supplied, String? copiedFromId, bool archived
 });
 
 
@@ -68,19 +71,21 @@ class _$ExerciseCopyWithImpl<$Res>
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? category = null,Object? primaryMuscle = null,Object? createdAt = null,Object? updatedAt = null,Object? secondaryMuscles = null,Object? equipment = null,Object? isCustom = null,Object? archived = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? category = null,Object? primaryMuscle = null,Object? createdAt = null,Object? updatedAt = null,Object? secondaryMuscles = null,Object? equipment = null,Object? aliases = null,Object? supplied = null,Object? copiedFromId = freezed,Object? archived = null,}) {
   return _then(Exercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ExerciseType,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String,primaryMuscle: null == primaryMuscle ? _self.primaryMuscle : primaryMuscle // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as ExerciseCategory,primaryMuscle: null == primaryMuscle ? _self.primaryMuscle : primaryMuscle // ignore: cast_nullable_to_non_nullable
+as MuscleGroup,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,secondaryMuscles: null == secondaryMuscles ? _self.secondaryMuscles : secondaryMuscles // ignore: cast_nullable_to_non_nullable
-as List<String>,equipment: null == equipment ? _self.equipment : equipment // ignore: cast_nullable_to_non_nullable
-as List<String>,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
-as bool,archived: null == archived ? _self.archived : archived // ignore: cast_nullable_to_non_nullable
+as List<MuscleGroup>,equipment: null == equipment ? _self.equipment : equipment // ignore: cast_nullable_to_non_nullable
+as List<Equipment>,aliases: null == aliases ? _self.aliases : aliases // ignore: cast_nullable_to_non_nullable
+as List<String>,supplied: null == supplied ? _self.supplied : supplied // ignore: cast_nullable_to_non_nullable
+as bool,copiedFromId: freezed == copiedFromId ? _self.copiedFromId : copiedFromId // ignore: cast_nullable_to_non_nullable
+as String?,archived: null == archived ? _self.archived : archived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -166,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  ExerciseType type,  String category,  String primaryMuscle,  DateTime createdAt,  DateTime updatedAt,  List<String> secondaryMuscles,  List<String> equipment,  bool isCustom,  bool archived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  ExerciseType type,  ExerciseCategory category,  MuscleGroup primaryMuscle,  DateTime createdAt,  DateTime updatedAt,  List<MuscleGroup> secondaryMuscles,  List<Equipment> equipment,  List<String> aliases,  bool supplied,  String? copiedFromId,  bool archived)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Exercise() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscle,_that.createdAt,_that.updatedAt,_that.secondaryMuscles,_that.equipment,_that.isCustom,_that.archived);case _:
+return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscle,_that.createdAt,_that.updatedAt,_that.secondaryMuscles,_that.equipment,_that.aliases,_that.supplied,_that.copiedFromId,_that.archived);case _:
   return orElse();
 
 }
@@ -187,10 +192,10 @@ return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscl
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  ExerciseType type,  String category,  String primaryMuscle,  DateTime createdAt,  DateTime updatedAt,  List<String> secondaryMuscles,  List<String> equipment,  bool isCustom,  bool archived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  ExerciseType type,  ExerciseCategory category,  MuscleGroup primaryMuscle,  DateTime createdAt,  DateTime updatedAt,  List<MuscleGroup> secondaryMuscles,  List<Equipment> equipment,  List<String> aliases,  bool supplied,  String? copiedFromId,  bool archived)  $default,) {final _that = this;
 switch (_that) {
 case _Exercise():
-return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscle,_that.createdAt,_that.updatedAt,_that.secondaryMuscles,_that.equipment,_that.isCustom,_that.archived);case _:
+return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscle,_that.createdAt,_that.updatedAt,_that.secondaryMuscles,_that.equipment,_that.aliases,_that.supplied,_that.copiedFromId,_that.archived);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +212,10 @@ return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscl
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  ExerciseType type,  String category,  String primaryMuscle,  DateTime createdAt,  DateTime updatedAt,  List<String> secondaryMuscles,  List<String> equipment,  bool isCustom,  bool archived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  ExerciseType type,  ExerciseCategory category,  MuscleGroup primaryMuscle,  DateTime createdAt,  DateTime updatedAt,  List<MuscleGroup> secondaryMuscles,  List<Equipment> equipment,  List<String> aliases,  bool supplied,  String? copiedFromId,  bool archived)?  $default,) {final _that = this;
 switch (_that) {
 case _Exercise() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscle,_that.createdAt,_that.updatedAt,_that.secondaryMuscles,_that.equipment,_that.isCustom,_that.archived);case _:
+return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscle,_that.createdAt,_that.updatedAt,_that.secondaryMuscles,_that.equipment,_that.aliases,_that.supplied,_that.copiedFromId,_that.archived);case _:
   return null;
 
 }
@@ -221,32 +226,44 @@ return $default(_that.id,_that.name,_that.type,_that.category,_that.primaryMuscl
 /// @nodoc
 
 
-class _Exercise implements Exercise {
-  const _Exercise({required this.id, required this.name, required this.type, required this.category, required this.primaryMuscle, required this.createdAt, required this.updatedAt,  List<String> secondaryMuscles = const <String>[],  List<String> equipment = const <String>[], this.isCustom = false, this.archived = false}): _secondaryMuscles = secondaryMuscles,_equipment = equipment;
+class _Exercise extends Exercise {
+  const _Exercise({required this.id, required this.name, required this.type, required this.category, required this.primaryMuscle, required this.createdAt, required this.updatedAt,  List<MuscleGroup> secondaryMuscles = const <MuscleGroup>[],  List<Equipment> equipment = const <Equipment>[],  List<String> aliases = const <String>[], this.supplied = false, this.copiedFromId, this.archived = false}): _secondaryMuscles = secondaryMuscles,_equipment = equipment,_aliases = aliases,super._();
   
 
 @override final  String id;
 @override final  String name;
 @override final  ExerciseType type;
-@override final  String category;
-@override final  String primaryMuscle;
+@override final  ExerciseCategory category;
+@override final  MuscleGroup primaryMuscle;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
- final  List<String> _secondaryMuscles;
-@override@JsonKey() List<String> get secondaryMuscles {
+ final  List<MuscleGroup> _secondaryMuscles;
+@override@JsonKey() List<MuscleGroup> get secondaryMuscles {
   if (_secondaryMuscles is EqualUnmodifiableListView) return _secondaryMuscles;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_secondaryMuscles);
 }
 
- final  List<String> _equipment;
-@override@JsonKey() List<String> get equipment {
+ final  List<Equipment> _equipment;
+@override@JsonKey() List<Equipment> get equipment {
   if (_equipment is EqualUnmodifiableListView) return _equipment;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_equipment);
 }
 
-@override@JsonKey() final  bool isCustom;
+/// Alternative names the search also matches (TRN-008(3)).
+ final  List<String> _aliases;
+/// Alternative names the search also matches (TRN-008(3)).
+@override@JsonKey() List<String> get aliases {
+  if (_aliases is EqualUnmodifiableListView) return _aliases;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_aliases);
+}
+
+@override@JsonKey() final  bool supplied;
+/// For a custom copy of a supplied exercise (TRN-008(2)): the id of the
+/// supplied original. Null otherwise.
+@override final  String? copiedFromId;
 @override@JsonKey() final  bool archived;
 
 /// Create a copy of Exercise
@@ -259,18 +276,18 @@ _$ExerciseCopyWith<_Exercise> get copyWith => __$ExerciseCopyWithImpl<_Exercise>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.category, category) || other.category == category)&&(identical(other.primaryMuscle, primaryMuscle) || other.primaryMuscle == primaryMuscle)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.secondaryMuscles, _secondaryMuscles)&&const DeepCollectionEquality().equals(other.equipment, _equipment)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom)&&(identical(other.archived, archived) || other.archived == archived));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.category, category) || other.category == category)&&(identical(other.primaryMuscle, primaryMuscle) || other.primaryMuscle == primaryMuscle)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.secondaryMuscles, _secondaryMuscles)&&const DeepCollectionEquality().equals(other.equipment, _equipment)&&const DeepCollectionEquality().equals(other.aliases, _aliases)&&(identical(other.supplied, supplied) || other.supplied == supplied)&&(identical(other.copiedFromId, copiedFromId) || other.copiedFromId == copiedFromId)&&(identical(other.archived, archived) || other.archived == archived));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,type,category,primaryMuscle,createdAt,updatedAt,const DeepCollectionEquality().hash(_secondaryMuscles),const DeepCollectionEquality().hash(_equipment),isCustom,archived);
+    return Object.hash(runtimeType,id,name,type,category,primaryMuscle,createdAt,updatedAt,const DeepCollectionEquality().hash(_secondaryMuscles),const DeepCollectionEquality().hash(_equipment),const DeepCollectionEquality().hash(_aliases),supplied,copiedFromId,archived);
 }
 
 @override
 String toString() {
-    return 'Exercise(id: $id, name: $name, type: $type, category: $category, primaryMuscle: $primaryMuscle, createdAt: $createdAt, updatedAt: $updatedAt, secondaryMuscles: $secondaryMuscles, equipment: $equipment, isCustom: $isCustom, archived: $archived)';
+    return 'Exercise(id: $id, name: $name, type: $type, category: $category, primaryMuscle: $primaryMuscle, createdAt: $createdAt, updatedAt: $updatedAt, secondaryMuscles: $secondaryMuscles, equipment: $equipment, aliases: $aliases, supplied: $supplied, copiedFromId: $copiedFromId, archived: $archived)';
 }
 
 
@@ -281,7 +298,7 @@ abstract mixin class _$ExerciseCopyWith<$Res> implements $ExerciseCopyWith<$Res>
   factory _$ExerciseCopyWith(_Exercise value, $Res Function(_Exercise) _then) = __$ExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, ExerciseType type, String category, String primaryMuscle, DateTime createdAt, DateTime updatedAt, List<String> secondaryMuscles, List<String> equipment, bool isCustom, bool archived
+ String id, String name, ExerciseType type, ExerciseCategory category, MuscleGroup primaryMuscle, DateTime createdAt, DateTime updatedAt, List<MuscleGroup> secondaryMuscles, List<Equipment> equipment, List<String> aliases, bool supplied, String? copiedFromId, bool archived
 });
 
 
@@ -298,19 +315,21 @@ class __$ExerciseCopyWithImpl<$Res>
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? category = null,Object? primaryMuscle = null,Object? createdAt = null,Object? updatedAt = null,Object? secondaryMuscles = null,Object? equipment = null,Object? isCustom = null,Object? archived = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? category = null,Object? primaryMuscle = null,Object? createdAt = null,Object? updatedAt = null,Object? secondaryMuscles = null,Object? equipment = null,Object? aliases = null,Object? supplied = null,Object? copiedFromId = freezed,Object? archived = null,}) {
   return _then(_Exercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ExerciseType,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String,primaryMuscle: null == primaryMuscle ? _self.primaryMuscle : primaryMuscle // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as ExerciseCategory,primaryMuscle: null == primaryMuscle ? _self.primaryMuscle : primaryMuscle // ignore: cast_nullable_to_non_nullable
+as MuscleGroup,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,secondaryMuscles: null == secondaryMuscles ? _self._secondaryMuscles : secondaryMuscles // ignore: cast_nullable_to_non_nullable
-as List<String>,equipment: null == equipment ? _self._equipment : equipment // ignore: cast_nullable_to_non_nullable
-as List<String>,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
-as bool,archived: null == archived ? _self.archived : archived // ignore: cast_nullable_to_non_nullable
+as List<MuscleGroup>,equipment: null == equipment ? _self._equipment : equipment // ignore: cast_nullable_to_non_nullable
+as List<Equipment>,aliases: null == aliases ? _self._aliases : aliases // ignore: cast_nullable_to_non_nullable
+as List<String>,supplied: null == supplied ? _self.supplied : supplied // ignore: cast_nullable_to_non_nullable
+as bool,copiedFromId: freezed == copiedFromId ? _self.copiedFromId : copiedFromId // ignore: cast_nullable_to_non_nullable
+as String?,archived: null == archived ? _self.archived : archived // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -705,15 +724,15 @@ return cardio(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( LoadKg load,  int reps)?  weighted,TResult Function( int reps,  LoadKg? addedLoad)?  bodyweight,TResult Function( int reps,  LoadKg assistance)?  assisted,TResult Function( Duration duration)?  timed,TResult Function( double metres,  Duration? duration)?  distance,TResult Function( Duration duration,  double? metres,  int? averageHeartRate)?  cardio,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( LoadKg load,  int reps)?  weighted,TResult Function( int reps,  LoadKg? addedLoad)?  bodyweight,TResult Function( int reps,  LoadKg assistance)?  assisted,TResult Function( Duration duration,  LoadKg? addedLoad)?  timed,TResult Function( double metres,  Duration? duration)?  distance,TResult Function( Duration duration,  double? metres,  int? averageHeartRate,  double? energyKcal,  DataProvenance? energyProvenance)?  cardio,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case WeightedSet() when weighted != null:
 return weighted(_that.load,_that.reps);case BodyweightSet() when bodyweight != null:
 return bodyweight(_that.reps,_that.addedLoad);case AssistedSet() when assisted != null:
 return assisted(_that.reps,_that.assistance);case TimedSet() when timed != null:
-return timed(_that.duration);case DistanceSet() when distance != null:
+return timed(_that.duration,_that.addedLoad);case DistanceSet() when distance != null:
 return distance(_that.metres,_that.duration);case CardioSet() when cardio != null:
-return cardio(_that.duration,_that.metres,_that.averageHeartRate);case _:
+return cardio(_that.duration,_that.metres,_that.averageHeartRate,_that.energyKcal,_that.energyProvenance);case _:
   return orElse();
 
 }
@@ -731,15 +750,15 @@ return cardio(_that.duration,_that.metres,_that.averageHeartRate);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( LoadKg load,  int reps)  weighted,required TResult Function( int reps,  LoadKg? addedLoad)  bodyweight,required TResult Function( int reps,  LoadKg assistance)  assisted,required TResult Function( Duration duration)  timed,required TResult Function( double metres,  Duration? duration)  distance,required TResult Function( Duration duration,  double? metres,  int? averageHeartRate)  cardio,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( LoadKg load,  int reps)  weighted,required TResult Function( int reps,  LoadKg? addedLoad)  bodyweight,required TResult Function( int reps,  LoadKg assistance)  assisted,required TResult Function( Duration duration,  LoadKg? addedLoad)  timed,required TResult Function( double metres,  Duration? duration)  distance,required TResult Function( Duration duration,  double? metres,  int? averageHeartRate,  double? energyKcal,  DataProvenance? energyProvenance)  cardio,}) {final _that = this;
 switch (_that) {
 case WeightedSet():
 return weighted(_that.load,_that.reps);case BodyweightSet():
 return bodyweight(_that.reps,_that.addedLoad);case AssistedSet():
 return assisted(_that.reps,_that.assistance);case TimedSet():
-return timed(_that.duration);case DistanceSet():
+return timed(_that.duration,_that.addedLoad);case DistanceSet():
 return distance(_that.metres,_that.duration);case CardioSet():
-return cardio(_that.duration,_that.metres,_that.averageHeartRate);}
+return cardio(_that.duration,_that.metres,_that.averageHeartRate,_that.energyKcal,_that.energyProvenance);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -753,15 +772,15 @@ return cardio(_that.duration,_that.metres,_that.averageHeartRate);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( LoadKg load,  int reps)?  weighted,TResult? Function( int reps,  LoadKg? addedLoad)?  bodyweight,TResult? Function( int reps,  LoadKg assistance)?  assisted,TResult? Function( Duration duration)?  timed,TResult? Function( double metres,  Duration? duration)?  distance,TResult? Function( Duration duration,  double? metres,  int? averageHeartRate)?  cardio,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( LoadKg load,  int reps)?  weighted,TResult? Function( int reps,  LoadKg? addedLoad)?  bodyweight,TResult? Function( int reps,  LoadKg assistance)?  assisted,TResult? Function( Duration duration,  LoadKg? addedLoad)?  timed,TResult? Function( double metres,  Duration? duration)?  distance,TResult? Function( Duration duration,  double? metres,  int? averageHeartRate,  double? energyKcal,  DataProvenance? energyProvenance)?  cardio,}) {final _that = this;
 switch (_that) {
 case WeightedSet() when weighted != null:
 return weighted(_that.load,_that.reps);case BodyweightSet() when bodyweight != null:
 return bodyweight(_that.reps,_that.addedLoad);case AssistedSet() when assisted != null:
 return assisted(_that.reps,_that.assistance);case TimedSet() when timed != null:
-return timed(_that.duration);case DistanceSet() when distance != null:
+return timed(_that.duration,_that.addedLoad);case DistanceSet() when distance != null:
 return distance(_that.metres,_that.duration);case CardioSet() when cardio != null:
-return cardio(_that.duration,_that.metres,_that.averageHeartRate);case _:
+return cardio(_that.duration,_that.metres,_that.averageHeartRate,_that.energyKcal,_that.energyProvenance);case _:
   return null;
 
 }
@@ -983,10 +1002,11 @@ as LoadKg,
 
 
 class TimedSet extends SetData {
-  const TimedSet({required this.duration}): super._();
+  const TimedSet({required this.duration, this.addedLoad}): super._();
   
 
  final  Duration duration;
+ final  LoadKg? addedLoad;
 
 /// Create a copy of SetData
 /// with the given fields replaced by the non-null parameter values.
@@ -998,18 +1018,18 @@ $TimedSetCopyWith<TimedSet> get copyWith => _$TimedSetCopyWithImpl<TimedSet>(thi
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is TimedSet&&(identical(other.duration, duration) || other.duration == duration));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is TimedSet&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.addedLoad, addedLoad) || other.addedLoad == addedLoad));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,duration);
+    return Object.hash(runtimeType,duration,addedLoad);
 }
 
 @override
 String toString() {
-    return 'SetData.timed(duration: $duration)';
+    return 'SetData.timed(duration: $duration, addedLoad: $addedLoad)';
 }
 
 
@@ -1020,7 +1040,7 @@ abstract mixin class $TimedSetCopyWith<$Res> implements $SetDataCopyWith<$Res> {
   factory $TimedSetCopyWith(TimedSet value, $Res Function(TimedSet) _then) = _$TimedSetCopyWithImpl;
 @useResult
 $Res call({
- Duration duration
+ Duration duration, LoadKg? addedLoad
 });
 
 
@@ -1037,10 +1057,11 @@ class _$TimedSetCopyWithImpl<$Res>
 
 /// Create a copy of SetData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? duration = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? duration = null,Object? addedLoad = freezed,}) {
   return _then(TimedSet(
 duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as Duration,
+as Duration,addedLoad: freezed == addedLoad ? _self.addedLoad : addedLoad // ignore: cast_nullable_to_non_nullable
+as LoadKg?,
   ));
 }
 
@@ -1121,12 +1142,14 @@ as Duration?,
 
 
 class CardioSet extends SetData {
-  const CardioSet({required this.duration, this.metres, this.averageHeartRate}): super._();
+  const CardioSet({required this.duration, this.metres, this.averageHeartRate, this.energyKcal, this.energyProvenance}): super._();
   
 
  final  Duration duration;
  final  double? metres;
  final  int? averageHeartRate;
+ final  double? energyKcal;
+ final  DataProvenance? energyProvenance;
 
 /// Create a copy of SetData
 /// with the given fields replaced by the non-null parameter values.
@@ -1138,18 +1161,18 @@ $CardioSetCopyWith<CardioSet> get copyWith => _$CardioSetCopyWithImpl<CardioSet>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is CardioSet&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.metres, metres) || other.metres == metres)&&(identical(other.averageHeartRate, averageHeartRate) || other.averageHeartRate == averageHeartRate));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CardioSet&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.metres, metres) || other.metres == metres)&&(identical(other.averageHeartRate, averageHeartRate) || other.averageHeartRate == averageHeartRate)&&(identical(other.energyKcal, energyKcal) || other.energyKcal == energyKcal)&&(identical(other.energyProvenance, energyProvenance) || other.energyProvenance == energyProvenance));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,duration,metres,averageHeartRate);
+    return Object.hash(runtimeType,duration,metres,averageHeartRate,energyKcal,energyProvenance);
 }
 
 @override
 String toString() {
-    return 'SetData.cardio(duration: $duration, metres: $metres, averageHeartRate: $averageHeartRate)';
+    return 'SetData.cardio(duration: $duration, metres: $metres, averageHeartRate: $averageHeartRate, energyKcal: $energyKcal, energyProvenance: $energyProvenance)';
 }
 
 
@@ -1160,7 +1183,7 @@ abstract mixin class $CardioSetCopyWith<$Res> implements $SetDataCopyWith<$Res> 
   factory $CardioSetCopyWith(CardioSet value, $Res Function(CardioSet) _then) = _$CardioSetCopyWithImpl;
 @useResult
 $Res call({
- Duration duration, double? metres, int? averageHeartRate
+ Duration duration, double? metres, int? averageHeartRate, double? energyKcal, DataProvenance? energyProvenance
 });
 
 
@@ -1177,12 +1200,14 @@ class _$CardioSetCopyWithImpl<$Res>
 
 /// Create a copy of SetData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? duration = null,Object? metres = freezed,Object? averageHeartRate = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? duration = null,Object? metres = freezed,Object? averageHeartRate = freezed,Object? energyKcal = freezed,Object? energyProvenance = freezed,}) {
   return _then(CardioSet(
 duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,metres: freezed == metres ? _self.metres : metres // ignore: cast_nullable_to_non_nullable
 as double?,averageHeartRate: freezed == averageHeartRate ? _self.averageHeartRate : averageHeartRate // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,energyKcal: freezed == energyKcal ? _self.energyKcal : energyKcal // ignore: cast_nullable_to_non_nullable
+as double?,energyProvenance: freezed == energyProvenance ? _self.energyProvenance : energyProvenance // ignore: cast_nullable_to_non_nullable
+as DataProvenance?,
   ));
 }
 
@@ -1819,7 +1844,7 @@ as List<SessionSet>,
 /// @nodoc
 mixin _$PlanExercise {
 
- String get id; String get exerciseId; int get sortOrder; int get targetSets; int? get targetReps; LoadKg? get targetLoad; Duration? get targetDuration; int? get restSeconds;
+ String get id; String get exerciseId; int get sortOrder; int get targetSets; int? get repsMin; int? get repsMax; Duration? get targetDuration; double? get targetMetres; LoadKg? get targetLoad; int? get restSeconds;
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1831,20 +1856,20 @@ $PlanExerciseCopyWith<PlanExercise> get copyWith => _$PlanExerciseCopyWithImpl<P
 @override
 bool operator ==(Object other) {
   final _this = this as PlanExercise;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder)&&(identical(other.targetSets, _this.targetSets) || other.targetSets == _this.targetSets)&&(identical(other.targetReps, _this.targetReps) || other.targetReps == _this.targetReps)&&(identical(other.targetLoad, _this.targetLoad) || other.targetLoad == _this.targetLoad)&&(identical(other.targetDuration, _this.targetDuration) || other.targetDuration == _this.targetDuration)&&(identical(other.restSeconds, _this.restSeconds) || other.restSeconds == _this.restSeconds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder)&&(identical(other.targetSets, _this.targetSets) || other.targetSets == _this.targetSets)&&(identical(other.repsMin, _this.repsMin) || other.repsMin == _this.repsMin)&&(identical(other.repsMax, _this.repsMax) || other.repsMax == _this.repsMax)&&(identical(other.targetDuration, _this.targetDuration) || other.targetDuration == _this.targetDuration)&&(identical(other.targetMetres, _this.targetMetres) || other.targetMetres == _this.targetMetres)&&(identical(other.targetLoad, _this.targetLoad) || other.targetLoad == _this.targetLoad)&&(identical(other.restSeconds, _this.restSeconds) || other.restSeconds == _this.restSeconds));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PlanExercise;
-  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.sortOrder,_this.targetSets,_this.targetReps,_this.targetLoad,_this.targetDuration,_this.restSeconds);
+  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.sortOrder,_this.targetSets,_this.repsMin,_this.repsMax,_this.targetDuration,_this.targetMetres,_this.targetLoad,_this.restSeconds);
 }
 
 @override
 String toString() {
   final _this = this as PlanExercise;
-  return 'PlanExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, sortOrder: ${_this.sortOrder}, targetSets: ${_this.targetSets}, targetReps: ${_this.targetReps}, targetLoad: ${_this.targetLoad}, targetDuration: ${_this.targetDuration}, restSeconds: ${_this.restSeconds})';
+  return 'PlanExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, sortOrder: ${_this.sortOrder}, targetSets: ${_this.targetSets}, repsMin: ${_this.repsMin}, repsMax: ${_this.repsMax}, targetDuration: ${_this.targetDuration}, targetMetres: ${_this.targetMetres}, targetLoad: ${_this.targetLoad}, restSeconds: ${_this.restSeconds})';
 }
 
 
@@ -1855,7 +1880,7 @@ abstract mixin class $PlanExerciseCopyWith<$Res>  {
   factory $PlanExerciseCopyWith(PlanExercise value, $Res Function(PlanExercise) _then) = _$PlanExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String exerciseId, int sortOrder, int targetSets, int? targetReps, LoadKg? targetLoad, Duration? targetDuration, int? restSeconds
+ String id, String exerciseId, int sortOrder, int targetSets, int? repsMin, int? repsMax, Duration? targetDuration, double? targetMetres, LoadKg? targetLoad, int? restSeconds
 });
 
 
@@ -1872,16 +1897,18 @@ class _$PlanExerciseCopyWithImpl<$Res>
 
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? sortOrder = null,Object? targetSets = null,Object? targetReps = freezed,Object? targetLoad = freezed,Object? targetDuration = freezed,Object? restSeconds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? sortOrder = null,Object? targetSets = null,Object? repsMin = freezed,Object? repsMax = freezed,Object? targetDuration = freezed,Object? targetMetres = freezed,Object? targetLoad = freezed,Object? restSeconds = freezed,}) {
   return _then(PlanExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
 as String,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int,targetSets: null == targetSets ? _self.targetSets : targetSets // ignore: cast_nullable_to_non_nullable
-as int,targetReps: freezed == targetReps ? _self.targetReps : targetReps // ignore: cast_nullable_to_non_nullable
-as int?,targetLoad: freezed == targetLoad ? _self.targetLoad : targetLoad // ignore: cast_nullable_to_non_nullable
-as LoadKg?,targetDuration: freezed == targetDuration ? _self.targetDuration : targetDuration // ignore: cast_nullable_to_non_nullable
-as Duration?,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
+as int,repsMin: freezed == repsMin ? _self.repsMin : repsMin // ignore: cast_nullable_to_non_nullable
+as int?,repsMax: freezed == repsMax ? _self.repsMax : repsMax // ignore: cast_nullable_to_non_nullable
+as int?,targetDuration: freezed == targetDuration ? _self.targetDuration : targetDuration // ignore: cast_nullable_to_non_nullable
+as Duration?,targetMetres: freezed == targetMetres ? _self.targetMetres : targetMetres // ignore: cast_nullable_to_non_nullable
+as double?,targetLoad: freezed == targetLoad ? _self.targetLoad : targetLoad // ignore: cast_nullable_to_non_nullable
+as LoadKg?,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -1967,10 +1994,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  int sortOrder,  int targetSets,  int? targetReps,  LoadKg? targetLoad,  Duration? targetDuration,  int? restSeconds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  int sortOrder,  int targetSets,  int? repsMin,  int? repsMax,  Duration? targetDuration,  double? targetMetres,  LoadKg? targetLoad,  int? restSeconds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlanExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that.targetReps,_that.targetLoad,_that.targetDuration,_that.restSeconds);case _:
+return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that.repsMin,_that.repsMax,_that.targetDuration,_that.targetMetres,_that.targetLoad,_that.restSeconds);case _:
   return orElse();
 
 }
@@ -1988,10 +2015,10 @@ return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  int sortOrder,  int targetSets,  int? targetReps,  LoadKg? targetLoad,  Duration? targetDuration,  int? restSeconds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  int sortOrder,  int targetSets,  int? repsMin,  int? repsMax,  Duration? targetDuration,  double? targetMetres,  LoadKg? targetLoad,  int? restSeconds)  $default,) {final _that = this;
 switch (_that) {
 case _PlanExercise():
-return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that.targetReps,_that.targetLoad,_that.targetDuration,_that.restSeconds);case _:
+return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that.repsMin,_that.repsMax,_that.targetDuration,_that.targetMetres,_that.targetLoad,_that.restSeconds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2008,10 +2035,10 @@ return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  int sortOrder,  int targetSets,  int? targetReps,  LoadKg? targetLoad,  Duration? targetDuration,  int? restSeconds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  int sortOrder,  int targetSets,  int? repsMin,  int? repsMax,  Duration? targetDuration,  double? targetMetres,  LoadKg? targetLoad,  int? restSeconds)?  $default,) {final _that = this;
 switch (_that) {
 case _PlanExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that.targetReps,_that.targetLoad,_that.targetDuration,_that.restSeconds);case _:
+return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that.repsMin,_that.repsMax,_that.targetDuration,_that.targetMetres,_that.targetLoad,_that.restSeconds);case _:
   return null;
 
 }
@@ -2023,16 +2050,18 @@ return $default(_that.id,_that.exerciseId,_that.sortOrder,_that.targetSets,_that
 
 
 class _PlanExercise implements PlanExercise {
-  const _PlanExercise({required this.id, required this.exerciseId, required this.sortOrder, required this.targetSets, this.targetReps, this.targetLoad, this.targetDuration, this.restSeconds});
+  const _PlanExercise({required this.id, required this.exerciseId, required this.sortOrder, required this.targetSets, this.repsMin, this.repsMax, this.targetDuration, this.targetMetres, this.targetLoad, this.restSeconds});
   
 
 @override final  String id;
 @override final  String exerciseId;
 @override final  int sortOrder;
 @override final  int targetSets;
-@override final  int? targetReps;
-@override final  LoadKg? targetLoad;
+@override final  int? repsMin;
+@override final  int? repsMax;
 @override final  Duration? targetDuration;
+@override final  double? targetMetres;
+@override final  LoadKg? targetLoad;
 @override final  int? restSeconds;
 
 /// Create a copy of PlanExercise
@@ -2045,18 +2074,18 @@ _$PlanExerciseCopyWith<_PlanExercise> get copyWith => __$PlanExerciseCopyWithImp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlanExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.targetSets, targetSets) || other.targetSets == targetSets)&&(identical(other.targetReps, targetReps) || other.targetReps == targetReps)&&(identical(other.targetLoad, targetLoad) || other.targetLoad == targetLoad)&&(identical(other.targetDuration, targetDuration) || other.targetDuration == targetDuration)&&(identical(other.restSeconds, restSeconds) || other.restSeconds == restSeconds));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlanExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.targetSets, targetSets) || other.targetSets == targetSets)&&(identical(other.repsMin, repsMin) || other.repsMin == repsMin)&&(identical(other.repsMax, repsMax) || other.repsMax == repsMax)&&(identical(other.targetDuration, targetDuration) || other.targetDuration == targetDuration)&&(identical(other.targetMetres, targetMetres) || other.targetMetres == targetMetres)&&(identical(other.targetLoad, targetLoad) || other.targetLoad == targetLoad)&&(identical(other.restSeconds, restSeconds) || other.restSeconds == restSeconds));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,exerciseId,sortOrder,targetSets,targetReps,targetLoad,targetDuration,restSeconds);
+    return Object.hash(runtimeType,id,exerciseId,sortOrder,targetSets,repsMin,repsMax,targetDuration,targetMetres,targetLoad,restSeconds);
 }
 
 @override
 String toString() {
-    return 'PlanExercise(id: $id, exerciseId: $exerciseId, sortOrder: $sortOrder, targetSets: $targetSets, targetReps: $targetReps, targetLoad: $targetLoad, targetDuration: $targetDuration, restSeconds: $restSeconds)';
+    return 'PlanExercise(id: $id, exerciseId: $exerciseId, sortOrder: $sortOrder, targetSets: $targetSets, repsMin: $repsMin, repsMax: $repsMax, targetDuration: $targetDuration, targetMetres: $targetMetres, targetLoad: $targetLoad, restSeconds: $restSeconds)';
 }
 
 
@@ -2067,7 +2096,7 @@ abstract mixin class _$PlanExerciseCopyWith<$Res> implements $PlanExerciseCopyWi
   factory _$PlanExerciseCopyWith(_PlanExercise value, $Res Function(_PlanExercise) _then) = __$PlanExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String exerciseId, int sortOrder, int targetSets, int? targetReps, LoadKg? targetLoad, Duration? targetDuration, int? restSeconds
+ String id, String exerciseId, int sortOrder, int targetSets, int? repsMin, int? repsMax, Duration? targetDuration, double? targetMetres, LoadKg? targetLoad, int? restSeconds
 });
 
 
@@ -2084,16 +2113,18 @@ class __$PlanExerciseCopyWithImpl<$Res>
 
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? sortOrder = null,Object? targetSets = null,Object? targetReps = freezed,Object? targetLoad = freezed,Object? targetDuration = freezed,Object? restSeconds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? sortOrder = null,Object? targetSets = null,Object? repsMin = freezed,Object? repsMax = freezed,Object? targetDuration = freezed,Object? targetMetres = freezed,Object? targetLoad = freezed,Object? restSeconds = freezed,}) {
   return _then(_PlanExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
 as String,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
 as int,targetSets: null == targetSets ? _self.targetSets : targetSets // ignore: cast_nullable_to_non_nullable
-as int,targetReps: freezed == targetReps ? _self.targetReps : targetReps // ignore: cast_nullable_to_non_nullable
-as int?,targetLoad: freezed == targetLoad ? _self.targetLoad : targetLoad // ignore: cast_nullable_to_non_nullable
-as LoadKg?,targetDuration: freezed == targetDuration ? _self.targetDuration : targetDuration // ignore: cast_nullable_to_non_nullable
-as Duration?,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
+as int,repsMin: freezed == repsMin ? _self.repsMin : repsMin // ignore: cast_nullable_to_non_nullable
+as int?,repsMax: freezed == repsMax ? _self.repsMax : repsMax // ignore: cast_nullable_to_non_nullable
+as int?,targetDuration: freezed == targetDuration ? _self.targetDuration : targetDuration // ignore: cast_nullable_to_non_nullable
+as Duration?,targetMetres: freezed == targetMetres ? _self.targetMetres : targetMetres // ignore: cast_nullable_to_non_nullable
+as double?,targetLoad: freezed == targetLoad ? _self.targetLoad : targetLoad // ignore: cast_nullable_to_non_nullable
+as LoadKg?,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -2392,6 +2423,555 @@ as String?,scheduledWeekdays: null == scheduledWeekdays ? _self._scheduledWeekda
 as List<int>,exercises: null == exercises ? _self._exercises : exercises // ignore: cast_nullable_to_non_nullable
 as List<PlanExercise>,archived: null == archived ? _self.archived : archived // ignore: cast_nullable_to_non_nullable
 as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$SplitDay {
+
+ String? get planId;
+/// Create a copy of SplitDay
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SplitDayCopyWith<SplitDay> get copyWith => _$SplitDayCopyWithImpl<SplitDay>(this as SplitDay, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as SplitDay;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SplitDay&&(identical(other.planId, _this.planId) || other.planId == _this.planId));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as SplitDay;
+  return Object.hash(runtimeType,_this.planId);
+}
+
+@override
+String toString() {
+  final _this = this as SplitDay;
+  return 'SplitDay(planId: ${_this.planId})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SplitDayCopyWith<$Res>  {
+  factory $SplitDayCopyWith(SplitDay value, $Res Function(SplitDay) _then) = _$SplitDayCopyWithImpl;
+@useResult
+$Res call({
+ String? planId
+});
+
+
+
+
+}
+/// @nodoc
+class _$SplitDayCopyWithImpl<$Res>
+    implements $SplitDayCopyWith<$Res> {
+  _$SplitDayCopyWithImpl(this._self, this._then);
+
+  final SplitDay _self;
+  final $Res Function(SplitDay) _then;
+
+/// Create a copy of SplitDay
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? planId = freezed,}) {
+  return _then(SplitDay(
+planId: freezed == planId ? _self.planId : planId // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SplitDay].
+extension SplitDayPatterns on SplitDay {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SplitDay value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SplitDay() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SplitDay value)  $default,){
+final _that = this;
+switch (_that) {
+case _SplitDay():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SplitDay value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SplitDay() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? planId)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SplitDay() when $default != null:
+return $default(_that.planId);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? planId)  $default,) {final _that = this;
+switch (_that) {
+case _SplitDay():
+return $default(_that.planId);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? planId)?  $default,) {final _that = this;
+switch (_that) {
+case _SplitDay() when $default != null:
+return $default(_that.planId);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _SplitDay extends SplitDay {
+  const _SplitDay({this.planId}): super._();
+  
+
+@override final  String? planId;
+
+/// Create a copy of SplitDay
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SplitDayCopyWith<_SplitDay> get copyWith => __$SplitDayCopyWithImpl<_SplitDay>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SplitDay&&(identical(other.planId, planId) || other.planId == planId));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,planId);
+}
+
+@override
+String toString() {
+    return 'SplitDay(planId: $planId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SplitDayCopyWith<$Res> implements $SplitDayCopyWith<$Res> {
+  factory _$SplitDayCopyWith(_SplitDay value, $Res Function(_SplitDay) _then) = __$SplitDayCopyWithImpl;
+@override @useResult
+$Res call({
+ String? planId
+});
+
+
+
+
+}
+/// @nodoc
+class __$SplitDayCopyWithImpl<$Res>
+    implements _$SplitDayCopyWith<$Res> {
+  __$SplitDayCopyWithImpl(this._self, this._then);
+
+  final _SplitDay _self;
+  final $Res Function(_SplitDay) _then;
+
+/// Create a copy of SplitDay
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? planId = freezed,}) {
+  return _then(_SplitDay(
+planId: freezed == planId ? _self.planId : planId // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$TrainingSplit {
+
+ String get id; String get name; List<SplitDay> get days; DateTime get createdAt; DateTime get updatedAt; int get sortOrder;
+/// Create a copy of TrainingSplit
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TrainingSplitCopyWith<TrainingSplit> get copyWith => _$TrainingSplitCopyWithImpl<TrainingSplit>(this as TrainingSplit, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as TrainingSplit;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrainingSplit&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.days, _this.days)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.sortOrder, _this.sortOrder) || other.sortOrder == _this.sortOrder));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as TrainingSplit;
+  return Object.hash(runtimeType,_this.id,_this.name,const DeepCollectionEquality().hash(_this.days),_this.createdAt,_this.updatedAt,_this.sortOrder);
+}
+
+@override
+String toString() {
+  final _this = this as TrainingSplit;
+  return 'TrainingSplit(id: ${_this.id}, name: ${_this.name}, days: ${_this.days}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, sortOrder: ${_this.sortOrder})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TrainingSplitCopyWith<$Res>  {
+  factory $TrainingSplitCopyWith(TrainingSplit value, $Res Function(TrainingSplit) _then) = _$TrainingSplitCopyWithImpl;
+@useResult
+$Res call({
+ String id, String name, List<SplitDay> days, DateTime createdAt, DateTime updatedAt, int sortOrder
+});
+
+
+
+
+}
+/// @nodoc
+class _$TrainingSplitCopyWithImpl<$Res>
+    implements $TrainingSplitCopyWith<$Res> {
+  _$TrainingSplitCopyWithImpl(this._self, this._then);
+
+  final TrainingSplit _self;
+  final $Res Function(TrainingSplit) _then;
+
+/// Create a copy of TrainingSplit
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? days = null,Object? createdAt = null,Object? updatedAt = null,Object? sortOrder = null,}) {
+  return _then(TrainingSplit(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,days: null == days ? _self.days : days // ignore: cast_nullable_to_non_nullable
+as List<SplitDay>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [TrainingSplit].
+extension TrainingSplitPatterns on TrainingSplit {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TrainingSplit value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TrainingSplit() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TrainingSplit value)  $default,){
+final _that = this;
+switch (_that) {
+case _TrainingSplit():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TrainingSplit value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TrainingSplit() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<SplitDay> days,  DateTime createdAt,  DateTime updatedAt,  int sortOrder)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TrainingSplit() when $default != null:
+return $default(_that.id,_that.name,_that.days,_that.createdAt,_that.updatedAt,_that.sortOrder);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<SplitDay> days,  DateTime createdAt,  DateTime updatedAt,  int sortOrder)  $default,) {final _that = this;
+switch (_that) {
+case _TrainingSplit():
+return $default(_that.id,_that.name,_that.days,_that.createdAt,_that.updatedAt,_that.sortOrder);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<SplitDay> days,  DateTime createdAt,  DateTime updatedAt,  int sortOrder)?  $default,) {final _that = this;
+switch (_that) {
+case _TrainingSplit() when $default != null:
+return $default(_that.id,_that.name,_that.days,_that.createdAt,_that.updatedAt,_that.sortOrder);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _TrainingSplit extends TrainingSplit {
+  const _TrainingSplit({required this.id, required this.name, required  List<SplitDay> days, required this.createdAt, required this.updatedAt, this.sortOrder = 0}): _days = days,super._();
+  
+
+@override final  String id;
+@override final  String name;
+ final  List<SplitDay> _days;
+@override List<SplitDay> get days {
+  if (_days is EqualUnmodifiableListView) return _days;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_days);
+}
+
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override@JsonKey() final  int sortOrder;
+
+/// Create a copy of TrainingSplit
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TrainingSplitCopyWith<_TrainingSplit> get copyWith => __$TrainingSplitCopyWithImpl<_TrainingSplit>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrainingSplit&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.days, _days)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_days),createdAt,updatedAt,sortOrder);
+}
+
+@override
+String toString() {
+    return 'TrainingSplit(id: $id, name: $name, days: $days, createdAt: $createdAt, updatedAt: $updatedAt, sortOrder: $sortOrder)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TrainingSplitCopyWith<$Res> implements $TrainingSplitCopyWith<$Res> {
+  factory _$TrainingSplitCopyWith(_TrainingSplit value, $Res Function(_TrainingSplit) _then) = __$TrainingSplitCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String name, List<SplitDay> days, DateTime createdAt, DateTime updatedAt, int sortOrder
+});
+
+
+
+
+}
+/// @nodoc
+class __$TrainingSplitCopyWithImpl<$Res>
+    implements _$TrainingSplitCopyWith<$Res> {
+  __$TrainingSplitCopyWithImpl(this._self, this._then);
+
+  final _TrainingSplit _self;
+  final $Res Function(_TrainingSplit) _then;
+
+/// Create a copy of TrainingSplit
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? days = null,Object? createdAt = null,Object? updatedAt = null,Object? sortOrder = null,}) {
+  return _then(_TrainingSplit(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,days: null == days ? _self._days : days // ignore: cast_nullable_to_non_nullable
+as List<SplitDay>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

@@ -25,7 +25,9 @@ PlanExercise _pe(String id, int order, {bool full = false}) => PlanExercise(
   exerciseId: 'ex-$id',
   sortOrder: order,
   targetSets: 3,
-  targetReps: full ? 8 : null,
+  repsMin: full ? 8 : null,
+  repsMax: full ? 10 : null,
+  targetMetres: full ? 400.5 : null,
   targetLoad: full ? LoadKg.fromStored(62.5) : null,
   targetDuration: full ? const Duration(seconds: 45) : null,
   restSeconds: full ? 90 : null,
@@ -85,20 +87,23 @@ void main() {
     expect(second.deletedAt, first.deletedAt);
   });
 
-  test('skips a plan exercise with an out-of-range target load', () async {
+  test('the database refuses an out-of-range target load (TD-25)', () async {
     await repo.upsert(_plan('p', [_pe('a', 0)]));
-    await db
-        .into(db.planExercises)
-        .insert(
-          PlanExercisesCompanion.insert(
-            id: 'bad',
-            planId: 'p',
-            exerciseId: 'x',
-            sortOrder: 1,
-            targetSets: 3,
-            targetLoadKg: const Value(5000),
+    await expectLater(
+      db
+          .into(db.planExercises)
+          .insert(
+            PlanExercisesCompanion.insert(
+              id: 'bad',
+              planId: 'p',
+              exerciseId: 'x',
+              sortOrder: 1,
+              targetSets: 3,
+              targetLoadKg: const Value(5000),
+            ),
           ),
-        );
+      throwsA(anything),
+    );
     final loaded = (await repo.byId('p'))!;
     expect(loaded.exercises.map((e) => e.id), ['a']);
   });

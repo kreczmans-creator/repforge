@@ -294,3 +294,6 @@ These questions need an owner decision. Until answered, the linked requirements 
 - **Allocation**: NUT-019 day-total provenance badge → WP 11; NUT-022 kg/l/imperial entry → new WP 15 (Nutrition entry units). Accepted WP 5 is not reopened.
 - **Seed recipes**: imported with freezing "unknown" regardless of legacy flags; declared nutrition kept as estimated until every ingredient note is replaced by a linked ingredient.
 
+### 2026-11-05 — NUT-017 approved
+- **NUT-017** is satisfied by the approved calculation specification (`docs/nutrition-calculation-spec.md`, revision 1.3) and its 41 worked examples executed as tests.
+

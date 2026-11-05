@@ -1,0 +1,1503 @@
+{
+  "formatVersion": 1,
+  "source": "RepForge own content (WP 8, OQ-09 assumption)",
+  "exercises": [
+    {
+      "id": "lib-back-squat",
+      "name": "Barbell back squat",
+      "aliases": [
+        "Back squat",
+        "Squat"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "adductors",
+        "lowerBack"
+      ],
+      "equipment": [
+        "barbell",
+        "squatRack"
+      ]
+    },
+    {
+      "id": "lib-front-squat",
+      "name": "Barbell front squat",
+      "aliases": [
+        "Front squat"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "abs"
+      ],
+      "equipment": [
+        "barbell",
+        "squatRack"
+      ]
+    },
+    {
+      "id": "lib-goblet-squat",
+      "name": "Goblet squat",
+      "aliases": [],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "adductors"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-hack-squat",
+      "name": "Hack squat",
+      "aliases": [
+        "Machine hack squat"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-leg-press",
+      "name": "Leg press",
+      "aliases": [
+        "45-degree leg press"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "adductors"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-leg-extension",
+      "name": "Leg extension",
+      "aliases": [
+        "Quad extension"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-leg-curl",
+      "name": "Seated leg curl",
+      "aliases": [
+        "Hamstring curl",
+        "Machine leg curl"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "hamstrings",
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-lying-leg-curl",
+      "name": "Lying leg curl",
+      "aliases": [
+        "Prone leg curl"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "hamstrings",
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-romanian-deadlift",
+      "name": "Romanian deadlift",
+      "aliases": [
+        "RDL",
+        "Barbell Romanian deadlift"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "hamstrings",
+      "secondaryMuscles": [
+        "glutes",
+        "lowerBack",
+        "forearms"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-dumbbell-rdl",
+      "name": "Dumbbell Romanian deadlift",
+      "aliases": [
+        "Dumbbell RDL"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "hamstrings",
+      "secondaryMuscles": [
+        "glutes",
+        "lowerBack",
+        "forearms"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-deadlift",
+      "name": "Conventional deadlift",
+      "aliases": [
+        "Deadlift",
+        "Barbell deadlift"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "hamstrings",
+        "lowerBack",
+        "upperBack",
+        "forearms",
+        "quadriceps"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-sumo-deadlift",
+      "name": "Sumo deadlift",
+      "aliases": [],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "adductors",
+        "hamstrings",
+        "quadriceps",
+        "lowerBack"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-trap-bar-deadlift",
+      "name": "Trap bar deadlift",
+      "aliases": [
+        "Hex bar deadlift"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings",
+        "upperBack",
+        "forearms"
+      ],
+      "equipment": [
+        "trapBar"
+      ]
+    },
+    {
+      "id": "lib-hip-thrust",
+      "name": "Barbell hip thrust",
+      "aliases": [
+        "Hip thrust"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "hamstrings",
+        "quadriceps"
+      ],
+      "equipment": [
+        "barbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-glute-bridge",
+      "name": "Glute bridge",
+      "aliases": [
+        "Bodyweight glute bridge"
+      ],
+      "type": "bodyweight",
+      "category": "legs",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "hamstrings"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-walking-lunge",
+      "name": "Dumbbell walking lunge",
+      "aliases": [
+        "Walking lunge"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings",
+        "adductors"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-bodyweight-lunge",
+      "name": "Bodyweight lunge",
+      "aliases": [
+        "Forward lunge",
+        "Lunge"
+      ],
+      "type": "bodyweight",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-bulgarian-split-squat",
+      "name": "Bulgarian split squat",
+      "aliases": [
+        "Rear-foot elevated split squat"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "adductors"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-step-up",
+      "name": "Dumbbell step-up",
+      "aliases": [
+        "Step-up"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-bodyweight-squat",
+      "name": "Bodyweight squat",
+      "aliases": [
+        "Air squat"
+      ],
+      "type": "bodyweight",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-standing-calf-raise",
+      "name": "Standing calf raise",
+      "aliases": [
+        "Calf raise"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "calves",
+      "secondaryMuscles": [],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-hip-abduction",
+      "name": "Machine hip abduction",
+      "aliases": [
+        "Hip abductor"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "abductors",
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-hip-adduction",
+      "name": "Machine hip adduction",
+      "aliases": [
+        "Hip adductor"
+      ],
+      "type": "weighted",
+      "category": "legs",
+      "primaryMuscle": "adductors",
+      "secondaryMuscles": [],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-bench-press",
+      "name": "Barbell bench press",
+      "aliases": [
+        "Bench press",
+        "Flat bench press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts",
+        "triceps"
+      ],
+      "equipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ]
+    },
+    {
+      "id": "lib-db-bench-press",
+      "name": "Dumbbell bench press",
+      "aliases": [
+        "Flat dumbbell press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts",
+        "triceps"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-incline-bench-press",
+      "name": "Incline barbell bench press",
+      "aliases": [
+        "Incline bench press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts",
+        "triceps"
+      ],
+      "equipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ]
+    },
+    {
+      "id": "lib-incline-db-press",
+      "name": "Incline dumbbell press",
+      "aliases": [
+        "Incline dumbbell bench press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts",
+        "triceps"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-machine-chest-press",
+      "name": "Machine chest press",
+      "aliases": [
+        "Seated chest press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts",
+        "triceps"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-cable-fly",
+      "name": "Cable chest fly",
+      "aliases": [
+        "Cable crossover",
+        "Cable fly"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts"
+      ],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-db-fly",
+      "name": "Dumbbell chest fly",
+      "aliases": [
+        "Dumbbell fly"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-push-up",
+      "name": "Push-up",
+      "aliases": [
+        "Press-up"
+      ],
+      "type": "bodyweight",
+      "category": "push",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts",
+        "triceps",
+        "abs"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-overhead-press",
+      "name": "Barbell overhead press",
+      "aliases": [
+        "OHP",
+        "Standing press",
+        "Military press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "frontDelts",
+      "secondaryMuscles": [
+        "triceps",
+        "sideDelts",
+        "upperBack"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-db-shoulder-press",
+      "name": "Dumbbell shoulder press",
+      "aliases": [
+        "Seated dumbbell press"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "frontDelts",
+      "secondaryMuscles": [
+        "triceps",
+        "sideDelts"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-lateral-raise",
+      "name": "Dumbbell lateral raise",
+      "aliases": [
+        "Side raise",
+        "Lateral raise"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "sideDelts",
+      "secondaryMuscles": [
+        "upperBack"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-triceps-pushdown",
+      "name": "Triceps pushdown",
+      "aliases": [
+        "Cable pushdown",
+        "Tricep pushdown"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "triceps",
+      "secondaryMuscles": [],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-skull-crusher",
+      "name": "EZ bar skull crusher",
+      "aliases": [
+        "Skull crusher",
+        "Lying triceps extension"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "triceps",
+      "secondaryMuscles": [],
+      "equipment": [
+        "ezBar",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-overhead-triceps-extension",
+      "name": "Overhead triceps extension",
+      "aliases": [
+        "French press",
+        "Dumbbell triceps extension"
+      ],
+      "type": "weighted",
+      "category": "push",
+      "primaryMuscle": "triceps",
+      "secondaryMuscles": [],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-dips",
+      "name": "Dips",
+      "aliases": [
+        "Parallel bar dip",
+        "Triceps dip"
+      ],
+      "type": "bodyweight",
+      "category": "push",
+      "primaryMuscle": "triceps",
+      "secondaryMuscles": [
+        "chest",
+        "frontDelts"
+      ],
+      "equipment": [
+        "dipBars"
+      ]
+    },
+    {
+      "id": "lib-assisted-dip",
+      "name": "Assisted dip (machine)",
+      "aliases": [
+        "Machine-assisted dip",
+        "Assisted dips"
+      ],
+      "type": "assisted",
+      "category": "push",
+      "primaryMuscle": "triceps",
+      "secondaryMuscles": [
+        "chest",
+        "frontDelts"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-pull-up",
+      "name": "Pull-up",
+      "aliases": [
+        "Pullup",
+        "Overhand pull-up"
+      ],
+      "type": "bodyweight",
+      "category": "pull",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "biceps",
+        "upperBack",
+        "forearms"
+      ],
+      "equipment": [
+        "pullUpBar"
+      ]
+    },
+    {
+      "id": "lib-chin-up",
+      "name": "Chin-up",
+      "aliases": [
+        "Chinup",
+        "Underhand pull-up"
+      ],
+      "type": "bodyweight",
+      "category": "pull",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "biceps",
+        "upperBack"
+      ],
+      "equipment": [
+        "pullUpBar"
+      ]
+    },
+    {
+      "id": "lib-assisted-pull-up",
+      "name": "Assisted pull-up (machine)",
+      "aliases": [
+        "Machine-assisted pull-up",
+        "Assisted pull-ups"
+      ],
+      "type": "assisted",
+      "category": "pull",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "biceps",
+        "upperBack"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-band-assisted-pull-up",
+      "name": "Band-assisted pull-up",
+      "aliases": [
+        "Resistance band pull-up"
+      ],
+      "type": "assisted",
+      "category": "pull",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "biceps",
+        "upperBack"
+      ],
+      "equipment": [
+        "pullUpBar",
+        "resistanceBand"
+      ]
+    },
+    {
+      "id": "lib-lat-pulldown",
+      "name": "Lat pulldown",
+      "aliases": [
+        "Wide-grip pulldown"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "biceps",
+        "upperBack",
+        "rearDelts"
+      ],
+      "equipment": [
+        "cable",
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-seated-cable-row",
+      "name": "Seated cable row",
+      "aliases": [
+        "Cable row"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "upperBack",
+      "secondaryMuscles": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-barbell-row",
+      "name": "Barbell bent-over row",
+      "aliases": [
+        "Barbell row",
+        "Bent-over row"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "upperBack",
+      "secondaryMuscles": [
+        "lats",
+        "biceps",
+        "lowerBack",
+        "rearDelts"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-db-row",
+      "name": "One-arm dumbbell row",
+      "aliases": [
+        "Dumbbell row",
+        "Single-arm row"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "upperBack",
+        "biceps",
+        "rearDelts"
+      ],
+      "equipment": [
+        "dumbbell",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-chest-supported-row",
+      "name": "Chest-supported machine row",
+      "aliases": [
+        "Machine row"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "upperBack",
+      "secondaryMuscles": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-inverted-row",
+      "name": "Inverted row",
+      "aliases": [
+        "Bodyweight row",
+        "Australian pull-up"
+      ],
+      "type": "bodyweight",
+      "category": "pull",
+      "primaryMuscle": "upperBack",
+      "secondaryMuscles": [
+        "lats",
+        "biceps",
+        "rearDelts"
+      ],
+      "equipment": [
+        "barbell",
+        "squatRack"
+      ]
+    },
+    {
+      "id": "lib-face-pull",
+      "name": "Face pull",
+      "aliases": [
+        "Cable face pull"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "rearDelts",
+      "secondaryMuscles": [
+        "upperBack"
+      ],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-rear-delt-fly",
+      "name": "Reverse pec deck",
+      "aliases": [
+        "Rear delt fly",
+        "Machine reverse fly"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "rearDelts",
+      "secondaryMuscles": [
+        "upperBack"
+      ],
+      "equipment": [
+        "machine"
+      ]
+    },
+    {
+      "id": "lib-shrug",
+      "name": "Dumbbell shrug",
+      "aliases": [
+        "Shrug"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "upperBack",
+      "secondaryMuscles": [
+        "forearms"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-barbell-curl",
+      "name": "Barbell biceps curl",
+      "aliases": [
+        "Barbell curl"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "biceps",
+      "secondaryMuscles": [
+        "forearms"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-db-curl",
+      "name": "Dumbbell biceps curl",
+      "aliases": [
+        "Dumbbell curl",
+        "Bicep curl"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "biceps",
+      "secondaryMuscles": [
+        "forearms"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-hammer-curl",
+      "name": "Hammer curl",
+      "aliases": [
+        "Neutral-grip curl"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "biceps",
+      "secondaryMuscles": [
+        "forearms"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-preacher-curl",
+      "name": "EZ bar preacher curl",
+      "aliases": [
+        "Preacher curl"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "biceps",
+      "secondaryMuscles": [],
+      "equipment": [
+        "ezBar",
+        "bench"
+      ]
+    },
+    {
+      "id": "lib-cable-curl",
+      "name": "Cable biceps curl",
+      "aliases": [
+        "Cable curl"
+      ],
+      "type": "weighted",
+      "category": "pull",
+      "primaryMuscle": "biceps",
+      "secondaryMuscles": [
+        "forearms"
+      ],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-plank",
+      "name": "Plank",
+      "aliases": [
+        "Front plank",
+        "Forearm plank"
+      ],
+      "type": "timed",
+      "category": "core",
+      "primaryMuscle": "abs",
+      "secondaryMuscles": [
+        "obliques",
+        "frontDelts"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-side-plank",
+      "name": "Side plank",
+      "aliases": [
+        "Lateral plank"
+      ],
+      "type": "timed",
+      "category": "core",
+      "primaryMuscle": "obliques",
+      "secondaryMuscles": [
+        "abs",
+        "abductors"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-weighted-plank",
+      "name": "Weighted plank",
+      "aliases": [
+        "Plank with plate"
+      ],
+      "type": "timed",
+      "category": "core",
+      "primaryMuscle": "abs",
+      "secondaryMuscles": [
+        "obliques"
+      ],
+      "equipment": [
+        "plate"
+      ]
+    },
+    {
+      "id": "lib-dead-hang",
+      "name": "Dead hang",
+      "aliases": [
+        "Passive hang",
+        "Bar hang"
+      ],
+      "type": "timed",
+      "category": "core",
+      "primaryMuscle": "forearms",
+      "secondaryMuscles": [
+        "lats",
+        "upperBack"
+      ],
+      "equipment": [
+        "pullUpBar"
+      ]
+    },
+    {
+      "id": "lib-wall-sit",
+      "name": "Wall sit",
+      "aliases": [
+        "Wall squat hold"
+      ],
+      "type": "timed",
+      "category": "legs",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "calves"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-hanging-leg-raise",
+      "name": "Hanging leg raise",
+      "aliases": [
+        "Hanging knee raise"
+      ],
+      "type": "bodyweight",
+      "category": "core",
+      "primaryMuscle": "abs",
+      "secondaryMuscles": [
+        "forearms",
+        "frontDelts"
+      ],
+      "equipment": [
+        "pullUpBar"
+      ]
+    },
+    {
+      "id": "lib-cable-crunch",
+      "name": "Cable crunch",
+      "aliases": [
+        "Kneeling cable crunch"
+      ],
+      "type": "weighted",
+      "category": "core",
+      "primaryMuscle": "abs",
+      "secondaryMuscles": [
+        "obliques"
+      ],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-crunch",
+      "name": "Crunch",
+      "aliases": [
+        "Sit-up crunch"
+      ],
+      "type": "bodyweight",
+      "category": "core",
+      "primaryMuscle": "abs",
+      "secondaryMuscles": [
+        "obliques"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-pallof-press",
+      "name": "Pallof press",
+      "aliases": [
+        "Cable anti-rotation press"
+      ],
+      "type": "weighted",
+      "category": "core",
+      "primaryMuscle": "obliques",
+      "secondaryMuscles": [
+        "abs",
+        "frontDelts"
+      ],
+      "equipment": [
+        "cable"
+      ]
+    },
+    {
+      "id": "lib-ab-wheel",
+      "name": "Ab wheel rollout",
+      "aliases": [
+        "Ab roller"
+      ],
+      "type": "bodyweight",
+      "category": "core",
+      "primaryMuscle": "abs",
+      "secondaryMuscles": [
+        "lats",
+        "obliques"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-farmers-carry",
+      "name": "Farmer's carry",
+      "aliases": [
+        "Farmer's walk",
+        "Farmers walk"
+      ],
+      "type": "distance",
+      "category": "core",
+      "primaryMuscle": "forearms",
+      "secondaryMuscles": [
+        "upperBack",
+        "abs",
+        "obliques"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-sled-push",
+      "name": "Sled push",
+      "aliases": [
+        "Prowler push"
+      ],
+      "type": "distance",
+      "category": "fullBody",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "calves",
+        "frontDelts"
+      ],
+      "equipment": [
+        "plate"
+      ]
+    },
+    {
+      "id": "lib-kettlebell-swing",
+      "name": "Kettlebell swing",
+      "aliases": [
+        "Russian swing"
+      ],
+      "type": "weighted",
+      "category": "fullBody",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "hamstrings",
+        "lowerBack",
+        "frontDelts"
+      ],
+      "equipment": [
+        "kettlebell"
+      ]
+    },
+    {
+      "id": "lib-clean-and-press",
+      "name": "Dumbbell clean and press",
+      "aliases": [
+        "Clean and press"
+      ],
+      "type": "weighted",
+      "category": "fullBody",
+      "primaryMuscle": "frontDelts",
+      "secondaryMuscles": [
+        "glutes",
+        "quadriceps",
+        "upperBack",
+        "triceps"
+      ],
+      "equipment": [
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "lib-burpee",
+      "name": "Burpee",
+      "aliases": [
+        "Squat thrust with jump"
+      ],
+      "type": "bodyweight",
+      "category": "fullBody",
+      "primaryMuscle": "fullBody",
+      "secondaryMuscles": [],
+      "equipment": []
+    },
+    {
+      "id": "lib-thruster",
+      "name": "Barbell thruster",
+      "aliases": [
+        "Thruster"
+      ],
+      "type": "weighted",
+      "category": "fullBody",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "frontDelts",
+        "glutes",
+        "triceps"
+      ],
+      "equipment": [
+        "barbell"
+      ]
+    },
+    {
+      "id": "lib-treadmill-run",
+      "name": "Treadmill run",
+      "aliases": [
+        "Treadmill running",
+        "Running"
+      ],
+      "type": "cardio",
+      "category": "cardio",
+      "primaryMuscle": "fullBody",
+      "secondaryMuscles": [
+        "quadriceps",
+        "calves"
+      ],
+      "equipment": [
+        "treadmill"
+      ]
+    },
+    {
+      "id": "lib-incline-walk",
+      "name": "Incline treadmill walk",
+      "aliases": [
+        "Incline walk"
+      ],
+      "type": "cardio",
+      "category": "cardio",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "calves",
+        "hamstrings"
+      ],
+      "equipment": [
+        "treadmill"
+      ]
+    },
+    {
+      "id": "lib-stationary-bike",
+      "name": "Exercise bike",
+      "aliases": [
+        "Cycling",
+        "Stationary bike"
+      ],
+      "type": "cardio",
+      "category": "cardio",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes",
+        "calves"
+      ],
+      "equipment": [
+        "bike"
+      ]
+    },
+    {
+      "id": "lib-rowing-machine",
+      "name": "Rowing machine",
+      "aliases": [
+        "Rowing",
+        "Rower",
+        "Ergometer row"
+      ],
+      "type": "cardio",
+      "category": "cardio",
+      "primaryMuscle": "fullBody",
+      "secondaryMuscles": [
+        "lats",
+        "quadriceps"
+      ],
+      "equipment": [
+        "rower"
+      ]
+    },
+    {
+      "id": "lib-cross-trainer",
+      "name": "Cross-trainer",
+      "aliases": [
+        "Elliptical",
+        "Elliptical trainer"
+      ],
+      "type": "cardio",
+      "category": "cardio",
+      "primaryMuscle": "fullBody",
+      "secondaryMuscles": [],
+      "equipment": [
+        "elliptical"
+      ]
+    },
+    {
+      "id": "lib-skipping",
+      "name": "Skipping",
+      "aliases": [
+        "Jump rope",
+        "Rope skipping"
+      ],
+      "type": "cardio",
+      "category": "cardio",
+      "primaryMuscle": "calves",
+      "secondaryMuscles": [
+        "fullBody"
+      ],
+      "equipment": [
+        "skippingRope"
+      ]
+    },
+    {
+      "id": "lib-run-400m",
+      "name": "400 m run",
+      "aliases": [
+        "Quarter-mile run",
+        "400 m repeat"
+      ],
+      "type": "distance",
+      "category": "cardio",
+      "primaryMuscle": "fullBody",
+      "secondaryMuscles": [
+        "quadriceps",
+        "calves",
+        "hamstrings"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-outdoor-run",
+      "name": "Outdoor run",
+      "aliases": [
+        "Road run",
+        "Jogging"
+      ],
+      "type": "distance",
+      "category": "cardio",
+      "primaryMuscle": "fullBody",
+      "secondaryMuscles": [
+        "quadriceps",
+        "calves"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-hip-flexor-stretch",
+      "name": "Hip flexor stretch",
+      "aliases": [
+        "Kneeling hip flexor stretch"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "quadriceps",
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-hamstring-stretch",
+      "name": "Hamstring stretch",
+      "aliases": [
+        "Seated forward fold"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "hamstrings",
+      "secondaryMuscles": [
+        "lowerBack"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-childs-pose",
+      "name": "Child's pose",
+      "aliases": [
+        "Balasana"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "lats",
+      "secondaryMuscles": [
+        "lowerBack"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-cat-cow",
+      "name": "Cat-cow",
+      "aliases": [
+        "Cat camel"
+      ],
+      "type": "bodyweight",
+      "category": "mobility",
+      "primaryMuscle": "lowerBack",
+      "secondaryMuscles": [
+        "abs",
+        "upperBack"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-thoracic-extension",
+      "name": "Thoracic spine extension",
+      "aliases": [
+        "Foam roller thoracic extension"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "upperBack",
+      "secondaryMuscles": [
+        "lats"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-worlds-greatest-stretch",
+      "name": "World's greatest stretch",
+      "aliases": [
+        "Lunge with rotation"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "quadriceps",
+        "hamstrings",
+        "obliques"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-doorway-chest-stretch",
+      "name": "Doorway chest stretch",
+      "aliases": [
+        "Pec stretch"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "chest",
+      "secondaryMuscles": [
+        "frontDelts"
+      ],
+      "equipment": []
+    },
+    {
+      "id": "lib-pigeon-pose",
+      "name": "Pigeon pose",
+      "aliases": [
+        "Figure-four stretch"
+      ],
+      "type": "timed",
+      "category": "mobility",
+      "primaryMuscle": "glutes",
+      "secondaryMuscles": [
+        "abductors"
+      ],
+      "equipment": []
+    }
+  ]
+}

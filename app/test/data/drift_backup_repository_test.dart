@@ -27,6 +27,9 @@ const _tableNames = [
   'plan_exercises',
   'workout_sessions',
   'session_sets',
+  'training_splits',
+  'split_days',
+  'legacy_quarantine',
   'goals',
   'settings',
 ];
@@ -222,7 +225,7 @@ void main() {
 
       expect(doc['app'], 'repforge');
       expect(doc['formatVersion'], 1);
-      expect(doc['schemaVersion'], 5);
+      expect(doc['schemaVersion'], 6);
       expect(DateTime.tryParse(doc['exportedAt']! as String), isNotNull);
       final tables = doc['tables']! as Map<String, Object?>;
       expect(tables.keys, containsAll(_tableNames));
@@ -328,6 +331,298 @@ void main() {
       expect(rows.map((r) => r.freezing), ['yes', 'unknown']);
       expect(rows.first.portions, 4.0);
       expect(rows.first.prepStepsJson, '[]');
+    });
+
+    test('a schema v5 backup maps taxonomy labels and synonyms and '
+        'quarantines unmatched values like the migration (M4)', () async {
+      const ts = '2026-11-01T08:00:00.000Z';
+      Map<String, Object?> ex(
+        String id, {
+        required String category,
+        required String primary,
+        required String secondary,
+        required String equipment,
+      }) => {
+        'id': id,
+        'created_at': ts,
+        'updated_at': ts,
+        'deleted_at': null,
+        'name': id,
+        'type': 'weighted',
+        'category': category,
+        'primary_muscle': primary,
+        'secondary_muscles_json': secondary,
+        'equipment_json': equipment,
+        'is_custom': 1,
+        'archived': 0,
+      };
+      final result = await repo.importJson(
+        jsonEncode({
+          'app': 'repforge',
+          'formatVersion': 1,
+          'schemaVersion': 5,
+          'tables': {
+            'exercises': [
+              ex(
+                'labels',
+                category: 'Full body',
+                primary: 'Quads',
+                secondary: '["Hams"]',
+                equipment: '["Dumbbells","Cable station"]',
+              ),
+              ex(
+                'optional',
+                category: 'push',
+                primary: 'chest',
+                secondary: '["Tentacles","triceps"]',
+                equipment: '["Flux capacitor"]',
+              ),
+              ex(
+                'required',
+                category: 'Hybrid',
+                primary: 'chest',
+                secondary: '[]',
+                equipment: '[]',
+              ),
+            ],
+          },
+        }),
+      );
+      expect(result.isOk, isTrue);
+      final rows = {
+        for (final e in await db.select(db.exercises).get()) e.id: e,
+      };
+      expect(rows['labels']!.category, 'fullBody');
+      expect(rows['labels']!.primaryMuscle, 'quadriceps');
+      expect(rows['labels']!.secondaryMusclesJson, '["hamstrings"]');
+      expect(rows['labels']!.equipmentJson, '["dumbbell","cable"]');
+      expect(rows['optional']!.secondaryMusclesJson, '["triceps"]');
+      expect(rows['optional']!.equipmentJson, '[]');
+      expect(rows['required']!.category, 'Hybrid');
+      final q = {
+        for (final r in await db.select(db.legacyQuarantine).get()) r.rowId: r,
+      };
+      expect(q.keys, unorderedEquals(['optional', 'required']));
+      expect(q['optional']!.reason, contains('Tentacles'));
+      expect(q['required']!.reason, contains('category "Hybrid"'));
+      expect(q['required']!.sourceTable, 'exercises');
+    });
+
+    test('a schema v5 backup restores its training rows: supplied from '
+        'is_custom, taxonomy names, target_reps as a range', () async {
+      const ts = '2026-11-01T08:00:00.000Z';
+      final result = await repo.importJson(
+        jsonEncode({
+          'app': 'repforge',
+          'formatVersion': 1,
+          'schemaVersion': 5,
+          'tables': {
+            'exercises': [
+              {
+                'id': 'lib',
+                'created_at': ts,
+                'updated_at': ts,
+                'deleted_at': null,
+                'name': 'Écarté',
+                'type': 'weighted',
+                'category': 'Push',
+                'primary_muscle': 'front delts',
+                'secondary_muscles_json': '["Triceps"]',
+                'equipment_json': '["bench"]',
+                'is_custom': 0,
+                'archived': 0,
+              },
+              {
+                'id': 'mine',
+                'created_at': ts,
+                'updated_at': ts,
+                'deleted_at': null,
+                'name': 'Mine',
+                'type': 'timed',
+                'category': 'core',
+                'primary_muscle': 'abs',
+                'secondary_muscles_json': '[]',
+                'equipment_json': '[]',
+                'is_custom': 1,
+                'archived': 1,
+              },
+            ],
+            'workout_plans': [
+              {
+                'id': 'p',
+                'created_at': ts,
+                'updated_at': ts,
+                'deleted_at': null,
+                'name': 'Push',
+                'split': null,
+                'scheduled_weekdays_json': '[]',
+                'archived': 0,
+              },
+            ],
+            'plan_exercises': [
+              {
+                'id': 'ok',
+                'plan_id': 'p',
+                'exercise_id': 'lib',
+                'sort_order': 0,
+                'target_sets': 3,
+                'target_reps': 8,
+                'target_load_kg': 60.0,
+                'target_duration_sec': null,
+                'rest_seconds': 120,
+              },
+              {
+                'id': 'bad-reps',
+                'plan_id': 'p',
+                'exercise_id': 'lib',
+                'sort_order': 1,
+                'target_sets': 3,
+                'target_reps': 500,
+                'target_load_kg': null,
+                'target_duration_sec': null,
+                'rest_seconds': null,
+              },
+              {
+                'id': 'bad-sets',
+                'plan_id': 'p',
+                'exercise_id': 'lib',
+                'sort_order': 2,
+                'target_sets': 0,
+                'target_reps': 8,
+                'target_load_kg': null,
+                'target_duration_sec': null,
+                'rest_seconds': null,
+              },
+            ],
+            'workout_sessions': [
+              {
+                'id': 's',
+                'created_at': ts,
+                'updated_at': ts,
+                'deleted_at': null,
+                'name': 'S',
+                'plan_id': null,
+                'started_at': ts,
+                'ended_at': null,
+                'notes': '',
+              },
+            ],
+            'session_sets': [
+              {
+                'id': 'good',
+                'session_id': 's',
+                'exercise_id': 'lib',
+                'exercise_order': 0,
+                'set_order': 0,
+                'type': 'weighted',
+                'load_kg': 80.0,
+                'reps': 5,
+                'completed': 1,
+              },
+              {
+                'id': 'bad',
+                'session_id': 's',
+                'exercise_id': 'lib',
+                'exercise_order': 0,
+                'set_order': 1,
+                'type': 'weighted',
+                'load_kg': 80.0,
+                'reps': 0,
+                'average_heart_rate': 500,
+                'completed': 1,
+              },
+            ],
+          },
+        }),
+      );
+      expect(result.isOk, isTrue);
+
+      final ex = {for (final e in await db.select(db.exercises).get()) e.id: e};
+      expect([ex['lib']!.supplied, ex['mine']!.supplied], [true, false]);
+      expect(ex['lib']!.category, 'push');
+      expect(ex['lib']!.primaryMuscle, 'frontDelts');
+      expect(ex['lib']!.secondaryMusclesJson, '["triceps"]');
+      expect(ex['lib']!.searchKey, 'ecarte');
+      expect(ex['lib']!.aliasesJson, '[]');
+      expect(ex['mine']!.archived, isTrue);
+
+      final plans = {
+        for (final p in await db.select(db.planExercises).get()) p.id: p,
+      };
+      expect(plans.keys, unorderedEquals(['ok', 'bad-reps']));
+      expect([plans['ok']!.repsMin, plans['ok']!.repsMax], [8, 8]);
+      expect(plans['ok']!.targetLoadKg, 60);
+      expect(
+        [plans['bad-reps']!.repsMin, plans['bad-reps']!.repsMax],
+        [null, null],
+      );
+
+      final sets = {
+        for (final s in await db.select(db.sessionSets).get()) s.id: s,
+      };
+      expect(sets['good']!.reps, 5);
+      expect([sets['bad']!.reps, sets['bad']!.averageHeartRate], [null, null]);
+      expect(sets['bad']!.loadKg, 80);
+
+      // Nothing is lost silently: the originals are kept.
+      final q = {
+        for (final r in await db.select(db.legacyQuarantine).get()) r.rowId: r,
+      };
+      expect(q.keys, unorderedEquals(['bad-reps', 'bad-sets', 'bad']));
+      expect(
+        (jsonDecode(q['bad-sets']!.originalJson) as Map)['target_sets'],
+        0,
+      );
+    });
+
+    test('a v6 backup round-trips splits, aliases and cardio energy', () async {
+      await _seed(db);
+      await db.customStatement(
+        'INSERT INTO exercises (id, created_at, updated_at, name, type, '
+        'category, primary_muscle, secondary_muscles_json, equipment_json, '
+        "aliases_json, search_key, supplied, copied_from_id) VALUES ('c', "
+        "'2026-11-01T08:00:00.000Z', '2026-11-01T08:00:00.000Z', 'Copy', "
+        "'weighted', 'push', 'chest', '[]', '[]', '[\"Alias\"]', "
+        "'copy alias', 0, 'lib')",
+      );
+      await db.customStatement(
+        'INSERT INTO session_sets (id, session_id, exercise_id, '
+        'exercise_order, set_order, type, duration_sec, energy_kcal, '
+        "energy_provenance) VALUES ('e1', 's', 'run', 0, 5, 'cardio', 600, "
+        "150.5, 'userEntered')",
+      );
+      await db.customStatement(
+        'INSERT INTO training_splits (id, created_at, updated_at, name, '
+        "cycle_days) VALUES ('sp', '2026-11-01T08:00:00.000Z', "
+        "'2026-11-01T08:00:00.000Z', 'U/L', 2)",
+      );
+      await db.customStatement(
+        'INSERT INTO split_days (id, split_id, day_index, plan_id) VALUES '
+        "('sp:0', 'sp', 0, 'p1'), ('sp:1', 'sp', 1, NULL)",
+      );
+      final json = await repo.exportJson();
+      await db.customStatement('DELETE FROM training_splits');
+      await db.customStatement('DELETE FROM session_sets');
+      await db.customStatement('DELETE FROM exercises');
+
+      expect((await repo.importJson(json)).isOk, isTrue);
+      final c = await (db.select(
+        db.exercises,
+      )..where((e) => e.id.equals('c'))).getSingle();
+      expect(
+        [c.aliasesJson, c.searchKey, c.supplied, c.copiedFromId],
+        ['["Alias"]', 'copy alias', false, 'lib'],
+      );
+      final e1 = await (db.select(
+        db.sessionSets,
+      )..where((s) => s.id.equals('e1'))).getSingle();
+      expect([e1.energyKcal, e1.energyProvenance], [150.5, 'userEntered']);
+      expect(await db.select(db.trainingSplits).get(), hasLength(1));
+      expect(
+        (await db.select(db.splitDays).get()).map((d) => d.planId).toSet(),
+        {'p1', null},
+      );
+      expect(await db.select(db.legacyQuarantine).get(), isEmpty);
     });
 
     test('import replaces existing rows', () async {

@@ -18,8 +18,8 @@ import 'package:repforge/domain/units/units.dart';
 ///   kcal), so name and portion count are both on the entry (RCP-012(2));
 /// - by weight: the quantity is the grams logged; nutrients are the recipe
 ///   total × grams ÷ W.
-/// Counts and grams are rounded to 0.1 at entry like every quantity (spec
-/// §2.1) and the snapshot is calculated from the rounded value.
+/// Portion counts are rounded to 0.01 and grams to 0.1 at entry (spec §2.1)
+/// and the snapshot is calculated from the rounded value.
 ///
 /// Per-portion nutrients that the recipe cannot state completely (§7.5) are
 /// null in the snapshot. The provenance is the recipe's.

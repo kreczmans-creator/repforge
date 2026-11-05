@@ -20,6 +20,10 @@ enum ReferenceUnit {
   /// True for [grams] and [millilitres], the only valid reference bases for
   /// foods and ingredients.
   bool get isMeasure => this != portions;
+
+  /// Decimal places a quantity in this unit is entered, stored and shown to
+  /// (spec §2.1): 0.01 for [portions], 0.1 for grams and millilitres.
+  int get decimals => this == portions ? 2 : 1;
 }
 
 /// Unit system for display. Storage is always metric.
@@ -40,7 +44,7 @@ final class Quantity {
   final double amount;
   final ReferenceUnit unit;
 
-  /// Validates like [of] but keeps [amount] as given (no rounding to 0.1).
+  /// Validates like [of] but keeps [amount] as given (no rounding).
   /// Only for derived values that must stay exact, such as a scaled recipe
   /// view (spec §9.4); a quantity the user enters goes through [of].
   static Result<Quantity> exact(double amount, ReferenceUnit unit) {
@@ -65,11 +69,15 @@ final class Quantity {
         ),
       );
     }
-    final rounded = (amount * 10).roundToDouble() / 10;
+    final scale = unit == ReferenceUnit.portions ? 100 : 10;
+    final rounded = (amount * scale).roundToDouble() / scale;
     return Ok(Quantity._(rounded, unit));
   }
 
-  String get label => '${formatNumber(amount)} ${unit.symbol}';
+  /// "150 g", "1.25 portions", "2 portions": up to the unit's precision with
+  /// no trailing zeros.
+  String get label =>
+      '${formatNumber(amount, maxDecimals: unit.decimals)} ${unit.symbol}';
 
   @override
   bool operator ==(Object other) =>
@@ -124,30 +132,52 @@ final class Centimetres {
 
 /// Training load in kilograms (0–1000, 0.25 kg steps). Distinct from body
 /// weight (`Kilograms`) which has a different valid range.
+///
+/// [of] is the single input constructor and is strict (TRN-002(2)): a value
+/// that is not a multiple of 0.25 kg, or is negative, is rejected, never
+/// rounded. `fromStored` and `tryFromStored` are for reads from the
+/// database only and snap to the step instead of rejecting.
 @immutable
 final class LoadKg {
   const LoadKg._(this.value);
 
-  factory LoadKg.fromStored(double v) => switch (of(v)) {
-    Ok(:final value) => value,
-    Err(:final error) => throw StateError(error.message),
-  };
+  /// Reads a stored value. Snaps to 0.25 kg; throws [StateError] when out of
+  /// range. Not for user input.
+  factory LoadKg.fromStored(double v) =>
+      tryFromStored(v) ?? (throw StateError('Stored load out of range: $v'));
 
   static const double min = 0;
   static const double max = 1000;
+  static const double _tolerance = 1e-9;
   final double value;
 
+  /// Lenient read of a stored value; null when not a finite number in range.
+  static LoadKg? tryFromStored(double raw) {
+    if (raw.isNaN || raw.isInfinite) return null;
+    final snapped = (raw * 4).roundToDouble() / 4 + 0.0; // +0.0 maps -0.0 to 0
+    if (snapped < min || snapped > max) return null;
+    return LoadKg._(snapped);
+  }
+
+  /// Validates typed input: finite, 0–1000 kg and a multiple of 0.25 kg
+  /// (within 1e-9 for floating-point noise). Rejects, never rounds.
   static Result<LoadKg> of(double raw) {
     if (raw.isNaN || raw.isInfinite) {
       return const Err(ValidationError('Enter a number.', field: 'loadKg'));
     }
-    final rounded = (raw * 4).roundToDouble() / 4;
-    if (rounded < min || rounded > max) {
+    final steps = (raw * 4).roundToDouble();
+    if ((raw * 4 - steps).abs() > _tolerance) {
+      return const Err(
+        ValidationError('Load must be in steps of 0.25 kg.', field: 'loadKg'),
+      );
+    }
+    final snapped = steps / 4 + 0.0; // -0.0 becomes 0
+    if (snapped < min || snapped > max) {
       return const Err(
         ValidationError('Load must be between 0 and 1000 kg.', field: 'loadKg'),
       );
     }
-    return Ok(LoadKg._(rounded));
+    return Ok(LoadKg._(snapped));
   }
 
   String get label => '${formatNumber(value, maxDecimals: 2)} kg';

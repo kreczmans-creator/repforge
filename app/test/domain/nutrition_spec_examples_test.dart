@@ -6,15 +6,20 @@ import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/external/open_food_facts_mapper.dart';
 import 'package:repforge/data/repositories/drift_food_log_repository.dart';
 import 'package:repforge/data/repositories/drift_food_repository.dart';
+import 'package:repforge/data/repositories/drift_prep_batch_repository.dart';
+import 'package:repforge/data/repositories/drift_recipe_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/daily_targets.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/nutrition/summaries.dart';
+import 'package:repforge/domain/planning/prep_batch.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/log_food.dart';
+import 'package:repforge/features/planning/application/prep_batches.dart';
+import 'package:repforge/features/recipes/application/log_recipe.dart';
 
 final _now = DateTime.utc(2026, 11, 4, 12);
 
@@ -551,5 +556,84 @@ void main() {
         expect(r.provenance, DataProvenance.estimated);
       },
     );
+
+    group('portion precision (spec 2.1, revision 1.3)', () {
+      late AppDatabase db;
+      late DriftRecipeRepository recipes;
+      late DriftFoodLogRepository log;
+      late DriftPrepBatchRepository batches;
+      final clock = FixedClock(_now);
+
+      setUp(() async {
+        db = AppDatabase.inMemory();
+        recipes = DriftRecipeRepository(db, clock: clock);
+        log = DriftFoodLogRepository(db, clock: clock);
+        batches = DriftPrepBatchRepository(db, clock: clock);
+        // One portion = 100 g of a food at 400 kcal and P 30 per 100 g.
+        final f = _food(
+          'e39',
+          'E39',
+          ReferenceUnit.grams,
+          const NutrientAmounts(kcal: 400, proteinG: 30),
+          DataProvenance.userEntered,
+        );
+        await recipes.upsert(
+          _recipe(ingredients: [_ing('i1', f, 100)], portions: 1),
+        );
+      });
+      tearDown(() => db.close());
+
+      Future<FoodLogEntry> logPortions(double portions) async {
+        final r =
+            await LogRecipe(
+              recipes: recipes,
+              log: log,
+              clock: clock,
+              newId: () => 'e',
+            )(
+              recipeId: 'r',
+              meal: MealSlot.dinner,
+              day: '2026-11-04',
+              portions: portions,
+            );
+        return (r as Ok<FoodLogEntry>).value;
+      }
+
+      test('E39 1.25 portions are stored as 1.25, 500 kcal, P 37.5, row '
+          '"1.25 portions"', () async {
+        final e = await logPortions(1.25);
+        expect(e.quantity.amount, 1.25);
+        expect(e.nutrients.kcal, closeTo(500, 1e-9));
+        expect(e.nutrients.proteinG, closeTo(37.5, 1e-9));
+        expect(e.quantity.label, '1.25 portions');
+        final stored = (await log.forDays('2026-11-04', '2026-11-04')).single;
+        expect(stored.quantity.amount, 1.25);
+      });
+
+      test('E40 1.234 portions are stored as 1.23, 492 kcal', () async {
+        final e = await logPortions(1.234);
+        expect(e.quantity.amount, 1.23);
+        expect(e.nutrients.kcal, closeTo(492, 1e-9));
+      });
+
+      test('E41 a batch of 2: consume 0.75 leaves 1.25, then 1.25 leaves '
+          '0', () async {
+        final made = await RecordPrepBatch(
+          batches: batches,
+          recipes: recipes,
+          clock: clock,
+          newId: () => 'b1',
+        )(recipeId: 'r', portionsMade: 2);
+        expect((made as Ok<PrepBatch>).value.portionsRemaining, 2);
+        final consume = ConsumePrepPortion(batches: batches);
+        final first = await consume('b1', 0.75);
+        expect((first as Ok<PrepBatch>).value.portionsRemaining, 1.25);
+        final second = await consume('b1', 1.25);
+        expect((second as Ok<PrepBatch>).value.portionsRemaining, 0);
+        final third = await consume('b1', 0.01);
+        expect(third, isA<Err<PrepBatch>>());
+        expect((await batches.byId('b1'))!.portionsRemaining, 0);
+      });
+    });
   });
 }

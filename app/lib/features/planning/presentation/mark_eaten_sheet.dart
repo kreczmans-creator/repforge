@@ -28,6 +28,11 @@ Future<List<FoodLogEntry>?> showMarkEatenSheet(
   builder: (_) => _MarkEatenSheet(item: item),
 );
 
+/// Decimals the amount accepts: two for portion counts and multipliers,
+/// the unit's own (one) for grams and millilitres (spec §2.1).
+int _decimalsFor(MealPlanItem item) =>
+    item.kind == PlannedKind.food ? item.unit.decimals : 2;
+
 class _MarkEatenSheet extends ConsumerStatefulWidget {
   const _MarkEatenSheet({required this.item});
 
@@ -41,7 +46,7 @@ class _MarkEatenSheetState extends ConsumerState<_MarkEatenSheet> {
   late final TextEditingController _amount = TextEditingController(
     text: formatNumber(
       widget.item.quantity,
-      maxDecimals: widget.item.kind == PlannedKind.savedMeal ? 2 : 1,
+      maxDecimals: _decimalsFor(widget.item),
     ),
   );
   String? _batchId;
@@ -128,7 +133,7 @@ class _MarkEatenSheetState extends ConsumerState<_MarkEatenSheet> {
                 PlannedKind.savedMeal => 'Times eaten (multiplier)',
               },
               unit: item.kind == PlannedKind.food ? item.unit.symbol : null,
-              decimals: item.kind == PlannedKind.savedMeal ? 2 : 1,
+              decimals: _decimalsFor(item),
               errorText: _error,
               onChanged: (_) => setState(() => _error = null),
             ),

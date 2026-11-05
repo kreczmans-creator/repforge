@@ -117,7 +117,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     setState(() => _busy = true);
     final toSave = asNew
         ? scaled.copyWith(
-            name: '${scaled.name} (${formatNumber(scaled.portions)} portions)',
+            name:
+                '${scaled.name} '
+                '(${formatNumber(scaled.portions, maxDecimals: 2)} portions)',
           )
         : scaled;
     final result = await ref.read(saveRecipeProvider)(toSave, saveAsNew: asNew);

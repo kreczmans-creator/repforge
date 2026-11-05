@@ -15,6 +15,9 @@ import 'package:repforge/features/recipes/presentation/recipe_editor_screen.dart
 import 'package:repforge/features/recipes/presentation/recipe_list_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
 import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
+import 'package:repforge/features/training/presentation/exercise_detail_screen.dart';
+import 'package:repforge/features/training/presentation/exercise_editor_screen.dart';
+import 'package:repforge/features/training/presentation/exercise_library_screen.dart';
 import 'package:repforge/ui/components/rf_brand_mark.dart';
 import 'package:repforge/ui/gallery/gallery_screen.dart';
 import 'package:repforge/ui/tokens.dart';
@@ -23,6 +26,14 @@ import 'package:repforge/ui/tokens.dart';
 abstract final class RfRoutes {
   static const home = '/home';
   static const train = '/train';
+  static const trainExerciseNew = '/train/exercises/new';
+
+  /// Exercise detail for [id] (TRN-008).
+  static String trainExercise(String id) => '/train/exercises/$id';
+
+  /// Custom exercise editor for [id] (TRN-012).
+  static String trainExerciseEdit(String id) => '/train/exercises/$id/edit';
+  static String trainExerciseCopy(String id) => '/train/exercises/$id/copy';
   static const fuel = '/fuel';
   static const fuelSearch = '/fuel/search';
 
@@ -52,12 +63,12 @@ abstract final class RfRoutes {
   static const gallery = '/gallery';
 }
 
-// TODO(placeholder): Train, Fuel and Goals branches show labelled
-// RfNotYetAvailable screens until WP 5–11 deliver them (standards §10).
+// TODO(placeholder): The Goals branch shows a labelled RfNotYetAvailable
+// screen until WP 11 delivers it (standards §10).
 /// Application router: brand app bar, five-pillar bottom navigation
 /// (Home · Train · Fuel · Track · Goals, per the brand mock-up) with one
-/// branch per tab. Train, Fuel and Goals are labelled placeholders until their
-/// work packages land; Track hosts body-weight logging.
+/// branch per tab. Train hosts the exercise library, Fuel nutrition, Track
+/// body-weight logging; Goals is a labelled placeholder until WP 11.
 final _rootKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
@@ -79,12 +90,38 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
           routes: [
             GoRoute(
               path: RfRoutes.train,
-              builder: (context, state) => const PillarPlaceholderScreen(
-                title: 'Train',
-                caption: 'Plans, sessions and progress',
-                feature: 'Exercise library, workout plans and session logging',
-                workPackage: 'WP 8 and WP 9',
-              ),
+              builder: (context, state) => const ExerciseLibraryScreen(),
+              routes: [
+                // 'new' is declared before ':id' so it is not an id.
+                GoRoute(
+                  path: 'exercises/new',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const ExerciseEditorScreen(),
+                ),
+                GoRoute(
+                  path: 'exercises/:id',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => ExerciseDetailScreen(
+                    exerciseId: state.pathParameters['id']!,
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: 'edit',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => ExerciseEditorScreen(
+                        exerciseId: state.pathParameters['id'],
+                      ),
+                    ),
+                    GoRoute(
+                      path: 'copy',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => ExerciseEditorScreen(
+                        copyFromId: state.pathParameters['id'],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),

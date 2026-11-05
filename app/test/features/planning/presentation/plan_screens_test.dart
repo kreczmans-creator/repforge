@@ -24,6 +24,7 @@ import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/planning/application/planning_providers.dart';
+import 'package:repforge/features/recipes/application/recipe_providers.dart';
 import 'package:repforge/ui/components/rf_macro_bar.dart';
 import 'package:repforge/ui/components/rf_text_field.dart';
 
@@ -661,7 +662,7 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('the mark-eaten sheet limits portions to one decimal', (
+  testWidgets('the mark-eaten sheet limits portions to two decimals', (
     tester,
   ) async {
     await open(tester, location: RfRoutes.fuelPlan);
@@ -672,13 +673,136 @@ void main() {
       quantity: 1,
     );
     await tapKey(tester, 'plan-eat-${item.id}');
-    await tester.enterText(find.byKey(const Key('eaten-quantity')), '1.2');
     await tester.enterText(find.byKey(const Key('eaten-quantity')), '1.25');
+    await tester.enterText(find.byKey(const Key('eaten-quantity')), '1.255');
     final text = tester
         .widget<RfTextField>(find.byKey(const Key('eaten-quantity')))
         .controller!
         .text;
-    expect(text, '1.2');
+    expect(text, '1.25');
+    await unmount(tester);
+  });
+
+  String fieldText(WidgetTester tester, String key) =>
+      tester.widget<RfTextField>(find.byKey(Key(key))).controller!.text;
+
+  testWidgets('the record-batch sheet takes two decimals and no third', (
+    tester,
+  ) async {
+    await open(tester, location: RfRoutes.fuelRecipe('r1'));
+    await tapKey(tester, 'record-batch');
+    await tester.enterText(find.byKey(const Key('batch-portions')), '2.25');
+    expect(fieldText(tester, 'batch-portions'), '2.25');
+    await tester.enterText(find.byKey(const Key('batch-portions')), '2.255');
+    expect(fieldText(tester, 'batch-portions'), '2.25');
+    await tapKey(tester, 'batch-submit');
+    expect(find.text('2.25 portions left'), findsOneWidget);
+    final batch = (await firstOf(tester, batches.watchForRecipe('r1'))).single;
+    expect(batch.portionsMade, 2.25);
+
+    // The recipe log sheet's batch path: 1.25 portions from the batch.
+    await tapKey(tester, 'recipe-log');
+    await tapKey(tester, 'log-batch-${batch.id}');
+    await tester.enterText(find.byKey(const Key('log-portions')), '1.25');
+    await tapKey(tester, 'log-submit');
+    expect(find.text('1 portion left'), findsOneWidget);
+    expect((await batches.byId(batch.id))!.portionsRemaining, 1);
+    expect((await log.forDays(_today, _today)).single.quantity.amount, 1.25);
+    await unmount(tester);
+  });
+
+  testWidgets('the recipe log sheet takes two decimals; grams one', (
+    tester,
+  ) async {
+    await open(tester, location: RfRoutes.fuelRecipe('r1'));
+    await tapKey(tester, 'recipe-log');
+    await tester.enterText(find.byKey(const Key('log-portions')), '1.25');
+    expect(fieldText(tester, 'log-portions'), '1.25');
+    await tester.enterText(find.byKey(const Key('log-portions')), '1.255');
+    expect(fieldText(tester, 'log-portions'), '1.25');
+    await tapKey(tester, 'log-submit');
+    final e = (await log.forDays(_today, _today)).single;
+    expect(e.quantity.amount, 1.25);
+    expect(e.nutrients.kcal, closeTo(500, 1e-9));
+    await unmount(tester);
+  });
+
+  testWidgets('the diary row shows "1.25 portions"', (tester) async {
+    await open(tester);
+    final c = container(tester);
+    await tester.runAsync<Result<FoodLogEntry>>(
+      () => c.read(logRecipeProvider)(
+        recipeId: 'r1',
+        meal: MealSlot.dinner,
+        day: _today,
+        portions: 1.25,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await settle(tester);
+    expect(find.textContaining('1.25 portions'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('plan quantity: portions and multipliers take two decimals, '
+      'grams one', (tester) async {
+    await open(tester, location: RfRoutes.fuelPlan);
+    // Recipe portions.
+    await tapKey(tester, 'plan-add-dinner');
+    await tapKey(tester, 'plan-add-recipe');
+    await tapKey(tester, 'pick-recipe-r1');
+    await tester.enterText(find.byKey(const Key('plan-quantity')), '1.25');
+    expect(fieldText(tester, 'plan-quantity'), '1.25');
+    await tester.enterText(find.byKey(const Key('plan-quantity')), '1.255');
+    expect(fieldText(tester, 'plan-quantity'), '1.25');
+    await tapKey(tester, 'plan-submit', real: true);
+    expect(find.textContaining('1.25 portions'), findsOneWidget);
+    expect(find.text('500 kcal'), findsWidgets);
+    final stored = (await firstOf(tester, planRepo.watchDay(_today))).single;
+    expect(stored.quantity, 1.25);
+
+    // Grams stay at one decimal.
+    await tapKey(tester, 'plan-add-lunch');
+    await tapKey(tester, 'plan-add-food');
+    await tester.enterText(find.byKey(const Key('food-query')), 'Rice');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('local-f1')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('plan-quantity')), '150.5');
+    expect(fieldText(tester, 'plan-quantity'), '150.5');
+    await tester.enterText(find.byKey(const Key('plan-quantity')), '150.55');
+    expect(fieldText(tester, 'plan-quantity'), '150.5');
+    await unmount(tester);
+  });
+
+  testWidgets('mark eaten: portions take 1.25 and log it; grams stay at one '
+      'decimal', (tester) async {
+    await open(tester, location: RfRoutes.fuelPlan);
+    final item = await plan(
+      tester,
+      kind: PlannedKind.recipe,
+      refId: 'r1',
+      quantity: 1.25,
+    );
+    await tapKey(tester, 'plan-eat-${item.id}');
+    expect(fieldText(tester, 'eaten-quantity'), '1.25');
+    await tester.enterText(find.byKey(const Key('eaten-quantity')), '0.75');
+    expect(fieldText(tester, 'eaten-quantity'), '0.75');
+    await tapKey(tester, 'eaten-confirm');
+    expect((await log.forDays(_today, _today)).single.quantity.amount, 0.75);
+
+    final food = await plan(
+      tester,
+      kind: PlannedKind.food,
+      refId: 'f1',
+      quantity: 100,
+      meal: MealSlot.lunch,
+    );
+    await tapKey(tester, 'plan-eat-${food.id}');
+    await tester.enterText(find.byKey(const Key('eaten-quantity')), '150.5');
+    await tester.enterText(find.byKey(const Key('eaten-quantity')), '150.55');
+    expect(fieldText(tester, 'eaten-quantity'), '150.5');
     await unmount(tester);
   });
 }

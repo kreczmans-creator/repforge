@@ -35,7 +35,10 @@ class _EntryEditSheet extends ConsumerStatefulWidget {
 
 class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
   late final TextEditingController _amount = TextEditingController(
-    text: formatNumber(widget.entry.quantity.amount),
+    text: formatNumber(
+      widget.entry.quantity.amount,
+      maxDecimals: widget.entry.quantity.unit.decimals,
+    ),
   );
   late MealSlot _meal = widget.entry.meal;
   String? _error;
@@ -128,6 +131,7 @@ class _EntryEditSheetState extends ConsumerState<_EntryEditSheet> {
             controller: _amount,
             label: 'Amount',
             unit: e.quantity.unit.symbol,
+            decimals: e.quantity.unit.decimals,
             errorText: _error,
             autofocus: true,
           ),

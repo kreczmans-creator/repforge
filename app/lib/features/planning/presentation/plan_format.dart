@@ -13,13 +13,14 @@ String plannedQuantityLabel(MealPlanItem item) {
   };
 }
 
-/// "1 portion", "1.5 portions", "6 portions".
+/// "1 portion", "1.25 portions", "6 portions".
 String portionsLabel(double portions) =>
-    '${formatNumber(portions)} ${portions == 1 ? 'portion' : 'portions'}';
+    '${formatNumber(portions, maxDecimals: 2)} '
+    "${portions == 1 ? 'portion' : 'portions'}";
 
-/// "6 portions left" for a prepared batch (RCP-015), to one decimal.
+/// "6 portions left" for a prepared batch (RCP-015), to two decimals.
 String portionsLeftLabel(double remaining) =>
-    '${formatNumber(remaining)} '
+    '${formatNumber(remaining, maxDecimals: 2)} '
     '${remaining == 1 ? 'portion' : 'portions'} left';
 
 /// Day key `YYYY-MM-DD` of [d] (its calendar date, any time zone as given).

@@ -20,7 +20,10 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _weekStart = 'weekStartDay';
   static const _mealLabels = 'mealLabels';
   static const _recipeFavouritesOnly = 'recipeFavouritesOnly';
+  static const _availableEquipment = 'availableEquipment';
+  static const _bodyweightOnly = 'equipmentBodyweightOnly';
   static const _seedRecipesVersion = 'seedRecipesVersion';
+  static const _seedExercisesVersion = 'seedExercisesVersion';
 
   @override
   Stream<AppSettings> watch() =>
@@ -100,12 +103,52 @@ final class DriftSettingsRepository implements SettingsRepository {
       _writeValue(_recipeFavouritesOnly, value.toString());
 
   @override
+  Stream<Set<Equipment>> watchAvailableEquipment() =>
+      (_db.select(_db.settings)
+            ..where((t) => t.key.equals(_availableEquipment)))
+          .watchSingleOrNull()
+          .map((row) => _equipmentFrom(row?.value))
+          .distinct((a, b) => a.length == b.length && a.containsAll(b));
+
+  @override
+  Future<void> saveAvailableEquipment(Set<Equipment> equipment) => _writeValue(
+    _availableEquipment,
+    ([for (final e in equipment) e.name]..sort()).join(','),
+  );
+
+  @override
+  Stream<bool> watchBodyweightOnly() =>
+      (_db.select(_db.settings)..where((t) => t.key.equals(_bodyweightOnly)))
+          .watchSingleOrNull()
+          .map((row) => row?.value == 'true')
+          .distinct();
+
+  @override
+  Future<void> saveBodyweightOnly({required bool value}) =>
+      _writeValue(_bodyweightOnly, value.toString());
+
+  /// Unknown names are dropped so a renamed item cannot break the filter.
+  static Set<Equipment> _equipmentFrom(String? raw) {
+    if (raw == null || raw.isEmpty) return const {};
+    final byName = Equipment.values.asNameMap();
+    return {for (final n in raw.split(',')) ?byName[n]};
+  }
+
+  @override
   Future<int> readSeedRecipesVersion() async =>
       int.tryParse(await _readValue(_seedRecipesVersion) ?? '') ?? 0;
 
   @override
   Future<void> saveSeedRecipesVersion(int version) =>
       _writeValue(_seedRecipesVersion, version.toString());
+
+  @override
+  Future<int> readSeedExercisesVersion() async =>
+      int.tryParse(await _readValue(_seedExercisesVersion) ?? '') ?? 0;
+
+  @override
+  Future<void> saveSeedExercisesVersion(int version) =>
+      _writeValue(_seedExercisesVersion, version.toString());
 
   static AppSettings _fromRows(List<SettingRow> rows) {
     final map = {for (final r in rows) r.key: r.value};

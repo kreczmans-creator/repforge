@@ -11,6 +11,7 @@ import 'package:repforge/data/platform/mobile_scanner_barcode_scanner.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/features/nutrition/application/scanner_preview.dart';
 import 'package:repforge/features/recipes/application/recipe_providers.dart';
+import 'package:repforge/features/training/application/training_providers.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,8 @@ void main() {
   // scheduled and not awaited, so it never delays startup. A failure leaves
   // the import unrecorded and it is retried on the next launch.
   unawaited(_importStarterRecipes(container));
+  // One-time exercise library import (WP 8), same rules.
+  unawaited(_importExerciseLibrary(container));
 }
 
 Future<void> _importStarterRecipes(ProviderContainer container) async {
@@ -34,6 +37,17 @@ Future<void> _importStarterRecipes(ProviderContainer container) async {
     // Nothing may escape an unawaited call: it would be an uncaught async
     // error. The import is retried on the next launch.
     debugPrint('Starter recipe import failed: $e');
+  }
+}
+
+Future<void> _importExerciseLibrary(ProviderContainer container) async {
+  try {
+    final result = await container.read(importExerciseLibraryProvider).call();
+    if (result case Err(:final error)) {
+      debugPrint('Exercise library import failed: ${error.message}');
+    }
+  } on Object catch (e) {
+    debugPrint('Exercise library import failed: $e');
   }
 }
 

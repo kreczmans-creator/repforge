@@ -175,10 +175,23 @@ NotFoundError _gone(String what) => NotFoundError(
   'The planned $what no longer exists, so it cannot be logged.',
 );
 
-/// The saved meal with every item snapshot multiplied by [multiplier];
+/// The saved meal with every item snapshot multiplied by [rawMultiplier]
+/// (rounded to 0.01);
 /// the unchanged meal when it is 1.
-Result<SavedMeal> _scaled(SavedMeal meal, double multiplier) {
-  if (multiplier == 1) return Ok(meal);
+Result<SavedMeal> _scaled(SavedMeal meal, double rawMultiplier) {
+  if (rawMultiplier == 1) return Ok(meal);
+  // The multiplier is a portion count: 0.01 steps (spec §2.1).
+  final m = Quantity.of(rawMultiplier, ReferenceUnit.portions);
+  if (m case Err(:final error)) return Err(error);
+  final multiplier = (m as Ok<Quantity>).value.amount;
+  if (multiplier <= 0) {
+    return const Err(
+      ValidationError(
+        'Enter an amount greater than zero.',
+        field: PlanErrorField.quantity,
+      ),
+    );
+  }
   final items = <SavedMealItem>[];
   for (final i in meal.items) {
     final q = Quantity.of(i.quantity.amount * multiplier, i.quantity.unit);

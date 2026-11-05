@@ -11,6 +11,45 @@ void main() {
       expect((r as Ok<Quantity>).value.amount, 12.4);
     });
 
+    test('portions round to 0.01; grams and ml stay at 0.1 (spec 2.1)', () {
+      double portions(double v) =>
+          (Quantity.of(v, ReferenceUnit.portions) as Ok<Quantity>).value.amount;
+      double grams(double v) =>
+          (Quantity.of(v, ReferenceUnit.grams) as Ok<Quantity>).value.amount;
+      double ml(double v) => (Quantity.of(
+        v,
+        ReferenceUnit.millilitres,
+      ) as Ok<Quantity>).value.amount;
+      expect(portions(1.25), 1.25);
+      expect(portions(1.234), 1.23);
+      expect(portions(0.75), 0.75);
+      expect(portions(0.01), 0.01);
+      expect(grams(12.36), 12.4);
+      expect(grams(1.25), 1.3);
+      expect(ml(12.36), 12.4);
+      expect(ReferenceUnit.portions.decimals, 2);
+      expect(ReferenceUnit.grams.decimals, 1);
+      expect(ReferenceUnit.millilitres.decimals, 1);
+    });
+
+    test('exact keeps the amount for every unit', () {
+      for (final u in ReferenceUnit.values) {
+        expect((Quantity.exact(1.234, u) as Ok<Quantity>).value.amount, 1.234);
+      }
+    });
+
+    test('label shows no trailing-zero noise', () {
+      String label(double v) =>
+          (Quantity.of(v, ReferenceUnit.portions) as Ok<Quantity>).value.label;
+      expect(label(1.25), '1.25 portions');
+      expect(label(1.5), '1.5 portions');
+      expect(label(2), '2 portions');
+      expect(
+        (Quantity.of(150, ReferenceUnit.grams) as Ok<Quantity>).value.label,
+        '150 g',
+      );
+    });
+
     test('accepts zero and the upper bound', () {
       expect(Quantity.of(0, ReferenceUnit.grams).isOk, isTrue);
       expect(Quantity.of(100000, ReferenceUnit.grams).isOk, isTrue);
@@ -89,11 +128,34 @@ void main() {
   });
 
   group('LoadKg', () {
-    test('rounds to 0.25 steps', () {
-      expect((LoadKg.of(20.1) as Ok<LoadKg>).value.value, 20);
-      expect((LoadKg.of(20.13) as Ok<LoadKg>).value.value, 20.25);
-      expect((LoadKg.of(20.4) as Ok<LoadKg>).value.value, 20.5);
-      expect((LoadKg.of(0.74) as Ok<LoadKg>).value.value, 0.75);
+    test('input accepts 0.25 steps and rejects anything else (TRN-002(2))', () {
+      for (final v in [0, 0.25, 20, 20.25, 20.5, 62.5, 1000]) {
+        expect((LoadKg.of(v.toDouble()) as Ok<LoadKg>).value.value, v);
+      }
+      for (final v in [20.1, 20.13, 20.4, 0.74, 80.1, 0.1, 1000.25]) {
+        expect(LoadKg.of(v).isErr, isTrue, reason: '$v');
+      }
+    });
+
+    test('float noise within 1e-9 is accepted', () {
+      expect((LoadKg.of(0.1 + 0.15) as Ok<LoadKg>).value.value, 0.25);
+      expect((LoadKg.of(80 + 1e-12) as Ok<LoadKg>).value.value, 80);
+    });
+
+    test('negative zero is zero; negatives are rejected', () {
+      const negativeZero = -0.0;
+      final zero = (LoadKg.of(negativeZero) as Ok<LoadKg>).value.value;
+      expect(zero, 0);
+      expect(zero.isNegative, isFalse);
+      expect(LoadKg.of(-0.1).isErr, isTrue);
+      expect(LoadKg.of(-0.25).isErr, isTrue);
+    });
+
+    test('stored values are read leniently', () {
+      expect(LoadKg.fromStored(80.1).value, 80);
+      expect(LoadKg.tryFromStored(20.13)!.value, 20.25);
+      expect(LoadKg.tryFromStored(-1), isNull);
+      expect(LoadKg.tryFromStored(double.nan), isNull);
     });
 
     test('accepts bounds', () {

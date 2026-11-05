@@ -35,21 +35,13 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
     return (await _load([row])).firstOrNull;
   }
 
+  /// Writes the session row only; never touches `session_sets`. Sets enter
+  /// the database through [addSet] (used by `RecordSet`, which validates
+  /// them), so a caller cannot store an unvalidated set by passing it here.
   @override
-  Future<void> upsert(WorkoutSession session) => _db.transaction(() async {
-    await _db
-        .into(_db.workoutSessions)
-        .insertOnConflictUpdate(TrainingMappers.sessionToRow(session));
-    await (_db.delete(
-      _db.sessionSets,
-    )..where((t) => t.sessionId.equals(session.id))).go();
-    await _db.batch(
-      (b) => b.insertAll(_db.sessionSets, [
-        for (final s in session.sets)
-          TrainingMappers.sessionSetToRow(session.id, s),
-      ]),
-    );
-  });
+  Future<void> upsert(WorkoutSession session) => _db
+      .into(_db.workoutSessions)
+      .insertOnConflictUpdate(TrainingMappers.sessionToRow(session));
 
   @override
   Future<void> delete(String id) async {
@@ -84,6 +76,100 @@ final class DriftWorkoutSessionRepository implements WorkoutSessionRepository {
           ]);
     final rows = await q.map((r) => r.readTable(_db.sessionSets)).get();
     return [for (final r in rows) ?TrainingMappers.sessionSetToEntity(r)];
+  }
+
+  @override
+  Future<void> addSet(SessionSet set) async {
+    final session =
+        await (_db.select(_db.workoutSessions)
+              ..where((t) => t.id.equals(set.sessionId) & t.deletedAt.isNull()))
+            .getSingleOrNull();
+    if (session == null) {
+      throw StateError('Session ${set.sessionId} does not exist.');
+    }
+    await _db
+        .into(_db.sessionSets)
+        .insert(TrainingMappers.sessionSetToRow(set.sessionId, set));
+  }
+
+  @override
+  Future<bool> hasHistory(String exerciseId) async {
+    final q =
+        _db.selectOnly(_db.sessionSets).join([
+            innerJoin(
+              _db.workoutSessions,
+              _db.workoutSessions.id.equalsExp(_db.sessionSets.sessionId),
+            ),
+          ])
+          ..addColumns([_db.sessionSets.id])
+          ..where(
+            _db.sessionSets.exerciseId.equals(exerciseId) &
+                _db.workoutSessions.deletedAt.isNull(),
+          )
+          ..limit(1);
+    return (await q.get()).isNotEmpty;
+  }
+
+  @override
+  Future<List<ExerciseSessionHistory>> sessionsForExercise(
+    String exerciseId, {
+    int? limit,
+    int offset = 0,
+  }) async {
+    // Sessions that have completed sets of the exercise, newest first.
+    final q = _db.select(_db.workoutSessions)
+      ..where(
+        (t) =>
+            t.deletedAt.isNull() &
+            t.id.isInQuery(
+              _db.selectOnly(_db.sessionSets)
+                ..addColumns([_db.sessionSets.sessionId])
+                ..where(
+                  _db.sessionSets.exerciseId.equals(exerciseId) &
+                      _db.sessionSets.completed.equals(true),
+                ),
+            ),
+      )
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.startedAt),
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.id),
+      ]);
+    if (limit != null) q.limit(limit, offset: offset);
+    final sessions = await q.get();
+    if (sessions.isEmpty) return const [];
+    final sets =
+        await (_db.select(_db.sessionSets)
+              ..where(
+                (t) =>
+                    t.exerciseId.equals(exerciseId) &
+                    t.completed.equals(true) &
+                    t.sessionId.isIn(sessions.map((s) => s.id)),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.exerciseOrder),
+                (t) => OrderingTerm.asc(t.setOrder),
+              ]))
+            .get();
+    final bySession = groupByParent(sets, (s) => s.sessionId);
+    return [
+      for (final s in sessions)
+        ExerciseSessionHistory(
+          sessionId: s.id,
+          sessionName: s.name,
+          startedAt: s.startedAt,
+          sets: [
+            for (final r in bySession[s.id] ?? const <SessionSetRow>[])
+              ?TrainingMappers.sessionSetToEntity(r),
+          ],
+        ),
+    ];
+  }
+
+  @override
+  Future<List<SessionSet>> lastPerformance(String exerciseId) async {
+    final history = await sessionsForExercise(exerciseId, limit: 1);
+    return history.isEmpty ? const [] : history.first.sets;
   }
 
   Future<List<WorkoutSession>> _load(List<WorkoutSessionRow> rows) async {
