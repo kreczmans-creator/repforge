@@ -60,7 +60,7 @@ Update 2026-11-05 (D04 §7): WP 8 is active with expanded scope; its decisions 2
 | 2 — screens for plans, splits and scheduling | eb2485e | plan list with archive and restore; plan builder with exercise picker, reorder by drag and by buttons, TD-42 errors, unsaved-changes guard; split editor; schedule screen (8 weeks by date; schedule by date, weekdays or split; move and skip); routes; widget tests. CI 42009074987, Android 42009075284, iOS 42009074969, integration 42009075205 — all success. |
 | Stage 1 review fixes | 66a2a00 | F1–F10, N1–N3 (see Independent review). CI 42013923681, Android 42013923697, iOS 42013923648, integration 42013923649 — all success. |
 | 3a — session screen, rest timer UI, history UI | fb0a8d4 | session screen (entries with notes, pre-filled next-set row, set kind, exertion, rest, edit and delete sets, add/remove/replace/reorder exercises, finish); rest timer panel (wall clock, pause, +15 s, skip, foreground alert behind `RestAlert`); PR badges; volume per exercise and session; start from empty, plan, scheduled occurrence and past session; history list (20 then more), workout detail, edit details, delete with Undo; settings for default rest and the notification preference; routes; widget tests. No plugin or platform notification code (stage 3b, ADR-0007).. CI 42021551985, Android 42021552033, iOS 42021551906, integration 42021551855 — all success. |
-| 3b — rest notifications, integration test | (this commit; Android, iOS and emulator verified by CI only) | `RestAlertScheduler` port, `flutter_local_notifications` adapter and fake, wiring in the rest timer controller, permission flow in Settings, Android/iOS configuration, plugin-isolation architecture test, integration test for a full session. ADR-0007 stays Proposed. |
+| 3b — rest notifications, integration test | 6a2d8ff | `RestAlertScheduler` port, `flutter_local_notifications` adapter and fake, wiring in the rest timer controller, permission flow in Settings, Android/iOS configuration, plugin-isolation architecture test, integration test for a full session. ADR-0007 stays Proposed.. CI 42025560277, Android 42025560293, iOS 42025560262, integration (incl. full-session test) 42025560279 — all success. |
 
 ### Stage 1 — domain, schema v7, use cases (no UI)
 - **TRN-019 set kind**: `SetKind` warm-up / working / failure on `SessionSet`, stored in `session_sets.set_kind` (existing rows `working`); `RecordSet` and `EditSet` take it.
@@ -184,6 +184,30 @@ F5's regression test cannot fail under CI's UTC time zone; it was shown failing 
 
 Local gate for the stage 1 review fixes: `dart format` clean, `flutter analyze --fatal-infos` clean, 1059 tests pass, coverage 91.4 %; fix and schedule tests also pass under `TZ=Pacific/Auckland`.
 
+
+### Final review (fresh reviewer, stages 2, 3a, 3b and end to end, at 6a2d8ff; code read, 110 targeted tests, probe tests)
+No high findings. CI on 6a2d8ff all green, including the new full-session emulator test (about 8 s).
+
+| ID | Finding | Severity | Resolution |
+|---|---|---|---|
+| M1 | Android 14+ new installs lack `SCHEDULE_EXACT_ALARM`; the app never offers the grant, so alerts are usually inexact and may arrive much later than 2 s (TRN-022(2)) | Medium | **Owner decision** (OQ-05): offer the exact-alarm grant, or accept inexact as a recorded limitation |
+| M2 | Foreground alert is weak: `SystemSound.alert` is silent on Android and iOS; one haptic tick, suppressed when touch vibration is off; docs claim a sound | Medium | Fix in progress |
+| M3 | Pre-fill matches today's working sets against previous sets including warm-ups, so a warm-up can be logged as a working set in one tap (TRN-019(2), TRN-026) | Medium | Fix in progress |
+| M4 | Exercise history (WP 8 screen) stops at 20 sessions with no way to load more (TRN-025(2)) | Medium | **Owner decision**: allocation (screen owned by WP 8) |
+| L1 | Schedule and cancel can reach the platform out of order; a stale notification can remain | Low | Fix in progress |
+| L2 | Notification scheduled while in the foreground; heads-up and channel sound can show before the in-app cancel | Low | Fix in progress |
+| L3 | Docs say shrinking is off; release builds use R8 by default; release build untested; launcher icon as notification icon | Low | Fix in progress (docs, release build check in CI, monochrome icon) |
+| L4 | "Rest over" panel stops ticking; no live-region announcement | Low | Fix in progress |
+| L5 | Timer state is in memory; docs claim it survives process death | Low | Fix in progress (docs) |
+| L6 | Integration test asserts after a fixed pump; possible flake | Low | Fix in progress |
+| L7 | Settings screen reads a repository directly; `debugPrint` instead of a logger (TD-32) | Low | Fix in progress |
+| L8 | Play Console declaration statement may name the wrong permission | Low | Fix in progress (docs: verify Play policy before release) |
+| L9 | Stale status line, PR-definition text, typo, ADR-0007 sound promise | Low | Fix in progress |
+| L10 | A second workout can start while one is unfinished; double tap creates two | Low | Fix in progress |
+| L11 | Exertion range labels hard-coded | Low | Fix in progress |
+| L12 | Previous-performance lookup limited to 3 sessions; no hint when correcting an old session | Low | Fix in progress |
+
+Acceptance view (reviewer): D06 set logging ≤ 3 interactions met (one tap); PRs per type met (assisted and cardio gap documented); background timer on Android partly met (M1); iOS foreground baseline met; full-session integration test met (narrow); TRN-013..017, 019..021, 023, 024 met; TRN-018(2), TRN-025, TRN-027 partly (gaps documented or M4).
 
 ## Tests, CI
 Appended at delivery.
