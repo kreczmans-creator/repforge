@@ -20,6 +20,7 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _weekStart = 'weekStartDay';
   static const _mealLabels = 'mealLabels';
   static const _recipeFavouritesOnly = 'recipeFavouritesOnly';
+  static const _availableEquipment = 'availableEquipment';
   static const _seedRecipesVersion = 'seedRecipesVersion';
   static const _seedExercisesVersion = 'seedExercisesVersion';
 
@@ -99,6 +100,27 @@ final class DriftSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveRecipeFavouritesOnly({required bool value}) =>
       _writeValue(_recipeFavouritesOnly, value.toString());
+
+  @override
+  Stream<Set<Equipment>> watchAvailableEquipment() =>
+      (_db.select(_db.settings)
+            ..where((t) => t.key.equals(_availableEquipment)))
+          .watchSingleOrNull()
+          .map((row) => _equipmentFrom(row?.value))
+          .distinct((a, b) => a.length == b.length && a.containsAll(b));
+
+  @override
+  Future<void> saveAvailableEquipment(Set<Equipment> equipment) => _writeValue(
+    _availableEquipment,
+    ([for (final e in equipment) e.name]..sort()).join(','),
+  );
+
+  /// Unknown names are dropped so a renamed item cannot break the filter.
+  static Set<Equipment> _equipmentFrom(String? raw) {
+    if (raw == null || raw.isEmpty) return const {};
+    final byName = Equipment.values.asNameMap();
+    return {for (final n in raw.split(',')) ?byName[n]};
+  }
 
   @override
   Future<int> readSeedRecipesVersion() async =>

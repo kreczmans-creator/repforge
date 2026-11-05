@@ -39,6 +39,11 @@ abstract interface class SettingsRepository {
   Stream<bool> watchRecipeFavouritesOnly();
   Future<void> saveRecipeFavouritesOnly({required bool value});
 
+  /// Equipment the user has available (TRN-011(2)); persists across
+  /// restarts. Empty until set, which means "do not filter".
+  Stream<Set<Equipment>> watchAvailableEquipment();
+  Future<void> saveAvailableEquipment(Set<Equipment> equipment);
+
   /// Version of the bundled seed recipes already imported (0 = none yet).
   Future<int> readSeedRecipesVersion();
   Future<void> saveSeedRecipesVersion(int version);
