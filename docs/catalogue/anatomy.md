@@ -1,7 +1,7 @@
-# Anatomy hierarchy (OQ-22) — proposed
+# Anatomy hierarchy (OQ-22) — approved
 
-- Status: **Proposed — for owner approval.** Part of WP 8 stage 4 (documentation and reference data only). Nothing here is implemented. Stage 3 loads this list into the anatomy node table; stage 5 population tags exercises against it.
-- Machine-readable source: `docs/catalogue/reference/anatomy.json` (format version 1). Id history: `reference/ledger.json`. Id history: `reference/ledger.json`.
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** Part of WP 8 stage 4 (documentation and reference data only): 126 nodes, the 19 existing ids and the proposed placements are approved. Pelvic floor content is excluded by owner decision (the id is kept). Nothing here is implemented yet. Stage 3 loads this list into the anatomy node table; stage 5 population tags exercises against it.
+- Machine-readable source: `docs/catalogue/reference/anatomy.json` (format version 1). Id history: `reference/ledger.json`. Id history: `reference/ledger.json`. Id history: `reference/ledger.json`. Id history: `reference/ledger.json`.
 - Requirements: LIB-001, LIB-004; owner decision 3 (four levels, most defensible level, multiple primary and secondary targets, 19 ids preserved, no precision claims); `docs/wp8-delivery-plan.md` section 4.
 
 ## 1. Levels and rules
@@ -14,7 +14,7 @@
 
 1. Every node has one id (camelCase), one parent (none at L1), a level equal to its parent's level plus one, a sibling sort order, an en-GB label, a definition, inclusion and exclusion criteria, a lifecycle (`active` or `retired`) and an optional note.
 2. Ids are stable. An id is never reused or given a new meaning. A label can change without a migration. A node is retired, never removed (`reference/ledger.json`).
-3. **`fullBody`** is the only non-anatomical node: a flagged, childless L1 node (`nonAnatomical = true`), as in ADR-0010 (proposed, amends the last sentence of ADR-0008 decision 2). It is excluded from anatomical roll-ups, from coverage and from per-muscle attributed set counts (OQ-19), or shown separately and labelled non-anatomical. System content may use it only as a primary target where no defensible anatomical subset exists. **Open owner question:** may it also be a secondary target, or a primary beside anatomical primaries? Until decided, stored uses are preserved and listed in the migration report (`quality-and-duplicates.md` section 4).
+3. **`fullBody`** is the only non-anatomical node: a flagged, childless L1 node (`nonAnatomical = true`), as in ADR-0010 (approved 2026-11-05, amends the last sentence of ADR-0008 decision 2). It may **only be the single primary target of a qualifying whole-body or conditioning exercise**: never a secondary, never alongside anatomical primaries. It is excluded from anatomical roll-ups, from coverage and from attributed muscle set counts (OQ-19), and shown separately in reports, labelled non-anatomical. Existing stored secondary references are preserved and listed in the migration report (`quality-and-duplicates.md` section 4); IC-304 is an error for system content and a warning plus a report entry for user content.
 4. A node has one parent. When a muscle has two functions, it sits where its anatomy puts it, and the other function appears as a note. This list does not model functional groups. See section 4.
 5. **Regional principle (proposed).** An L1 region holds groups filed by the joint complex their training is named for: Hip and pelvis holds the groups named for hip movements (glutes, abductors, adductors, hip flexors, deep hip rotators); Thigh holds quadriceps and hamstrings, filed together as the two bulk thigh groups. The hamstrings act at both the hip and the knee, and the adductors lie in the thigh but act at the hip, so both placements are conventions for filing, not anatomical claims. Debatable (section 5, item 16).
 6. Filtering by a node includes its descendants. Primary matches rank before secondary matches (TRN-010(2), unchanged).
@@ -88,7 +88,7 @@ Counts are for this proposal and will change if the owner adds or removes nodes.
 | Adductors | Hip and pelvis | Thigh (belly location) | Filed by function (regional principle, rule 5). |
 
 ## 5. Classifications the reviewer should check
-1. `fullBody` as a flagged childless L1 node (plan, approved decision and ADR-0010 proposed) versus ADR-0008 wording; and whether it may be a secondary target or a primary beside anatomical primaries (open owner question).
+1. `fullBody` as a flagged childless L1 node (plan, approved decision and ADR-0010, approved) versus ADR-0008 wording; approved role: single primary only.
 2. Gluteus medius and minimus under Glutes, with Abductors holding only tensor fasciae latae.
 3. Rectus femoris under Quadriceps, and sartorius under Hip flexors although it lies in the thigh.
 4. Serratus anterior and pectoralis minor under Chest (plan), although they move the shoulder blade.
@@ -98,7 +98,7 @@ Counts are for this proposal and will change if the owner adds or removes nodes.
 8. `shoulders` (L2) has the deltoid as its only child; the rotator cuff is a sibling group under `regionShoulder`.
 9. Levator scapulae under Upper back, although it is also a neck muscle.
 10. Quadratus lumborum under Lower back (Region Back) rather than Trunk.
-11. Pelvic floor under Trunk; it could sit under Hip and pelvis. It carries no coverage minimum.
+11. Pelvic floor under Trunk; it could sit under Hip and pelvis. **Content is excluded by owner decision (2026-11-05)**: the node and its id stay in the reference data, with no coverage entries and no authored exercises.
 12. Finger flexors and extensors modelled as L4 under the wrist muscles.
 13. No split of the rhomboids, rectus abdominis, gluteus maximus or vastus medialis; the pectoralis major abdominal fibres sit inside the sternocostal head.
 14. Adductor magnus split into adductor and hamstring parts (L4); contested in the literature, so tag rarely.
@@ -217,7 +217,7 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `obliques` * | 2 | &nbsp;&nbsp;Obliques | Muscles on the sides of the abdomen. | External and internal oblique. | Quadratus lumborum. | Preserved WP 8 id (L2 group). |
 | `externalOblique` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;External oblique | Outer oblique layer. | Trunk rotation to the opposite side, side flexion, flexion. | Internal oblique. |  |
 | `internalOblique` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Internal oblique | Oblique layer under the external oblique. | Trunk rotation to the same side, side flexion. | External oblique. |  |
-| `pelvicFloor` | 2 | &nbsp;&nbsp;Pelvic floor | Muscles that form the base of the pelvis. | Pelvic floor contraction and relaxation exercises. | Hip muscles. | Debatable: could sit under Hip and pelvis. Not covered by minimums; owner to decide whether to include it in the catalogue. |
+| `pelvicFloor` | 2 | &nbsp;&nbsp;Pelvic floor | Muscles that form the base of the pelvis. Content excluded by owner decision 2026-11-05 (the id is kept). | Pelvic floor contraction and relaxation exercises. | Hip muscles. | Content excluded by owner decision 2026-11-05: no pelvic floor exercises are authored. The node and its id are kept in the reference data; it carries no coverage entries. |
 
 ### Hip and pelvis (`regionHip`)
 
@@ -287,4 +287,4 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 
 | Id | L | Name | Definition | Includes | Excludes | Note |
 |---|---|---|---|---|---|---|
-| `fullBody` * | 1 | Full body | Non-anatomical classification for conditioning and whole-body work (flagged non-anatomical). | Cardio and conditioning exercises with no defensible muscle subset. | Any anatomical muscle. The node has no children and is excluded from anatomical coverage, roll-ups and attributed set counts (shown separately). | Flagged non-anatomical L1 node with no children, as in ADR-0010 (proposed), which amends ADR-0008 decision 2. Whether it may be a secondary target, or a primary beside anatomical primaries, is an open owner question. |
+| `fullBody` * | 1 | Full body | Non-anatomical classification for conditioning and whole-body work (flagged non-anatomical). | Cardio and conditioning exercises with no defensible muscle subset. | Any anatomical muscle. The node has no children and is excluded from anatomical roll-ups, coverage and attributed muscle set counts (shown separately, labelled non-anatomical). | Flagged non-anatomical L1 node with no children (ADR-0010, approved 2026-11-05). May only be the single primary target of qualifying whole-body or conditioning exercises; never a secondary and never alongside anatomical primaries. Excluded from anatomical roll-ups, coverage and attributed muscle set counts; shown separately in reports labelled non-anatomical. |

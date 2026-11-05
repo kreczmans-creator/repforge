@@ -1,6 +1,11 @@
 {
   "formatVersion": 1,
-  "status": "Proposed — for owner approval",
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
+  },
   "provider": "repforge",
   "locale": "en-GB",
   "description": "Proposed anatomy hierarchy (OQ-22). L1 region, L2 muscle group, L3 anatomical muscle or named functional muscle set whose members cannot be trained separately, L4 head, part or named member of such a set. sort orders siblings (ascending, step 10). lifecycle is active or retired (retired nodes stay in the file and in ledger.json; ids are never reused). Qualitative only; no activation values.",
@@ -973,10 +978,10 @@
       "nonAnatomical": false,
       "sort": 30,
       "label": "Pelvic floor",
-      "definition": "Muscles that form the base of the pelvis.",
+      "definition": "Muscles that form the base of the pelvis. Content excluded by owner decision 2026-11-05 (the id is kept).",
       "includes": "Pelvic floor contraction and relaxation exercises.",
       "excludes": "Hip muscles.",
-      "note": "Debatable: could sit under Hip and pelvis. Not covered by minimums; owner to decide whether to include it in the catalogue.",
+      "note": "Content excluded by owner decision 2026-11-05: no pelvic floor exercises are authored. The node and its id are kept in the reference data; it carries no coverage entries.",
       "lifecycle": "active"
     },
     {
@@ -1594,8 +1599,8 @@
       "label": "Full body",
       "definition": "Non-anatomical classification for conditioning and whole-body work (flagged non-anatomical).",
       "includes": "Cardio and conditioning exercises with no defensible muscle subset.",
-      "excludes": "Any anatomical muscle. The node has no children and is excluded from anatomical coverage, roll-ups and attributed set counts (shown separately).",
-      "note": "Flagged non-anatomical L1 node with no children, as in ADR-0010 (proposed), which amends ADR-0008 decision 2. Whether it may be a secondary target, or a primary beside anatomical primaries, is an open owner question.",
+      "excludes": "Any anatomical muscle. The node has no children and is excluded from anatomical roll-ups, coverage and attributed muscle set counts (shown separately, labelled non-anatomical).",
+      "note": "Flagged non-anatomical L1 node with no children (ADR-0010, approved 2026-11-05). May only be the single primary target of qualifying whole-body or conditioning exercises; never a secondary and never alongside anatomical primaries. Excluded from anatomical roll-ups, coverage and attributed muscle set counts; shown separately in reports labelled non-anatomical.",
       "lifecycle": "active"
     }
   ]

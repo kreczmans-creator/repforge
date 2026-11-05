@@ -1,9 +1,14 @@
 {
   "formatVersion": 1,
-  "status": "Proposed — for owner approval",
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
+  },
   "provider": "repforge",
   "locale": "en-GB",
-  "description": "21 existing equipment ids unchanged (status existing) plus 12 proposed additions (status proposed or proposedConditional). equipmentClass feeds the coverage matrix. role is the item's DEFAULT role: load (supplies the resistance or assistance), support (holds the body or an implement, adds no load), cardio (a cardio machine) or implement (a tool with its own load or movement). An exercise may override the default for one item with equipmentRoles (for example the barbell in an inverted row is a support). lifecycle is active or retired.",
+  "description": "21 existing equipment ids unchanged (status existing) plus 12 additions approved by the owner on 2026-11-05 (status approved). equipmentClass feeds the coverage matrix. role is the item's DEFAULT role: load (supplies the resistance or assistance), support (holds the body or an implement, adds no load), cardio (a cardio machine) or implement (a tool with its own load or movement). An exercise may override the default for one item with equipmentRoles (for example the barbell in an inverted row is a support). lifecycle is active or retired.",
   "classes": [
     "freeWeight",
     "machine",
@@ -219,7 +224,7 @@
       "label": "Landmine attachment",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "Anchors one end of a barbell. Enables angled presses, rows and rotational work that no existing item represents. Tagged together with barbell or plate, which supply the load. Without it, a user without an anchor still sees these exercises.",
       "lifecycle": "active"
     },
@@ -229,7 +234,7 @@
       "label": "Sled",
       "equipmentClass": "other",
       "role": "implement",
-      "status": "proposed",
+      "status": "approved",
       "note": "The seed tags the sled push as plate. A sled is a distinct item many gyms lack. Needed for push and drag patterns in conditioning.",
       "lifecycle": "active"
     },
@@ -239,7 +244,7 @@
       "label": "Plyo box or step",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "Needed for box jumps, step-ups and elevated work. The seed uses bench for step-ups; a box is the more accurate requirement.",
       "lifecycle": "active"
     },
@@ -249,7 +254,7 @@
       "label": "Suspension trainer",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "Adjustable straps hung from an anchor (generic name; no brand). Supports inverted rows, push-up variants, fallouts and assisted single-leg work.",
       "lifecycle": "active"
     },
@@ -259,7 +264,7 @@
       "label": "Battle ropes",
       "equipmentClass": "other",
       "role": "implement",
-      "status": "proposed",
+      "status": "approved",
       "note": "Needed for rope conditioning patterns.",
       "lifecycle": "active"
     },
@@ -269,7 +274,7 @@
       "label": "Preacher bench",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "Angled arm pad for preacher curls. The seed tags preacher curl as ezBar and bench, which shows it to users who own a flat bench only.",
       "lifecycle": "active"
     },
@@ -279,7 +284,7 @@
       "label": "Back extension bench",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "Roman chair or 45 degree bench. Required for back extensions and reverse hyperextensions, essential for Lower back coverage.",
       "lifecycle": "active"
     },
@@ -289,7 +294,7 @@
       "label": "Ab wheel",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "The seed rollout lists no equipment, so it appears as bodyweight-only. The wheel is a required item. It adds no external load, so it is a support item and the exercise stays in the bodyweight class.",
       "lifecycle": "active"
     },
@@ -299,7 +304,7 @@
       "label": "Stability ball",
       "equipmentClass": "bodyweight",
       "role": "support",
-      "status": "proposed",
+      "status": "approved",
       "note": "Needed for ball curls, rollouts and ball-supported core work. It adds no external load, so it is a support item and the exercise stays in the bodyweight class (a dumbbell held on the ball still gives free weight).",
       "lifecycle": "active"
     },
@@ -309,8 +314,8 @@
       "label": "Ski ergometer",
       "equipmentClass": "other",
       "role": "cardio",
-      "status": "proposed",
-      "note": "Proposed so that the `ergometer` pattern and the cardio inventory can name a ski ergometer. Moved here from the candidates list at review (F20). Owner to confirm.",
+      "status": "approved",
+      "note": "Approved 2026-11-05. Named by the `ergometer` pattern.",
       "lifecycle": "active"
     },
     {
@@ -319,8 +324,8 @@
       "label": "Stair climber",
       "equipmentClass": "other",
       "role": "cardio",
-      "status": "proposed",
-      "note": "Stair-climbing machine or stepper. Proposed for the same reason as the ski ergometer. Owner to confirm.",
+      "status": "approved",
+      "note": "Approved 2026-11-05. Stair-climbing machine or stepper.",
       "lifecycle": "active"
     },
     {
@@ -329,8 +334,8 @@
       "label": "Foam roller",
       "equipmentClass": "other",
       "role": "implement",
-      "status": "proposedConditional",
-      "note": "Only if the owner approves soft tissue release content (pattern softTissueRelease). Otherwise drop both.",
+      "status": "approved",
+      "note": "Approved as one of the 12 additions. Soft tissue release content is deferred by owner decision (2026-11-05), so no coverage entry depends on this item.",
       "lifecycle": "active"
     }
   ],

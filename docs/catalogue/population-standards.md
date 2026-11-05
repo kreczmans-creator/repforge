@@ -1,6 +1,6 @@
-# Catalogue population standards — proposed
+# Catalogue population standards — approved
 
-- Status: **Proposed — for owner approval.** WP 8 stage 4 (documentation only). Population (stage 5) does not start until the owner approves this document, the coverage matrix (OQ-23) and the reference lists (OQ-22), and stage 3 delivers the catalogue format and reconciler.
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation only). **Stage 5 is authorised in principle; bulk population starts only after WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified, and after the 5.1 pilot gate** (mandatory re-baselining and explicit owner approval before 5.2 to 5.7). The coverage framework is an acceptance mechanism, not a demand to populate exercises to satisfy numbers; quality and meaningful variation take precedence.
 - Requirements: LIB-001..LIB-007, LIB-011..LIB-013; owner decisions 2, 6 and 10.
 - Related: `coverage-matrix.md`, `reference/coverage.json`, `editorial-guide.md`, `quality-and-duplicates.md`, `provenance-and-licensing.md`, `mapping-existing.md`.
 - Revision 2 (review findings F01, F02, F04, F07, F08, F19, F23, F24): release 2 content is assigned for all 89 exercises; tranche acceptance is measured against the slot inventory; 5.1 is a pilot followed by a re-baselining step.
@@ -12,7 +12,7 @@ One catalogue release per tranche. Each tranche is complete only when its covera
 |---|---|---|---|---|
 | 5.1 Chest (**pilot**) | `chest` (pectoralis major heads, pectoralis minor, serratus anterior) | 3 | Bench press, incline press, decline press, fly, push-up, cable crossover, serratus push-up plus | suspensionTrainer (optional) |
 | 5.2 Back | `upperBack`, `lats` | 4 | Pull-up, chin-up, pulldown, bent-over row, cable row, shrug, scapular retraction, straight-arm pulldown | suspensionTrainer; landmine (optional: T-bar and Meadows rows) |
-| 5.3 Shoulders and neck | `shoulders` (3 heads), `rotatorCuff`, neck groups (if the owner includes neck, Q-S) | 5 | Overhead press, lateral raise, upright row, front raise, rear-delt fly, external rotation, neck flexion and extension | none required |
+| 5.3 Shoulders and neck | `shoulders` (3 heads), `rotatorCuff`, neck groups (neck included by owner decision; conventional gym exercises) | 5 | Overhead press, lateral raise, upright row, front raise, rear-delt fly, external rotation, neck flexion and extension | none required |
 | 5.4 Arms | `upperArmAnterior`, `upperArmPosterior`, `forearms` | 6 | Barbell curl, hammer curl, preacher curl, triceps extension, pushdown, close-grip press, wrist curl, farmer's hold | preacherBench |
 | 5.5 Hips and legs | `glutes`, `abductors`, `adductors`, `hipFlexors`, `hipExternalRotators`, `quadriceps`, `hamstrings`, `calves`, shin and outer lower-leg groups | 7 | Squat, lunge, leg press, hinge, hip thrust, leg curl, calf raise, hip abduction and adduction | plyoBox, stabilityBall |
 | 5.6 Trunk | `abs`, `obliques`, `lowerBack` (and `pelvicFloor` if approved) | 8 | Crunch, leg raise, plank, rollout, woodchop, side bend, back extension, good morning | abWheel, hyperextensionBench, stabilityBall |
@@ -42,10 +42,10 @@ An entry is done when all of these hold.
 2. Name follows the naming convention; 60 characters or fewer; UK spelling.
 3. Aliases (up to six) include common US names; none collide with another name or alias.
 4. Logging type and category set and consistent with the pattern (warnings dispositioned).
-5. At least one primary target; targets at the most defensible level; no node and ancestor both tagged; no `fullBody` as a secondary or beside anatomical primaries in new content (until Q-F is answered).
+5. At least one primary target; targets at the most defensible level; no node and ancestor both tagged; no `fullBody` as a secondary or beside anatomical primaries in new content (ADR-0010, approved).
 6. At least one movement pattern; the first is the primary pattern.
 7. Equipment list complete, using approved ids only (empty if none).
-8. Mechanics, laterality and difficulty set (mechanics may be empty only for cardio and mobility, proposed default, if the owner confirms Q-M). Optional attributes recorded where a coverage slot or the duplicate check uses them; equipment role overrides carry a note.
+8. Mechanics, laterality and difficulty set (mechanics may be empty only for cardio and mobility, approved). Optional attributes recorded where a coverage slot or the duplicate check uses them; equipment role overrides carry a note.
 9. Relationships set: `variationOf` (if derived), `progressionOf` (if a ladder step; regression is derived), `unilateralCounterpartOf` (if a twin exists), `alternativeTo` (if a clear substitute exists).
 10. The variation test passes (editorial guide, section 3), or a reason is recorded.
 11. Four instruction sections present, with item counts and lengths inside the limits; active voice; safety wording; no medical claim; no numbers of repetitions or loads.
@@ -56,13 +56,13 @@ An entry is done when all of these hold.
 
 ## 4. Keeping and enriching the 89 existing exercises
 1. **Ids are kept.** No existing id is changed, reused or removed.
-2. **Release 2** (stage 3c) re-expresses the 89 exercises in the new format with targets, patterns, equipment, equipment roles, mechanics, laterality, difficulty and optional attributes from `mapping-existing.json`. **All 89 are assigned** so that release 2 passes the integrity checks (F01); the values are proposed content for owner review. Mechanics are empty by default for the 16 cardio and mobility exercises (Q-M). The three colliding aliases are removed and the provenance author is "RepForge editorial (WP 8 seed)". Instructions are not written yet (IC-210 stays a warning).
+2. **Release 2** (stage 3c) re-expresses the 89 exercises in the new format with targets, patterns, equipment, equipment roles, mechanics, laterality, difficulty and optional attributes from `mapping-existing.json`. **All 89 are assigned** so that release 2 passes the integrity checks (F01); the values are the release-2 classifications approved by the owner. Mechanics are empty for the 16 cardio and mobility exercises. The three colliding aliases are removed and the provenance author is "RepForge editorial (WP 8 seed)". Instructions are not written yet (IC-210 stays a warning).
 3. **Tranche releases** enrich the exercises that belong to the tranche: instructions, any remaining classification, relationships and attributes (the pairs listed under IC-412 in `quality-and-duplicates.md` section 6 are the worklist), alias clean-up (`mapping-existing.md` section 7) and equipment corrections. Each change that alters a system-owned field raises the revision by one in that release.
 4. **Names.** A name may change only to correct an error or to follow the naming convention. The old name becomes an alias. The id stays.
 5. **Meaning.** If a change would give an exercise a different meaning (a different movement), retire the old entry and add a new id. A change of tag on the same movement is an enrichment, not a new meaning.
-6. **Primary-target changes** (flags M and D in `mapping-existing.md`, summarised as the single principle question Q-P) need owner decision, because they change attributed set counts in WP 9.
+6. **Primary-target changes** (flags M and D in `mapping-existing.md`) are resolved in the tranche content reviews under the primary-muscle principle, because they change attributed set counts in WP 9.
 7. **User data.** Plans, sessions and sets that reference the 89 ids keep working. A custom copy of an exercise is never changed by a release; it receives a "source updated" marker.
-8. **Known fixes:** `lib-ab-wheel`, `lib-sled-push`, `lib-preacher-curl`, `lib-step-up` and `lib-lat-pulldown` equipment and the role of the barbell in `lib-inverted-row`; `lib-hip-flexor-stretch` primary; `lib-thoracic-extension` primary (M, owner); `lib-skipping` keeps `calves` as its only primary, with its `fullBody` secondary preserved and reported (Q-F); consistent row primaries (Q-P); `lib-run-400m` and `lib-outdoor-run` as one family or a merge.
+8. **Known fixes:** `lib-ab-wheel`, `lib-sled-push`, `lib-preacher-curl`, `lib-step-up` and `lib-lat-pulldown` equipment and the role of the barbell in `lib-inverted-row`; `lib-hip-flexor-stretch` primary; `lib-thoracic-extension` primary (M, owner); `lib-skipping` keeps `calves` as its only primary, with its stored `fullBody` secondary preserved historically and reported; consistent row primaries (tranche review); `lib-run-400m` and `lib-outdoor-run` as one family or a merge.
 
 ## 5. Retirement rules
 1. Retire only for: a duplicate that cannot be merged by relationships, a factual error that edits cannot fix, a safety problem, or a withdrawn licence. Never retire to change a classification (edit instead).

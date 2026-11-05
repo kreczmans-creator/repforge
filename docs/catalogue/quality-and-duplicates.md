@@ -1,6 +1,6 @@
-# Catalogue quality and duplicate-detection specification — proposed, revision 2
+# Catalogue quality and duplicate-detection specification — approved
 
-- Status: **Proposed — for owner approval.** WP 8 stage 4 (documentation only). The checks are implemented in stage 3a and 3c as pure domain code and a CI gate; this document is the specification.
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation only). The checks are implemented in stage 3a and 3c as pure domain code and a CI gate; this document is the specification.
 - Requirements: LIB-007, LIB-012, LIB-013; ADR-0009 decisions 5 and 6; `docs/wp8-delivery-plan.md` sections 10, 17.5 and 18.
 - Related: `editorial-guide.md`, `coverage-matrix.md`, `population-standards.md`.
 - Revision 2 (review findings F01, F08 to F11, F19, F24, F25): release 2 passes the errors (section 6); the near-duplicate signature is redefined and re-run on the seed; IC-900 enumerates every exercise-id column; the migration report lists skipped and rejected records; reference-data lifecycle, ledger and an accepted-gaps format are added.
@@ -36,7 +36,7 @@ Severities:
 | IC-204 | targets | At least one primary target | error |
 | IC-205 | patterns | At least one; first is primary | error (warning before a tranche is marked in progress) |
 | IC-206 | equipment | List present (may be empty) | error |
-| IC-207 | mechanics | Present (`compound` or `isolation`) for categories push, pull, legs, core, fullBody. For cardio and mobility the **proposed default** is that the field is empty and unchecked (reported as info). If the owner decides to force a value (Q-M), the rule becomes an error for those categories too | error / info |
+| IC-207 | mechanics | Present (`compound` or `isolation`) for categories push, pull, legs, core, fullBody. For cardio and mobility the field is **empty by owner decision** (2026-11-05) and unchecked (reported as info) | error / info |
 | IC-208 | laterality | Present | error |
 | IC-209 | difficulty | Present | error |
 | IC-210 | content | The four sections present and non-empty (`setup`, `execution`, `breathing`, `commonMistakes`) | error once the exercise's tranche is complete; warning before |
@@ -49,7 +49,7 @@ Severities:
 | IC-301 | Each target node exists in the anatomy list | error |
 | IC-302 | A node appears once per exercise | error |
 | IC-303 | No exercise tags a node together with its ancestor or descendant | error |
-| IC-304 | `fullBody` as a secondary target, or beside an anatomical primary, on **system content only** (ADR-0010 proposed; open question Q-F). Warning until the owner answers; if the answer is "primary only", error for new and changed system content. **User exercises are never rejected by this rule**: stored uses are preserved and listed in the migration report (section 4). Release 2 contains one use (`lib-skipping`, secondary) | warning (system content) |
+| IC-304 | `fullBody` as a secondary target, or together with any anatomical primary (ADR-0010, approved 2026-11-05: `fullBody` may only be the single primary of a qualifying whole-body or conditioning exercise). **Error for system content.** For **user content** it is a warning plus a migration-report entry: the stored value is never silently discarded and the user exercise keeps working (section 4) | error (system) / warning (user) |
 | IC-305 | A primary node is not repeated as secondary | error |
 | IC-306 | Each pattern exists; a family id is not used as a pattern (only leaf patterns) | error |
 | IC-307 | Each equipment id exists in the equipment list | error |
@@ -61,7 +61,7 @@ Severities:
 | IC-313 | An active exercise references a retired exercise, node, pattern or equipment id (reference `lifecycle` retired) | error |
 | IC-314 | A target whose mapped node is non-anatomical used with a category other than cardio, fullBody or mobility | warning |
 | IC-315 | A role override (`equipmentRoles`) names an item not in the exercise equipment list, a role other than `load` or `support`, or has no note | error |
-| IC-316 | A recorded attribute is not in the controlled list (only if the owner approves attributes, Q-A) | error |
+| IC-316 | A recorded attribute is not in the controlled list (attributes approved 2026-11-05) | error |
 
 ### IC-400 Relationship graph
 Stored kinds: `variationOf`, `progressionOf`, `alternativeTo`, `unilateralCounterpartOf` (F19). `regressionOf` is a derived view and never appears in a release file; the editor tool normalises an input `regressionOf` to the inverse `progressionOf`.
@@ -147,7 +147,7 @@ Originality cannot be checked automatically. It is covered by the originality st
 |---|---|---|
 | IC-801 | Anatomy: ids unique; parent exists; level equals parent level plus one; L1 has no parent; levels 1 to 4; no cycles | error |
 | IC-802 | Anatomy: sibling sort values unique within a parent | error |
-| IC-803 | Anatomy: `fullBody` is the only non-anatomical node, is an L1 node and has no children (ADR-0010 proposed) | error |
+| IC-803 | Anatomy: `fullBody` is the only non-anatomical node, is an L1 node and has no children (ADR-0010, approved) | error |
 | IC-804 | Anatomy: the 19 preserved ids are present at the planned levels and with the planned parents | error |
 | IC-805 | Patterns: families have no parent; patterns have a family parent; no cycles | error |
 | IC-806 | Equipment: the 21 existing ids are present and unchanged | error |
@@ -222,8 +222,8 @@ Owner decision 7 of 2026-11-05: legacy invalid values are never silently correct
 - Plans that reference exercises retired by a release.
 - **Skipped duplicate secondaries (F10).** A user exercise whose secondary muscle list repeats a muscle, or repeats its primary, keeps one entry (IC-302 and IC-305 hold for stored data); each skipped entry is a row with action `skipped`.
 - **Records rejected by the new rules (F10).** Any record the v8 schema or a check refuses (for example an empty primary muscle, an unknown muscle id, an over-long name) is a row with action `rejected` or `quarantined` and the rule that applied; the record itself is preserved.
-- **User exercises with `fullBody` as a secondary muscle (F08).** The stored value is **preserved** (IC-304 applies to system content only), the exercise keeps working, and one row per exercise is listed with action `retained` and rule `ADR-0010`. If the owner later decides that `fullBody` may not be a secondary (Q-F), the migration offers the same rows as a worklist; nothing is changed without the user.
-- The same rule lists the system exercise `lib-skipping` (secondary `fullBody`) when release 2 is applied.
+- **User exercises with `fullBody` as a secondary muscle (F08).** The stored value is **preserved** (IC-304 is a warning for user content, an error only for system content), the exercise keeps working, and one row per exercise is listed with action `retained` and rule `ADR-0010`. Because the owner decided that `fullBody` may not be a secondary (ADR-0010), the migration offers the same rows to the user as a worklist; nothing is changed without the user.
+- The same rule lists the system exercise `lib-skipping`: its stored `fullBody` secondary is preserved historically and reported, and the release-2 system record no longer carries it as an active tag.
 
 ### 4.2 Content: one row per affected record, never a sample or a total only
 | Field | Meaning |
@@ -271,30 +271,30 @@ One file in the repository, `docs/catalogue/accepted-gaps.json` once stage 3 cre
   "schema": "repforge.acceptedGaps/1",
   "provider": "repforge",
   "accepted": [
-    { "id": "AG-0001", "kind": "warning", "code": "IC-304", "exerciseId": "lib-skipping",
-      "reason": "Seed use of fullBody as a secondary, preserved pending Q-F.",
+    { "id": "AG-0001", "kind": "warning", "code": "IC-311", "exerciseId": "lib-thruster",
+      "reason": "Category fullBody with a lower-body compound pattern, accepted as the pattern guide says.",
       "acceptedBy": "owner", "acceptedOn": "2026-11-05", "reference": "D04 section 7", "untilRelease": null },
     { "id": "AG-0002", "kind": "duplicate", "pair": ["lib-hack-squat", "lib-leg-press"], "decision": "distinct",
       "reason": "Different machines and load paths.", "acceptedBy": "reviewer-initials", "acceptedOn": "2026-11-05", "reference": "review log 5.5" },
     { "id": "AG-0003", "kind": "coverageGap", "group": "neck", "dimension": "slot", "item": "neck.rotation",
-      "acceptedMinimum": 0, "reason": "Scope declined (Q-S).", "acceptedBy": "owner", "acceptedOn": "2026-11-05", "reference": "delivery record" }
+      "acceptedMinimum": 0, "reason": "Example only: a future owner-accepted gap.", "acceptedBy": "owner", "acceptedOn": "2026-11-05", "reference": "delivery record" }
   ]
 }
 ```
 Rules: `kind` is `warning`, `duplicate` or `coverageGap`; a `coverageGap` entry needs the owner as `acceptedBy`; entries match by exact subject (code and exercise id, pair, or group, dimension and item); an entry that no longer matches anything is reported as info ("stale") and removed in the next release; `untilRelease` is optional and, when set, makes the entry expire.
 
-## 6. Results on the release-2 seed (scratchpad run, proposed content)
-A throwaway script applied the checks of IC-200 to IC-500 and IC-600 to the proposed mapping (`mapping-existing.json`: 89 exercises, with the three alias removals and the proposed additions). Results:
+## 6. Results on the release-2 seed (scratchpad run, approved classifications)
+A throwaway script applied the checks of IC-200 to IC-500 and IC-600 to the approved mapping (`mapping-existing.json`: 89 exercises, with the three alias removals and the alias additions). Results:
 
-**Errors: 0. Release 2 passes the error checks.** Warnings: 94. Infos: 16.
+**Errors: 0. Release 2 passes the error checks.** Warnings: 93. Infos: 16.
 
 | Code | Severity | Count | Disposition proposed |
 |---|---|---|---|
 | IC-210 | warning | 89 | Instructions are written in the tranches; release 2 is not a complete tranche |
-| IC-207 | info | 16 | Cardio and mobility mechanics are empty by default (Q-M) |
+| IC-207 | info | 16 | Cardio and mobility mechanics are empty (approved) |
 | IC-311 | warning | 2 | `lib-kettlebell-swing` and `lib-thruster` (category fullBody, pattern family lower-body compound): accepted, as the pattern guide says |
 | IC-508 | warning | 2 | Machine hip abduction and adduction; Push-up and Pull-up: distinct exercises |
-| IC-304 | warning | 1 | `lib-skipping` secondary `fullBody`: accepted pending Q-F; listed in the migration report |
+| IC-304 | error | 0 | None: `lib-skipping` no longer carries `fullBody` as an active tag; the stored value is in the migration report |
 
 Before the fix, the three alias collisions (*Pullup*, *Chinup*, *Farmers walk*) would have raised IC-502 and IC-503 errors; they are removed in the proposal (`mapping-existing.md` section 7). No other collision exists after `norm` and `squash`.
 
@@ -304,7 +304,7 @@ Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-
 **IC-601 probable duplicates:** none.
 
 **IC-602 close matches:**
-| Exercise A | Exercise B | Score | Proposed disposition |
+| Exercise A | Exercise B | Score | Disposition |
 |---|---|---|---|
 | `lib-back-squat` (Barbell back squat) | `lib-front-squat` (Barbell front squat) | 0.925 | Relationship: `lib-front-squat` is a `variationOf` the back squat (bar position). Cleared by a relationship at the first enrichment. |
 | `lib-run-400m` (400 m run) | `lib-outdoor-run` (Outdoor run) | 0.888 | Probable merge or relationship: same structure, distance logging, no equipment. Owner decides: keep `lib-run-400m` as a distinct distance entry (`variationOf` the outdoor run) or merge. |
@@ -344,10 +344,9 @@ Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-
 
 **IC-411:** no unilateral entry in the seed has a bilateral twin by structure.
 
-## 7. Open questions for the owner
-1. Confirm the duplicate score thresholds (0.95 and 0.85, informational from 0.75) and the weights as a starting point to tune in the pilot tranche.
-2. Confirm that signature flags stay non-blocking (ADR-0009) but must be cleared at tranche acceptance.
-3. Confirm the mechanics default for cardio and mobility (Q-M, IC-207).
-4. Confirm that IC-304 is a warning for system content until Q-F (the role of `fullBody`) is answered.
-5. Confirm the optional exercise attributes (Q-A), which the duplicate check and some coverage slots use. If declined, IC-601 to IC-603 lose the attribute clearing and the slots fall back to measurable pattern-level minimums.
-6. Confirm the blocked words and phrases list (a short list is held with the tool and reviewed by the owner).
+## 7. Owner decisions (2026-11-05)
+1. Duplicate score thresholds (0.95, 0.85, informational from 0.75) and weights are approved as the starting point; the pilot tunes them. Signature flags stay non-blocking (ADR-0009) but must be cleared at tranche acceptance.
+2. Mechanics for cardio and mobility are empty; IC-207 does not check them.
+3. IC-304 is an error for system content; a warning with a migration-report entry for user content.
+4. The seven optional attributes are approved; the pattern-level fallback is not used.
+5. The blocked words and phrases list is held with the tool and reviewed by the owner.

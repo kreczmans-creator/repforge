@@ -1,6 +1,6 @@
-# Provenance and licensing requirements — proposed
+# Provenance and licensing requirements — approved
 
-- Status: **Proposed — for owner approval.** WP 8 stage 4 (documentation only).
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation only). Content policy decisions of 2026-11-05 are in section 8.
 - Requirements: LIB-011, LIB-012; owner decision 2 (OQ-09: original RepForge-authored content; compatible openly licensed datasets allowed with recorded provenance; no Bodybuilding.com content; multiple providers; commercial licensing deferred); ADR-0009.
 - **This document is not legal advice.** Whether a licence is acceptable, and whether any dataset is admitted, is the owner's call, and the owner decides whether to seek legal review (section 7).
 
@@ -42,7 +42,7 @@ The 89 exercises already in the app (seed) carry provider `repforge` and the aut
 4. Instructions: compose in your own words and structure, following `editorial-guide.md`.
 5. Classifications are your judgement, recorded in the entry. Do not import another source's tagging wholesale.
 6. At the end of each tranche the author signs an **originality statement**: "I wrote these entries myself. I did not copy them from any source." The statement is kept in the delivery record.
-7. Drafting aids: if an editor uses a drafting tool, the editor remains the author, checks every entry, and the originality rule applies unchanged. The owner decides whether that use needs to be declared.
+7. Drafting aids: **AI drafting assistance is permitted and is recorded in provenance** (field `draftingAssistance` on the record, with a free note). A **named human editor is the accountable author** of every entry, checks it in full, and the originality rule applies unchanged.
 8. A reviewer who suspects copying raises it as a blocking finding. The entry is rewritten or dropped.
 9. No images or video are added in WP 8 (media are deferred).
 
@@ -56,7 +56,7 @@ The owner approves each dataset before any record is used. Check, in order:
 | 3 | Permits commercial use (even though commercial licensing is deferred) | Yes. Non-commercial (NC) licences are not admitted |
 | 4 | Permits derivative works | Yes. No-derivatives (ND) licences are not admitted, because every record is normalised and re-tagged |
 | 5 | Attribution | Obligation is practical: RepForge can show the required text in a credits screen and in the licence register |
-| 6 | Share-alike or copyleft | Default: not admitted. A share-alike licence (for example CC-BY-SA, ODbL, GPL family) can require RepForge to release adapted data under the same licence and might affect how the catalogue file is distributed. Admit only after the owner reviews the obligations (legal review recommended) |
+| 6 | Share-alike or copyleft | Default: not admitted. A share-alike licence (for example CC-BY-SA, ODbL, GPL family) can require RepForge to release adapted data under the same licence and might affect how the catalogue file is distributed. Not admitted (owner decision 2026-11-05: share-alike datasets are excluded entirely) |
 | 7 | Clean origin | The dataset itself is not derived from proprietary content (for example scraped from a commercial site). If its origin is unclear, reject |
 | 8 | Quality | A sample of at least 30 records passes the editorial guide after normalisation, and the near-duplicate check |
 | 9 | Technical fit | Maps to the anatomy, pattern and equipment lists without inventing values |
@@ -66,7 +66,7 @@ Permissive licences most likely to pass: CC0-1.0, CC-BY-4.0 (attribution only), 
 
 Process:
 1. The editor writes a one-page dataset proposal: source, licence, scope, sample, mapping effort.
-2. The owner decides (and seeks legal review if wished).
+2. The owner decides. Share-alike datasets are excluded entirely.
 3. On approval, the provider is added to the registry, the licence register is updated, and an import branch holds the transformed records.
 4. Every imported record passes the same integrity checks and independent review as an original record. Text from the dataset is treated as source material to be rewritten unless the licence allows reuse as it stands.
 5. Records keep `providerId` and `sourceRef`. The attribution text appears in the app credits when stage 6 delivers them.
@@ -91,10 +91,11 @@ Kept in the delivery record (WP 8) and updated with each release. One row per pr
 A second table lists releases: provider id, release number, content hash, record counts, date, and the independent review reference.
 
 ## 7. Legal review
-This document sets the engineering and editorial rules. It does not decide whether any licence is compatible with distribution in a mobile application, nor what share-alike obligations mean for RepForge. **Legal review is the owner's call.** The owner may seek advice before admitting a dataset, before commercial release, or before showing any third-party attribution.
+This document sets the engineering and editorial rules. It does not decide whether any licence is compatible with distribution in a mobile application, nor what share-alike obligations mean for RepForge. **A legal review is required before the first public release** (owner decision 2026-11-05).
 
-## 8. Open questions for the owner
-1. Is drafting assistance acceptable, with the editor as author, and does it need to be declared?
-2. Are share-alike datasets out of scope entirely (the recommendation), or will the owner review case by case?
-3. Where do attributions appear (a credits screen in Settings is proposed for stage 6)?
-4. Is a legal review wanted before the first release that includes catalogue content from stage 5?
+## 8. Owner decisions (2026-11-05)
+1. AI drafting assistance is permitted and is recorded in provenance; a named human editor is the accountable author.
+2. Share-alike datasets are excluded entirely (admission criterion 6 is "not admitted", with no case-by-case review).
+3. Attribution is shown on a credits screen (Settings; delivered by stage 6).
+4. A legal review is required before the first public release.
+5. Original RepForge-authored content remains the default. Third-party datasets are admitted only with demonstrably compatible provenance and licensing, and only after the owner approves each dataset.

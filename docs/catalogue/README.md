@@ -1,8 +1,8 @@
-# Exercise catalogue — WP 8 stage 4 outputs (revision 2)
+# Exercise catalogue — WP 8 stage 4 outputs (approved)
 
-- Status: **Proposed — for owner approval.** Nothing in this folder is implemented or in force until the owner approves it.
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** The reference data, mapping, rules and specifications in this folder are approved as the controlled content for WP 8 stage 3 and stage 5. Nothing here is implemented in the app yet. **Stage 5: authorised in principle; bulk population only after WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified, and after the 5.1 pilot gate.**
 - Scope: WP 8 stage 4, catalogue tooling and quality assurance, **documentation and reference data only** (authorised 2026-11-05, `docs/wp8-delivery-plan.md` section 18). No file under `app/` changes. No WP 9 file is touched.
-- Date: 2026-11-05. Revision 2 follows an independent review (findings F01 to F25, section 6).
+- Date: 2026-11-05. History: revision 2 followed an independent review (F01 to F25, section 6); revision 3 a re-verification (N1 to N10, section 6a); the owner approved stage 4 on 2026-11-05 (section 7).
 - Requirements: LIB-001..LIB-014, owner library decisions (D04 section 7; `docs/exercise-library-expansion.md` section 5), ADR-0008, ADR-0009, ADR-0010 (proposed).
 
 ## 1. Contents
@@ -20,37 +20,36 @@
 | `provenance-and-licensing.md` | Provider registry, original-authoring rules, admission criteria for open datasets, prohibited sources, licence register template | Stage 3 (provider table); stage 5 |
 | `quality-and-duplicates.md` | Integrity checks, near-duplicate signature, report format, migration report, CI gating, accepted-gaps format, results on the seed | Stage 3a and 3c (check code, CI gate) |
 
-## 2. Open questions these outputs answer
+## 2. Questions these outputs answered
 | Id | Question | Where answered | Owner action |
 |---|---|---|---|
-| OQ-22 | Anatomy node list and movement pattern list | `anatomy.md`, `movement-patterns.md`, `mapping-existing.md` | Approve, change or reject before stage 5 |
-| OQ-23 | Coverage matrix minimum targets per region | `coverage-matrix.md`, `reference/coverage.json` | Approve, change or reject before stage 5 |
+| OQ-22 | Anatomy node list and movement pattern list | `anatomy.md`, `movement-patterns.md`, `mapping-existing.md` | Approved 2026-11-05 |
+| OQ-23 | Coverage matrix minimum targets per region | `coverage-matrix.md`, `reference/coverage.json` | Approved 2026-11-05 |
 
 Both lists carry definitions, inclusion and exclusion criteria, so the reviewer can see where a muscle with two functions is filed.
 
 ## 3. How the outputs feed the stages
 - **Stage 3 (architecture and reference data, gated):** loads `reference/*.json` into the reference tables; implements the checks in `quality-and-duplicates.md`; re-expresses the 89 exercises as release 2 using `mapping-existing.json` (which passes the error checks, `quality-and-duplicates.md` section 6); builds the migration report specified there. The JSON files are the proposed content of catalogue release 2's reference data.
-- **Stage 5 (population):** authors work from the editorial guide, tag against the reference lists, and are accepted against the slot inventory. Population does not start until the owner approves OQ-22 and OQ-23. Tranche 5.1 is a pilot followed by an explicit re-baselining step.
+- **Stage 5 (population):** authors work from the editorial guide, tag against the reference lists, and are accepted against the slot inventory. Stage 5 is authorised in principle; bulk population starts only after stage 3 tooling is implemented and verified and after the 5.1 pilot gate (mandatory re-baselining, explicit owner approval before 5.2 to 5.7).
 - **Stage 6 (discovery):** filters use the same lists. Labels are display text and may be reworded.
 
-## 4. Summary of the proposal
+## 4. Summary of the approved content
 - Anatomy: 126 nodes (10 L1, 26 L2, 63 L3, 27 L4). All 19 existing ids are kept at the planned levels and with the planned parents. `fullBody` is a flagged, childless L1 node (ADR-0010, proposed).
 - Movement patterns: 17 families, 62 patterns (neck rotation added), decision rules R1 to R8.
 - Equipment: 21 existing ids unchanged, 12 proposed additions (one conditional); ski ergometer and stair climber added at revision 2.
-- Coverage: 21 anatomical groups with 325 slot minimums, every one derived from enumerated intended entries; conditioning, power and mobility sets with 70 minimums. Tranche 5.1 is a pilot. The seed fills 67 of the 325 slots and covers 20 of the 70 conditioning and mobility entries (recomputed, section 6).
+- Coverage: 21 anatomical groups with 325 slot minimums, every one derived from enumerated intended entries; 70 conditioning, power and mobility entries (kept separate from the anatomical groups). Tranche 5.1 is a pilot. The seed fills 67 of the 325 slots and covers 20 of the 70 conditioning, power and mobility entries (recomputed, section 6).
 - Release 2: all 89 seed exercises have mechanics (or the empty default for cardio and mobility), laterality and difficulty as **proposed content**; the integrity checks give zero errors.
 - Rules that cut across all documents: original content only; qualitative anatomy; per-muscle figures are *attributed set counts*, not physiological measurements of muscle stimulus; retired exercises and retired reference ids are never deleted and their ids are never reused; every historical reference must resolve.
 
-## 5. Decisions requested from the owner
-1. Approve the anatomy list (`anatomy.md`), including the debatable classifications in section 5 of that file.
-2. Approve the movement pattern list, the decision rules R1 to R8 and the borderline classifications.
-3. Approve the equipment additions (twelve, one conditional) and the per-exercise role rule.
-4. Approve the mapping of the 89 existing exercises, including the assigned mechanics, laterality, difficulty, attributes and alias clean-up (proposed content), and answer the primary-target principle (Q-P).
-5. Approve the coverage inventory (OQ-23) and the pilot-then-re-baseline approach.
-6. Approve the editorial guide, population standards, provenance rules and quality specification.
-7. Answer the eight owner questions in section 7.
+## 5. Review status
+Reviewed and approved by the owner on 2026-11-05, with the decisions in section 7:
+1. The anatomy list (126 nodes, the 19 existing ids, the proposed placements) and the movement pattern list (17 families, 62 patterns, 79 entries including families, rules R1 to R8): OQ-22.
+2. The equipment additions (12) and the per-exercise role rule.
+3. The mapping of the 89 existing exercises, including the release-2 classifications.
+4. The coverage inventory: 325 slot minimums in 21 groups and 70 conditioning, power and mobility entries: OQ-23.
+5. The editorial guide, population standards, provenance rules and quality specification.
 
-## 6. Revision 2 (review findings F01–F25)
+## 6. Revision 2 (review findings F01–F25) — history
 Each finding and what changed. "Open" means the owner decides; nothing was decided on the owner's behalf.
 
 | Finding | Change |
@@ -82,7 +81,7 @@ Each finding and what changed. "Open" means the owner decides; nothing was decid
 | F25 Alignment | `neckMotion` related categories (pull); `softTissueRelease` excludes field; face pull mechanics isolation, editorial guide aligned; hip and wrist-grip related categories aligned with the category table |
 | OQ-19 wording | "Attributed set counts" used consistently (anatomy 1.9, editorial 5.10, README, ADR-0010 reference) |
 
-## 6a. Revision 3 (N1–N10)
+## 6a. Revision 3 (N1–N10) — history
 | Item | Change |
 |---|---|
 | N1 Family cap | Chosen: **drop the family cap**. It contradicted the variation rules (a bench press family can hold 18 variations against a cap of 10.8; the 17 curls of biceps and the 9 calf raises are each one family). Slots already enforce diversity, so no root-naming is needed. The minimum number of families and the class cap (checked against the inventory by the validation script) remain |
@@ -96,28 +95,30 @@ Each finding and what changed. "Open" means the owner decides; nothing was decid
 | N9 Wording | R6: high pulls do not catch; anatomy rule 7 (L3 sets with FCR, FCU and finger flexors as L4 members; iliopsoas); regional principle (hamstrings act at hip and knee); sideDelts excludes ("helps start abduction") and the editorial example |
 | N10 ADR-0010 | Not touched. Its "excluded or shown separately" wording is folded into Q-F |
 
-New totals: 325 slot minimums (Chest 36, Upper back 25, Lats 20, Shoulders 35, Rotator cuff 10, Neck 10, Biceps and brachialis 17, Triceps 24, Forearms 19, Glutes 25, Abductors 3, Adductors 4, Hip flexors 4, Deep hip rotators 3, Quadriceps 28, Hamstrings 13, Calves 9, Shin and outer lower leg 4, Abs 18, Obliques 13, Lower back 5). Seed fill 67 of 325. Conditioning, power and mobility 70.
+New totals: 325 slot minimums (Chest 36, Upper back 25, Lats 20, Shoulders 35, Rotator cuff 10, Neck 10, Biceps and brachialis 17, Triceps 24, Forearms 19, Glutes 25, Abductors 3, Adductors 4, Hip flexors 4, Deep hip rotators 3, Quadriceps 28, Hamstrings 13, Calves 9, Shin and outer lower leg 4, Abs 18, Obliques 13, Lower back 5). Seed fill 67 of 325. Conditioning, power and mobility entries: 70.
 
-**Clarifications to propose (the ADRs are not edited here):**
+**ADR clarifications to record (the ADRs are not edited here):**
 - **ADR-0009:** IC-110 refines decision 3. An identifier absent from a release is not retired by absence alone; the tool refuses a release that omits an id without listing it under `retirements`, so an accidental omission cannot retire an exercise.
-- **ADR-0008:** (a) store `progressionOf` only; `regressionOf` is a derived view (decision 5); (b) optional controlled exercise attributes, if the owner approves Q-A; (c) the `fullBody` change is ADR-0010 (proposed).
+- **ADR-0008:** (a) store `progressionOf` only; `regressionOf` is a derived view (decision 5); (b) optional controlled exercise attributes (approved by the owner 2026-11-05); (c) the `fullBody` change is ADR-0010 (approved).
 
-## 7. Owner questions (deduplicated, eight)
-1. **Q-F, `fullBody`.** May `fullBody` be a secondary target, or a primary beside anatomical primaries? Should it be excluded from roll-ups and set counts or shown separately (the wording in ADR-0010, proposed, which is not edited here)? Affects `lib-skipping`, the migration report, IC-304 and the user exercises that already store it.
-2. **Q-P, primary-target principle (one question, includes thoracic extension).** When a compound movement is shared by several muscles, are the primaries only the muscle or muscles it is designed to load (the seed's practice), or every muscle doing main work through the main range? Lead example: rows (`lats` versus `upperBack`). The same answer decides deadlifts and Romanian deadlifts, dips, chin-up, hip abduction, hanging leg raise, clean and press, thoracic extension (`upperBack` with a stretched meaning, or `erectorSpinae`), good mornings and hip-driven back extensions. It changes attributed set counts.
-3. **Q-S, scope.** Include neck, pelvic floor and soft tissue release content at all? (Neck has 10 inventory entries; pelvic floor none; soft tissue release entries are optional and need `foamRoller`.)
-4. **Equipment.** Approve the twelve additions (including `skiErg` and `stairClimber`, or remove both names from `ergometer`); keep or split the single generic `machine` id; confirm the per-exercise role rule and that sliders are not proposed.
-5. **Q-A, attributes.** Approve seven optional controlled attributes with the boundary rules (an ADR-0008 clarification), or decline and use the measurable pattern-level fallback minimums.
-6. **Q-C, coverage.** Approve the inventory and the pilot-then-re-baselining approach (5.1 pilot, explicit re-baselining before 5.2 to 5.7); confirm the class cap and the primaries-per-exercise thresholds; confirm the release-2 proposed content (mechanics, laterality, difficulty, alias changes) and the duplicate thresholds.
-7. **Q-M, mechanics for cardio and mobility.** Empty by default (proposed), or force a value.
-8. **Content policy** (`provenance-and-licensing.md` section 8): is drafting assistance acceptable and must it be declared; are share-alike datasets out of scope; where attributions appear; is a legal review wanted before the first release with stage 5 content.
-
-Anatomy placement items (adductors under Hip, the L3 convention, deep hip rotators, erector spinae) are in `anatomy.md` section 5 for the reviewer and are folded into approving the anatomy list.
+## 7. Owner decisions (2026-11-05)
+Each decision replaces the open question of the same name in the history above.
+1. **OQ-22 approved.** The 126-node anatomy, 17 families and 62 patterns (79 entries including families), decision rules R1 to R8, the 19 existing ids and the proposed placements.
+2. **Scope.** The neck is **included** (conventional gym exercises). Pelvic floor content is **excluded**: its node and id stay in the reference data, marked "content excluded by owner decision", with no entries. Soft tissue release is **deferred**: the `foamRoller` item is approved among the 12 additions, but the `softTissueRelease` pattern stays optional and its count is 0.
+3. **Primary-muscle principle (resolves Q-P and Q-T).** *Primary targets are the muscles an exercise is designed and normally selected to train. Other muscles making significant contributions are secondary targets.* Individual disputed assignments are resolved in the tranche content reviews, and no primary is added merely because a muscle contributes significantly. Thoracic extension follows the principle at tranche review.
+4. **`fullBody` (resolves Q-F; ADR-0010 approved).** A flagged, childless, non-anatomical L1 node. It may only be the single primary of a qualifying whole-body or conditioning exercise; never a secondary; never alongside anatomical primaries. It is excluded from anatomical roll-ups, coverage and attributed muscle set counts, and shown separately in reports, labelled non-anatomical. Existing stored secondary references are preserved and listed in the migration report. `lib-skipping` keeps `calves` as its primary; its stored `fullBody` secondary is preserved historically and reported, and release-2 system content removes it from the active tags. IC-304 is an error for system content; for user content a warning plus a migration-report entry, never silently discarded.
+5. **OQ-23 approved.** 325 slot minimums in 21 groups; a separate set of 70 conditioning, power and mobility entries; the counting rules; one slot per exercise per group; primary targets determine coverage; no L4 minimums; superficial variations optional; the class cap; the release-2 classifications; the duplicate thresholds. Tranche 5.1 (chest) is the pilot, followed by a mandatory re-baselining and the owner's explicit approval before 5.2 to 5.7. The seed baseline of 67 of 325 and 20 of 70 is accepted. **The coverage framework is an acceptance mechanism, not a demand to populate exercises to satisfy numbers; quality and meaningful variation take precedence.**
+6. **Equipment.** All 12 additions approved (including `skiErg` and `stairClimber`). One generic `machine` id is retained; a later split is a reference-data enhancement. The load/support role rule is approved.
+7. **Attributes (resolves Q-A).** All seven optional attributes with their vocabulary and boundary rules are approved. The attribute fallback is **not required** and is marked not used in `coverage.json`.
+8. **Mechanics (resolves Q-M).** Empty for cardio and mobility.
+9. **Content policy.** AI drafting assistance is permitted and recorded in provenance; a named human editor is the accountable author. Share-alike datasets are excluded entirely. Attribution is shown on a credits screen. A legal review is required before the first public release. Original RepForge content remains the default; third-party datasets only with demonstrably compatible provenance and licensing.
+10. **Stage 5.** Authorised in principle. Bulk population only after WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified, and after the 5.1 pilot gate.
+11. **Deferred (unchanged):** X1 to X4 stay deferred.
 
 ## 8. Not in scope
 Catalogue content beyond the example in the editorial guide, code, schemas, assets, tests, screens, media and translation.
 
 ## Independent review status (2026-11-05)
 - Review of e9e00f1: findings F01–F25 (3 High). Revision 2 (2a384c3) re-verified: 21 resolved, 4 partial; new N1–N10. Revision 3 (45ec71c) spot re-check: N1, N2, N4–N9 resolved; N3 and N10 partial (non-blocking).
-- **Verdict: OQ-22 and OQ-23 are ready for owner review.** Reviewer recomputed independently: 126 anatomy nodes, 79 patterns, 33 equipment entries; 325 slot minimums in 21 groups, 70 conditioning and mobility set entries; seed fill 67/325 and 20/70; IC-412 worklist 16 pairs; class cap holds.
+- **Verdict: OQ-22 and OQ-23 were ready for owner review; the owner approved them on 2026-11-05 (section 7).** Reviewer recomputed independently: 126 anatomy nodes, 79 patterns, 33 equipment entries; 325 slot minimums in 21 groups, 70 conditioning, power and mobility set entries; seed fill 67/325 and 20/70; IC-412 worklist 16 pairs; class cap holds.
 - Deferred to stage 3a or the 5.1 pilot (not owner decisions): **X1** make attribute boundaries contiguous (angle 10–15°, arm 20–90°, knee angles); **X2** IC-412 token gate hides attribute-only variations with different names (sumo deadlift, chin-up, hammer curl, assisted dip) — skip the gate when a recorded attribute differs, and correct the §6 claim; **X3** `trunkExtension` includes machine back extensions only "when the spine moves"; **X4** thruster and trap bar deadlift count toward no group; 400 m run seed fill relies on an optional entry — note in the gap report.

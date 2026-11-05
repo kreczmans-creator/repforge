@@ -1,10 +1,11 @@
-# Coverage matrix and minimum targets (OQ-23) — proposed, revision 2
+# Coverage matrix and minimum targets (OQ-23) — approved
 
-- Status: **Proposed — for owner approval.** Catalogue population (WP 8 stage 5) does not start until the owner approves these minimums. WP 8 stage 4 (documentation only).
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation only). Stage 5 is authorised in principle; bulk population starts only after WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified, and after the 5.1 pilot gate.
+- **Owner statement (2026-11-05):** the coverage framework is an **acceptance mechanism, not a demand to populate exercises to satisfy numbers**. Quality and meaningful variation take precedence over any minimum; superficial variations are optional and never required.
 - Requirements: owner decision 6 (structured coverage matrix is the formal acceptance mechanism for population; minimums per region before population; explicit gap report; raw count is not enough), LIB-001..LIB-005.
 - Inputs: `reference/anatomy.json`, `reference/movement-patterns.json`, `reference/equipment.json`; baseline from `app/assets/seed/exercise_library.json` through `mapping-existing.json` (89 exercises, read only).
 - **Source of every number: `reference/coverage.json`.** That file lists, per group, every slot with its patterns, its discriminator, its minimum and the enumerated intended entries that justify the minimum. This document is generated from it; no figure here is typed by hand. The minimums are measurable by CI from catalogue data alone.
-- **Pilot and re-baselining (F07).** Tranche 5.1 (chest) is a **pilot**. All figures are proposals. After 5.1 an explicit re-baselining step re-derives the inventory, thresholds and bands from what the pilot showed; the owner approves the revised `coverage.json`; then 5.2 to 5.7 start (section 13, Q-C).
+- **Pilot gate and re-baselining (approved).** Tranche 5.1 (chest) is the **pilot**. After 5.1 a **mandatory re-baselining** re-derives the inventory, thresholds and bands from what the pilot showed; tranches 5.2 to 5.7 start only after the owner explicitly approves the revised `coverage.json` (section 13).
 
 ## 1. How the minimums are derived
 The minimums are not a headcount target. They follow the anatomy and are enumerated.
@@ -16,7 +17,7 @@ The minimums are not a headcount target. They follow the anatomy and are enumera
 5. **Other dimensions come from the same entries.** Compound, isolation, bilateral and unilateral-or-alternating minimums, and each equipment-class minimum, are the counts of those values among the counted entries. A class with no counted entry has no minimum; nothing is forced (F07).
 6. **Raw count never decides acceptance.** A group passes only when every slot is filled and every dimension passes. A group with enough exercises and one empty slot fails.
 
-All figures are proposals for owner review.
+The figures were approved by the owner on 2026-11-05 as the starting inventory; the pilot re-baselining may revise them.
 
 ## 2. Counting rules
 1. An exercise counts toward a group when one of its **primary** targets is a node of the group or a descendant, **and its primary pattern (the first pattern) is a pattern of one of the group's slots** (F05). Secondary targets never count. Group figures can therefore overlap only when an exercise has primaries in two groups; the primaries-per-exercise metric (section 9) limits that.
@@ -25,12 +26,12 @@ All figures are proposals for owner review.
 4. Retired exercises, and user and imported exercises, never count.
 5. **Equipment class of an exercise** follows `equipment.md` section 5: ignore items whose effective role is `support` (default role, or the per-exercise `equipmentRoles` override); from the rest choose the first class in the order Smith machine, cable, machine, kettlebell, band, free weight, other; with nothing left the class is bodyweight.
 6. **Variation family.** A family is a canonical exercise plus the exercises reachable from it through `variationOf`.
-7. **Compound** and **isolation** are the mechanics field. Unilateral counts the laterality values `unilateral` and `alternating`. For `cardio` and `mobility` the mechanics field is empty by default and not measured (open question Q-M).
+7. **Compound** and **isolation** are the mechanics field. Unilateral counts the laterality values `unilateral` and `alternating`. For `cardio` and `mobility` the mechanics field is empty (approved) and not measured.
 8. **Difficulty** is the owner's definition (technical complexity, not load or fitness).
 9. Counts are made on the shipped catalogue release; the tool reports the figures (see `quality-and-duplicates.md`).
 
-## 3. Optional controlled exercise attributes (proposed)
-Some slots need a fact that the existing fields do not record (the angle of a press, the arm position of a curl). The inventory proposes seven optional, single-valued, controlled attributes. They are never required for an exercise, but a slot that uses one counts only exercises that record it. Each value has a boundary rule so that two editors tag the same movement the same way.
+## 3. Optional controlled exercise attributes (approved)
+Some slots need a fact that the existing fields do not record (the angle of a press, the arm position of a curl). The inventory defines seven optional, single-valued, controlled attributes. They are never required for an exercise, but a slot that uses one counts only exercises that record it. Each value has a boundary rule so that two editors tag the same movement the same way.
 
 | Attribute | Value | Boundary rule | Used by slots |
 |---|---|---|---|
@@ -65,9 +66,9 @@ Some slots need a fact that the existing fields do not record (the angle of a pr
 |  | `wide` | Feet outside shoulder width. |  |
 |  | `split` | One foot ahead of the other. |  |
 
-**ADR-0008 implication.** ADR-0008 stores equipment, patterns, mechanics, laterality and difficulty as defined columns or child tables and rejected a generic attribute store. Seven optional attributes are a small, controlled extension: either one optional column each, or one child table `exercise_attributes (exercise_id, attribute, value)` with a controlled value list. Both amend or clarify ADR-0008 and add a field to the release format. The owner decides (Q-A). The attributes also feed the near-duplicate check (`quality-and-duplicates.md`): a recorded difference clears IC-601 to IC-603 for a pair, but IC-412 still asks for the family link.
+**ADR-0008 implication.** ADR-0008 stores equipment, patterns, mechanics, laterality and difficulty as defined columns or child tables and rejected a generic attribute store. Seven optional attributes are a small, controlled extension: either one optional column each, or one child table `exercise_attributes (exercise_id, attribute, value)` with a controlled value list. Both amend or clarify ADR-0008 and add a field to the release format. Approved by the owner 2026-11-05 (the ADR-0008 clarification is to be recorded by the architect). The attributes also feed the near-duplicate check (`quality-and-duplicates.md`): a recorded difference clears IC-601 to IC-603 for a pair, but IC-412 still asks for the family link.
 
-**Fallback if Q-A is declined (CI-measurable, not informational).** The attribute-discriminated slots are replaced by **pattern-level minimums**: for every (group, primary pattern) pair that has at least one attribute-discriminated slot, the minimum is the sum of the minimums of all slots of that pair, counted as exercises with a primary target in the group and that primary pattern. Nothing else changes; only the distinction by position is lost. The fallback minimums (also in `coverage.json`, `attributeFallback`):
+**Pattern-level fallback (NOT USED).** The owner approved the attributes, so the fallback is not required; it is kept as a record of the measurable alternative. The attribute-discriminated slots are replaced by **pattern-level minimums**: for every (group, primary pattern) pair that has at least one attribute-discriminated slot, the minimum is the sum of the minimums of all slots of that pair, counted as exercises with a primary target in the group and that primary pattern. Nothing else changes; only the distinction by position is lost. The fallback minimums (also in `coverage.json`, `attributeFallback`):
 
 | Group | Pattern | Fallback minimum | Slots merged |
 |---|---|---|---|
@@ -125,7 +126,7 @@ Tranche order follows `population-standards.md`. Figures are generated from `cov
 
 **Upper back** (nodes: `upperBack`; **minimum 25** exercises with a primary target in the group and a slot pattern)
 
-- Anatomical basis: The trapezius works in three parts (elevation, retraction, depression) and the rhomboids retract. Rows load retraction, shrugs elevation, low-angle work the lower trapezius. Which row exercises carry an upper-back primary depends on the primary-target principle (Q-P); the row slots count whichever exercises the owner decision tags with an upper-back primary.
+- Anatomical basis: The trapezius works in three parts (elevation, retraction, depression) and the rhomboids retract. Rows load retraction, shrugs elevation, low-angle work the lower trapezius. Which row exercises carry an upper-back primary depends on the primary-muscle principle (resolved at tranche review); the row slots count whichever exercises the owner decision tags with an upper-back primary.
 
 | Slot | Patterns | Discriminator | Min | Intended entries |
 |---|---|---|---|---|
@@ -187,9 +188,9 @@ Tranche order follows `population-standards.md`. Figures are generated from `cov
 
 - Derived: compound 0, isolation 10; bilateral 2, unilateral or alternating 8; classes FW 4, C 3, B 3; variation families with at least three variations: 0; caps: one class at most 5.5.
 
-**Neck** (nodes: `regionNeck`; **minimum 10** exercises with a primary target in the group and a slot pattern) — *inclusion is an open owner question (Q-S)*
+**Neck** (nodes: `regionNeck`; **minimum 10** exercises with a primary target in the group and a slot pattern)
 
-- Anatomical basis: Neck flexors, extensors, side flexors and rotators each need one low-load isolation pattern. Safety wording must be conservative. Inclusion of the neck is an open owner question (Q-S); no machine or cable entry is forced (F07).
+- Anatomical basis: Neck flexors, extensors, side flexors and rotators each need one low-load isolation pattern. Safety wording must be conservative. The neck is included by owner decision (2026-11-05): conventional gym exercises only; no machine or cable entry is forced (F07).
 
 | Slot | Patterns | Discriminator | Min | Intended entries |
 |---|---|---|---|---|
@@ -252,7 +253,7 @@ Tranche order follows `population-standards.md`. Figures are generated from `cov
 
 **Glutes** (nodes: `glutes`; **minimum 25** exercises with a primary target in the group and a slot pattern)
 
-- Anatomical basis: Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by recorded body position (lying or inclined, kneeling or standing, prone), class and laterality, so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on Q-P.
+- Anatomical basis: Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by recorded body position (lying or inclined, kneeling or standing, prone), class and laterality, so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on the primary-muscle principle at tranche review.
 
 | Slot | Patterns | Discriminator | Min | Intended entries |
 |---|---|---|---|---|
@@ -387,12 +388,12 @@ Tranche order follows `population-standards.md`. Figures are generated from `cov
 
 **Lower back** (nodes: `lowerBack`; **minimum 5** exercises with a primary target in the group and a slot pattern)
 
-- Anatomical basis: Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. Classified by the joint that moves (rule R5): only exercises in which the spine itself moves into extension, or holds against it, have a lower-back primary and the pattern trunkExtension. Back extensions done with a neutral spine and the hips as the hinge, reverse hyperextensions and good mornings are hip-dominant: their primaries are glutes or hamstrings as Q-P settles, with lowerBack as a secondary, and they count in those groups. The lower-back minimum is therefore small and honest (revision 3).
+- Anatomical basis: Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. Classified by the joint that moves (rule R5): only exercises in which the spine itself moves into extension, or holds against it, have a lower-back primary and the pattern trunkExtension. Back extensions done with a neutral spine and the hips as the hinge, reverse hyperextensions and good mornings are hip-dominant: their primaries are glutes or hamstrings as the tranche review settles under the primary-muscle principle, with lowerBack as a secondary, and they count in those groups. The lower-back minimum is therefore small and honest (revision 3).
 
 | Slot | Patterns | Discriminator | Min | Intended entries |
 |---|---|---|---|---|
 | `lowerBack.extension` Trunk extension (the spine moves) | `trunkExtension` | none (pattern and group only) | 4 | Back extension (moving spine); Machine back extension; Superman; Stability ball back extension; (Weighted back extension, optional) |
-| `lowerBack.hinge` Hinges with a lower-back primary (primary depends on Q-P; optional only) | `hinge` | none (pattern and group only) | 0 | (Barbell good morning, optional); (Smith machine good morning, optional) |
+| `lowerBack.hinge` Hinges with a lower-back primary (primary depends on the primary-muscle principle at tranche review; optional only) | `hinge` | none (pattern and group only) | 0 | (Barbell good morning, optional); (Smith machine good morning, optional) |
 | `lowerBack.stability` Spinal stability | `antiRotation` | none (pattern and group only) | 1 | Bird dog |
 
 - Derived: compound 1, isolation 4; bilateral 4, unilateral or alternating 1; classes M 1, BW 4; variation families with at least three variations: 1; caps: one class at most 4; bodyweight exempt from the class cap.
@@ -424,12 +425,12 @@ Equipment columns: free weight, machine, cable, Smith machine, band, kettlebell,
 | Obliques | 5.6 | 13 | 7 | 6 | 2 | 11 | 1 | 1 | 4 | — | 3 | — | 4 | — | 2 |
 | Lower back | 5.6 | 5 | 1 | 4 | 4 | 1 | — | 1 | — | — | — | — | 4 | — | 1 |
 
-The slot totals add up to **325** primary-tagged exercises across the 21 groups. That sum is informational. It is not an acceptance target, and the groups do not double count (each exercise has one primary group unless the primary-target principle, Q-P, gives it two). Earlier drafts summed to 477; the reduction comes from removing forced entries, from the pattern rule (section 2) and from enumerating only legitimate variants (F05, F07).
+The slot totals add up to **325** primary-tagged exercises across the 21 groups. That sum is informational. It is not an acceptance target, and the groups do not double count (each exercise has one primary group unless the tranche review gives it two under the primary-muscle principle). Earlier drafts summed to 477; the reduction comes from removing forced entries, from the pattern rule (section 2) and from enumerating only legitimate variants (F05, F07).
 
 Asymmetry between elbow flexion and knee flexion (F07): Biceps and brachialis list 17 entries and Hamstrings 13 (of which 7 are knee flexion). Elbow flexion has two real discriminators, arm position and grip, which change the joint angles and the muscle emphasis; knee flexion varies by body position and support only. The remaining gap is deliberate and open to the reviewer; the 28 curls of the earlier draft were superficial variants and were removed.
 
-## 7. Conditioning and mobility (tranche 5.7)
-These sets are not anatomical groups. They are measured by pattern, not by muscle. Entries marked "needs" depend on a proposed equipment item; if the owner strikes the item, those entries leave the minimum.
+## 7. Conditioning, power and mobility (tranche 5.7)
+These sets are not anatomical groups. They are measured by pattern, not by muscle. Entries marked "needs" depend on an approved equipment addition that stage 3 or a release ships.
 
 | Set | Patterns | Min | Intended entries | Needs |
 |---|---|---|---|---|
@@ -448,9 +449,9 @@ These sets are not anatomical groups. They are measured by pattern, not by muscl
 | `mobility.static` Static stretches, one per coverage group (rule: one per coverage group, primary target in that group) | `staticStretch` | 21 | Doorway chest stretch (chest); Thread-the-needle stretch (upperBack); Child's pose (lats); Cross-body shoulder stretch (shoulders); Wall external rotation stretch (rotatorCuff); Neck side stretch (neck); Wall biceps stretch (biceps); Overhead triceps stretch (triceps); Wrist flexor stretch (forearms); Pigeon pose (glutes); Standing cross-leg side stretch (abductors); Butterfly stretch (adductors); Hip flexor stretch (hipFlexors); Supine figure-four stretch (hipExternalRotators); Standing quadriceps stretch (quadriceps); Hamstring stretch (hamstrings); Wall calf stretch (calves); Kneeling shin stretch (lowerLeg); Cobra stretch (abs); Standing side-reach stretch (obliques); Knees-to-chest stretch (lowerBack) | — |
 | `mobility.dynamic` Dynamic mobility | `dynamicMobility` | 6 | World's greatest stretch; Arm circle; Band shoulder dislocate; Standing hip circle; Front-to-back leg swing; Side-to-side leg swing | — |
 | `mobility.spinal` Spinal mobility | `spinalMobility` | 5 | Cat-cow; Thoracic spine extension; Open book thoracic rotation; Pelvic tilt; Gentle neck rotation | — |
-| `mobility.softTissue` Soft tissue release (optional; conditional on foamRoller) | `softTissueRelease` | 0 | (Foam roll upper back, optional); (Foam roll quadriceps, optional); (Foam roll glutes, optional); (Foam roll calves, optional) | `foamRoller` |
+| `mobility.softTissue` Soft tissue release (deferred by owner decision; optional) | `softTissueRelease` | 0 | (Foam roll upper back, optional); (Foam roll quadriceps, optional); (Foam roll glutes, optional); (Foam roll calves, optional) | `foamRoller` |
 
-Totals: conditioning and power sets 38; mobility sets 32. The cardio set is 12. The earlier minimums of 20 cardio, 20 fullBody and 60 mobility exercises were headcounts and were replaced by the enumerated sets. Carries are measured under Forearms (`forearms.carries`), not here. Mechanics for `cardio` and `mobility` exercises: Q-M. Soft tissue release has no minimum unless the owner approves foam rolling content.
+Totals: **70 conditioning, power and mobility entries** (38 conditioning and power; 32 mobility). Soft tissue release content is deferred by owner decision and counts 0. The cardio set is 12. The earlier minimums of 20 cardio, 20 fullBody and 60 mobility exercises were headcounts and were replaced by the enumerated sets. Carries are measured under Forearms (`forearms.carries`), not here. Mechanics for `cardio` and `mobility` exercises are empty (approved). Soft tissue release content is deferred by owner decision and has no minimum.
 
 ## 8. Difficulty distribution
 Difficulty uses the owner's definitions (`editorial-guide.md`, section 6).
@@ -463,7 +464,7 @@ Difficulty uses the owner's definitions (`editorial-guide.md`, section 6).
 | Each group with a slot total of 20 or more | at least 20 % | at least 30 % | at least 5 % and at least 2 exercises |
 | Each group with a slot total below 20 | at least 1 | at least 1 | optional; record the reason if none |
 
-No system exercise may have an empty difficulty at tranche acceptance. The bands are proposals tuned in the pilot.
+No system exercise may have an empty difficulty at tranche acceptance. The bands are tuned in the pilot re-baselining.
 
 ## 9. Variation depth, diversity and metrics
 | Measure | Minimum, cap or metric |
@@ -480,7 +481,7 @@ No system exercise may have an empty difficulty at tranche acceptance. The bands
 | Roles in functional double tags | one primary and one secondary, never two primaries (editorial guide 5.7) |
 
 ## 10. Whole-catalogue gates at tranche acceptance
-1. 100 % of system exercises in the tranche have: at least one primary target, mechanics (not for cardio and mobility, Q-M), laterality, difficulty, at least one pattern, equipment (or an empty list on purpose), and the four instruction sections.
+1. 100 % of system exercises in the tranche have: at least one primary target, mechanics (empty and not measured for cardio and mobility, approved), laterality, difficulty, at least one pattern, equipment (or an empty list on purpose), and the four instruction sections.
 2. Zero integrity errors (`quality-and-duplicates.md`).
 3. Every uncleared near-duplicate flag has a recorded disposition.
 4. The gap report (section 12) shows no unmet requirement, or the owner has accepted each remaining gap in the accepted-gaps file (`quality-and-duplicates.md` section 5).
@@ -520,9 +521,9 @@ Total: 67 of 325 required slot fills are met by the seed (258 open). Groups with
 Reading the baseline:
 - Seed exercises with a primary in a group but a primary pattern outside its slots are **not counted** (F05): `lib-trap-bar-deadlift` (primary quadriceps, pattern hinge); and, by the category rule, `lib-sled-push`, `lib-kettlebell-swing`, `lib-clean-and-press`, `lib-burpee` and `lib-thruster` (category fullBody, so they are measured in the conditioning and power sets; the thruster no longer fills a quadriceps squat slot and the swing no longer fills a glutes hinge slot). The trap bar deadlift is counted nowhere and is a case for the pattern or primary review (flag D).
 - The `lib-incline-walk` and the three runs have a muscle primary or `fullBody`, but are cardio and never count toward anatomical groups. Earlier drafts counted them (the previous baseline put 1 exercise in Lower back and 8 in Glutes by counting mobility and cardio rows).
-- Slot fills depend on proposed attributes. Without them the attribute-discriminated slots would show as `notRecorded` and the pattern-level fallback of section 3 applies.
+- Slot fills depend on the recorded release-2 attributes. The seed baseline of 67 of 325 slots and 20 of 70 entries was accepted by the owner on 2026-11-05.
 
-**Conditioning and mobility baseline** (by pattern, using the proposed patterns):
+**Conditioning, power and mobility baseline** (by pattern, using the release-2 patterns; **accepted by the owner: 20 of 70**):
 
 | Set | Required | Seed | Seed exercises |
 |---|---|---|---|
@@ -574,13 +575,12 @@ The coverage tool produces one report per catalogue release and per tranche, as 
 
 The report is a build artefact (published by CI), not a hand-edited document.
 
-## 13. Open questions for the owner
-1. **OQ-23 approval:** approve, change or reject the inventory in `coverage.json` and the figures derived from it.
-2. **Q-C, pilot and re-baselining:** confirm that tranche 5.1 is a pilot and that the explicit re-baselining step (section 1) precedes 5.2 to 5.7.
-3. **Q-A, exercise attributes:** approve the seven optional controlled attributes of section 3 (an ADR-0008 clarification or amendment), or decline and use the measurable pattern-level fallback minimums of section 3.
-4. **Q-M, mechanics for cardio and mobility:** the proposal is to allow the field to be empty for these two categories and exclude them from the mechanics check. The alternative is to force a value. The checks use the empty default until the owner decides.
-5. **Q-S, scope:** whether to include neck, pelvic floor and soft tissue release content at all. The neck group is in the inventory (10 entries) and is the first to remove if declined; pelvic floor has no entries; soft tissue release entries are optional.
-6. **Q-P, effect on slots:** the row slots of Upper back and Lats, the hinge slots of Glutes, Hamstrings and Lower back, and the dip and chin-up slots depend on how the primary-target principle is answered. The inventory counts whichever exercises carry the primary in the group; the owner's answer may move entries between groups but not change the totals of the pattern-based slots.
-7. Whether the class cap (55 % or 4) and the primaries-per-exercise thresholds are right; they are tuned in the pilot. (The family cap was dropped at revision 3.)
-8. Equipment dependencies: `skiErg`, `stairClimber`, `sled`, `battleRopes`, `plyoBox`, `landmine`, `preacherBench`, `hyperextensionBench`, `suspensionTrainer`, `abWheel`, `stabilityBall`, `foamRoller` (see `equipment.md`). Entries that need an item the owner does not approve leave the minimum.
+## 13. Owner decisions (2026-11-05)
+1. **OQ-23 approved:** 325 slot minimums in 21 groups; 70 conditioning, power and mobility entries kept separate; the counting rules; one slot per exercise per group; primary targets determine coverage; no L4 minimums; superficial variations optional; the class cap; the release-2 classifications; the duplicate thresholds; the seed baseline.
+2. **Pilot gate:** 5.1 (chest) is the pilot; re-baselining is mandatory and the owner explicitly approves it before 5.2 to 5.7.
+3. **Attributes:** the seven optional attributes with vocabulary and boundary rules are approved; the attribute fallback is not required (not used).
+4. **Mechanics for cardio and mobility:** empty (approved); not measured.
+5. **Scope:** the neck is included (conventional gym exercises); pelvic floor content is excluded (no entries); soft tissue release is deferred (count 0).
+6. **Primary-muscle principle:** *primary targets are the muscles an exercise is designed and normally selected to train; other muscles making significant contributions are secondary targets.* The row, hinge, dip and chin-up slots count whichever exercises the tranche review tags with a primary in the group. A primary is never added merely to fill a slot.
+7. **Equipment:** all 12 additions approved (see `equipment.md`); entries that need an item count once stage 3 or a release ships it.
 

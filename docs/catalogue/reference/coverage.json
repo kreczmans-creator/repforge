@@ -1,7 +1,13 @@
 {
   "formatVersion": 1,
-  "status": "Proposed — for owner approval",
-  "description": "Machine-readable slot inventory behind coverage-matrix.md (revision 2). Every number is derived from the enumerated entries: a slot minimum is the number of counted entries; a group minimum is the sum of its slot minimums; mechanics, laterality and equipment-class minimums are the counts of those values among the counted entries. Entries marked counted:false are optional and legitimate but never a minimum. Entry names are intended exercises, not required names: CI counts catalogue exercises by the slot rules below, not by name. Minimums are measurable from catalogue data alone.",
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-23: 325 slot minimums in 21 groups; 70 conditioning, power and mobility entries; counting rules; seed baseline 67/325 and 20/70 accepted",
+    "statement": "The coverage framework is an acceptance mechanism, not a demand to populate exercises to satisfy numbers. Quality and meaningful variation take precedence."
+  },
+  "description": "Machine-readable slot inventory behind coverage-matrix.md (approved 2026-11-05). The framework is an acceptance mechanism, not a demand to populate exercises to satisfy numbers; quality and meaningful variation take precedence. Every number is derived from the enumerated entries: a slot minimum is the number of counted entries; a group minimum is the sum of its slot minimums; mechanics, laterality and equipment-class minimums are the counts of those values among the counted entries. Entries marked counted:false are optional and legitimate but never a minimum. Entry names are intended exercises, not required names: CI counts catalogue exercises by the slot rules below, not by name. Minimums are measurable from catalogue data alone.",
   "countingRules": {
     "group": "An exercise counts toward a group when one of its PRIMARY targets is a node listed in the group nodes or a descendant, AND its primary pattern (first pattern) is one of the patterns of at least one slot of that group. Secondary targets never count. fullBody never counts. Only exercises of category push, pull, legs or core count toward an anatomical group (revision 3, N6); fullBody, cardio and mobility exercises are measured in the conditioning, power and mobility sets (tranche 5.7). Retired, user and imported exercises never count.",
     "slot": "An exercise fills at most ONE slot per group. A slot accepts an exercise when the group rule holds, the primary pattern is one of the slot patterns, and every discriminator term holds. Assignment of exercises to slots is a deterministic maximum bipartite matching (ties broken by exercise id); slots are met when the matching fills slot.min of them.",
@@ -21,8 +27,8 @@
     }
   },
   "exerciseAttributesProposed": {
-    "status": "Proposed. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate checks. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format.",
-    "ifDeclined": "If the owner declines (Q-A), the attribute-discriminated slots are replaced by PATTERN-LEVEL minimums that CI can measure from catalogue data alone: for each (group, primary pattern) pair that has at least one attribute-discriminated slot, the minimum is the sum of the minimums of ALL slots of that pair (see attributeFallback). The class, laterality and subTarget slots of unaffected pairs are unchanged. Nothing becomes informational; only the position-level distinction is lost.",
+    "status": "Approved 2026-11-05. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate checks. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format.",
+    "ifDeclined": "NOT USED. The owner approved the seven attributes with their vocabulary and boundary rules on 2026-11-05. The pattern-level fallback in attributeFallback is retained only as a record of the measurable alternative.",
     "attributes": {
       "angle": {
         "definition": "Angle of the bench or the body to the horizontal in a press or fly.",
@@ -193,7 +199,7 @@
       "meanMaximum": 1.25,
       "shareWithTwoOrMorePrimariesMaximum": 0.2,
       "threeOrMorePrimaries": "allowed only with a reviewer note",
-      "status": "Proposed thresholds; tuned in the pilot."
+      "status": "Approved thresholds; re-baselined after the pilot."
     },
     "difficulty": {
       "regionalTranche": {
@@ -254,7 +260,7 @@
   "pilot": {
     "tranche": "5.1",
     "group": "chest",
-    "statement": "Tranche 5.1 (chest) is a PILOT. Every number in this file is a proposal until the pilot is accepted. After 5.1 an explicit re-baselining step runs: the slot inventory, thresholds (duplicate score, caps, primaries per exercise), difficulty bands and the attribute proposal are re-derived from what the pilot showed, the owner approves the revised coverage.json, and only then do tranches 5.2 to 5.7 start."
+    "statement": "Tranche 5.1 (chest) is the PILOT. After 5.1 a mandatory re-baselining step runs: the slot inventory, thresholds (duplicate score, caps, primaries per exercise) and difficulty bands are re-derived from what the pilot showed, and tranches 5.2 to 5.7 start only after the owner explicitly approves the revised coverage.json."
   },
   "groups": [
     {
@@ -757,7 +763,7 @@
       "nodes": [
         "upperBack"
       ],
-      "basis": "The trapezius works in three parts (elevation, retraction, depression) and the rhomboids retract. Rows load retraction, shrugs elevation, low-angle work the lower trapezius. Which row exercises carry an upper-back primary depends on the primary-target principle (Q-P); the row slots count whichever exercises the owner decision tags with an upper-back primary.",
+      "basis": "The trapezius works in three parts (elevation, retraction, depression) and the rhomboids retract. Rows load retraction, shrugs elevation, low-angle work the lower trapezius. Which row exercises carry an upper-back primary depends on the primary-muscle principle (resolved at tranche review); the row slots count whichever exercises the owner decision tags with an upper-back primary.",
       "ownerScope": false,
       "bodyweightExempt": false,
       "slots": [
@@ -1977,8 +1983,8 @@
       "nodes": [
         "regionNeck"
       ],
-      "basis": "Neck flexors, extensors, side flexors and rotators each need one low-load isolation pattern. Safety wording must be conservative. Inclusion of the neck is an open owner question (Q-S); no machine or cable entry is forced (F07).",
-      "ownerScope": true,
+      "basis": "Neck flexors, extensors, side flexors and rotators each need one low-load isolation pattern. Safety wording must be conservative. The neck is included by owner decision (2026-11-05): conventional gym exercises only; no machine or cable entry is forced (F07).",
+      "ownerScope": false,
       "bodyweightExempt": false,
       "slots": [
         {
@@ -2943,7 +2949,7 @@
       "nodes": [
         "glutes"
       ],
-      "basis": "Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by recorded body position (lying or inclined, kneeling or standing, prone), class and laterality, so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on Q-P.",
+      "basis": "Gluteus maximus extends the hip; medius and minimus abduct and stabilise the pelvis. Hip extension slots are split by recorded body position (lying or inclined, kneeling or standing, prone), class and laterality, so that a bridge, a kickback and a reverse hyperextension each have their own slot (a single exercise fills one slot only). Hinge slots count exercises with a glutes primary; deadlift primaries depend on the primary-muscle principle at tranche review.",
       "ownerScope": false,
       "bodyweightExempt": false,
       "slots": [
@@ -4766,7 +4772,7 @@
       "nodes": [
         "lowerBack"
       ],
-      "basis": "Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. Classified by the joint that moves (rule R5): only exercises in which the spine itself moves into extension, or holds against it, have a lower-back primary and the pattern trunkExtension. Back extensions done with a neutral spine and the hips as the hinge, reverse hyperextensions and good mornings are hip-dominant: their primaries are glutes or hamstrings as Q-P settles, with lowerBack as a secondary, and they count in those groups. The lower-back minimum is therefore small and honest (revision 3).",
+      "basis": "Erector spinae extend and brace the spine; quadratus lumborum resists side flexion; multifidus stiffens the spine. Classified by the joint that moves (rule R5): only exercises in which the spine itself moves into extension, or holds against it, have a lower-back primary and the pattern trunkExtension. Back extensions done with a neutral spine and the hips as the hinge, reverse hyperextensions and good mornings are hip-dominant: their primaries are glutes or hamstrings as the tranche review settles under the primary-muscle principle, with lowerBack as a secondary, and they count in those groups. The lower-back minimum is therefore small and honest (revision 3).",
       "ownerScope": false,
       "bodyweightExempt": true,
       "slots": [
@@ -4818,7 +4824,7 @@
         },
         {
           "id": "lowerBack.hinge",
-          "label": "Hinges with a lower-back primary (primary depends on Q-P; optional only)",
+          "label": "Hinges with a lower-back primary (primary depends on the primary-muscle principle at tranche review; optional only)",
           "patterns": [
             "hinge"
           ],
@@ -5535,7 +5541,7 @@
     },
     {
       "id": "mobility.softTissue",
-      "label": "Soft tissue release (optional; conditional on foamRoller)",
+      "label": "Soft tissue release (deferred by owner decision; optional)",
       "patterns": [
         "softTissueRelease"
       ],
@@ -5569,7 +5575,7 @@
       "requiresEquipment": [
         "foamRoller"
       ],
-      "note": "All entries optional. Counted only if the owner approves soft tissue release content."
+      "note": "All entries optional. Soft tissue release content is deferred by owner decision (2026-11-05); the count is 0."
     }
   ]
 }

@@ -1,12 +1,17 @@
 {
   "formatVersion": 2,
-  "status": "Proposed — for owner approval",
-  "description": "Proposed re-expression of the 89 seed exercises in the new model (release 2). Ids unchanged. All mechanics, laterality, difficulty, attribute, role and alias values here are PROPOSED CONTENT for owner review, assigned under the editorial guide. flags: M meaning of a tag changes; D debatable tag kept; E equipment tag inaccurate (proposedEquipment fixes it); R refinement to a finer node (applied in the proposed list); S secondary list changed; N note. mechanics null means empty by default for cardio and mobility (open question Q-M). cleanup lists release-2 clean-up items (alias collisions and doubtful secondaries).",
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-22 and OQ-23; release-2 classifications approved"
+  },
+  "description": "Proposed re-expression of the 89 seed exercises in the new model (release 2). Ids unchanged. All mechanics, laterality, difficulty, attribute, role and alias values here are the release-2 classifications approved by the owner on 2026-11-05, assigned under the editorial guide. Disputed primary assignments are resolved in the tranche content reviews under the primary-muscle principle. flags: M meaning of a tag changes; D debatable tag kept; E equipment tag inaccurate (proposedEquipment fixes it); R refinement to a finer node (applied in the proposed list); S secondary list changed; N note. mechanics null means empty for cardio and mobility (approved 2026-11-05). cleanup lists release-2 clean-up items (alias collisions and doubtful secondaries).",
   "seedProvenance": {
     "providerId": "repforge",
     "authoredBy": "RepForge editorial (WP 8 seed)",
     "reviewedBy": null,
-    "note": "Applies to all 89 seed exercises in release 2 (IC-212). Proposed; owner may name a person or role."
+    "note": "Applies to all 89 seed exercises in release 2 (IC-212). Approved. AI drafting assistance is permitted and recorded in provenance; a named human editor is the accountable author."
   },
   "muscleIds": [
     {
@@ -532,7 +537,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Glutes and lower back are arguably co-primary with hamstrings. Seed primary kept. Covered by the primary-target principle question (Q-P)."
+          "text": "Glutes and lower back are arguably co-primary with hamstrings. Seed primary kept. Covered by the primary-target principle question (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -575,7 +580,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "As Romanian deadlift (Q-P)."
+          "text": "As Romanian deadlift (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -632,7 +637,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Seed primary is glutes alone. Hamstrings and lower back are arguably co-primary. Adding a primary changes attributed set counts, so the owner decides (Q-P)."
+          "text": "Seed primary is glutes alone. Hamstrings and lower back are arguably co-primary. Adding a primary changes attributed set counts, so the owner decides (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -688,7 +693,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "As conventional deadlift; adductors tagged secondary (Q-P)."
+          "text": "As conventional deadlift; adductors tagged secondary (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -1101,7 +1106,7 @@
         },
         {
           "code": "D",
-          "text": "Gluteus medius is the main mover but sits under Glutes; the seed primary abductors holds only tensor fasciae latae. Whether gluteusMedius becomes a co-primary is part of Q-P (changes attributed counts)."
+          "text": "Gluteus medius is the main mover but sits under Glutes; the seed primary abductors holds only tensor fasciae latae. Whether gluteusMedius becomes a co-primary is resolved at tranche review under the primary-muscle principle (changes attributed counts)."
         }
       ]
     },
@@ -1766,7 +1771,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Triceps and chest are co-primary in practice, depending on lean (Q-P). Pattern classed as vertical push (rule R8): debatable."
+          "text": "Triceps and chest are co-primary in practice, depending on lean (primary-muscle principle; resolved at tranche review). Pattern classed as vertical push (rule R8): debatable."
         }
       ]
     },
@@ -1913,7 +1918,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Biceps is arguably co-primary (Q-P)."
+          "text": "Biceps is arguably co-primary (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -2087,7 +2092,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Lats arguably co-primary. Row primaries are inconsistent across the seed (upperBack here, lats for one-arm row). This is the lead example of Q-P."
+          "text": "Lats arguably co-primary. Row primaries are inconsistent across the seed (upperBack here, lats for one-arm row). Resolved at tranche review under the primary-muscle principle."
         }
       ]
     },
@@ -2133,7 +2138,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "As seated cable row (Q-P)."
+          "text": "As seated cable row (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -2185,7 +2190,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Primary lats while barbell and cable rows use upperBack. Harmonise once Q-P is answered."
+          "text": "Primary lats while barbell and cable rows use upperBack. Harmonise at tranche review."
         }
       ]
     },
@@ -2843,7 +2848,7 @@
         },
         {
           "code": "D",
-          "text": "Hip flexors arguably co-primary (Q-P); front delts as secondary is doubtful."
+          "text": "Hip flexors arguably co-primary (primary-muscle principle; resolved at tranche review); front delts as secondary is doubtful."
         }
       ]
     },
@@ -3190,7 +3195,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Primary frontDelts understates the lower-body drive. Candidate for multiple primaries (Q-P)."
+          "text": "Primary frontDelts understates the lower-body drive. Candidate for multiple primaries (primary-muscle principle; resolved at tranche review)."
         }
       ]
     },
@@ -3221,7 +3226,7 @@
       "flags": [
         {
           "code": "D",
-          "text": "Only fullBody target. Consider anatomical secondaries; also depends on the fullBody-role question (Q-F)."
+          "text": "Only fullBody target. Consider anatomical secondaries; fullBody may only be a single primary (ADR-0010)."
         }
       ]
     },
@@ -3299,7 +3304,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Treadmill running",
         "Running"
@@ -3347,7 +3352,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Incline walk"
       ],
@@ -3388,7 +3393,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Cycling",
         "Stationary bike"
@@ -3474,7 +3479,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Elliptical",
         "Elliptical trainer"
@@ -3493,9 +3498,7 @@
       "proposedPrimary": [
         "calves"
       ],
-      "proposedSecondary": [
-        "fullBody"
-      ],
+      "proposedSecondary": [],
       "proposedPatterns": [
         "skipping"
       ],
@@ -3514,10 +3517,13 @@
         "Jump rope",
         "Rope skipping"
       ],
+      "historicalSecondary": [
+        "fullBody"
+      ],
       "flags": [
         {
           "code": "D",
-          "text": "Seed lists fullBody as a secondary. Proposal at revision 2: calves stays the only primary and the fullBody secondary is preserved as stored (ADR-0010 proposed) and listed in the migration report. Not promoted to primary. Depends on Q-F."
+          "text": "Seed lists fullBody as a secondary. Decision (ADR-0010, approved 2026-11-05): calves is the only primary; the stored fullBody secondary is preserved historically (field historicalSecondary) and listed in the migration report, and release-2 system content removes it from the active tags. fullBody is never promoted to primary here."
         }
       ]
     },
@@ -3549,7 +3555,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Quarter-mile run",
         "400 m repeat"
@@ -3587,7 +3593,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Road run",
         "Jogging"
@@ -3624,7 +3630,7 @@
       "mechanics": null,
       "laterality": "unilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Kneeling hip flexor stretch"
       ],
@@ -3659,7 +3665,7 @@
       "mechanics": null,
       "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Seated forward fold"
       ],
@@ -3689,7 +3695,7 @@
       "mechanics": null,
       "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Balasana"
       ],
@@ -3726,7 +3732,7 @@
       "mechanics": null,
       "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Cat camel"
       ],
@@ -3761,7 +3767,7 @@
       "mechanics": null,
       "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Foam roller thoracic extension"
       ],
@@ -3815,7 +3821,7 @@
       "mechanics": null,
       "laterality": "alternating",
       "difficulty": "intermediate",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Lunge with rotation"
       ],
@@ -3850,7 +3856,7 @@
       "mechanics": null,
       "laterality": "bilateral",
       "difficulty": "beginner",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Pec stretch"
       ],
@@ -3880,7 +3886,7 @@
       "mechanics": null,
       "laterality": "unilateral",
       "difficulty": "intermediate",
-      "assignmentNote": "Mechanics empty by default for cardio and mobility (open question Q-M).",
+      "assignmentNote": "Mechanics empty for cardio and mobility (approved).",
       "seedAliases": [
         "Figure-four stretch"
       ],

@@ -1,6 +1,6 @@
-# Movement patterns (OQ-22) — proposed
+# Movement patterns (OQ-22) — approved
 
-- Status: **Proposed — for owner approval.** WP 8 stage 4 (documentation and reference data only).
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation and reference data only): 17 families, 62 patterns (79 entries including families), decision rules R1 to R8. Soft tissue release content is deferred by owner decision (count 0).
 - Machine-readable source: `docs/catalogue/reference/movement-patterns.json` (format version 1).
 - Requirements: LIB-002, LIB-005; ADR-0008 decision 4 (hierarchical, one or more per exercise, the first is primary).
 
@@ -39,7 +39,7 @@ These rules settle movements that two patterns could claim. Each is proposed; th
 | R2 | Incline press | Up to about 45 degrees `horizontalPush`; steeper angles `verticalPush`. |
 | R3 | Thruster and other continuous two-phase movements | List the patterns in the order of the phases; the first is primary. Thruster: `squat`, then `verticalPush`. Clean and press: `explosiveLift`, then `verticalPush`. Thrusters are not `fullBodyConditioning`. |
 | R4 | Upright row | `verticalPull` (hands travel vertically, elbows lead). Primary `sideDelts`, secondary `trapeziusUpper`. Not `shoulderAbduction` (compound) and not `scapularElevation` (that is the shrug). |
-| R5 | Back extension, reverse hyperextension, superman | By the joint that moves, set by technique, not by the apparatus. If the spine itself flexes and extends (back extension with a moving spine, machine back extension, superman): `trunkExtension`, primary `lowerBack`. If the spine stays neutral and the hips are the hinge (hip-driven back extension), or the legs move on a fixed torso (reverse hyperextension): `hipExtension`, primary glutes or hamstrings as the primary-target principle Q-P settles, with `lowerBack` as a secondary. The editor names the technique ("hip-driven back extension"). None of these is `hinge`. |
+| R5 | Back extension, reverse hyperextension, superman | By the joint that moves, set by technique, not by the apparatus. If the spine itself flexes and extends (back extension with a moving spine, machine back extension, superman): `trunkExtension`, primary `lowerBack`. If the spine stays neutral and the hips are the hinge (hip-driven back extension), or the legs move on a fixed torso (reverse hyperextension): `hipExtension`, primary glutes or hamstrings as the tranche review settles under the primary-muscle principle, with `lowerBack` as a secondary. The editor names the technique ("hip-driven back extension"). None of these is `hinge`. |
 | R6 | Hip thrust, glute bridge, kettlebell swing | Thrust and bridge are `hipExtension`, not `hinge`. A kettlebell swing is a ballistic `hinge`. `explosiveLift` is reserved for lifts that finish with a hip and knee extension: cleans and snatches (which catch the load) and high pulls (which do not). |
 | R7 | Leg press, wall sit, step-up, trap bar deadlift | Leg press and wall sit are `squat`. Step-ups are `lunge`. Trap bar deadlift is `hinge` first, `squat` second. |
 | R8 | Dips, pullovers, hanging leg raise, soft tissue release | Dips are `verticalPush`. Pullovers are `shoulderExtension`. Hanging leg raise is `hipFlexion` first, `trunkFlexion` second. Soft tissue release depends on the owner approving foam rolling content. |
@@ -125,7 +125,7 @@ Every existing exercise has a proposed pattern in `mapping-existing.md`. No exis
 | &nbsp;&nbsp;`staticStretch` | Static stretch | Holding a lengthened position for time. | Hamstring, hip flexor and chest stretches; child's pose. | Movement through range (Dynamic mobility). |  |
 | &nbsp;&nbsp;`dynamicMobility` | Dynamic mobility | Moving through a joint range under control without load. | Leg swings, world's greatest stretch, arm circles. | Held stretches (Static stretch). |  |
 | &nbsp;&nbsp;`spinalMobility` | Spinal mobility | Moving the spine through flexion, extension or rotation. | Cat-cow, thoracic extension, open-book rotation. | Loaded trunk flexion or extension (Trunk movement). |  |
-| &nbsp;&nbsp;`softTissueRelease` | Soft tissue release | Self-applied pressure with a roller or ball. | Foam rolling, ball release. | Held stretches (Static stretch) and movement through range (Dynamic mobility). | Conditional on the owner approving foam rolling content (equipment `foamRoller`); otherwise drop this pattern. |
+| &nbsp;&nbsp;`softTissueRelease` | Soft tissue release | Self-applied pressure with a roller or ball. | Foam rolling, ball release. | Held stretches (Static stretch) and movement through range (Dynamic mobility). | Content deferred by owner decision 2026-11-05; the pattern is kept in the list and carries no coverage minimum (count 0). |
 | **`neckMotion`** | **Neck movement** (family) | Movements of the head and neck. | Flexion, extension, side flexion and rotation. | Shoulder blade work. | Usual categories: pull |
 | &nbsp;&nbsp;`neckFlexion` | Neck flexion | Nodding the head forward against resistance. | Harness, plate and manual-resistance flexion; chin tucks. | Neck extension, side flexion and rotation. |  |
 | &nbsp;&nbsp;`neckExtension` | Neck extension | Tilting the head back against resistance. | Harness, plate and manual-resistance extension. | Neck flexion, side flexion and rotation. |  |

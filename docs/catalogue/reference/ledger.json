@@ -1,6 +1,11 @@
 {
   "formatVersion": 1,
-  "status": "Proposed — for owner approval",
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
+  },
   "description": "Ledger of reference ids (anatomy, movement pattern, equipment). An id is never reused or given a new meaning. Retiring an id sets lifecycle to retired here and in its list, with retiredIn, reason and (optional) replacedBy; it is never removed. This proposed ledger is the starting state for catalogue release 2.",
   "entries": [
     {
