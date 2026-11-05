@@ -109,5 +109,8 @@ TD-25 (logging of skipped rows, with TD-32), TD-41 (unreadable legacy exercises,
 ## Owner disposition (2026-11-05)
 The owner deferred acceptance and decisions 1–5. WP 8 stays **Delivered — awaiting owner acceptance**; it is not accepted or closed, and silence is not approval. TD-41 and TD-42 stay tracked. The owner authorised WP 9 to proceed on top of the WP 8 implementation, without resolving decisions 1–5 (see WP9.md "Constraints from WP 8").
 
+## Exercise library scope amendment (owner, 2026-11-05)
+The owner amended the library scope (D04 §7, LIB-001..010). WP 8 was reviewed against it and does **not** satisfy it (gap analysis: `docs/exercise-library-expansion.md` §2). The amendment is proposed as WP 16; WP 8 is not reopened and remains delivered for its D06 scope, awaiting acceptance.
+
 ## Recommendation
 Accept WP 8 at b1ab45a, subject to decisions 1–5. All D06 criteria are met with code-level evidence, four workflows are green on the final commit, and the independent re-verification found no open medium or high findings.

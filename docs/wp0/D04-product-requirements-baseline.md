@@ -297,3 +297,7 @@ These questions need an owner decision. Until answered, the linked requirements 
 ### 2026-11-05 — NUT-017 approved
 - **NUT-017** is satisfied by the approved calculation specification (`docs/nutrition-calculation-spec.md`, revision 1.3) and its 41 worked examples executed as tests.
 
+### 2026-11-05 — Exercise library scope amendment (owner requirement)
+- The exercise library shall be a comprehensive, extensible exercise reference and discovery system (breadth benchmark: historical bodybuilding and strength-training reference apps), not a minimal set for logging. Ten capabilities recorded as **LIB-001..LIB-010** (identifiers proposed) in `docs/exercise-library-expansion.md` §1, with the owner's architectural, content and acceptance requirements (anatomical coverage, diversity, classification quality, discoverability, extensibility, integrity over raw count). No built-in programmes or programme generation at this stage.
+- WP 8 is not assumed to satisfy it: gap analysis and proposed WP 16 in `docs/exercise-library-expansion.md` (proposed, pending owner decisions §5). WP 9 scope unchanged.
+

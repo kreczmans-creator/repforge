@@ -149,6 +149,13 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Acceptance: NUT-022 criteria pass (0.25 kg stored and shown as 250 g; 1 kg = 1000 g and 1 l = 1000 ml exactly; round-trip within 0.001); spec §2.3 worked examples executed as tests; the chosen imperial units documented.
 - Verification: unit tests for conversions; widget tests for entry in each unit; spec examples.
 
+### WP 16 — Exercise library expansion (proposed 2026-11-05, pending owner approval)
+- Origin: owner's exercise library scope amendment (D04 §7, LIB-001..010). Proposal and gap analysis: `docs/exercise-library-expansion.md`.
+- Sub-packages: 16a architecture and reference data (hierarchical anatomy, movement pattern, mechanics, laterality, difficulty, variation relationships, content sections, media references, favourites, catalogue versioning; schema v8; ADR); 16b catalogue tooling and integrity; 16c catalogue content by region; 16d discovery and detail UI; 16e media (deferred).
+- Dependencies: WP 8 (delivered, awaiting acceptance), WP 9; owner decisions in the proposal §5 (incl. OQ-09).
+- Acceptance (proposed): coverage matrix, classification completeness and integrity tests rather than a raw count; owner content review per tranche.
+- Status: **Proposed**; not started.
+
 ## Sizing guidance
 
 Sizing is deliberately not given in days: velocity will be established in WP 1 and used to estimate WP 2 onwards. Each WP must be completable within a single short cycle; if a WP grows beyond that, split it.
