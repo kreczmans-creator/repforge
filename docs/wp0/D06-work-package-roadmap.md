@@ -16,9 +16,7 @@ flowchart LR
   WP5 & WP9 & WP10 --> WP11
   WP3 --> WP12
   WP10 & WP9 --> WP13
-  WP9 --> WP16a --> WP16b --> WP16c
-  WP16a --> WP16d
-  WP16a -.-> WP11
+  WP8 -.->|stage 3: per-muscle volume| WP11
   WP1 -.-> WP14
 ```
 
@@ -98,15 +96,16 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for recipe maths; widget tests.
 
 ### WP 8 — Exercise library and training architecture
-- Status: **Delivered — awaiting owner acceptance** (b1ab45a; `docs/delivery-record/WP8.md`) Owner deferred acceptance and decisions 1–5 on 2026-11-05. Controlled lists proposed in `docs/training-taxonomy.md`; OQ-09 (library source) pending owner decision.
+- Status: **Active — scope expanded 2026-11-05** (owner decision: the comprehensive exercise library is delivered within WP 8; no WP 16). Stages 1–2 and review fixes implemented and verified (b1ab45a; `docs/delivery-record/WP8.md`), not accepted. Remaining stages 3–6 and the deferred media workstream: `docs/wp8-delivery-plan.md` (proposed; stage 3 awaits authorisation). Requirements: TRN-001..012 (TRN-010(1) amended) and LIB-001..014 (`docs/exercise-library-expansion.md`). OQ-09 decided 2026-11-05.
 - Objective: structured exercise and set model supporting all six exercise types.
-- Scope: exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries.
+- Scope: exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries. **Expanded 2026-11-05**: comprehensive, extensible exercise reference and discovery system — four-level anatomy with multiple primary and secondary targets, movement pattern, mechanics, laterality, difficulty, relationships, instructions, provenance and catalogue updates, search and discovery, media readiness (LIB-001..014).
 - Dependencies: WP 4.
-- Acceptance: a set of each exercise type can be stored and read back with correct fields; invalid combinations rejected at use-case level.
-- Verification: unit tests; schema migration test.
+- Acceptance: a set of each exercise type can be stored and read back with correct fields; invalid combinations rejected at use-case level (original; met with evidence). **Final acceptance (expanded)**: `docs/wp8-delivery-plan.md` §15, including the structured coverage matrix for catalogue population.
+- Verification: unit tests; schema migration test; integrity and coverage reports in CI; owner content review per regional tranche.
+- Sequencing: stage 3 code after WP 9 delivery (shared code); stage 4 documents and lists may proceed now; WP 10 not blocked; WP 11 per-muscle training volume follows stage 3 (soft).
 
 ### WP 9 — Workout planning and workout execution
-- Status: **In progress** (started 2026-11-05 by owner instruction while WP 8 awaits acceptance; `docs/delivery-record/WP9.md`).
+- Status: **In progress** (started 2026-11-05 by owner instruction on the WP 8 foundation — stages 1–2 and review fixes; WP 8 remains active with expanded scope; WP 9 scope unchanged; `docs/delivery-record/WP9.md`).
 - Objective: fast in-gym logging.
 - Scope: plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
 - Dependencies: WP 8.
@@ -124,7 +123,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Objective: goals and weekly insight without automated coaching.
 - Scope: calorie/macro/weight/measurement/training goals, weekly summary screen, progress indicators, historical comparison; explicit gate recorded that no recommendations ship until data-quality criteria (GOL) are met.
 - Added 2026-11-04 (owner allocation from WP 7 review): **NUT-019** day-total provenance badge (weakest provenance shown on daily and weekly nutrition totals; the shared rule already exists, spec §8).
-- Dependencies: WP 5, WP 9, WP 10.
+- Dependencies: WP 5, WP 9, WP 10; training volume per muscle group after WP 8 stage 3 (soft, 2026-11-05).
 - Acceptance: GOL P1 criteria pass; summaries match fixture data.
 
 ### WP 12 — User accounts, backup and synchronisation (optional)
@@ -152,11 +151,8 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Acceptance: NUT-022 criteria pass (0.25 kg stored and shown as 250 g; 1 kg = 1000 g and 1 l = 1000 ml exactly; round-trip within 0.001); spec §2.3 worked examples executed as tests; the chosen imperial units documented.
 - Verification: unit tests for conversions; widget tests for entry in each unit; spec examples.
 
-### WP 16 — Exercise library expansion (structure approved 2026-11-05)
-- Origin: owner's exercise library scope amendment and decisions (D04 §7, LIB-001..014). Requirements, acceptance criteria, sequencing and open items: `docs/exercise-library-expansion.md`.
-- Sub-packages (approved): **16a** Architecture and Reference Data (plan: `docs/wp16a-implementation-plan.md`; ADR-0008, ADR-0009 proposed; schema v8 target); **16b** Catalogue Tooling and Quality Assurance (incl. coverage matrix minimums, OQ-23); **16c** Anatomical Catalogue Population (coverage matrix acceptance); **16d** Search, Discovery and Exercise Screens; **16e** Exercise Media (deferred implementation).
-- Dependencies: WP 9 delivery (hard, code overlap); WP 8 delivered (acceptance pending, not reopened). WP 10 not blocked (parallel allowed; schema numbering coordinated). WP 11 training-volume reporting follows WP 16a (soft).
-- Status: **Proposed — WP 16a plan awaiting owner authorisation; not started.**
+### WP 16 — withdrawn (2026-11-05)
+- Proposed earlier on 2026-11-05 for the library expansion; withdrawn the same day by owner decision. Its scope is WP 8 stages 3–6 and a deferred media workstream. Not a delivery package.
 
 ## Sizing guidance
 

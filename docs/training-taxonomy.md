@@ -3,7 +3,7 @@
 - Status: **Proposed for owner approval** with WP 8 (2026-11-05). Normative for code once approved: the domain enums, the seed library and the filters use exactly these values.
 - Requirements: D04 TRN-009 (category), TRN-010 (primary and secondary muscle groups), TRN-011 (equipment).
 - Stored by the identifier in the first column; labels are display text and may be reworded without a migration.
-- **WP 16 note (2026-11-05):** the owner approved a four-level anatomy with multiple primary and secondary targets (D04 §7). WP 16a (ADR-0008, proposed) keeps every identifier below as a node or reference value; this list stays authoritative until WP 16a is authorised and delivered. TRN-010(1) is amended to one or more primary targets.
+- **WP 8 note (2026-11-05):** the owner approved a four-level anatomy with multiple primary and secondary targets (D04 §7). WP 8 stage 3 (ADR-0008, proposed) keeps every identifier below as a node or reference value; this list stays authoritative until WP 8 stage 3 is authorised and delivered. TRN-010(1) is amended to one or more primary targets.
 
 ## Categories (TRN-009) — exactly one per exercise
 | Identifier | Label | Meaning |

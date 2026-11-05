@@ -1,28 +1,52 @@
-# WP 16a — Architecture and reference data: implementation plan
+# WP 8 — Revised delivery plan (expanded exercise library)
 
 - Status: **Proposed — for owner review. Implementation not authorised.**
 - Date: 2026-11-05
-- Parent: WP 16 Exercise library expansion (`docs/exercise-library-expansion.md`); owner decisions D04 §7 (2026-11-05, WP 16 decisions).
+- Governance: owner decision of 2026-11-05 — the expanded exercise library is delivered **within WP 8**, which stays the active work package. WP 8 is not created as a delivery package. WP 9 is unchanged.
+- Requirements: D04 TRN-001..012 (original), LIB-001..LIB-014 and the owner's library decisions (D04 §7; `docs/exercise-library-expansion.md`).
 - ADRs: ADR-0008 (domain model), ADR-0009 (catalogue provenance and updates) — both Proposed.
 
-## 1. Objective and scope
+## 0. WP 8 at a glance
+| Category | Content |
+|---|---|
+| **Implemented and verified** | Stage 1 (6d401e6): taxonomy enums, exercise aliases, supplied flag, copy, set types incl. timed load and cardio energy, rep ranges, splits, validation rules, `RecordSet`, library and history queries, schema v6 with CHECK constraints and legacy quarantine, 89-exercise seed import. Stage 2 (058d433): Train tab library, search, filters, detail with history, custom exercise editor, copy-on-edit. Review fixes (b1ab45a): strict loads, set writes via `RecordSet`, TRN-020 exertion, legacy taxonomy mapping, bodyweight-only filter and others. Four workflows green on each commit; independent review and re-verification recorded in the WP 8 record |
+| **Original acceptance criteria (D06)** | A set of each type stored and read back with correct fields; invalid combinations rejected at use-case level; unit tests; schema migration test — **met with evidence** (WP 8 record), not yet accepted |
+| **Newly approved expanded requirements** | LIB-001..LIB-014 and decisions 1–10 (D04 §7, 2026-11-05) |
+| **Remaining implementation work** | Stages 3–6 below; media workstream deferred |
+| **Final WP 8 acceptance criteria** | §15 |
+
+The 89-exercise implementation is the foundation. It does **not** satisfy the expanded requirements (gap analysis: `docs/exercise-library-expansion.md` §2).
+
+## 0.1 Remaining stages
+| Stage | Content (workstream) | Can start | Gate |
+|---|---|---|---|
+| 3 | Architecture and reference data (§1–§14 below) — sub-stages 3a domain model, 3b schema v8 and migration, 3c catalogue format and reconciler, 3d adapt WP 8/9 code | after WP 9 delivery (shared code) and owner authorisation | tests, independent review per sub-stage, four workflows |
+| 4 | Catalogue tooling and quality assurance: editorial guide (naming, variation rules, instruction style, anatomical tagging), licence register, integrity checks and coverage report in CI, **coverage matrix with regional minimums (OQ-23)**, **anatomy node and movement pattern lists (OQ-22)** | documents and lists now (no code overlap with WP 9); CI tooling after stage 3c | owner approval of matrix and lists before stage 5 |
+| 5 | Anatomical catalogue population in tranches: 5.1 chest, 5.2 back, 5.3 shoulders, 5.4 arms, 5.5 hips and legs, 5.6 trunk, 5.7 conditioning and mobility | after stages 3 and 4 | per tranche: coverage minimums met, instructions for every exercise, zero integrity failures, gap report, owner content review |
+| 6 | Search, discovery and exercise screens: filters by anatomy, equipment, pattern, mechanics, laterality, difficulty, logging type; sorting; favourites; relationship navigation; instructions; custom exercises with the new fields | after stage 3; parallel with stage 5 | widget and integration tests, accessibility, independent review |
+| Media | Exercise media: data references only in stage 3; display, storage and licensing **deferred** and outside final WP 8 acceptance | — | — |
+| Final | Combined independent review, remediation, full regression incl. WP 9, four workflows, delivery record | after stages 3–6 | owner acceptance |
+
+Sections 1–14 detail **stage 3**.
+
+## 1. Stage 3 objective and scope
 Put the exercise library on an architecture that can carry a comprehensive catalogue, without adding catalogue content or new discovery screens.
 
 In scope: Engineering Object model for exercises and reference data; four-level anatomy; multiple primary and secondary targets; movement pattern, mechanics, laterality, difficulty; five relationship kinds; instruction sections and media references (data only); providers and catalogue releases with an idempotent reconciler; source separation (system, user, imported); user state including favourites (data and use cases); duplicate detection and integrity report; schema v8 and migration; backup format; adapting WP 8 and WP 9 code to the new model with unchanged behaviour.
 
-Out of scope: catalogue population beyond re-expressing the existing 89 exercises (WP 16c); new filters, sorting, favourites and variation screens (WP 16d); media display (WP 16e); translation; exercise metrics, tempo, range of motion, execution guidance and recommendations (accommodated by the content model, not delivered); training programmes.
+Out of scope: catalogue population beyond re-expressing the existing 89 exercises (WP 8 stage 5); new filters, sorting, favourites and variation screens (WP 8 stage 6); media display (the deferred media workstream); translation; exercise metrics, tempo, range of motion, execution guidance and recommendations (accommodated by the content model, not delivered); training programmes.
 
 ## 2. Preconditions and dependencies
 | Item | Status | Effect |
 |---|---|---|
-| WP 9 delivered (schema v7) | in progress | WP 16a starts after WP 9 delivery so the two do not change the same code |
+| WP 9 delivered (schema v7) | in progress | WP 8 stage 3 starts after WP 9 delivery so the two do not change the same code |
 | ADR-0008, ADR-0009 approved | proposed | required before implementation |
 | This plan authorised | proposed | required before implementation |
 | OQ-19 volume attribution with several primary targets | open | needed for the WP 9 volume rule change; proposal in §8 |
 | OQ-21 definition of "imported" source | open | proposal in ADR-0009 |
-| OQ-22 anatomy node list and movement pattern list | open | WP 16a ships the structure and a proposed list; owner approves the lists before WP 16c |
-| WP 8 decisions 1 (taxonomy) and acceptance | open | WP 16a extends the 19 identifiers; it does not decide WP 8 acceptance |
-| Schema numbering with WP 10 | coordination | WP 16a takes v8 if it lands first; otherwise the next free version. No data dependency |
+| OQ-22 anatomy node list and movement pattern list | open | WP 8 stage 3 ships the structure and a proposed list; owner approves the lists before WP 8 stage 5 |
+| WP 8 decisions 1 (taxonomy) and acceptance | open | WP 8 stage 3 extends the 19 identifiers; it does not decide WP 8 acceptance |
+| Schema numbering with WP 10 | coordination | WP 8 stage 3 takes v8 if it lands first; otherwise the next free version. No data dependency |
 
 ## 3. Domain model (Engineering Objects)
 | Object | Identity | Source / provenance | Versioning | Key rules |
@@ -98,11 +122,11 @@ New tables:
 7. Release 1 of provider `repforge` is recorded as the existing seed; `seedExercisesVersion` is read once to decide whether release 1 was applied, then retired.
 
 ## 7. Catalogue release format 2 and reconciler
-Per ADR-0009: bundled JSON per provider and release, holding reference data, exercises (`id`, `revision`, names, aliases, logging type, category, targets with roles, patterns, equipment, mechanics, laterality, difficulty, relationships, content sections by locale, media references) and provider metadata. Validation is all-or-nothing. The reconciler inserts, updates system-owned fields when the revision is higher, retires missing ids, and never writes user-owned data. Re-running a release is a no-op. WP 16a ships release 2 = the 89 existing exercises re-expressed in the new format with targets and patterns; mechanics, laterality and difficulty are filled where defensible, instructions are not written yet (WP 16c).
+Per ADR-0009: bundled JSON per provider and release, holding reference data, exercises (`id`, `revision`, names, aliases, logging type, category, targets with roles, patterns, equipment, mechanics, laterality, difficulty, relationships, content sections by locale, media references) and provider metadata. Validation is all-or-nothing. The reconciler inserts, updates system-owned fields when the revision is higher, retires missing ids, and never writes user-owned data. Re-running a release is a no-op. WP 8 stage 3 ships release 2 = the 89 existing exercises re-expressed in the new format with targets and patterns; mechanics, laterality and difficulty are filled where defensible, instructions are not written yet (WP 8 stage 5).
 
 ## 8. Changes to WP 8 and WP 9 code (behaviour preserved)
 - `Exercise`: `primaryMuscle`/`secondaryMuscles` → `targets`; `supplied` → `source`; new classification fields. Library queries filter by node with descendants; equipment filter unchanged; search unchanged.
-- WP 8 screens: show primary targets where they showed the primary muscle; editor requires at least one primary target. No new discovery features (WP 16d).
+- WP 8 screens: show primary targets where they showed the primary muscle; editor requires at least one primary target. No new discovery features (WP 8 stage 6).
 - WP 9 volume per muscle group (TRN-027(3)): **proposal for OQ-19** — each primary target counts the set's volume in full at its L2 group (or at the node itself above L2); secondary targets are reported separately and never added; a set is counted once per distinct L2 group. Session and exercise volume are unchanged.
 - Custom copies: copy targets, patterns and content; source `user`.
 - `TRN-010(1)` amended by owner decision (one or more primary targets); TRN-010(2) behaviour kept.
@@ -121,7 +145,7 @@ Backup `formatVersion` 3 with the new tables. Restore accepts 1, 2 and 3; files 
 - CI: integrity report over the shipped catalogue as a gate; four workflows green; coverage ≥ 80 % hand-written.
 - Independent review of each stage and of the final diff, with probe tests, as for WP 8 and WP 9.
 
-## 11. Acceptance criteria (WP 16a)
+## 11. Stage 3 acceptance criteria
 1. ADR-0008 and ADR-0009 approved; implementation matches them.
 2. Schema v8 migration from every earlier version preserves all exercise identifiers, the 19 muscle identifiers (as nodes) and all training data; tests prove value equality.
 3. Exercises, anatomy nodes, patterns, equipment, relationships, content, media references, providers and releases meet the Engineering Object definition (identity, type, provenance, validation, timestamps, relationships, versioning, persistence, query, backup, restore).
@@ -131,34 +155,52 @@ Backup `formatVersion` 3 with the new tables. Restore accepts 1, 2 and 3; files 
 7. Content sections and media references stored per locale (`en-GB`), extensible without schema change.
 8. Source separation system/user/imported; provider registry with licence; catalogue releases applied idempotently; user-owned data never overwritten (tests).
 9. Duplicate detection and an integrity report generated in CI; zero integrity failures for release 2.
-10. Favourites and other user state persisted and backed up (UI in WP 16d).
+10. Favourites and other user state persisted and backed up (UI in WP 8 stage 6).
 11. WP 8 and WP 9 behaviour unchanged except where an owner decision changes it (TRN-010(1), OQ-19); full suite, coverage gate and four workflows green.
 12. Delivery record with tests, CI runs, independent review findings and resolutions, deviations and open items.
 
-## 12. Delivery stages and gates
+## 12. Stage 3 sub-stages and gates
 | Stage | Content | Gate |
 |---|---|---|
-| 16a-1 | Domain model, reference data structure, validation rules, duplicate detection, integrity report (pure code, no schema) | tests; independent review |
-| 16a-2 | Schema v8, migration, repositories, backup v3 | migration and backup tests; independent review |
-| 16a-3 | Catalogue format 2, reconciler, release 1→2 of the 89 exercises, CI integrity gate | reconciler tests; integrity report |
-| 16a-4 | Adapt WP 8/9 code and screens; OQ-19 rule | full regression, four workflows, emulator |
-| Final | combined independent review, remediation, delivery record | owner review |
+| 3a | Domain model, reference data structure, validation rules, duplicate detection, integrity report (pure code, no schema) | tests; independent review |
+| 3b | Schema v8, migration, repositories, backup v3 | migration and backup tests; independent review |
+| 3c | Catalogue format 2, reconciler, release 1→2 of the 89 exercises, CI integrity gate | reconciler tests; integrity report |
+| 3d | Adapt WP 8/9 code and screens; OQ-19 rule | full regression, four workflows, emulator |
+| Stage 3 close | combined independent review of stage 3, remediation, record update | owner review of stage 3 |
 
 ## 13. Risks
 | Risk | Mitigation |
 |---|---|
 | Table rebuild of `exercises` loses data | v6-proven pattern; before/after equality tests; crash re-run test |
-| Anatomy over-precision | qualitative roles only; tag at the most defensible level; editorial guide (WP 16b) |
-| Refactor of WP 8/9 code introduces regressions | stage 16a-4 alone; full regression and emulator run |
-| Reference list churn | lists approved (OQ-22) before WP 16c; identifiers never reused |
-| Licence contamination | provider registry; no proprietary content; review in WP 16b |
+| Anatomy over-precision | qualitative roles only; tag at the most defensible level; editorial guide (WP 8 stage 4) |
+| Refactor of WP 8/9 code introduces regressions | sub-stage 3d alone; full regression and emulator run |
+| Reference list churn | lists approved (OQ-22) before WP 8 stage 5; identifiers never reused |
+| Licence contamination | provider registry; no proprietary content; review in WP 8 stage 4 |
 | Schema version clash with WP 10 | coordinate numbering at start |
 
-## 14. Decisions requested to authorise WP 16a
+## 14. Decisions requested to authorise stage 3
 1. Approve ADR-0008 and ADR-0009.
 2. Approve the identifier mapping in §4 and the `fullBody` treatment.
 3. Approve the `exercises` table rebuild in v8 (§5) instead of keeping unread columns.
 4. Decide OQ-19 (volume attribution) — proposal in §8.
 5. Confirm the "imported" definition (OQ-21).
-6. Confirm sequencing: after WP 9 delivery; in parallel with WP 10 if wanted; before the training-volume parts of WP 11.
-7. Authorise implementation of WP 16a.
+6. Confirm sequencing (§16).
+7. Authorise implementation of stage 3.
+
+## 15. Final WP 8 acceptance criteria
+WP 8 is accepted when all of the following hold:
+1. **Original D06 criteria** remain met (each set type stored and read back; invalid combinations rejected at use-case level; unit and migration tests) and TRN-001..TRN-012 hold, with TRN-010(1) as amended (one or more primary targets).
+2. **Stage 3** criteria (§11) met: Engineering Object model, four-level anatomy, targets, classifications, relationships, content and media references, providers and releases, source separation, idempotent updates that never overwrite user data, duplicate detection and integrity report, schema v8 preserving all identifiers and data.
+3. **Stage 4**: editorial guide, licence register, CI integrity and coverage reporting; coverage matrix minimums and reference lists approved by the owner.
+4. **Stage 5**: every region's tranche meets the approved coverage matrix (anatomy, diversity, compound/isolation, unilateral/bilateral, patterns, equipment incl. free weights, machines, cables, Smith machine, bands, kettlebells and bodyweight, difficulty distribution, variation depth); instructions (setup, execution, breathing, common mistakes) for every system exercise; zero integrity failures; explicit gap report; owner content review per tranche. Raw count is not evidence.
+5. **Stage 6**: search, filters, sorting, favourites, relationship navigation, instruction display and custom exercise creation (LIB-008, LIB-009) with widget and integration tests and accessibility as WP 8/9.
+6. **Media**: data references only (LIB-010 readiness); display and storage deferred, outside acceptance.
+7. **No regressions**: all WP 9 behaviour and tests pass; full suite, coverage gate (≥ 80 %), four workflows and the emulator run green on the final commit.
+8. **Open WP 8 decisions** dispositioned by the owner: legacy-data policy and TRN-020 correction (WP 8 record), OQ-19, OQ-21, OQ-22, OQ-23.
+9. Independent review of the final combined diff with findings resolved or accepted as debt; delivery record complete with exact commits and CI runs.
+
+## 16. Dependencies and sequencing
+- **WP 9** (unchanged scope, in progress): built on the WP 8 foundation (stages 1–2 and review fixes). WP 8 stage 3 code starts after WP 9 delivery, because stage 3d adapts code WP 9 uses; stage 4 documents and lists can proceed now.
+- **WP 10**: depends on WP 3 and WP 4 only; not blocked; schema version numbers coordinated (v8 to whichever lands first).
+- **WP 11**: depends on WP 5, WP 9, WP 10 as before; its training-volume-per-muscle reporting follows WP 8 stage 3 (soft dependency).
+- Established roadmap order otherwise unchanged.

@@ -13,5 +13,5 @@ Format: see `ADR-0001`. Required fields: ID, Title, Status (Proposed / Accepted 
 | ADR-0005 | Encryption at rest and privacy of locally stored fitness data | Accepted (2026-11-03) |
 | ADR-0006 | Barcode scanning through a platform adapter | Accepted (2026-11-04) |
 | ADR-0007 | Rest-timer alerts through a notification adapter | Proposed (WP 9) |
-| ADR-0008 | Exercise library domain model: Engineering Objects, hierarchical anatomy, classifications, relationships | Proposed (WP 16a) |
-| ADR-0009 | Exercise catalogue provenance, providers and idempotent updates | Proposed (WP 16a) |
+| ADR-0008 | Exercise library domain model: Engineering Objects, hierarchical anatomy, classifications, relationships | Proposed (WP 8 stage 3) |
+| ADR-0009 | Exercise catalogue provenance, providers and idempotent updates | Proposed (WP 8 stage 3) |

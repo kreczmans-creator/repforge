@@ -279,11 +279,11 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-16 | Should Health Connect and HealthKit integrations be read-only, or also write workouts, weight and nutrition back? | Write access widens the permission scope and the privacy review. | PLT-005, PLT-006 |
 | OQ-17 | On restore, should the default be replace-all or merge? How are duplicates handled? | Affects data-loss risk and the complexity of the restore flow. | DAT-004 |
 | OQ-18 | What are the day boundary and week start rules (local midnight, Monday start)? Should users be able to change them? | Affects every daily and weekly total and the consistency of comparisons. | NUT-001, NUT-016, TRN-028 |
-| OQ-19 | How is training volume attributed when an exercise has several primary anatomical targets? | TRN-027 per-muscle volume and WP 11 reporting. Proposal: WP 16a plan §8. | TRN-027 |
+| OQ-19 | How is training volume attributed when an exercise has several primary anatomical targets? | TRN-027 per-muscle volume and WP 11 reporting. Proposal: `docs/wp8-delivery-plan.md` §8. | TRN-027 |
 | OQ-20 | Does TRN-010(1) ("exactly one primary group") still hold? | Conflicts with multiple primary targets. **Closed 2026-11-05** by WP 16 decision 3 (§7): one or more primary targets. | TRN-010 |
 | OQ-21 | What counts as an "imported" exercise (versus system-supplied and user-created)? | Source separation and update rules. Proposal: ADR-0009. | LIB-011 |
-| OQ-22 | Which anatomy nodes (L1–L4) and movement patterns form the controlled reference lists? | Classification quality and coverage. Proposed in WP 16a; approved before WP 16c. | LIB-004, LIB-005 |
-| OQ-23 | What are the minimum coverage targets per anatomical region? | Formal WP 16c acceptance. Defined in WP 16b; approved before WP 16c. | LIB-001, LIB-002 |
+| OQ-22 | Which anatomy nodes (L1–L4) and movement patterns form the controlled reference lists? | Classification quality and coverage. Proposed in WP 8 stage 4; approved before stage 5. | LIB-004, LIB-005 |
+| OQ-23 | What are the minimum coverage targets per anatomical region? | Formal WP 16c acceptance. Defined in WP 8 stage 4; approved before stage 5. | LIB-001, LIB-002 |
 
 ## 7. Amendments (owner decisions)
 
@@ -319,4 +319,10 @@ Full text: `docs/exercise-library-expansion.md` §5.
 9. **Structure**: WP 16a–16e approved; schema v8 approved as target subject to architectural review.
 10. **Additional**: separate system, user and imported exercises (LIB-011); catalogue updates never silently overwrite user customisations, idempotent import and update (LIB-012); provenance, validation, duplicate detection, integrity reporting (LIB-013); discovery by anatomy, equipment, pattern, classification, difficulty; future metrics, tempo, range of motion, execution guidance and recommendations accommodated but outside current acceptance.
 - Owner retains approval of architectural decisions, work-package acceptance, merges and releases. WP 16a implementation awaits authorisation of `docs/wp16a-implementation-plan.md` (ADR-0008, ADR-0009 proposed).
+
+### 2026-11-05 — Library expansion incorporated into WP 8 (owner; supersedes WP 16 governance)
+- **WP 8 stays the active work package** and delivers the expanded library (LIB-001..014 and the library decisions above). **WP 16 is not created** as a delivery package; the earlier proposal is withdrawn.
+- This supersedes library decision 8 (WP 16 separate; WP 8 not reopened) and re-organises decision 9: workstreams 16a–16e become **WP 8 stages 3 (architecture and reference data), 4 (catalogue tooling and quality assurance), 5 (anatomical catalogue population), 6 (search, discovery and exercise screens) and a deferred media workstream**. All other library decisions stand (Engineering Objects, OQ-09, anatomy, difficulty, relationships, coverage matrix, language, schema v8 target, additional requirements). No WP 8A–8E renumbering.
+- Completed WP 8 work, identifiers, migrations and tests are preserved; the 89-exercise implementation is a foundation and does not satisfy the expanded requirements. Previously accepted work is not reopened. WP 9 is unchanged.
+- Revised plan, the five-way distinction (implemented and verified; original criteria; expanded requirements; remaining work; final acceptance criteria) and sequencing: `docs/wp8-delivery-plan.md` (proposed; was `docs/wp16a-implementation-plan.md`). Implementation awaits owner review and authorisation.
 

@@ -2,7 +2,18 @@
 
 Date: 2026-11-05
 Branch: `ccr-9fda2c32-wr163b`
-Status: **Delivered — awaiting owner acceptance** (not accepted; next defined package after WP 7's acceptance on 2026-11-05; depends on WP 4, accepted. WP 6 device verification and D05 V-01 remain open and owner-owned; they do not block WP 8.)
+Status: **Active — scope expanded 2026-11-05** (owner decision: the comprehensive exercise library is delivered within WP 8; no WP 16). Not accepted. Stages 1–2 and the review fixes are implemented and verified; stages 3–6 remain (`docs/wp8-delivery-plan.md`, proposed, not authorised). WP 6 device verification and D05 V-01 remain open and owner-owned; they do not block WP 8.
+
+## WP 8 overview (revised 2026-11-05)
+| Category | Status | Where |
+|---|---|---|
+| **1. Implemented and verified** | Stage 1 (6d401e6), stage 2 (058d433), review fixes (b1ab45a); four workflows green on each; independent review and re-verification complete | "What was built", "Independent review", "Tests, CI" below |
+| **2. Original WP 8 acceptance criteria (D06)** | Met with evidence; not accepted | "Acceptance criteria (D06 WP 8) and evidence" below |
+| **3. Newly approved expanded requirements** | LIB-001..014 and the owner's library decisions (D04 §7, 2026-11-05); TRN-010(1) amended to one or more primary targets. The 89-exercise implementation is a foundation and does **not** satisfy them (gap analysis: `docs/exercise-library-expansion.md` §2) | `docs/exercise-library-expansion.md` |
+| **4. Remaining implementation work** | Stage 3 architecture and reference data (3a–3d), stage 4 catalogue tooling and quality assurance, stage 5 anatomical catalogue population (tranches 5.1–5.7), stage 6 search, discovery and exercise screens; media workstream deferred | `docs/wp8-delivery-plan.md` §0.1 |
+| **5. Final WP 8 acceptance criteria** | Original criteria plus stage 3–6 criteria, coverage matrix, no WP 9 regressions, open decisions dispositioned, final independent review | `docs/wp8-delivery-plan.md` §15 |
+
+Open owner decisions for WP 8: legacy-data policy (earlier decision 3), TRN-020 correction (earlier decision 4), UI scope confirmation (earlier decision 5), OQ-19, OQ-21, OQ-22, OQ-23; authorisation of stage 3. Earlier decision 1 (taxonomy) is folded into the anatomy decision and OQ-22 (current lists stay in force until stage 3); earlier decision 2 (OQ-09) is answered.
 
 ## Scope (D06 WP 8)
 Exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries.
@@ -99,7 +110,8 @@ Both guards were shown to fail on a planted probe file under `lib/features/dashb
 ## Open debt owned by or raised in WP 8
 TD-25 (logging of skipped rows, with TD-32), TD-41 (unreadable legacy exercises, quarantine only), TD-42 (plan re-save with a later-archived exercise, WP 9). TD-23 resolved.
 
-## Owner decisions requested
+## Owner decisions requested (at the first delivery, 2026-11-05)
+Disposition after the scope expansion: 1 folded into the anatomy decision and OQ-22; 2 answered (OQ-09 decided); 3, 4 and 5 open.
 1. Approve `docs/training-taxonomy.md` (7 categories, 19 muscle groups, 21 equipment items) as normative.
 2. OQ-09: approve RepForge's own library content (89 exercises, names and classifications only), or name another source.
 3. Approve the legacy-data rule: no clamping; invalid values set to NULL or the row kept, with the original in `legacy_quarantine` (TD-41 for visibility).
@@ -110,8 +122,10 @@ TD-25 (logging of skipped rows, with TD-32), TD-41 (unreadable legacy exercises,
 The owner deferred acceptance and decisions 1–5. WP 8 stays **Delivered — awaiting owner acceptance**; it is not accepted or closed, and silence is not approval. TD-41 and TD-42 stay tracked. The owner authorised WP 9 to proceed on top of the WP 8 implementation, without resolving decisions 1–5 (see WP9.md "Constraints from WP 8").
 
 ## Exercise library scope amendment (owner, 2026-11-05)
-The owner amended the library scope (D04 §7, LIB-001..010). WP 8 was reviewed against it and does **not** satisfy it (gap analysis: `docs/exercise-library-expansion.md` §2). The amendment is proposed as WP 16; WP 8 is not reopened and remains delivered for its D06 scope, awaiting acceptance.
-On 2026-11-05 the owner decided OQ-09 (WP 8 decision 2): original RepForge-authored content, which the existing seed is. This answers decision 2 only; WP 8 acceptance and decisions 1, 3, 4 and 5 remain open.
+The owner amended the library scope (D04 §7, LIB-001..010). WP 8 was reviewed against it and does **not** satisfy it (gap analysis: `docs/exercise-library-expansion.md` §2). The amendment was first proposed as WP 16. **Superseded the same day**: the owner incorporated it into WP 8, which is the active work package again (D04 §7, "Library expansion incorporated into WP 8"). Completed work, identifiers, migrations and tests are preserved; nothing accepted is reopened.
+On 2026-11-05 the owner decided OQ-09 (WP 8 decision 2): original RepForge-authored content, which the existing seed is. This answers decision 2 only.
 
-## Recommendation
+## Recommendation (first delivery, 2026-11-05 — superseded by the scope expansion)
 Accept WP 8 at b1ab45a, subject to decisions 1–5. All D06 criteria are met with code-level evidence, four workflows are green on the final commit, and the independent re-verification found no open medium or high findings.
+
+Current position: WP 8 is not ready for acceptance; it completes after stages 3–6 against the final criteria in `docs/wp8-delivery-plan.md` §15.
