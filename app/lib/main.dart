@@ -9,6 +9,7 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/platform/camera_capability_channel.dart';
 import 'package:repforge/data/platform/local_notifications_rest_alert_scheduler.dart';
 import 'package:repforge/data/platform/mobile_scanner_barcode_scanner.dart';
+import 'package:repforge/data/platform/share_and_selector_user_file_gateway.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/features/nutrition/application/scanner_preview.dart';
 import 'package:repforge/features/recipes/application/recipe_providers.dart';
@@ -52,9 +53,9 @@ Future<void> _importExerciseLibrary(ProviderContainer container) async {
   }
 }
 
-/// Real camera scanning and rest notifications exist only on Android and iOS;
-/// elsewhere the providers keep their defaults (scanner throws, notifications
-/// schedule nothing).
+/// Real camera scanning, rest notifications and file sharing exist only on
+/// Android and iOS; elsewhere the providers keep their defaults (scanner
+/// throws, notifications schedule nothing, file output is unavailable).
 List<Override> _platformOverrides() {
   final isMobile =
       !kIsWeb &&
@@ -70,6 +71,9 @@ List<Override> _platformOverrides() {
     scannerPreviewBuilderProvider.overrideWithValue(scanner.preview),
     restAlertSchedulerProvider.overrideWithValue(
       LocalNotificationsRestAlertScheduler(),
+    ),
+    userFileGatewayProvider.overrideWithValue(
+      ShareAndSelectorUserFileGateway(),
     ),
   ];
 }

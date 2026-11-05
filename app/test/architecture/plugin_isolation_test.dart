@@ -33,10 +33,32 @@ void main() {
 
   test('only lib/data/platform imports the other platform plugins', () {
     final found = importers(
-      RegExp(r'''import\s+['"]package:(mobile_scanner|permission_handler)/'''),
+      RegExp(
+        r'''import\s+['"]package:(mobile_scanner|permission_handler|share_plus[a-z_]*|file_selector[a-z_]*)/''',
+      ),
     );
     expect(found, isNotEmpty);
     expect(found.where((p) => !p.startsWith('lib/data/platform/')), isEmpty);
+  });
+
+  test('only the user file adapter imports share_plus and file_selector', () {
+    final found = importers(
+      RegExp(
+        r'''import\s+['"]package:(share_plus[a-z_]*|file_selector[a-z_]*)/''',
+      ),
+    );
+    expect(found, [
+      'lib/data/platform/share_and_selector_user_file_gateway.dart',
+    ]);
+  });
+
+  test('the user file port is Flutter-free', () {
+    final text = File('lib/domain/files/user_file_gateway.dart')
+        .readAsStringSync();
+    expect(text, isNot(contains('package:flutter')));
+    expect(text, isNot(contains('dart:ui')));
+    expect(text, isNot(contains("import 'package:share_plus")));
+    expect(text, isNot(contains("import 'package:file_selector")));
   });
 
   test('the rest alert port is Flutter-free', () {

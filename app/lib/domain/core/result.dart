@@ -66,6 +66,20 @@ final class NotFoundError extends AppError {
   const NotFoundError(super.message);
 }
 
+/// The requested capability does not exist on this device or build (for
+/// example file sharing on desktop). Not retryable; the UI hides or explains.
+final class UnavailableError extends AppError {
+  const UnavailableError(super.message);
+}
+
+/// A user-chosen file is larger than the app accepts.
+final class FileTooLargeError extends AppError {
+  const FileTooLargeError(super.message, {required this.maxBytes});
+
+  /// The limit that was exceeded, in bytes.
+  final int maxBytes;
+}
+
 /// Anything not covered above. Should be rare; logged, never swallowed.
 final class UnexpectedError extends AppError {
   const UnexpectedError(super.message, {this.cause});

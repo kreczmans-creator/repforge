@@ -24,6 +24,7 @@ import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/core/transactor.dart';
+import 'package:repforge/domain/files/user_file_gateway.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_repository.dart';
 import 'package:repforge/domain/measurements/weight_repository.dart';
@@ -259,6 +260,13 @@ final scannerCapabilityProvider = FutureProvider<ScannerCapability>(
 /// tests override it with `FakeRestAlertScheduler`.
 final restAlertSchedulerProvider = Provider<RestAlertScheduler>(
   (_) => const NoopRestAlertScheduler(),
+);
+
+/// Share sheet and file chooser (ADR-0011). The default reports the
+/// capability as unavailable; `main.dart` binds the platform adapter on
+/// Android and iOS and tests override it with `FakeUserFileGateway`.
+final userFileGatewayProvider = Provider<UserFileGateway>(
+  (_) => const UnavailableUserFileGateway(),
 );
 
 final mealPlanRepositoryProvider = Provider<MealPlanRepository>(
