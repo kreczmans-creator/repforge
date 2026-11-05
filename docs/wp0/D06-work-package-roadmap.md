@@ -95,7 +95,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for recipe maths; widget tests.
 
 ### WP 8 — Exercise library and training architecture
-- Status: **In progress** (started 2026-11-05 after WP 7's acceptance; `docs/delivery-record/WP8.md`). Controlled lists proposed in `docs/training-taxonomy.md`; OQ-09 (library source) pending owner decision.
+- Status: **Delivered — awaiting owner acceptance** (b1ab45a; `docs/delivery-record/WP8.md`). Controlled lists proposed in `docs/training-taxonomy.md`; OQ-09 (library source) pending owner decision.
 - Objective: structured exercise and set model supporting all six exercise types.
 - Scope: exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries.
 - Dependencies: WP 4.
