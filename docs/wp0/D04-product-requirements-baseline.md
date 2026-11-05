@@ -401,3 +401,7 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **D3 decisions retained with clarification**: reject structurally empty or invalid backups, but do not reject a valid full backup merely because it contains zero measurement records; the Android restore picker needs no file-type filter and the restore validator remains authoritative. The implemented rule (reject only when no restorable row exists in any table) meets this; the brand-new-app export edge case is noted in the WP 10 record for owner confirmation.
 - **OQ-18 and OQ-02 remain open.** Device-campaign and spreadsheet-compatibility checks remain deferred verification, not completed evidence.
 
+### 2026-11-05 — Backup edge case confirmed (owner)
+- The implemented behaviour is confirmed; no code change. A settings-only backup (valid data, zero measurement records) is accepted. A completely empty backup (every table present, no records anywhere) is rejected and cannot overwrite an existing database. WP 10 acceptance and closure at bb5f788 are unchanged; WP 10 is not reopened.
+- WP 8 sequence confirmed: WP 9 acceptance review → authorisation of the stage 3 plan → stage 3a (domain model) → `exercises` rebuild trial and value-equality evidence before finalising 3b → migration, reference data and catalogue update. Stage 3 does not bypass the WP 9 acceptance gate or the agreed migration evidence.
+
