@@ -807,11 +807,10 @@ void main() {
             ),
             migrationEntries,
           );
-          // Register B-03 (OPEN), made visible (review M2): legacy_quarantine
-          // is replaced as user data, so the migration run's quarantine
-          // links lose their rows. Of its 40 links, the 2 to the v7
-          // quarantine rows (ids kept by the backup) still find the same
-          // row; 38 dangle; none points to another row.
+          // Register B-03, decided (b): the device keeps its quarantine
+          // rows, so all 40 links of the migration run still find the same
+          // row (with the earlier replace, 38 dangled; review M2). The
+          // backup's two v7 rows are the device's rows: not written again.
           final quarantineAfter = {
             for (final r in await v8.rows('SELECT * FROM legacy_quarantine'))
               r['id']: r,
@@ -833,8 +832,12 @@ void main() {
           }
           expect(
             (same: same, dangling: dangling, other: other),
-            (same: 2, dangling: 38, other: 0),
+            (same: 40, dangling: 0, other: 0),
           );
+          // Every device row is still there, unchanged.
+          for (final MapEntry(:key, :value) in quarantineBefore.entries) {
+            expect(quarantineAfter[key], value);
+          }
           for (final t in referenceTables) {
             expect(
               tableDigest(v8.digests(), t),
@@ -938,7 +941,7 @@ void main() {
         final b = await richV8(await V8File.create(dir, 'b.sqlite'));
         try {
           for (final t in schemaV8Tables) {
-            if (t.kind == TableKind.user) {
+            if (t.kind == TableKind.user && t.name != 'legacy_quarantine') {
               await a.db.customStatement('DELETE FROM "${t.name}"');
             }
           }
@@ -1164,6 +1167,343 @@ void main() {
         },
       );
     }
+  });
+
+  group('owner decisions 2026-11-06 (B-03, B-04, B-09)', () {
+    /// Every quarantine link of every report entry points to the row it
+    /// was written for: a pre-v8 quarantine entry to the row holding its
+    /// original, any other entry to a row of its table and record.
+    Future<int> checkLinks(V8File f) async {
+      final rows = {
+        for (final r in await f.rows('SELECT * FROM legacy_quarantine'))
+          r['id']: r,
+      };
+      var links = 0;
+      for (final e in await f.rows(
+        'SELECT * FROM migration_report_entries WHERE quarantine_id IS NOT '
+        'NULL',
+      )) {
+        final row = rows[e['quarantine_id']];
+        expect(row, isNotNull, reason: 'dangling ${e['event_id']}');
+        if (e['source_table'] == 'legacy_quarantine') {
+          expect(
+            encodeStoredValue(row!['original_json']),
+            e['original_value'],
+            reason: '${e['event_id']}',
+          );
+        } else {
+          expect(
+            [row!['source_table'], row['row_id']],
+            [e['source_table'], e['record_id']],
+            reason: '${e['event_id']}',
+          );
+        }
+        links++;
+      }
+      return links;
+    }
+
+    test('B-03 (b): a cross-device restore keeps the device quarantine rows '
+        'and inserts the backup rows; colliding ids are renumbered and the '
+        'merged links follow them; a repeat writes nothing again', () async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await V8File.create(dir, 'b.sqlite');
+        try {
+          expect(
+            await b
+                .repo(config: restoreConfig(newRunId: countingRestoreIds('b')))
+                .importJson(readGolden(digest.goldenFormat1Path(6))),
+            isA<Ok<Object?>>(),
+          );
+          // B's rows differ from A's rows with the same ids.
+          await b.db.customStatement(
+            "UPDATE legacy_quarantine SET reason = reason || ' (device B)'",
+          );
+          final bRows = await b.rows('SELECT * FROM legacy_quarantine');
+          final aRows = await a.rows('SELECT * FROM legacy_quarantine');
+          expect(
+            aRows
+                .map((r) => r['id'])
+                .toSet()
+                .intersection(bRows.map((r) => r['id']).toSet()),
+            isNotEmpty,
+          );
+          final json = await a.repo().exportJson();
+          final repo = b.repo();
+          expect(await repo.importJson(json), isA<Ok<Object?>>());
+          final after = await b.rows('SELECT * FROM legacy_quarantine');
+          final byId = {for (final r in after) r['id']: r};
+          for (final r in bRows) {
+            expect(byId[r['id']], r, reason: 'device row ${r['id']}');
+          }
+          String content(Map<String, Object?> r) => jsonEncode([
+            r['source_table'],
+            r['row_id'],
+            r['reason'],
+            r['original_json'],
+            r['quarantined_at'],
+          ]);
+          final contents = after.map(content).toList();
+          for (final r in aRows) {
+            expect(contents, contains(content(r)), reason: 'backup ${r['id']}');
+          }
+          expect(after, hasLength(bRows.length + aRows.length));
+          expect(await checkLinks(b), greaterThan(0));
+          // Repeated: nothing of the backup is written again.
+          expect(await repo.importJson(json), isA<Ok<Object?>>());
+          expect(await b.count('legacy_quarantine'), after.length);
+          await checkLinks(b);
+          v8NoForeignKeyViolation(b);
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    });
+
+    Future<void> rejectsOnRich(
+      String Function(Map<String, Object?> envelope) mutate,
+      Matcher message, {
+      bool fromGolden = false,
+    }) async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await richV8(await V8File.create(dir, 'b.sqlite'));
+        try {
+          final env = decode(
+            fromGolden
+                ? readGolden(digest.goldenFormat2Path())
+                : await a.repo().exportJson(),
+          );
+          final json = mutate(env);
+          final before = b.digests();
+          final error = errorOf(await b.repo().importJson(json));
+          expect(error, isA<ValidationError>());
+          expect(error.message, message);
+          expect(error.message, contains('Nothing was changed'));
+          expect(b.digests(), before);
+          expect(await b.foreignKeys(), 1);
+          final preview = b.repo().previewJson(json);
+          if (preview is Err<BackupPreview>) {
+            expect(preview.error, isA<ValidationError>());
+          }
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    }
+
+    void addProvider(Map<String, Object?> env) =>
+        addRow(env, 'content_providers', {
+          'id': 'other',
+          'name': 'Other',
+          'licence': 'CC0',
+          'attribution': null,
+          'url': null,
+        });
+
+    void syncReleaseLog(Map<String, Object?> env) => env['releaseLog'] = [
+      for (final r in rowsOf(env, 'catalogue_releases'))
+        {
+          'providerId': r['provider_id'],
+          'release': r['release'],
+          'contentHashAlgorithm': r['content_hash_algorithm'],
+          'contentHashEncoding': r['content_hash_encoding'],
+          'contentHash': r['content_hash'],
+        },
+    ];
+
+    // B-04, decided: the normative immutable fields; a difference in each
+    // rejects the whole restore atomically.
+    for (final (table, key, column, value, expected)
+        in <(String, String, String, Object?, String)>[
+          ('equipment_items', 'barbell', 'default_role', 'support', 'R-20'),
+          ('equipment_items', 'barbell', 'provider_id', 'other', 'provider_id'),
+          ('anatomy_nodes', 'chest', 'parent_id', 'regionBack', 'parent_id'),
+          ('anatomy_nodes', 'biceps', 'level', 4, 'level'),
+          ('anatomy_nodes', 'fullBody', 'non_anatomical', 0, 'non_anatomical'),
+          ('anatomy_nodes', 'chest', 'provider_id', 'other', 'provider_id'),
+          (
+            'movement_patterns',
+            'mp-horizontal-push',
+            'parent_id',
+            null,
+            'parent_id',
+          ),
+          (
+            'movement_patterns',
+            'mp-push',
+            'provider_id',
+            'other',
+            'provider_id',
+          ),
+          (
+            'catalogue_releases',
+            'repforge',
+            'content_hash',
+            'b' * 64,
+            'content_hash',
+          ),
+          (
+            'catalogue_releases',
+            'repforge',
+            'content_hash_algorithm',
+            'sha512',
+            'content_hash_algorithm',
+          ),
+          (
+            'catalogue_releases',
+            'repforge',
+            'content_hash_encoding',
+            'hex-upper',
+            'content_hash_encoding',
+          ),
+          ('exercises', 'lib-deadlift', 'source', 'imported', 'source'),
+          ('exercises', 'lib-deadlift', 'provider_id', 'other', 'provider_id'),
+        ]) {
+      test('B-04: $table $key.$column differing rejects atomically', () async {
+        await rejectsOnRich((env) {
+          addProvider(env);
+          for (final r in rowsOf(env, table)) {
+            final k = table == 'catalogue_releases'
+                ? r['provider_id']
+                : r['id'];
+            if (k == key) r[column] = value;
+          }
+          syncReleaseLog(env);
+          return jsonEncode(env);
+        }, allOf(contains(column), contains(expected)));
+      });
+    }
+
+    test(
+      'B-04: the mutable fields keep the device value (device wins)',
+      () async {
+        await inBackupTempDir((dir) async {
+          final v8 = await richV8(await V8File.create(dir));
+          try {
+            final env = decode(await v8.repo().exportJson());
+            for (final r in rowsOf(env, 'anatomy_nodes')) {
+              if (r['id'] == 'chest') r['sort_order'] = 99;
+            }
+            for (final r in rowsOf(env, 'content_providers')) {
+              r['attribution'] = 'Changed';
+            }
+            for (final r in rowsOf(env, 'reference_labels')) {
+              r['label'] = 'Changed';
+            }
+            for (final r in rowsOf(env, 'catalogue_releases')) {
+              r['applied_at'] = '2030-01-01T00:00:00.000Z';
+              r['inserted'] = 9;
+            }
+            final before = v8.digests();
+            expect(
+              await v8.repo().importJson(jsonEncode(env)),
+              isA<Ok<Object?>>(),
+            );
+            for (final t in referenceTables) {
+              expect(tableDigest(v8.digests(), t), tableDigest(before, t));
+            }
+            final fields = {
+              for (final r in await v8.rows(
+                'SELECT source_table, field FROM migration_report_entries '
+                "WHERE run_id = 'restore-1' AND rule = '$deviceWinsRule'",
+              ))
+                '${r['source_table']}.${r['field']}',
+            };
+            expect(fields, {
+              'anatomy_nodes.sort_order',
+              'content_providers.attribution',
+              'reference_labels.label',
+              'catalogue_releases.applied_at',
+              'catalogue_releases.inserted',
+            });
+          } finally {
+            await v8.close();
+          }
+        });
+      },
+    );
+
+    test('H1 (owner): a v7 backup whose supplied exercise has no valid '
+        'primary target is rejected where it would be inserted, and '
+        'restores where the device keeps its own row', () async {
+      final env = decode(readGolden(digest.goldenFormat2Path()));
+      for (final e in rowsOf(env, 'exercises')) {
+        if (e['id'] == 'lib-deadlift') e['primary_muscle'] = 'Neck';
+      }
+      final json = jsonEncode(env);
+      await inBackupTempDir((dir) async {
+        final fresh = await V8File.create(dir, 'fresh.sqlite');
+        final kept = await richV8(await V8File.create(dir, 'kept.sqlite'));
+        try {
+          final before = fresh.digests();
+          final error = errorOf(await fresh.repo().importJson(json));
+          expect(error, isA<ValidationError>());
+          expect(
+            error.message,
+            allOf(contains('lib-deadlift'), contains('IC-204')),
+          );
+          expect(fresh.digests(), before);
+          expect(await kept.repo().importJson(json), isA<Ok<Object?>>());
+        } finally {
+          await fresh.close();
+          await kept.close();
+        }
+      });
+    });
+
+    test(
+      'B-09: a format 2 backup with an unknown part rejects atomically',
+      () async {
+        for (final (mutate, message)
+            in <(void Function(Map<String, Object?>), String)>[
+              (
+                (env) => tablesOf(env)['nonsense'] = <Object?>[],
+                'table "nonsense"',
+              ),
+              (
+                (env) => rowsOf(env, 'goals').first['colour'] = 'red',
+                'unknown column "colour"',
+              ),
+              (
+                (env) => rowsOf(env, 'measurements').first['value'] = '70',
+                'value must be real',
+              ),
+              (
+                (env) => rowsOf(env, 'exercises').first['primary_muscle'] = 3,
+                'primary_muscle must be text',
+              ),
+              (
+                (env) => tablesOf(env)['settings'] = <String, Object?>{},
+                'is not a list',
+              ),
+              (
+                (env) => (tablesOf(env)['settings']! as List).add('x'),
+                'is not an object',
+              ),
+              (
+                (env) => env['schemaVersion'] = 8,
+                'cannot state schema version 8',
+              ),
+              (
+                (env) => env['schemaVersion'] = 6,
+                'cannot state schema version 6',
+              ),
+            ]) {
+          await rejectsOnRich(
+            (env) {
+              mutate(env);
+              return jsonEncode(env);
+            },
+            contains(message),
+            fromGolden: true,
+          );
+        }
+      },
+    );
   });
 
   group('atomicity and run ids', () {

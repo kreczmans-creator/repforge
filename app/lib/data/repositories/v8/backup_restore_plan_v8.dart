@@ -856,7 +856,11 @@ final class _Format3Planner {
         .where((r) => r['source'] != 'system')
         .length;
     for (final t in schemaV8Tables) {
-      if (t.kind == TableKind.user) restorable += rows[t.name]!.length;
+      // legacy_quarantine is merged history since B-03 (decided), not
+      // user data a restore replaces.
+      if (t.kind == TableKind.user && t.name != 'legacy_quarantine') {
+        restorable += rows[t.name]!.length;
+      }
     }
     return RestorePlan(
       format: backupFormatV8,
@@ -923,6 +927,19 @@ final class _Format3Planner {
         }
       } on Object catch (e) {
         problems.add('$where: ${e is ArgumentError ? e.message : e}');
+      }
+    }
+    // Every quarantine link has its row in the backup (register B-03: the
+    // links are rewritten with the rows, so a link without a row could
+    // only point at an unrelated device row).
+    final quarantine = {for (final q in rows['legacy_quarantine']!) q['id']};
+    for (final r in entries) {
+      final q = r['quarantine_id'];
+      if (q != null && !quarantine.contains(q)) {
+        problems.add(
+          'migration_report_entries ${r['event_id']}: quarantine_id $q has '
+          'no legacy_quarantine row in the backup',
+        );
       }
     }
     // Reconciliation of each run's counts.

@@ -423,8 +423,26 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         problems.addAll(restoreDomainProblems(x, ctx));
       }
     }
+    // Formats 1 and 2 keep the migration's dispositions (B-15), with one
+    // exception (owner decision 2026-11-06 on H1): a system exercise the
+    // restore would insert without a valid primary target rejects the whole
+    // restore instead of being blocked.
+    if (plan.isLegacy) {
+      for (final x in d.exercisesInsert) {
+        if (x.isSystem &&
+            x.blocks.any(
+              (b) => b['reason'] == BlockReason.noPrimaryTarget.name,
+            )) {
+          problems.add(
+            'exercises ${x.id}: a system exercise needs a valid primary '
+            'target (IC-204; owner decision 2026-11-06)',
+          );
+        }
+      }
+    }
 
     // Report history: merged by stable id (R-07), never replaced.
+    await _decideQuarantine(plan, d);
     await _decideReport(plan, d, problems);
 
     if (problems.isNotEmpty) {
@@ -517,6 +535,46 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     return jsonEncode({'columns': cols, 'rows': list});
   }
 
+  /// Register B-03, owner decision (b): the device's `legacy_quarantine`
+  /// rows are kept; each backup row is matched by content (the same
+  /// source, record, reason, original and time is the same quarantined
+  /// original, e.g. a restore of the device's own backup or a repeated
+  /// restore), else inserted with its id when that id is free, else
+  /// renumbered (a new autoincrement id) with the merged entries'
+  /// `quarantine_id` rewritten to it.
+  Future<void> _decideQuarantine(RestorePlan plan, _Decision d) async {
+    final device = await _select('SELECT * FROM legacy_quarantine');
+    final byId = {for (final r in device) r['id']! as int: r};
+    final byContent = <String, int>{};
+    for (final r in device) {
+      byContent.putIfAbsent(_quarantineContent(r), () => r['id']! as int);
+    }
+    for (final r in plan.legacyQuarantineRows) {
+      // A row without an id (autoincrement, as v7 restore accepts it) can
+      // carry no link: it is matched by content or gets a new id.
+      final id = r['id'] as int?;
+      final same = byContent[_quarantineContent(r)];
+      if (same != null) {
+        d.quarantineTarget[r] = same;
+        if (id != null) d.quarantineMap[id] = same;
+      } else if (id == null || byId.containsKey(id)) {
+        d.quarantineRenumber.add(r);
+      } else {
+        d.quarantineTarget[r] = id;
+        d.quarantineMap[id] = id;
+        d.quarantineExplicit.add(r);
+      }
+    }
+  }
+
+  static String _quarantineContent(Map<String, Object?> r) => jsonEncode([
+    r['source_table'],
+    r['row_id'],
+    r['reason'],
+    r['original_json'],
+    r['quarantined_at'],
+  ]);
+
   Future<void> _decideReport(
     RestorePlan plan,
     _Decision d,
@@ -567,7 +625,10 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       for (final c in schemaV8ByName['migration_report_entries']!.columns) {
         // The user's acknowledgement is device state (register B-05).
         if (c.name == 'acknowledged_at') continue;
-        if (have[c.name] != r[c.name]) {
+        final incoming = c.name == 'quarantine_id'
+            ? d.mappedQuarantineId(r[c.name] as int?)
+            : r[c.name];
+        if (have[c.name] != incoming) {
           problems.add(
             'migration_report_entries ${r['event_id']}: ${c.name} differs '
             'between the backup and this device (same event id, other '
@@ -699,7 +760,8 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
 
     // Delete only the allow-listed user data (keys are off: no cascade).
     for (final spec in schemaV8Tables) {
-      if (spec.kind == TableKind.user) {
+      // legacy_quarantine is kept and merged (register B-03, decided).
+      if (spec.kind == TableKind.user && spec.name != 'legacy_quarantine') {
         await _db.customStatement('DELETE FROM "${spec.name}"');
       }
     }
@@ -750,13 +812,37 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     }
     await _phase(RestorePhase.userDataInserted);
 
-    // Quarantine: the backup's rows with their ids, then the new ones.
-    final preV8Quarantine = <Map<String, Object?>>[];
-    for (final r in plan.legacyQuarantineRows) {
+    // Quarantine (register B-03, decided): the device's rows stay; the
+    // backup's rows with a free id keep it, a colliding one gets a new id
+    // (and the merged entries' links follow it), a row already on the
+    // device is not written again; then the restore's new rows.
+    for (final r in d.quarantineExplicit) {
       await _insert('legacy_quarantine', r);
       tally('legacy_quarantine');
-      preV8Quarantine.add(r);
     }
+    for (final r in d.quarantineRenumber) {
+      final id = await _db.customInsert(
+        'INSERT INTO legacy_quarantine (source_table, row_id, reason, '
+        'original_json, quarantined_at) VALUES (?, ?, ?, ?, ?)',
+        variables: [
+          for (final c in [
+            'source_table',
+            'row_id',
+            'reason',
+            'original_json',
+            'quarantined_at',
+          ])
+            Variable.withString(r[c]! as String),
+        ],
+      );
+      d.quarantineTarget[r] = id;
+      if (r['id'] case final int old) d.quarantineMap[old] = id;
+      tally('legacy_quarantine');
+    }
+    final preV8Quarantine = <Map<String, Object?>>[
+      for (final r in plan.legacyQuarantineRows)
+        {...r, 'id': d.quarantineTarget[r]},
+    ];
     final quarantineIds = <String, int>{};
     for (final q in _quarantineToWrite(plan, d)) {
       final id = await _db.customInsert(
@@ -815,7 +901,13 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       tally('migration_report_counts');
     }
     for (final r in d.entriesInsert) {
-      await _insert('migration_report_entries', r);
+      await _insert('migration_report_entries', {
+        ...r,
+        'quarantine_id': switch (r['quarantine_id']) {
+          final int q => d.quarantineMap[q] ?? (throw StateError('link $q')),
+          _ => null,
+        },
+      });
       tally('migration_report_entries');
     }
     await _phase(RestorePhase.reportMerged);
@@ -847,7 +939,10 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         if (spec.kind == TableKind.user)
           spec.name: (plan.userRows[spec.name] ?? const []).length,
       'legacy_quarantine':
-          plan.legacyQuarantineRows.length + _quarantineToWrite(plan, d).length,
+          before['legacy_quarantine']! +
+          d.quarantineExplicit.length +
+          d.quarantineRenumber.length +
+          _quarantineToWrite(plan, d).length,
       'exercises': keptSystem + d.exercisesInsert.length,
       for (final t in exerciseChildTables)
         t:
@@ -1326,5 +1421,21 @@ final class _Decision {
   final List<Map<String, Object?>> runsInsert = [];
   final List<Map<String, Object?>> entriesInsert = [];
   final List<Map<String, Object?>> countsInsert = [];
+
+  /// Backup `legacy_quarantine` id → id on this device after the restore
+  /// (register B-03): the matching device row, the same id, or (after
+  /// phase 2 inserts it) the new id of a renumbered row.
+  final Map<int, int> quarantineMap = {};
+
+  /// Each backup `legacy_quarantine` row (by identity) → its id on this
+  /// device after the restore.
+  final Map<Map<String, Object?>, int> quarantineTarget = Map.identity();
+  final List<Map<String, Object?>> quarantineExplicit = [];
+  final List<Map<String, Object?>> quarantineRenumber = [];
+
+  /// The link a merged entry will hold; for a row still to be renumbered
+  /// the id is not known yet, so it can never equal a stored link.
+  Object? mappedQuarantineId(int? q) =>
+      q == null ? null : (quarantineMap[q] ?? 'renumbered:$q');
   int bootstrapMissing = 0;
 }
