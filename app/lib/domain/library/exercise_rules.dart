@@ -411,6 +411,21 @@ List<Finding> validateExercise(CatalogueExercise e, ExerciseRuleContext ctx) {
         ),
       );
     }
+    // Owner decision Q6 (ADR-0008 clarification, section E): an override is
+    // never allowed on an item whose default role is cardio or implement.
+    if (use.roleOverride != null &&
+        (item?.defaultRole == EquipmentDefaultRole.cardio ||
+            item?.defaultRole == EquipmentDefaultRole.implement)) {
+      out.add(
+        f(
+          'IC-315',
+          Severity.error,
+          'The role of ${use.item} cannot be overridden: its default role '
+              'is ${item!.defaultRole.name}.',
+          field: 'equipment',
+        ),
+      );
+    }
   }
 
   // Attributes.

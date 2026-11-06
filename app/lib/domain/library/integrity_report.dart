@@ -463,7 +463,7 @@ const List<IntegrityCheck> integrityChecks = [
   ),
   IntegrityCheck(
     'IC-315',
-    'Equipment role override note',
+    'Equipment role override (note; never on cardio or implement)',
     Severity.error,
     CheckEvaluation.always,
   ),

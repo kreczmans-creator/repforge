@@ -615,7 +615,7 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 | Sub-stage | Content | Status |
 |---|---|---|
 | 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | committed 6c05f24; accepted by the owner as the test foundation |
-| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | in progress; material assumptions stop for owner approval |
+| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | implemented with the owner's register decisions; Review A fixes applied; awaiting re-check (`docs/schema-v8.md`) |
 | 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | complete at 31f7652 (owner, 2026-11-06); review and two re-checks recorded below |
 | 3b-4 | v7→v8 migration: safeguard A, report, quarantine, blocks | authorised |
 | 3b-5 | All paths v1..v7 → v8 | mandatory evidence |
@@ -731,4 +731,49 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
   - Nothing is lost: `is_custom` is NOT `supplied`, and the free text survives, because the UPDATE runs after the quarantine insert.
   - Flagged for 3b-4: the quarantine design decides whether v8 keeps this form.
 
-**Stage 3b status (2026-11-06):** 3b-1 accepted as foundation; 3b-3 complete; 3b-2 in progress; 3b-4 to 3b-10 outstanding. Stage 3b as a whole is not accepted.
+### 3b-2 — schema v8
+- Status: **implemented with the owner's register decisions and the Review A fixes; awaiting re-check.** Not committed. Not connected: production stays at schema version 7; `AppDatabase`, providers, repositories and screens are unchanged. Specification, DDL, report contract and assumption register: `docs/schema-v8.md`.
+- Rules applied (D04 §7, 2026-11-06): "3b-2 rules"; "3b-2 register R-01 to R-11 approved"; "register R-12, R-14, R-15, R-19 to R-24 decided; 3c deferrals".
+
+**What was built**
+- `lib/data/db/v8/`: `tables_v8.dart`, `app_database_v8.dart` (`AppDatabaseV8`, `schemaVersion` 8; `onUpgrade` refuses until 3b-4), `exertion_rule_sql.dart` (TRN-020 expression ported from the trial).
+- `exercises`: muscle, `supplied` and `equipment_json` columns removed; `source` (no default), `provider_id` (key), `revision`, R-14 CHECK, `mechanics`, `laterality`, `difficulty`, `retired_at` and the seven ADR-0008 A attribute columns (text compared with the ADR by a test).
+- `session_sets`: the v7 0–10 clause replaced by the per-scale TRN-020 CHECK; everything else byte-identical to v7.
+- New tables: `content_providers`, `catalogue_releases` (SHA-256, lowercase hex, stated, R-10), `anatomy_nodes`, `movement_patterns`, `equipment_items` (`default_role` only; class and lifecycle wait for 3c, Q11), `reference_labels`, `exercise_targets`, `exercise_patterns`, `exercise_equipment` (ADR-0008 B), `exercise_names`, `exercise_user_state` (no key, IC-902), `exercise_blocks` (one row per exercise and reason, three reasons), `migration_runs` (structured provenance), `migration_report_counts` (by category and by disposition), `migration_report_entries` (deterministic unique event id, JSON value contract, five category codes, §4.2 actions + `blocked`, WS4 `element` and `block_reason`, set exactly for blocked entries).
+- Keys (R-12): catalogue links keyed with no delete action; exercise-owned children cascade; user state unkeyed.
+- Deferred to 3c by the owner: `exercise_relationships`, `exercise_content`, `exercise_media`, the reference `release` columns, reference lifecycle and times (R-13, R-16 to R-18, R-21).
+- `lib/data/db/migration/bootstrap_reference_v8.dart`: 31 nodes, 21 items, provider `repforge` (attribution empty until 3c); statements exposed and tested; device rows win (R-23).
+- Domain: IC-315 also refuses an override on a `cardio` or `implement` item, for every source (Q6). **Text divergence (Review A, L6):** the approved `quality-and-duplicates.md` IC-315 text does not name this case; ADR-0008 E Q6 extends it. The approved document is not edited; the owner may update it.
+- Generated: `drift_schemas/drift_schema_v8.json`; `lib/data/db/migration/schema_v8_shapes.g.dart` (`Schema8`, `from7To8`, from v7 + v8 only); `test/data/generated_migrations/schema_v8.dart` and `schema.dart` (v1–v7 regenerate byte-identical). CI re-dumps v8 and regenerates the v8 shapes; the v1–v7 step is unchanged.
+- The unchanged v8 tables are the live v7 classes; the CI dump comparison guards them; they are to be frozen when v8 is accepted (Review A, L5).
+- Frozen evidence untouched: both manifests verify; `schema_versions.g.dart` keeps its pinned hash.
+
+**Review A (pass with findings, no High) and resolutions**
+| Id | Finding | Resolution |
+|---|---|---|
+| M1 | Report must also state blocked, quarantined and rejected counts | `migration_report_counts` has a `disposition` dimension beside `category`; disposition counts equal the entries per action; recorded as implementing both owner statements |
+| L1 | Isolation test let v8 import any chain file | Only `bootstrap_reference_v8.dart` and `schema_v8_shapes.g.dart` allowed |
+| L2 | Bootstrap insert not testable against `INSERT OR IGNORE` | Statements exposed and asserted; injected invalid rows must fail; overwrite probes on all three tables |
+| L3 | Implications missing for R-19, R-22–R-24 | Filled (R-19: 3b-7 restore and 3c release validation run IC-315) |
+| L4 | Further open items | Registered: R-25 source-updated marker, R-26 source immutability, R-27 label constraints, R-21 extended to provider times, R-28 TRN-020 pair handling for 3b-4, R-29 reordering under UNIQUE ordinals |
+| L5 | Doc said reused tables were frozen | Corrected: live v7 classes, CI dump guard, freeze on acceptance |
+| L6 | IC-315 text divergence | Recorded here and in `docs/schema-v8.md`; approved document unchanged |
+| L7 | 3b-4 structural comparison and key handling | Notes in `docs/schema-v8.md` §4 |
+| L8 | `.claude/` in the tree | No action here; excluded from commits by the coordinator |
+
+**Evidence** (from `app/`, uncommitted tree on 79a131b, after the Review A re-check fixes N-M1 and N-L1 to N-L4)
+- CI generated-code sequence run locally: `build_runner`, the v1–v7 steps (hash unchanged), the v8 dump (reproducible, `cmp` equal), the v8 shapes and the test snapshots (v1–v7 byte-identical).
+- `dart format --set-exit-if-changed .` exit 0; `flutter analyze --fatal-infos` exit 0.
+- Targeted, concurrency 1: `test/data/schema_v8/`, `test/architecture/`, `test/domain/library/`, `test/migration_v8/` 794 passed.
+- Full suite with coverage, concurrency 2: 2,262 passed, 1 skipped; coverage gate 92.4 % (17,620 of 19,067; minimum 80 %). These are the figures measured on this tree, which includes the WS4 commits up to 79a131b. The Review A re-check measured 2,146 tests and 92.3 % before the WS4 commits joined the branch; the WS4 tests explain the difference.
+- Not evidence of acceptance: CI has not run on these changes (not committed).
+
+**Open for 3b-4 from this register:** R-28 approach to confirm; the exact event-id formula (R-07) and provenance source values (R-08) are 3b-4 implementation details within the decided contracts.
+
+### Register R-01 to R-11: owner decisions (2026-11-06)
+The owner approved all eleven recommendations, with constraints (D04 §7, same date). Category codes (R-05), persistent identifiers: `migrated`, `preserved`, `quarantinedOrUnresolved`, `rejectedOrBlocked`, `warningForReview`. 3b-4 implements R-01 to R-11.
+
+### Register R-12 to R-24: owner decisions (2026-11-06)
+R-12 (mixed foreign keys), R-20 (application enforcement of default roles), R-14, R-15, R-22, R-23 and R-24 are approved as recommended (D04 §7, same date). R-19 was already resolved. R-13, R-16, R-17, R-18 and R-21 are deferred to stage 3c as recorded requirements. TD-44 (D05) records the v6→v7 backfill orphan.
+
+**Stage 3b status (2026-11-06):** 3b-1 accepted as foundation; 3b-3 complete; 3b-2 implemented with the register decisions, Review A re-check fixes applied, awaiting commit; 3b-4 to 3b-10 outstanding. Stage 3b as a whole is not accepted.

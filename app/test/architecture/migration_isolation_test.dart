@@ -91,9 +91,29 @@ void main() {
   test('no other production file imports the chain', () {
     final files = [
       for (final f in dartFiles('lib'))
-        if (!normalise(f.path).startsWith('$migrationDir/')) f,
+        if (!normalise(f.path).startsWith('$migrationDir/') &&
+            !normalise(f.path).startsWith('lib/data/db/v8/'))
+          f,
     ];
     expect(offenders(files), isEmpty);
+  });
+
+  test('the unconnected schema v8 imports only the bootstrap and the v8 '
+      'shapes from the chain', () {
+    // WP 8 stage 3b-2: `lib/data/db/v8/` is itself unconnected
+    // (`schema_v8_isolation_test.dart`); it may use these two chain files
+    // and nothing else of the chain.
+    const allowed = {
+      'package:repforge/data/db/migration/bootstrap_reference_v8.dart',
+      'package:repforge/data/db/migration/schema_v8_shapes.g.dart',
+    };
+    final reaching = [
+      for (final f in dartFiles('lib/data/db/v8'))
+        for (final m in importPattern.allMatches(f.readAsStringSync()))
+          if (reachesMigration(f, m.group(1)!)) asPackageUri(f, m.group(1)!),
+    ];
+    expect(reaching, isNotEmpty);
+    expect(reaching.where((u) => !allowed.contains(u)), isEmpty);
   });
 
   test('the chain imports no app, feature, UI or repository code', () {

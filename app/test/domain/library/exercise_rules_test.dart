@@ -581,6 +581,60 @@ void main() {
         isNot(contains('IC-315')),
       );
     });
+
+    test('IC-315 no override on a cardio or implement item (owner Q6), for '
+        'every source', () {
+      for (final source in ExerciseSource.values) {
+        for (final (item, forbidden) in const [
+          ('treadmill', true), // cardio
+          ('skippingRope', true), // implement
+          ('barbell', false), // load
+          ('bench', false), // support
+        ]) {
+          for (final role in EquipmentRole.values) {
+            final use = ExerciseEquipment(
+              EquipmentItemId(item),
+              roleOverride: role,
+              overrideNote: 'Editorial note.',
+            );
+            final findings = check(
+              exercise(
+                source == ExerciseSource.system ? 'lib-x' : 'user-x',
+                source: source,
+                equipment: [use],
+              ),
+            ).where((f) => f.code == 'IC-315').toList();
+            expect(
+              findings,
+              forbidden
+                  ? [
+                      isA<Finding>().having(
+                        (f) => f.severity,
+                        'severity',
+                        Severity.error,
+                      ),
+                    ]
+                  : isEmpty,
+              reason: '$source $item $role',
+            );
+          }
+        }
+        // Without an override every default role is fine.
+        expect(
+          check(
+            exercise(
+              'lib-x',
+              source: source,
+              equipment: const [
+                ExerciseEquipment(EquipmentItemId('treadmill')),
+                ExerciseEquipment(EquipmentItemId('skippingRope')),
+              ],
+            ),
+          ).codes,
+          isNot(contains('IC-315')),
+        );
+      }
+    });
   });
 
   group('attributes (IC-316)', () {

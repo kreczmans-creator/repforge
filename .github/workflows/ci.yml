@@ -49,6 +49,9 @@ jobs:
       # so they are regenerated here too, from the frozen v1..v7 snapshots
       # only: `schema steps` reads every JSON in its folder, and a later
       # drift_schema_v8.json must not change this pinned file.
+      # Schema v8 (WP 8 stage 3b-2, not connected to the app): the dump must
+      # equal a fresh dump of AppDatabaseV8, and its step shapes live in a
+      # separate file generated from the v7 and v8 snapshots only.
       - name: Verify generated code is current
         run: |
           dart run build_runner build --delete-conflicting-outputs
@@ -56,6 +59,14 @@ jobs:
           cp drift_schemas/drift_schema_v[1-7].json "$historical"/
           dart run drift_dev schema steps "$historical" lib/data/db/migration/schema_versions.g.dart
           rm -rf "$historical"
+          dump="$(mktemp -d)"
+          dart run drift_dev schema dump lib/data/db/v8/app_database_v8.dart "$dump"/
+          cmp "$dump"/drift_schema_v8.json drift_schemas/drift_schema_v8.json
+          rm -rf "$dump"
+          v8steps="$(mktemp -d)"
+          cp drift_schemas/drift_schema_v7.json drift_schemas/drift_schema_v8.json "$v8steps"/
+          dart run drift_dev schema steps "$v8steps" lib/data/db/migration/schema_v8_shapes.g.dart
+          rm -rf "$v8steps"
           git diff --exit-code -- lib
 
       - name: Format check
