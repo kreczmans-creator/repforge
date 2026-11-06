@@ -49,6 +49,10 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
   Future<void> _new() async {
     final saved = await context.push<Recipe>(RfRoutes.fuelRecipeNew);
     if (!mounted || saved == null) return;
+    if (widget.pickMode) {
+      await _open(saved);
+      return;
+    }
     await context.push<void>(RfRoutes.fuelRecipe(saved.id));
   }
 

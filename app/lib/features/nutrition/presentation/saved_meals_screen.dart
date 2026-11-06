@@ -45,7 +45,7 @@ class SavedMealsScreen extends ConsumerWidget {
           ),
         );
         final nav = Navigator.of(context);
-        if (nav.canPop()) nav.pop(true);
+        if (nav.canPop()) nav.pop(pickMode ? true : null);
       case Err(:final error):
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(userMessageFor(error))));

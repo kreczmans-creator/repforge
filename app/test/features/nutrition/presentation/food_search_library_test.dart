@@ -106,7 +106,10 @@ void main() {
   });
   tearDown(() => db.close());
 
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(
+    WidgetTester tester, {
+    String location = RfRoutes.fuelSearch,
+  }) async {
     tester.view.physicalSize = const Size(390, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -118,9 +121,7 @@ void main() {
           foodLookupServiceProvider.overrideWithValue(_NoLookup()),
           minuteTickProvider.overrideWith((ref) => const Stream.empty()),
         ],
-        child: RepForgeApp(
-          router: createRouter(initialLocation: RfRoutes.fuelSearch),
-        ),
+        child: RepForgeApp(router: createRouter(initialLocation: location)),
       ),
     );
     await tester.pumpAndSettle();
@@ -192,6 +193,43 @@ void main() {
     await open(tester);
     expect(find.byKey(const Key('search-recent')), findsNothing);
     expect(find.byKey(const Key('search-pick-recipe')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('the recent list refreshes after logging from the search '
+      'screen', (tester) async {
+    await DriftFoodRepository(db, clock: FixedClock(_now)).upsert(_food());
+    await open(tester);
+    expect(find.byKey(const Key('search-recent')), findsNothing);
+    await log.insert(_logged(foodId: 'oats'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('search-recent')), findsOneWidget);
+    expect(find.byKey(const Key('recent-food-oats')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('cancelling a library pick with back returns to search '
+      'without popping', (tester) async {
+    await DriftRecipeRepository(db, clock: FixedClock(_now)).upsert(_stew());
+    await open(tester);
+    await tapKey(tester, 'search-pick-recipe');
+    expect(find.text('Choose a recipe'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Choose a recipe'), findsNothing);
+    expect(find.byKey(const Key('food-query')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('the pick-from-library row and recents are hidden in pickOnly '
+      'mode', (tester) async {
+    await DriftFoodRepository(db, clock: FixedClock(_now)).upsert(_food());
+    await log.insert(_logged(foodId: 'oats'));
+    await open(tester, location: '${RfRoutes.fuelSearch}?pick=1');
+    expect(find.byKey(const Key('food-query')), findsOneWidget);
+    expect(find.byKey(const Key('search-pick-recipe')), findsNothing);
+    expect(find.byKey(const Key('search-pick-saved-meal')), findsNothing);
+    expect(find.byKey(const Key('search-recent')), findsNothing);
     await unmount(tester);
   });
 }
