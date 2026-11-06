@@ -597,3 +597,13 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **Deferred to stage 3c (requirements, not forgotten):** R-13 release columns on anatomy, patterns and equipment; R-16 relationships table; R-17 content table and body-length rule; R-18 media table; R-21 reference lifecycle and creation times. They must not enter version 8 now, and the version 8 design must not prevent them later.
 - **Device timing:** mandatory acceptance evidence. The harness may be completed now; real runs stay outstanding until performed on physical Android and iOS devices. Records give device model and hardware, OS version, SQLite version, database size and record counts, durations across repeated runs, outcome and errors.
 - R-12 and R-20 may now be implemented. Stage 3b stays unaccepted.
+
+### 2026-11-06 — WP 8 3b-7 backup decisions B-03, B-04, B-08, B-09; WS3 high finding (owner)
+- **B-03:** keep the device's quarantine rows on a device-wins restore (option b). Quarantine records are part of the device's migration history. Restore inserts the backup's rows, renumbers colliding ids and rewrites the merged report links.
+- **B-04:** the immutable reference field list implemented by WS3 is normative. Neither a restore nor a catalogue update may silently change reference identity or structural relationships.
+- **B-08:** only user tables and user or imported exercises count as user data. A catalogue-only backup is never an instruction to wipe user data.
+- **B-09:** a backup with unknown parts is rejected atomically. Nothing ignores unrecognised content silently.
+- **WS3 H1 (release blocker):** every restored exercise is validated against database constraints and domain invariants. A system exercise without a valid primary target is rejected. Any failing exercise rejects the whole restore; no partial row, catalogue change or selectable invalid exercise survives. The malformed backups join the regression suite. Q15 applies to domain-invalid values, not only malformed SQL values.
+- **WS3 closure evidence:** H1 fixed; four Medium findings resolved and independently re-checked; B-03 tested with migration-report links intact; B-04 documented and tested; B-08 and B-09 tested; existing equivalence, atomicity and device-wins evidence retained; full regression and four green CI workflows.
+- Strong existing evidence does not offset the domain-validation defect. The Medium fixes are not accepted merely because the High issue is resolved. WS3 stays open until the corrected work passes independent review.
+- B-01, B-02 and B-07 (with R-30) stay open.

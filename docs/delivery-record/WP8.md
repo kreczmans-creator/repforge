@@ -915,3 +915,14 @@ The owner's reconciliation asks for 3b to be refined against its sub-stages with
 - **Review of WS3, then Review C.**
 
 **Scope changes:** none to the WP total. The 3b sub-allocation is a refinement proposal awaiting owner approval.
+
+### 3b-7 review and owner decisions (2026-11-06)
+- **Independent review (WS3, commits 32739ac..79b01b8):** changes requested.
+  - **H1:** format 3 exercises were checked only against SQL rules, not domain rules (probes a–d, including a new system exercise with no primary target).
+  - **M1:** non-scalar exertion values raised exceptions.
+  - **M2:** 38 of 40 migration-report quarantine links dangled after a migrated device restored its own v7 backup.
+  - **M3:** the provenance conversion on merge was untested.
+  - **M4:** catalogue-only backups could wipe user data.
+  - **L1–L5** as listed in the review.
+  - **Verified sound:** equivalence with production restore plus migration on every clean golden; atomicity (26 injected failures, 3,804 malformed values); device wins; report merge; production isolation; architecture gates.
+- **Owner decisions:** B-03 option (b), B-04 normative, B-08, B-09 (D04 §7, same date). WS3 stays open until the corrected work passes independent review. B-01, B-02 and B-07 stay open.
