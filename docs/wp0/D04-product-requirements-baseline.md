@@ -607,3 +607,24 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **WS3 closure evidence:** H1 fixed; four Medium findings resolved and independently re-checked; B-03 tested with migration-report links intact; B-04 documented and tested; B-08 and B-09 tested; existing equivalence, atomicity and device-wins evidence retained; full regression and four green CI workflows.
 - Strong existing evidence does not offset the domain-validation defect. The Medium fixes are not accepted merely because the High issue is resolved. WS3 stays open until the corrected work passes independent review.
 - B-01, B-02 and B-07 (with R-30) stay open.
+
+### 2026-11-06 — WP 8 3b-7 B-15 (conditional) and B-16 decided (owner)
+- **B-15 (accepted, conditional on the independent re-check):**
+  - **Format 3:** full domain validation for every exercise. Catalogue completeness rules (author, description and similar) are excluded. A user exercise without a primary target is allowed only while explicitly blocked. No other domain rule is weakened.
+  - **Formats 1 and 2:** the per-exercise migration blocking stays. A system exercise without a valid primary target is rejected. Rejection is not broadened to other legacy id-format violations without evidence that the migration cannot handle them safely.
+  - **Condition:** the re-check must confirm that the migration itself does not introduce the same IC-101 problem. If it does, work stops and the inconsistency is resolved before B-15 is accepted.
+- **B-16 (accepted limitation):** the single-outcome-per-table report contract stays. WS3 adds no complexity for it. The limitation is recorded and revisited with the 3d report screen.
+- **WS3 closes only when:** B-15's migration id behaviour is verified; the conditional boundary is implemented and tested; B-16 is recorded; the final independent review confirms all fixes; the complete regression suite passes. The final WS3 report separates verified fixes, accepted limitations and outstanding risks, and never presents the work as complete while a criterion is unresolved.
+
+### 2026-11-06 — WP 8 stage 3b decision baseline: 13 decisions approved; 3b effort allocation approved (owner)
+- **R-30 / B-07 (option b):** release 1 is recorded only when the bundled file matches the exact known v7-era hash. An unknown or mismatched hash is reported and creates no record. Counts stay empty, never 0. Install-time provenance is explicit. Restored v7 backups follow the same rule.
+- **B-01 (field-level ownership):** catalogue fields: device wins; user fields: backup wins. A different system/user classification between device and backup never rejects the whole restore by itself. The 12 identified combinations get explicit regression coverage; the ownership rules decide the outcome.
+- **B-02:** a reused report event id with different content is an integrity violation; the whole restore is rejected atomically.
+- **Unreadable data:** an exercise with unreadable secondary muscles, type, category or aliases is blocked individually. Restoration never makes hidden information newly visible.
+- **C-1:** the report gains the action `corrected` and the trigger kind `userCorrection`.
+- **R-C4:** one equipment correction clears both equipment block reasons. **R-C8:** retired exercises stay usable in new work and are excluded from discovery.
+- **R-28:** invalid exertion pairs are cleared and quarantined. **R-31:** earlier damage is reported separately and never blocks. **R-32:** a crashed run keeps its run id, bound to the database file and app version. **R-33:** pre-v8 quarantine rows count as retained and are excluded from this run's quarantine total.
+- **Block-row rule codes:** IC-204 (no primary target), ADR-0008-Q12 (unknown equipment), R-02 (invalid equipment).
+- **3b effort allocation approved (4.50 points):** 3b-1 0.50, 3b-2 0.50, 3b-3 0.50, 3b-4 0.75, 3b-5 0.25, 3b-6 0.40, 3b-7 0.60, 3b-8 0.40, 3b-9 0.30, 3b-10 0.30. The 70/20/10 rule governs earned credit: 70 % commit, 20 % independent review, 10 % owner acceptance. A commit alone never earns review or acceptance credit. Approving a decision earns no credit.
+- **Not acceptance of 3b.** 3b stays unaccepted until: all approved decisions are implemented; WS3 closes with its re-check passed; B-15 is resolved with evidence; device timing passes on both platforms; Review C passes; four CI workflows pass; the delivery records hold the complete evidence trail.
+- These 13 decisions are not reopened without new contradictory evidence.
