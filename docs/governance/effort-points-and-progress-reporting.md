@@ -1,6 +1,6 @@
 # RepForge Work-Package Effort Points and Progress Reporting
 
-**Status:** Proposed programme-control standard — owner approval required before it becomes a mandatory acceptance gate  
+**Status:** Adopted programme-control standard — owner-directed 2026-11-06  
 **Applies to:** WP 0–WP 15 baseline and all subsequent work packages  
 **Branch:** `governance/effort-point-progress-reporting`
 
@@ -108,12 +108,12 @@ Where the work cannot sensibly be divided into discrete deliverables, the WP lea
 
 ## 7. Adoption and transition
 
-This standard is intended to become a requirement for all active and future RepForge work packages after owner approval.
+This standard is mandatory for all active and future RepForge work packages.
 
-On approval:
+Effective immediately:
 - WP 8 and WP 15 must add stage-level point breakdowns and include the required figures in each progress report.
 - Any other active WP must add the same section at its next substantive status update.
 - Closed WPs retain their historical delivery records. Their baseline allocations and percentages above are programme-level estimates; they are not grounds to reopen accepted work packages.
 - The programme status report must publish both full and core weighted completion, the snapshot date, and links to the underlying WP evidence.
 
-Until owner approval, this document is a proposed governance change and must not be represented as an already-authorised acceptance gate.
+The owner directed this standard into the repository on 2026-11-06. It is an active reporting requirement, not a change to any individual WP's acceptance criteria or acceptance status.
