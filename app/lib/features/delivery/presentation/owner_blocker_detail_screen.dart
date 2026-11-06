@@ -236,13 +236,13 @@ class _OwnerBlockerDetailScreenState
                   controller: _note,
                   maxLines: 3,
                   keyboardType: TextInputType.multiline,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(
-                      UpdateBlockerStatus.maxNoteLength,
-                    ),
+                  // Counts UTF-16 code units, the unit the use case checks,
+                  // so the counter and the limit always agree.
+                  inputFormatters: const [
+                    TextInputFormatter.withFunction(_limitNote),
                   ],
                   helper:
-                      '${value.text.characters.length}/'
+                      '${value.text.length}/'
                       '${UpdateBlockerStatus.maxNoteLength}',
                   onChanged: (_) => setState(() => _error = null),
                 ),
@@ -336,4 +336,23 @@ class _OwnerBlockerDetailScreenState
     return '${t.day} ${_months[t.month - 1]} ${t.year}, '
         '${two(t.hour)}:${two(t.minute)} UTC';
   }
+}
+
+/// Truncates the note to [UpdateBlockerStatus.maxNoteLength] UTF-16 code
+/// units without splitting a surrogate pair, so the counter, the limit and
+/// the use case all agree on the unit.
+TextEditingValue _limitNote(
+  TextEditingValue oldValue,
+  TextEditingValue newValue,
+) {
+  const max = UpdateBlockerStatus.maxNoteLength;
+  final text = newValue.text;
+  if (text.length <= max) return newValue;
+  var cut = max;
+  final last = text.codeUnitAt(cut - 1);
+  if (last >= 0xD800 && last <= 0xDBFF) cut--;
+  return TextEditingValue(
+    text: text.substring(0, cut),
+    selection: TextSelection.collapsed(offset: cut),
+  );
 }

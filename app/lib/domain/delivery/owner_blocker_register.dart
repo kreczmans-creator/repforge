@@ -796,8 +796,10 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'human reviewer only for WP 8 stage 3b (migration and user data).',
     consequences:
         'Requiring a human reviewer everywhere delays every acceptance '
-        'until one is available; accepting agent reviews moves the review '
-        'credit lines (WP 15 0.10, WP 17 0.50) to earned once recorded.',
+        'until one is available; accepting agent reviews lets the WP 15 '
+        'review line (0.10) and the S3/S4 share of the WP 17 review line '
+        '(0.50 for S3, S4 and S6; S6 has had no review) be earned once '
+        'recorded.',
     evidence: [
       BlockerEvidence(
         'WP 15 review section',

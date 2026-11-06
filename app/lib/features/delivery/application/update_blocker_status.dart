@@ -12,7 +12,8 @@ final class UpdateBlockerStatus {
     required this.register,
   });
 
-  /// Longest note accepted, in characters.
+  /// Longest note accepted, in UTF-16 code units (`String.length`); the
+  /// note field limits and counts in the same unit.
   static const maxNoteLength = 500;
 
   final SettingsRepository repository;
@@ -61,9 +62,10 @@ final class UpdateBlockerStatus {
     );
     final BlockerState saved;
     try {
-      final earlier = (await repository.readBlockerStates())[blockerId];
-      saved = BlockerState.after(earlier, change);
-      await repository.saveBlockerState(blockerId, saved);
+      saved = await repository.saveBlockerState(
+        blockerId,
+        BlockerState.after(null, change),
+      );
     } on Object catch (e) {
       // Any failure, including a TypeError from foreign stored data, is a
       // storage error to the caller; nothing may escape the use case.

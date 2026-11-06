@@ -393,7 +393,8 @@ void main() {
     for (final scale in [1.0, 2.0]) {
       testWidgets('every real register entry renders in ${brightness.name} at '
           '${scale}x text, 360 px wide', (tester) async {
-        tester.view.physicalSize = const Size(360, 900);
+        // Tall enough that the lazy list lays out every section.
+        tester.view.physicalSize = const Size(360, 6000);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.reset);
         for (final b in ownerBlockerRegister) {

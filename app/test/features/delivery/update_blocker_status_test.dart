@@ -20,9 +20,15 @@ class _FakeRepo implements SettingsRepository {
   }
 
   @override
-  Future<void> saveBlockerState(String blockerId, BlockerState state) async {
+  Future<BlockerState> saveBlockerState(
+    String blockerId,
+    BlockerState state,
+  ) async {
     if (fail) throw Exception('disk full');
-    saved[blockerId] = state;
+    return saved[blockerId] = BlockerState.after(
+      saved[blockerId],
+      state.current,
+    );
   }
 
   @override

@@ -77,7 +77,7 @@ void main() {
 
     test('dependencies that name a blocker id point at a registered id', () {
       final ids = ownerBlockerRegister.map((b) => b.id).toSet();
-      final idRef = RegExp(r'OB-WP\d+-\d{2}');
+      final idRef = RegExp(r'OB-(WP\d+|PROG)-\d{2}');
       for (final b in ownerBlockerRegister) {
         for (final d in b.dependencies) {
           for (final m in idRef.allMatches(d)) {
@@ -230,6 +230,18 @@ void main() {
       );
       expect(merged, contains('"extra":1'));
       expect(BlockerStateCodec.decode(merged)['OB-WP8-01'], s);
+      final ownUnreadable = BlockerStateCodec.merge(
+        '{"OB-WP8-01":{"status":"deferred","updatedAt":"x"}}',
+        'OB-WP8-01',
+        s,
+      );
+      expect(
+        ownUnreadable,
+        contains(
+          '"OB-WP8-01#unreadable-1":{"status":"deferred","updatedAt":"x"}',
+        ),
+      );
+      expect(BlockerStateCodec.decode(ownUnreadable)['OB-WP8-01'], s);
       expect(BlockerStateCodec.merge(null, 'a', s), isNotEmpty);
       expect(BlockerStateCodec.merge('  ', 'a', s), isNotEmpty);
       expect(

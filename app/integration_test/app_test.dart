@@ -234,13 +234,12 @@ void main() {
     await scrollTo(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
     await tester.tap(find.byKey(const Key('blocker-row-OB-WP8-01')));
     await pumpUntil(tester, find.byKey(const Key('blocker-status-choice')));
-    await scrollTo(tester, find.byKey(const Key('blocker-save-status')));
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const Key('blocker-status-choice')),
-        matching: find.text('In progress'),
-      ),
+    final inProgress = find.descendant(
+      of: find.byKey(const Key('blocker-status-choice')),
+      matching: find.text('In progress'),
     );
+    await scrollTo(tester, inProgress);
+    await tester.tap(inProgress);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('blocker-note-field')),

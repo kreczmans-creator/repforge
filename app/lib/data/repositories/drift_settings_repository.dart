@@ -175,16 +175,16 @@ final class DriftSettingsRepository implements SettingsRepository {
   /// that is not a JSON object makes the save fail (see
   /// [BlockerStateCodec.merge]) instead of being overwritten.
   @override
-  Future<void> saveBlockerState(String blockerId, BlockerState state) =>
+  Future<BlockerState> saveBlockerState(String blockerId, BlockerState state) =>
       _db.transaction(() async {
         final raw = await _readValue(_blockerStates);
         final earlier = BlockerStateCodec.decode(raw)[blockerId];
-        final merged = BlockerStateCodec.merge(
-          raw,
-          blockerId,
-          BlockerState.after(earlier, state.current),
+        final stored = BlockerState.after(earlier, state.current);
+        await _writeValue(
+          _blockerStates,
+          BlockerStateCodec.merge(raw, blockerId, stored),
         );
-        await _writeValue(_blockerStates, merged);
+        return stored;
       });
 
   static AppSettings _fromRows(List<SettingRow> rows) {

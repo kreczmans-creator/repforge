@@ -307,12 +307,22 @@ abstract final class BlockerStateCodec {
 
   /// [raw] with [blockerId] set to [state] and everything else unchanged.
   /// Throws [FormatException] when [raw] is present but is not a JSON
-  /// object, so the caller refuses rather than overwrites.
+  /// object, so the caller refuses rather than overwrites. A stored entry
+  /// for [blockerId] that this build cannot read is moved aside under
+  /// `<id>#unreadable-<n>` instead of being replaced, so no data is lost.
   static String merge(String? raw, String blockerId, BlockerState state) {
     if (raw != null && raw.trim().isNotEmpty && _object(raw) == null) {
       throw const FormatException('ownerBlockerStates is not a JSON object');
     }
     final map = Map<String, Object?>.of(_object(raw) ?? const {});
+    final existing = map[blockerId];
+    if (existing != null && BlockerState.fromJson(existing) == null) {
+      var n = 1;
+      while (map.containsKey('$blockerId#unreadable-$n')) {
+        n++;
+      }
+      map['$blockerId#unreadable-$n'] = existing;
+    }
     map[blockerId] = state.toJson();
     return jsonEncode(map);
   }

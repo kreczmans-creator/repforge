@@ -73,6 +73,7 @@ abstract interface class SettingsRepository {
   Stream<Map<String, BlockerState>> watchBlockerStates();
   Future<Map<String, BlockerState>> readBlockerStates();
 
-  /// Records [state] for [blockerId], replacing any earlier entry.
-  Future<void> saveBlockerState(String blockerId, BlockerState state);
+  /// Records the current change of [state] for [blockerId] on top of the
+  /// stored history of that blocker and returns what was stored.
+  Future<BlockerState> saveBlockerState(String blockerId, BlockerState state);
 }
