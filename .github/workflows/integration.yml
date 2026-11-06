@@ -36,12 +36,13 @@ jobs:
       # full ("FATAL | Not enough space to create userdata partition.
       # Available: 7255 MB ... need 7372 MB", run 42305104781; the same
       # symptom on main run 42293964654). Removing tool-chains this job never
-      # uses frees about 20 GB, and the explicit partition size below keeps
-      # the requirement well under what is left.
+      # uses frees space, and the explicit partition size below keeps the
+      # requirement well under what is left. The NDK stays: the app build
+      # needs it, and run 42307776044 spent 11 minutes re-downloading it.
       - name: Free disk space
         run: |
           df -h / | tail -1
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL" || true
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL" || true
           df -h / | tail -1
 
       - name: Set up JDK 17
