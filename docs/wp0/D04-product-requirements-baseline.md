@@ -426,3 +426,37 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **Stage 3a technical delivery accepted at f2f9e9e**, subject to recording the final X1 boundary wording.
 - **Stage 3b authorised**, beginning with the table-rebuild comparison trial (5,000 exercises, 100,000 sets; performance, integrity, crash recovery). Mandatory before the migration is finalised or committed: trial documented and returned to the owner; value equality; crash recovery; foreign-key integrity; migration from every supported schema; backup formats 1–3; independent review.
 
+### 2026-11-06 — WP 8 stage 3b approach decisions; letter folds; X1 precedence (owner)
+- **Comparison trial** (77b1d4c): the owner accepts it as evidence for the approach, not as acceptance of the migration.
+- **`exercises`:** option A, table rebuild, is the canonical path. The owner rejects B3 if it leaves a definition different from a fresh install.
+- **TRN-020:** rebuild `session_sets`; the table definition enforces the RPE and RIR rules. The migration keeps valid values. It reports and quarantines invalid legacy values and never silently rounds or corrects them.
+- **Foreign keys:**
+  - The migration checks the affected tables and relationships, including exercise and set references.
+  - The test campaign adds a full `foreign_key_check` and `integrity_check`.
+  - A whole-database check is not the only startup gate where unrelated existing damage could block access unnecessarily.
+  - The report shows any broader failure separately and never ignores it silently.
+- **No primary target:** block and report. No placeholder and no blanket legacy exception. The report lists every affected exercise id and its current data. Acceptance needs an explicit, reviewed disposition for every affected record.
+- **Migration report:**
+  - Minimum categories: migrated successfully; preserved unchanged; quarantined or unresolved; rejected or blocked; warnings requiring review.
+  - Each record shows stable id, original value, field, reason and disposition. Counts reconcile.
+  - The owner has not approved detailed labels.
+- **Schema version 8:** the migration writes it inside its transaction. It becomes visible only after all work and checks succeed. A rollback leaves version 7.
+- **Backup v3:**
+  - A complete, self-consistent contract with user, reference and catalogue data, stable ids and relationships.
+  - It states its format and schema version. Restore validates it before changing anything.
+  - Restore is atomic and keeps the reference tables. It supports formats 1 to 3. A version 7 backup never fails part-way.
+  - A settings-only backup stays valid; a structurally empty one stays invalid.
+- **Versions 2 to 6:** frozen schemas and representative fixtures are required evidence. They prove each supported upgrade path, including the known version 5 to 6 incompatibility. Nobody rewrites them.
+- **Device timing** is an acceptance condition. It uses representative Android and iOS devices, the bundled SQLite and realistic data. Records give device, OS, database size, elapsed time and outcome.
+- **Implementation latitude:** the team chooses SQL and mechanics, subject to independent review.
+  - It invents and weakens no domain rule, and keeps the accepted TRN-020 semantics.
+  - It transforms no legacy value silently.
+  - It documents every backup and restore assumption for owner approval.
+- **Name keys:** fold `ø`→`o`, `đ`→`d`, `ł`→`l`, `æ`→`ae`, `œ`→`oe`, both cases, in comparison and duplicate keys only. Other letters stay distinct; no general transliteration.
+- **X1:** the owner approves both precedence rules. Elbow and floor are no longer mandatory conditions; "typically" fits where they are descriptive. The exact thresholds and inclusive or exclusive wording must be visible in the decision record. The precedence rules must be unambiguous at boundary cases. X1 stays open until the owner signs off the table and boundary cases in `delivery-record/WP8.md`.
+- **Stage 3b acceptance** needs:
+  - evidence for upgrades from versions 1 to 6 and for backup formats 1 to 3;
+  - recovery after a real process kill;
+  - restore that keeps the reference tables;
+  - device timing and independent review.
+- **Migration:** stays unimplemented until the project resolves the remaining evidence and the disposition of all 303 records.

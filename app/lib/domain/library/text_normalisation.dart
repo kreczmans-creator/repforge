@@ -17,11 +17,13 @@
 /// diacritic mark ranges and the lower-case map are generated too. A character
 /// outside the table has no decomposition and stays as it is.
 ///
-/// Letters without an NFKD decomposition stay distinct: `ø`, `đ`, `ł`, `ħ`,
-/// `ŧ`, `ı`, `æ` and `œ` are not folded to `o`, `d`, `l`, `h`, `t`, `i`,
-/// `ae` and `oe`. Case folding lower-cases each code point by the generated
-/// map (not by the platform's `toLowerCase`) and adds `ß` to `ss` and the
-/// final sigma `ς` to `σ`. Display names are never changed; only the key is.
+/// Case folding lower-cases each code point by the generated map (not by the
+/// platform's `toLowerCase`). It then adds `ß` to `ss` and the final sigma
+/// `ς` to `σ`. Five letters have no NFKD decomposition; by owner decision
+/// (2026-11-06) the key folds them: `ø` to `o`, `đ` to `d`, `ł` to `l`,
+/// `æ` to `ae` and `œ` to `oe`. Upper-case forms fold the same way. Other
+/// such letters (for example `ħ`, `ŧ`, `ı`) stay distinct: this is not a
+/// transliteration. Display names are never changed; only the key is.
 library;
 
 import 'package:repforge/domain/library/text_normalisation_table.g.dart';
@@ -73,12 +75,17 @@ bool _isMark(int rune) {
 }
 
 /// Case-folds one code point with the generated lower-case map, then `ß` to
-/// `ss` and final sigma to sigma.
+/// `ss`, final sigma to sigma, and the five owner-approved letters.
 String _caseFold(int rune) {
   final lower = lowerCaseMap[rune] ?? rune;
   return switch (lower) {
     0xDF => 'ss',
     0x3C2 => 'σ',
+    0xF8 => 'o', // ø
+    0x111 => 'd', // đ
+    0x142 => 'l', // ł
+    0xE6 => 'ae', // æ
+    0x153 => 'oe', // œ
     _ => String.fromCharCode(lower),
   };
 }

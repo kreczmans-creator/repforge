@@ -209,7 +209,7 @@ void main() {
       expect(norm('Crème brûlée'), 'creme brulee');
       expect(norm('Ångström'), 'angstrom');
       expect(norm('Señor ÑANDÚ'), 'senor nandu');
-      expect(norm('Łódź'), 'łodz'); // ł has no decomposition
+      expect(norm('Łódź'), 'lodz'); // ł folds by owner decision
       expect(norm('Žižek Čapek Šuma'), 'zizek capek suma');
     });
 
@@ -229,22 +229,37 @@ void main() {
       expect(norm('Ẩ'), 'a');
     });
 
-    test(
-      'ø, đ, æ, œ, ł, ħ, ı have no NFKD decomposition and stay distinct',
-      () {
-        // Documented behaviour: the key keeps these letters, so "Søren" does
-        // not equal "Soren". Only ß is folded, to ss, by case folding.
-        expect(norm('Søren'), 'søren');
-        expect(norm('Søren'), isNot(norm('Soren')));
-        expect(norm('Đ'), 'đ');
-        expect(norm('Æther'), 'æther');
-        expect(norm('Œuvre'), 'œuvre');
-        expect(norm('Straße'), 'strasse');
-        expect(norm('ẞ'), 'ss');
-        expect(norm('ı'), 'ı');
-        expect(norm('İ'), 'i'); // I with dot above decomposes to I + U+0307
-      },
-    );
+    test('ø, đ, ł, æ, œ fold by owner decision; ħ, ŧ, ı stay distinct', () {
+      // Owner decision 2026-11-06: the comparison key folds these five
+      // letters (both cases). Other undecomposable letters stay distinct.
+      expect(norm('Søren'), 'soren');
+      expect(norm('Søren'), norm('Soren'));
+      expect(norm('SØREN'), norm('soren'));
+      expect(norm('Đ'), 'd');
+      expect(norm('đ'), 'd');
+      expect(norm('Łódź'), 'lodz');
+      expect(norm('ŁÓDŹ'), norm('lodz'));
+      expect(norm('Æther'), 'aether');
+      expect(norm('ÆTHER'), norm('aether'));
+      expect(norm('Œuvre'), 'oeuvre');
+      expect(norm('ŒUVRE'), norm('oeuvre'));
+      expect(norm('ǿ'), 'o'); // ø with acute decomposes, then folds
+      expect(norm('ǽ'), 'ae'); // æ with acute decomposes, then folds
+      expect(norm('Ǿ'), 'o');
+      expect(norm('Ǣ'), 'ae');
+      expect(norm('ǣ'), 'ae');
+      expect(norm('ħ'), 'ħ');
+      expect(norm('ŧ'), 'ŧ');
+      expect(norm('Ð'), 'ð'); // looks like Đ but stays distinct
+      expect(norm('Ðuro'), isNot(norm('Duro')));
+      expect(norm('Þor'), 'þor');
+      // Not a transliteration: no Scandinavian ø to oe.
+      expect(norm('Søren'), isNot(norm('Soeren')));
+      expect(norm('Straße'), 'strasse');
+      expect(norm('ẞ'), 'ss');
+      expect(norm('ı'), 'ı');
+      expect(norm('İ'), 'i'); // I with dot above decomposes to I + U+0307
+    });
 
     test('compatibility ligatures and characters expand', () {
       expect(norm('ﬁnish'), 'finish');
@@ -353,8 +368,12 @@ void main() {
     test('accent-only differences merge, base-letter differences do not', () {
       expect(norm('résumé'), norm('resume'));
       expect(norm('resume'), isNot(norm('resumé s')));
-      expect(norm('Søren'), isNot(norm('Soren'))); // ø stays
-      expect(norm('Mo'), isNot(norm('Mø')));
+      expect(norm('Søren'), norm('Soren')); // ø folds (owner decision)
+      expect(norm('Søren'), isNot(norm('Saren')));
+      expect(norm('Mø'), isNot(norm('Ma')));
+      expect(norm('Æble'), isNot(norm('Able')));
+      expect(norm('Œil'), isNot(norm('Oil')));
+      expect(norm('Łapa'), isNot(norm('Tapa')));
       expect(norm('ﬁre'), isNot(norm('ﬂire')));
       expect(norm('ＡＢ'), isNot(norm('ＡＣ')));
       expect(norm('１２'), isNot(norm('１３')));
@@ -393,6 +412,22 @@ void main() {
         ]).codes,
         contains('IC-501'),
       );
+      for (final pair in [
+        ['Søren raise', 'Soren raise'],
+        ['ŁYDKA raise', 'lydka raise'],
+        ['Æble press', 'aeble press'],
+        ['Œil curl', 'OEIL CURL'],
+        ['Đuro row', 'Duro row'],
+      ]) {
+        expect(
+          names([
+            exercise('lib-a', name: pair[0]),
+            exercise('lib-b', name: pair[1]),
+          ]).codes,
+          contains('IC-501'),
+          reason: pair.join(' / '),
+        );
+      }
     });
 
     test('no IC-501 or IC-502 for distinct names', () {
@@ -400,7 +435,7 @@ void main() {
         exercise('lib-a', name: 'Press'),
         exercise('lib-b', name: 'Presse'),
         exercise('lib-c', name: 'Søren raise'),
-        exercise('lib-d', name: 'Soren raise'),
+        exercise('lib-d', name: 'Saren raise'),
         exercise('lib-e', name: 'Αλφα'),
         exercise('lib-f', name: 'Βητα'),
       ]);

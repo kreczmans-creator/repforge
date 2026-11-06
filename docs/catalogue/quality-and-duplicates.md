@@ -86,6 +86,8 @@ Stored kinds: `variationOf`, `progressionOf`, `alternativeTo`, `unilateralCounte
 ### IC-500 Names and aliases
 Normalisation function `norm(text)`: Unicode NFKD; remove combining marks; lower-case; replace hyphens, dashes, slashes and underscores with a space; delete apostrophes; delete other punctuation; collapse spaces; trim. `squash(text)` is `norm(text)` with all spaces removed.
 
+*Implementation note (2026-11-06, owner decisions; see `delivery-record/WP8.md`):* `norm` removes only combining-diacritic marks. It lower-cases by a generated map and folds `ß` to `ss` and `ς` to `σ`. It also folds `ø`, `đ`, `ł`, `æ`, `œ` (both cases) to `o`, `d`, `l`, `ae`, `oe`. No other transliteration applies.
+
 | Code | Rule | Severity |
 |---|---|---|
 | IC-501 | `norm(name)` is unique across exercises in the release | error |

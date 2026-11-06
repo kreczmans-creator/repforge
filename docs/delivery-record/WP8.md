@@ -297,14 +297,19 @@ The assisted dip stays hidden under every rule. Release 2 now reports IC-412 19,
 - The apostrophe set now includes U+02BC, U+1FFD and U+1FEF, so "Farmerʼs" equals "Farmer's".
 - Spacing accents such as `¨` decompose to a space and break words. The acute accent `´` is deleted like an apostrophe.
 - The analyzer and the coverage gate already exclude `*.g.dart`.
-- **Behaviour change:** letters with no NFKD decomposition stay as they are. These letters no longer fold: `ø` to `o`, `đ` to `d`, `ł` to `l`, `ħ` to `h`, `ŧ` to `t`, `ı` to `i`, `æ` to `ae`, `œ` to `oe`. So "Søren" and "Soren" are different keys.
+- *Decided 2026-11-06 (owner):* the comparison key folds five letters with no NFKD decomposition.
+  - `ø` to `o`, `đ` to `d`, `ł` to `l`, `æ` to `ae`, `œ` to `oe`. Upper-case forms fold the same way.
+  - "Søren" and "Soren" share one key. "Søren" and "Soeren" do not.
+  - Other such letters (`ħ`, `ŧ`, `ı`, `ð`, `þ`) stay distinct. The fold is not a general transliteration.
+  - Display names and stored content never change.
+  - Tests cover matching, non-matching and case variants, and IC-501 duplicate keys.
 
 #### Open questions for the owner
-1. Keep strict NFKD for `ø`, `đ`, `ł`, `ħ`, `ŧ`, `ı`, `æ` and `œ`? Or add a small documented fold supplement?
-2. Confirm the X1 wording in the table below.
+1. *Decided 2026-11-06:* fold `ø`, `đ`, `ł`, `æ`, `œ` (see above).
+2. Confirm the X1 wording in the table below. *2026-11-06: The owner approved the two precedence rules. The owner removed elbow and floor as mandatory conditions; "typically" fits where they are descriptive. The exact thresholds and inclusive or exclusive wording must be visible in this record. The precedence rules must be unambiguous at boundary cases. X1 stays open until the owner signs off the table and boundary cases below.*
 
 ### Stage 3a owner decisions — implementation (X1 boundary texts for owner confirmation)
-The owner approved the cut points in principle on 2026-11-06: bench 10 degrees, arm 20 and 135 degrees, knee 10 degrees. A bench tilted 5 degrees head-down is flat. The thresholds and classifiers stay unchanged. **X1 stays open until the owner confirms the wording below.**
+The owner approved the cut points in principle on 2026-11-06. They are: bench 10 degrees, arm 20 and 135 degrees, knee 10 degrees. A bench tilted 5 degrees head-down is flat. The thresholds and classifiers stay unchanged. **X1 stays open until the owner signs off the table and boundary cases below.**
 
 The Text column quotes `AttributeVocabulary` verbatim. The Interval column describes `AttributeBoundaries`. A test checks each range in 0.5 degree steps and at every cut point, plus and minus 0.000001. It uses an interval table written separately from the code. Each value lies in exactly one band.
 
@@ -330,6 +335,33 @@ The Text column quotes `AttributeVocabulary` verbatim. The Interval column descr
 - Arm position: the numeric bands leave no gap. Direction and support are inputs, so two texts could overlap. The precedence sentences now settle both cases. A supported arm wins at every angle. A behind arm wins over overhead.
 - With the precedence sentences, each text matches its classifier, and each input maps to exactly one value.
 - Outside the stated ranges, no value is assigned. Those rows are derived, not texts.
+
+**Boundary cases.** The code checks arm position in this order:
+1. Outside 0 to 180: no value.
+2. On a support: supportedInFront.
+3. 20 or less: besideBody.
+4. Behind: behindBody.
+5. More than 135: overhead.
+6. Otherwise forward gives flexed90, and lateral gives abducted90.
+
+| Input | Value |
+|---|---|
+| Bench −90 or −10.000001 | decline |
+| Bench −90.000001 | no value |
+| Bench −10, −5, 0 or +10 | flat |
+| Bench +10.000001 or +45 | incline |
+| Bench +45.000001 | no value |
+| Knee 0 or 10 | straight |
+| Knee 10.000001 or 180 | bent |
+| Knee −0.000001 or 180.000001 | no value |
+| Arm on a support, any angle 0 to 180, any direction | supportedInFront |
+| Arm on a support, −0.000001 or 180.000001 | no value |
+| Arm unsupported, −0.000001 or 180.000001 | no value |
+| Arm 0 or 20, unsupported, any direction (behind included) | besideBody |
+| Arm 20.000001 or 135, forward | flexed90 |
+| Arm 20.000001 or 135, lateral | abducted90 |
+| Arm 20.000001, 135, 135.000001 or 180, behind | behindBody |
+| Arm 135.000001 or 180, forward or lateral | overhead |
 
 **Approved reference texts differ.** The texts in `docs/catalogue/reference/coverage.json` and `coverage-matrix.md` use "about" wording, no precedence rule and the elbow conditions. This work leaves those files unchanged. The owner aligns them after confirming the wording above.
 
@@ -488,6 +520,7 @@ Production deletes **all** current tables (`drift_backup_repository.dart:93`). I
 - **Device timing:** measure the chosen option on a mid-range Android phone and an iPhone before acceptance.
 
 ### Owner decisions needed
+*Decided 2026-11-06: see "Stage 3b owner decisions" below. Items 5 and 10 are partly open: the owner set the minimum report structure but not the labels. Implementation settles the item 10 technical details, subject to review.*
 1. **`exercises` change:** option A or B3 (recommendation: A).
 2. **TRN-020 mechanism:** T-A rebuild, T-C `ADD CONSTRAINT` with a version guard, or T-B triggers (recommendation: T-A).
 3. **Foreign-key check scope:** check the whole database, check only rebuilt and new tables, or quarantine and report existing orphans. A whole-database check can lock a user out. A scoped check reduces that risk but does not remove it.
@@ -505,3 +538,55 @@ Production deletes **all** current tables (`drift_backup_repository.dart:93`). I
 - Local gate (from `app/`): `dart format` 0 changed; `flutter analyze --fatal-infos` no issues; `flutter test --coverage` 1,819 passed, 1 skipped; coverage gate 93.0 % (minimum 80 %).
 - The default run skips the tagged trial. The trial run (`--run-skipped --tags trial`, concurrency 1) passed 32 of 32.
 - No migration is implemented. `schemaVersion` stays 7. The owner chooses the approach before stage 3b implementation starts.
+
+## Stage 3b owner decisions (2026-11-06)
+The owner accepted the comparison trial as evidence for the approach. It is not acceptance of the migration. Passing trial tests show only that the trial behaves as tested. They do not show that a production migration is safe for every historical database and backup format.
+
+1. **`exercises`:** option A, table rebuild, is the canonical path. The owner rejects B3 if it leaves a table definition different from a fresh install.
+2. **TRN-020:** rebuild `session_sets`. The table definition enforces the approved RPE and RIR rules.
+   - The migration keeps every existing valid value.
+   - It reports and quarantines invalid legacy values. It never silently rounds or corrects them.
+3. **Foreign-key checks:**
+   - The migration checks the affected tables and every relationship the rebuild could change, including exercise and set references.
+   - The migration test campaign also runs a full `PRAGMA foreign_key_check` and `PRAGMA integrity_check`.
+   - A whole-database check is not the only startup gate where unrelated existing damage could block access unnecessarily.
+   - The report shows any broader failure separately and never ignores it silently.
+4. **Exercises with no primary target:** block and report.
+   - No placeholder target and no blanket legacy exception.
+   - The report lists every affected exercise id and its current data.
+   - The owner accepts the migration only after an explicit, reviewed disposition for every affected record (303 in the trial fixture).
+5. **Migration report, minimum structure:**
+   - Categories: migrated successfully; preserved unchanged; quarantined or unresolved; rejected or blocked; warnings requiring review.
+   - Each affected record shows its stable id, original value, affected field, reason and disposition.
+   - Counts reconcile to the records examined.
+   - The owner has not approved detailed labels. This is the minimum structure.
+6. **Schema version:** the migration writes version 8 inside its own transaction. Version 8 becomes visible only after all work and required checks succeed. A rollback leaves version 7.
+7. **Backup v3:** a complete, self-consistent backup contract.
+   - It holds the user data and the reference and catalogue data required to restore the database.
+   - It keeps stable ids and relationships, and states its format and schema version.
+   - Restore validates the backup before it changes anything. Restore is atomic and never erases reference tables.
+   - Restore supports formats 1, 2 and 3. A version 7 backup must never fail part-way.
+   - A backup with settings but no user records stays valid. A structurally empty backup stays invalid.
+8. **Versions 2 to 6:** frozen historical schemas and representative fixtures are required migration evidence, not optional fixtures.
+   - They prove each supported upgrade path, including the known version 5 to 6 incompatibility.
+   - Nobody rewrites historical fixtures to match the new implementation.
+9. **Device timing:** an acceptance condition.
+   - Run the migration on representative Android and iOS devices with the bundled SQLite and realistic data.
+   - Record device, OS, database size, elapsed time and outcome.
+   - Host timing is comparison evidence only.
+10. **Version 8 constraint assumptions:** the implementation team may choose the SQL and migration mechanics, subject to independent review.
+    - It may not invent or weaken domain rules, or change accepted TRN-020 semantics.
+    - It may not silently transform legacy values.
+    - It documents every backup and restore assumption for owner approval.
+
+**Gates.** Stage 3b acceptance needs:
+- evidence for upgrades from versions 1 to 6;
+- evidence for backup formats 1 to 3;
+- recovery after a real process kill;
+- restore that keeps the reference tables;
+- device timing;
+- independent review.
+
+The migration stays unimplemented until the project resolves the remaining evidence and the disposition of all 303 records.
+
+**Review and gate for this record and the letter folds.** An independent review (opus) ran twice. It raised D1–D15, C1–C3, then R1–R9; all are fixed. Local gate: `dart format` 0 changed; analyzer no issues; 1,819 tests passed, 1 skipped; coverage 93.0 %.

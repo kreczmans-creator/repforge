@@ -6,7 +6,7 @@
 // 5857 decomposition entries (all planes, Hangul syllables excluded),
 // 8 combining-diacritic mark ranges and 1432 lower-case entries.
 // A code point without a decomposition entry stays as it is (for example
-// U+00F8 and U+0111).
+// U+0127 and U+0131).
 library;
 
 /// Unicode version of the data below.
