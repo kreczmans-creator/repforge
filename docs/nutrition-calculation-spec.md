@@ -1,6 +1,7 @@
 # RepForge nutrition calculation specification (NUT-017)
 
 - Status: **APPROVED by the owner — revision 1.3, 2026-11-05.** Normative. Implemented and independently verified at 7c62e9c. (§4 approved 2026-11-04.)
+- **Revision 1.4 proposed (2026-11-06, WP 15 stage 1):** §2.3 entry units and examples E42–E49 (`app/test/domain/nutrition_spec_examples_units_test.dart`). Revision 1.3 remains the approved text until the owner approves 1.4.
 - Scope: every nutrition figure the app stores, totals, averages, labels or displays: foods, diary entries, day and week summaries, saved meals, recipes, meal plans.
 - Normative: code that calculates nutrition must follow this document. A change to a rule here needs a new revision of this document and updated worked examples. The worked examples in §10 are executed as automated tests (`app/test/domain/nutrition_spec_examples_test.dart`); test ids match the example ids.
 - Open decision: **§4 carbohydrate convention (D04 OQ-14)** is written as current behaviour with a recommendation; it needs the owner's decision.
@@ -15,7 +16,7 @@
 ## 2. Quantities and storage precision
 1. Quantities are stored in canonical metric units (g, ml) as entered, **rounded to 0.1** of the unit at entry: to the nearest step of the stored binary value, with exact binary ties away from zero. A decimal input such as 12.35 or 1.255 is not exactly representable in binary and may round down (12.3, 1.25); inputs are limited to the stored precision, so a user cannot type a finer value. Amounts must be greater than 0 to be logged. **Portion counts** (recipe portions logged, planned recipe portions, prepared-batch portions made and remaining, saved-meal multipliers) are stored to **0.01** (same rounding rule as above) and never to a coarser step: 1.25 portions is stored and calculated as 1.25, not 1.3; 1.234 becomes 1.23. Portion inputs accept two decimals. Recipe portion counts (§9.2) and derived portions (§9.3) are numbers in their own right and are not rounded for calculation. (Revision 1.3, owner decision 2026-11-04: a 0.1 step would introduce up to 4 % error into logged nutrition.)
 2. Nutrient values are calculated from the stored quantity and stored at **full double precision**. There is **no intermediate rounding** in any calculation.
-3. Unit conversions (GEN-004): 1 kg = 1000 g, 1 l = 1000 ml, 1 mg = 0.001 g, exactly. **Not yet implemented:** no entry path accepts kg, l or mg today (NUT-022 entry is open), so these rules have no code and no executed example; they bind the first package that adds such entry. Imperial units are display-only (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); imperial entry is not offered.
+3. Unit conversions (GEN-004): 1 kg = 1000 g, 1 l = 1000 ml, 1 mg = 0.001 g, exactly. **Entry units (WP 15, revision 1.4 proposed):** an entry unit (`EntryUnit`: g, kg, mg, ml, l) converts to its own reference basis only, by its exact factor, and the result is then stored by rule 2.1 (0.1 g or 0.1 ml). Entry fields accept as many decimals as the stored step allows: 4 for kg and l (0.0001 kg = 0.1 g), 1 for g and ml, 0 for mg. Because mg are finer than the stored step, an mg entry rounds to 0.1 g (250 mg → 0.3 g, an exact binary tie rounding away from zero); mg entry is therefore offered only where the owner decides it is meaningful. A food measured per 100 ml offers only ml and l; a food measured per 100 g offers only g and kg (and mg where offered). There is no density in the model, so no mass↔volume conversion exists (NUT-022(2)). Display of a stored quantity in an entry unit is the exact division (250 g → 0.25 kg). Imperial units are display-only (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); imperial entry is not offered (D04 OQ-02 open).
 
 ## 3. Display rounding
 1. Rounding happens only for display. The stored value is rounded to the displayed number of decimals; an exact tie in the stored binary value rounds away from zero (for example 2.5 → 3, 131.25 → 131.3 at one decimal).
@@ -103,6 +104,14 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | E39 | 2.1, 9.5 | log 1.25 portions of a recipe at 400 kcal and P 30 per portion | stored 1.25 portions (not 1.3); 500 kcal, P 37.5; diary row "1.25 portions" |
 | E40 | 2.1 | log 1.234 portions of the E39 recipe | stored 1.23 portions; 492 kcal |
 | E41 | 2.1 | prepared batch of 2 portions; consume 0.75, then 1.25 | 1.25 left, then 0 left (never below 0) |
+| E42 | 2.3 | 0.25 kg entered | stored 250 g, shown "250 g"; back in kg 0.25 |
+| E43 | 2.3 | 1 kg; 1 l | exactly 1000 g; exactly 1000 ml |
+| E44 | 2.3, 2.1 | 1.2345 kg; 0.0001 l | 1234.5 g; 0.1 ml (fourth decimal of kg or l is the stored step) |
+| E45 | 2.3, 2.1 | 1.23456 kg | cannot be typed (kg fields take 4 decimals); through the API 1234.6 g. Note: an API amount finer than the field precision is converted as a binary product and then rounded by rule 2.1, which can differ from typing the equivalent grams directly (0.00245 kg → 2.4 g, whereas 2.45 g typed → 2.5 g); entry fields never reach this case (review R15-06) |
+| E46 | 2.3, 2.1 | 250 mg; 500 mg; 1000 mg | 0.3 g (tie away from zero); 0.5 g; 1 g |
+| E47 | 2.3, 1.3 | 0.5 l Milk | 500 ml → 320 kcal, P 17, C 24, F 18, fibre unknown |
+| E48 | 2.3 | units offered for Milk (per 100 ml) | ml and l only; no g or kg (no density, NUT-022(2)) |
+| E49 | 2.3 | 250 g → kg → g; 1234.5 g shown in kg | 0.25 → 250 within 0.001; "1.2345" |
 
 ## 11. Change history
 | Revision | Date | Change |
@@ -112,3 +121,4 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | 1.2 | 2026-11-04 | §8.3: a recipe with any ingredient note is not computed; it uses its declared values (estimated), or has no per-portion nutrition when none are declared (review finding H1). Example E38 added. §2.1: portion counts are entered and stored in 0.1 steps. §9.4: scaled quantities are not rounded, so per-portion values are exactly unchanged. E06/E07 use `ServingSize.quantityFor`. |
 | 1.3 | 2026-11-04 | §2.1: portion counts stored to 0.01, not 0.1 (owner decision); examples E39–E41. §4: UK/EU carbohydrate convention approved by the owner. §2.1 rounding wording corrected to the binary-value rule the code has always used (independent review, low finding). |
 | 1.3 (approved) | 2026-11-05 | Approved by the owner as written; no content change. |
+| 1.4 (proposed) | 2026-11-06 | WP 15 stage 1: §2.3 entry units (g, kg, mg, ml, l) with exact factors and the §2.1 store step; worked examples E42–E49 executed as tests (`test/domain/nutrition_spec_examples_units_test.dart`). Awaiting owner approval; no approved rule changed. |

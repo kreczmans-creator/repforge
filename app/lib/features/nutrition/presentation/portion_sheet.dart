@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/units/entry_unit.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
@@ -13,8 +14,10 @@ import 'package:repforge/ui/components/rf_text_field.dart';
 import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
 
-/// Portion sheet: choose amount (grams/millilitres or a named serving) and
-/// meal, see the resulting nutrients, log. Returns the entry when logged.
+/// Portion sheet: choose an amount (in the food's reference unit or a larger
+/// metric unit of the same basis, g | kg or ml | l, WP 15; or a count of a
+/// named serving) and a meal, see the resulting nutrients, log. The stored
+/// amount is always canonical g or ml. Returns the entry when logged.
 Future<FoodLogEntry?> showPortionSheet(
   BuildContext context,
   Food food, {
@@ -52,6 +55,9 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
   late final TextEditingController _servings = TextEditingController(text: '1');
   late MealSlot _meal = widget.initialMeal ?? MealSlot.snack;
   ServingSize? _serving;
+  late EntryUnit _entryUnit = EntryUnit.canonicalFor(
+    widget.food.profile.per100,
+  )!;
   String? _error;
   bool _busy = false;
 
@@ -70,10 +76,54 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
 
   double? get _amountValue {
     if (_serving == null) {
-      return double.tryParse(_amount.text.trim().replaceAll(',', '.'));
+      return _entered?.amount;
     }
     final n = double.tryParse(_servings.text.trim().replaceAll(',', '.'));
     return n == null ? null : _serving!.quantityFor(n).amount;
+  }
+
+  /// The typed amount as a stored quantity in the food's basis (spec §2.3);
+  /// null when the text is not a number or the amount is invalid. Lenient
+  /// parse as before WP 15, so a trailing separator is still accepted.
+  Quantity? get _entered {
+    final v = double.tryParse(_amount.text.trim().replaceAll(',', '.'));
+    if (v == null) return null;
+    return switch (_entryUnit.toCanonical(v)) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  /// Validation error for the typed amount in the current unit, or null when
+  /// it converts to a stored quantity.
+  String? get _amountError {
+    final text = _amount.text.trim();
+    if (text.isEmpty) return null;
+    final v = double.tryParse(text.replaceAll(',', '.'));
+    if (v == null) return 'Enter a number.';
+    return switch (_entryUnit.toCanonical(v)) {
+      Ok() => null,
+      Err(:final error) => userMessageFor(error),
+    };
+  }
+
+  void _selectUnit(EntryUnit next) {
+    final current = _entered;
+    final invalid = current == null ? _amountError : null;
+    setState(() {
+      if (current != null) {
+        _amount.text = formatNumber(
+          next.fromCanonical(current),
+          maxDecimals: next.decimals,
+        );
+      } else if (invalid != null) {
+        // Text that is not a valid amount in the old unit would be silently
+        // reinterpreted in the new one (review R15-02): clear it and say why.
+        _amount.clear();
+      }
+      _entryUnit = next;
+      _error = invalid;
+    });
   }
 
   NutrientAmounts? get _preview {
@@ -92,7 +142,10 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     if (_busy) return;
     final a = _amountValue;
     if (a == null) {
-      setState(() => _error = 'Enter a number.');
+      // Out-of-range custom amounts keep their validation message
+      // (review R15-01); only unparseable text is "Enter a number.".
+      final message = _serving == null ? _amountError : null;
+      setState(() => _error = message ?? 'Enter a number.');
       return;
     }
     setState(() {
@@ -123,6 +176,7 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     final food = widget.food;
     final unit = food.profile.per100.symbol;
     final preview = _preview;
+    final entered = _entered;
     final labels = ref.watch(mealLabelsValueProvider);
     return Padding(
       padding: EdgeInsets.only(
@@ -174,17 +228,42 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
               ),
               const SizedBox(height: RfSpace.s3),
             ],
-            if (_serving == null)
+            if (_serving == null) ...[
+              SegmentedButton<EntryUnit>(
+                key: const Key('portion-entry-unit'),
+                showSelectedIcon: false,
+                segments: [
+                  for (final u in EntryUnit.forBase(food.profile.per100))
+                    ButtonSegment(
+                      value: u,
+                      label: Text(u.symbol),
+                      tooltip: u.name,
+                    ),
+                ],
+                selected: {_entryUnit},
+                onSelectionChanged: (s) => _selectUnit(s.first),
+              ),
+              const SizedBox(height: RfSpace.s2),
               RfTextField.number(
                 key: const Key('portion-amount'),
                 controller: _amount,
                 label: 'Amount',
-                unit: unit,
+                unit: _entryUnit.symbol,
+                decimals: _entryUnit.decimals,
                 errorText: _error,
                 autofocus: true,
                 onChanged: (_) => setState(() => _error = null),
-              )
-            else
+              ),
+              if (!_entryUnit.isCanonical && entered != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: RfSpace.s1),
+                  child: Text(
+                    key: const Key('portion-canonical'),
+                    '= ${entered.label}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+            ] else
               RfTextField.number(
                 key: const Key('portion-servings'),
                 controller: _servings,

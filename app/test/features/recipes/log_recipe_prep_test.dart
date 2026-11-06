@@ -71,6 +71,9 @@ final class _FailingLog implements FoodLogRepository {
   Future<void> update(FoodLogEntry entry) => _inner.update(entry);
   @override
   Future<void> delete(String id) => _inner.delete(id);
+  @override
+  Future<List<RecentLogSource>> recentSources({int limit = 50}) =>
+      _inner.recentSources(limit: limit);
 }
 
 void main() {

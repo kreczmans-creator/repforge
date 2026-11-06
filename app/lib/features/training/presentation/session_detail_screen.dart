@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -40,6 +42,7 @@ class SessionDetailScreen extends ConsumerStatefulWidget {
 
 class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
   String get _id => widget.sessionId;
+  bool _busy = false;
 
   void _snack(String message) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
@@ -57,6 +60,25 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     if (!mounted) return;
     ref.invalidate(sessionViewProvider(_id));
     if (result case Err(:final error)) _snack(userMessageFor(error));
+  }
+
+  Future<void> _saveAsPlan(WorkoutSession s) async {
+    if (_busy) return;
+    _busy = true;
+    final router = GoRouter.of(context);
+    final Result<WorkoutPlan> result;
+    try {
+      result = await ref.read(saveSessionAsPlanProvider)(s.id);
+    } finally {
+      _busy = false;
+    }
+    if (!mounted) return;
+    switch (result) {
+      case Err(:final error):
+        _snack(userMessageFor(error));
+      case Ok(:final value):
+        unawaited(router.push(RfRoutes.trainPlan(value.id)));
+    }
   }
 
   Future<void> _delete(WorkoutSession s) async {
@@ -197,6 +219,14 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                 variant: RfButtonVariant.secondary,
                 expand: false,
                 onPressed: () => ref.startFromPast(context, s.id),
+              ),
+              RfButton(
+                key: const Key('detail-save-as-plan'),
+                label: 'Save as workout plan',
+                icon: Icons.bookmark_add_outlined,
+                variant: RfButtonVariant.secondary,
+                expand: false,
+                onPressed: () => _saveAsPlan(s),
               ),
               RfButton(
                 key: const Key('detail-delete'),

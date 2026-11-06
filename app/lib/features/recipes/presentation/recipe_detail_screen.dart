@@ -88,6 +88,24 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     _snack('Recorded a batch of ${portionsLabel(batch.portionsMade)}');
   }
 
+  Future<void> _duplicate(Recipe r) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final result = await ref.read(saveRecipeProvider)(
+      r.copyWith(name: '${r.name} (copy)', favourite: false),
+      saveAsNew: true,
+    );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    switch (result) {
+      case Ok(:final value):
+        _snack('Duplicated as "${value.name}"');
+        await context.push<void>(RfRoutes.fuelRecipe(value.id));
+      case Err(:final error):
+        _snack(userMessageFor(error));
+    }
+  }
+
   Future<void> _saveScaled(Recipe scaled, {required bool asNew}) async {
     if (_busy) return;
     if (!asNew) {
@@ -155,6 +173,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       appBar: AppBar(
         title: const Text('Recipe'),
         actions: [
+          if (async.value case final r?)
+            IconButton(
+              key: const Key('recipe-duplicate'),
+              tooltip: 'Duplicate recipe',
+              icon: const Icon(Icons.copy_outlined),
+              onPressed: _busy ? null : () => _duplicate(r),
+            ),
           if (async.value != null)
             IconButton(
               key: const Key('recipe-edit'),

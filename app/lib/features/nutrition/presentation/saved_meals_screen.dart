@@ -19,7 +19,11 @@ import 'package:repforge/ui/tokens.dart';
 
 /// Saved meals (NUT-013): log a saved set of items in one tap, or delete.
 class SavedMealsScreen extends ConsumerWidget {
-  const SavedMealsScreen({super.key});
+  const SavedMealsScreen({super.key, this.pickMode = false});
+
+  /// Reached from the add flow: logging a meal returns to the caller, which
+  /// then returns to Fuel.
+  final bool pickMode;
 
   Future<void> _log(BuildContext context, WidgetRef ref, SavedMeal m) async {
     final now = ref.read(clockProvider).now().toLocal();
@@ -41,7 +45,7 @@ class SavedMealsScreen extends ConsumerWidget {
           ),
         );
         final nav = Navigator.of(context);
-        if (nav.canPop()) nav.pop();
+        if (nav.canPop()) nav.pop(pickMode ? true : null);
       case Err(:final error):
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(userMessageFor(error))));
@@ -62,7 +66,9 @@ class SavedMealsScreen extends ConsumerWidget {
     final meals = ref.watch(savedMealsProvider);
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Saved meals')),
+      appBar: AppBar(
+        title: Text(pickMode ? 'Choose a saved meal' : 'Saved meals'),
+      ),
       body: meals.when(
         loading: () => const RfLoading(),
         error: (e, _) =>

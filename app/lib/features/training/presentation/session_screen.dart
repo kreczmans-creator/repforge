@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/training/training.dart';
@@ -235,95 +236,111 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
+            child: ReorderableListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: RfSpace.gutter),
-              children: [
-                const SizedBox(height: RfSpace.s3),
-                Text(
-                  session.endedAt == null ? 'Started $start' : 'Done · $start',
-                  key: const Key('session-started'),
-                  style: context.rfText.caption,
-                ),
-                Text(
-                  'Volume: ${formatVolume(VolumeRules.ofSession(session))}',
-                  key: const Key('session-volume'),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                if (session.notes.trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: RfSpace.s1),
-                    child: Text(
-                      session.notes,
-                      key: const Key('session-note-text'),
+              buildDefaultDragHandles: false,
+              itemCount: entries.length,
+              onReorderItem: (from, to) => unawaited(_move(from, to)),
+              header: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: RfSpace.s3),
+                  Text(
+                    session.endedAt == null
+                        ? 'Started $start'
+                        : 'Done · $start',
+                    key: const Key('session-started'),
+                    style: context.rfText.caption,
+                  ),
+                  _ElapsedTime(
+                    startedAt: session.startedAt,
+                    endedAt: session.endedAt,
+                  ),
+                  Text(
+                    'Volume: ${formatVolume(VolumeRules.ofSession(session))}',
+                    key: const Key('session-volume'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (session.notes.trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: RfSpace.s1),
+                      child: Text(
+                        session.notes,
+                        key: const Key('session-note-text'),
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: RfButton(
+                      key: const Key('session-note-edit'),
+                      label: session.notes.trim().isEmpty
+                          ? 'Add workout note'
+                          : 'Edit workout note',
+                      icon: Icons.notes,
+                      variant: RfButtonVariant.tertiary,
+                      expand: false,
+                      onPressed: () => _sessionNote(session),
                     ),
                   ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: RfButton(
-                    key: const Key('session-note-edit'),
-                    label: session.notes.trim().isEmpty
-                        ? 'Add workout note'
-                        : 'Edit workout note',
-                    icon: Icons.notes,
-                    variant: RfButtonVariant.tertiary,
-                    expand: false,
-                    onPressed: () => _sessionNote(session),
-                  ),
-                ),
-                if (warnings.isNotEmpty)
-                  _WarningBanner(
-                    warnings: warnings,
-                    onDismiss: () =>
-                        ref.read(startWarningsProvider.notifier).dismiss(_id),
-                  ),
-                if (entries.isEmpty)
-                  const RfEmptyState(
-                    key: Key('session-no-exercises'),
-                    icon: Icons.fitness_center_outlined,
-                    message: 'No exercises yet. Add one to start logging.',
-                  ),
-                for (var i = 0; i < entries.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: RfSpace.s3),
-                    child: _EntryCard(
-                      view: view,
-                      entry: entries[i],
-                      index: i,
-                      count: entries.length,
-                      onMove: _move,
-                      onNote: _entryNote,
-                      onReplace: _replace,
-                      onRemove: _remove,
-                      onEditSet: _editSet,
-                      onDeleteSet: _deleteSet,
+                  if (warnings.isNotEmpty)
+                    _WarningBanner(
+                      warnings: warnings,
+                      onDismiss: () =>
+                          ref.read(startWarningsProvider.notifier).dismiss(_id),
                     ),
-                  ),
-                RfButton(
-                  key: const Key('add-exercise'),
-                  label: 'Add exercise',
-                  icon: Icons.add,
-                  variant: RfButtonVariant.secondary,
-                  onPressed: _add,
+                  if (entries.isEmpty)
+                    const RfEmptyState(
+                      key: Key('session-no-exercises'),
+                      icon: Icons.fitness_center_outlined,
+                      message: 'No exercises yet. Add one to start logging.',
+                    ),
+                ],
+              ),
+              itemBuilder: (context, i) => Padding(
+                key: ValueKey('reorder-${entries[i].id}'),
+                padding: const EdgeInsets.only(bottom: RfSpace.s3),
+                child: _EntryCard(
+                  view: view,
+                  entry: entries[i],
+                  index: i,
+                  count: entries.length,
+                  onMove: _move,
+                  onNote: _entryNote,
+                  onReplace: _replace,
+                  onRemove: _remove,
+                  onEditSet: _editSet,
+                  onDeleteSet: _deleteSet,
                 ),
-                const SizedBox(height: RfSpace.s3),
-                if (session.endedAt == null)
+              ),
+              footer: Column(
+                children: [
                   RfButton(
-                    key: const Key('finish-session'),
-                    label: 'Finish workout',
-                    icon: Icons.flag_outlined,
-                    onPressed: _finish,
-                  )
-                else
-                  RfButton(
-                    key: const Key('session-open-detail'),
-                    label: 'Back to workout summary',
-                    variant: RfButtonVariant.tertiary,
-                    onPressed: () => context.pushReplacement(
-                      RfRoutes.trainHistoryDetail(_id),
-                    ),
+                    key: const Key('add-exercise'),
+                    label: 'Add exercise',
+                    icon: Icons.add,
+                    variant: RfButtonVariant.secondary,
+                    onPressed: _add,
                   ),
-                const SizedBox(height: RfSpace.s8),
-              ],
+                  const SizedBox(height: RfSpace.s3),
+                  if (session.endedAt == null)
+                    RfButton(
+                      key: const Key('finish-session'),
+                      label: 'Finish workout',
+                      icon: Icons.flag_outlined,
+                      onPressed: _finish,
+                    )
+                  else
+                    RfButton(
+                      key: const Key('session-open-detail'),
+                      label: 'Back to workout summary',
+                      variant: RfButtonVariant.tertiary,
+                      onPressed: () => context.pushReplacement(
+                        RfRoutes.trainHistoryDetail(_id),
+                      ),
+                    ),
+                  const SizedBox(height: RfSpace.s8),
+                ],
+              ),
             ),
           ),
           const RestTimerPanel(),
@@ -331,6 +348,75 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       ),
     );
   }
+}
+
+/// Time since the workout started, as `mm:ss` or `h:mm:ss`. Ticks every
+/// second (from the injected clock) while the workout is unfinished; a
+/// finished workout shows its fixed length and runs no timer.
+class _ElapsedTime extends ConsumerStatefulWidget {
+  const _ElapsedTime({required this.startedAt, required this.endedAt});
+
+  final DateTime startedAt;
+  final DateTime? endedAt;
+
+  @override
+  ConsumerState<_ElapsedTime> createState() => _ElapsedTimeState();
+}
+
+class _ElapsedTimeState extends ConsumerState<_ElapsedTime> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(_ElapsedTime old) {
+    super.didUpdateWidget(old);
+    _sync();
+  }
+
+  void _sync() {
+    if (widget.endedAt != null) {
+      _tick?.cancel();
+      _tick = null;
+    } else {
+      _tick ??= Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final end = widget.endedAt ?? ref.read(clockProvider).now();
+    return Semantics(
+      label: 'Elapsed time',
+      child: Text(
+        formatElapsed(end.difference(widget.startedAt)),
+        key: const Key('session-elapsed'),
+        style: context.rfText.caption,
+      ),
+    );
+  }
+}
+
+/// `mm:ss`, or `h:mm:ss` from one hour; never negative.
+String formatElapsed(Duration d) {
+  final total = d.isNegative ? 0 : d.inSeconds;
+  final h = total ~/ 3600;
+  final m = (total % 3600) ~/ 60;
+  final sec = total % 60;
+  String two(int v) => v.toString().padLeft(2, '0');
+  return h > 0 ? '$h:${two(m)}:${two(sec)}' : '${two(m)}:${two(sec)}';
 }
 
 class _WarningBanner extends StatelessWidget {
@@ -411,6 +497,17 @@ class _EntryCard extends StatelessWidget {
         children: [
           Row(
             children: [
+              ReorderableDragStartListener(
+                index: index,
+                child: Semantics(
+                  label: 'Drag to reorder $name',
+                  child: Padding(
+                    key: Key('entry-drag-$id'),
+                    padding: const EdgeInsets.all(RfSpace.s2),
+                    child: const Icon(Icons.drag_handle),
+                  ),
+                ),
+              ),
               Expanded(
                 child: Semantics(
                   header: true,

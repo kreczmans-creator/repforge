@@ -9,8 +9,10 @@ import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/scanning/barcode_scanner.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
+import 'package:repforge/features/nutrition/application/recent_items.dart';
 import 'package:repforge/features/nutrition/presentation/portion_sheet.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
+import 'package:repforge/features/recipes/presentation/recipe_log_sheet.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_section_header.dart';
 import 'package:repforge/ui/components/rf_states.dart';
@@ -68,6 +70,27 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
     if (!mounted || entry == null) return;
     final nav = Navigator.of(context);
     if (nav.canPop()) nav.pop(entry);
+  }
+
+  /// Opens a library screen in pick mode; whatever it logs ends the add
+  /// flow and returns to Fuel.
+  Future<void> _pickFromLibrary(String route) async {
+    final result = await context.push<Object>(route);
+    if (!mounted || result == null) return;
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop(result is FoodLogEntry ? result : null);
+  }
+
+  Future<void> _pickRecent(RecentItem item) async {
+    switch (item) {
+      case RecentFood(:final food):
+        await _pick(food);
+      case RecentRecipe(:final recipe):
+        final entry = await showRecipeLogSheet(context, recipe);
+        if (!mounted || entry == null) return;
+        final nav = Navigator.of(context);
+        if (nav.canPop()) nav.pop(entry);
+    }
   }
 
   Future<void> _scan() async {
@@ -131,14 +154,45 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
               style: theme.textTheme.bodySmall,
             ),
           ],
+          if (!widget.pickOnly) ...[
+            const SizedBox(height: RfSpace.s3),
+            const RfSectionHeader(title: 'Pick from library'),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: const Key('search-pick-recipe'),
+                    onPressed: () => _pickFromLibrary(RfRoutes.fuelPickRecipe),
+                    icon: const Icon(Icons.menu_book_outlined),
+                    label: const Text('Recipes'),
+                  ),
+                ),
+                const SizedBox(width: RfSpace.s2),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: const Key('search-pick-saved-meal'),
+                    onPressed: () =>
+                        _pickFromLibrary(RfRoutes.fuelPickSavedMeal),
+                    icon: const Icon(Icons.bookmark_outline),
+                    label: const Text('Saved meals'),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: RfSpace.s3),
-          if (state.isEmptyQuery)
+          if (state.isEmptyQuery) ...[
+            if (!widget.pickOnly)
+              _Recent(
+                items: ref.watch(recentItemsProvider).value ?? const [],
+                onPick: _pickRecent,
+              ),
             Text(
               'Type at least two letters. Your own foods and foods you have '
               'logged before appear first; online results follow.',
               style: theme.textTheme.bodySmall,
-            )
-          else ...[
+            ),
+          ] else ...[
             if (state.local.isNotEmpty) ...[
               const RfSectionHeader(title: 'Your foods'),
               _Results(foods: state.local, onPick: _pick, keyPrefix: 'local'),
@@ -181,6 +235,65 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
 String _per100(Food f) =>
     '${whole(f.profile.per100Amounts.kcal)} kcal/100 '
     '${f.profile.per100.symbol}';
+
+class _Recent extends StatelessWidget {
+  const _Recent({required this.items, required this.onPick});
+
+  final List<RecentItem> items;
+  final ValueChanged<RecentItem> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Column(
+      key: const Key('search-recent'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const RfSectionHeader(title: 'Recent'),
+        RfCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: RfSpace.s4,
+            vertical: RfSpace.s1,
+          ),
+          child: Column(
+            children: [
+              for (final item in items)
+                ListTile(
+                  key: switch (item) {
+                    RecentFood(:final food) => Key('recent-food-${food.id}'),
+                    RecentRecipe(:final recipe) => Key(
+                      'recent-recipe-${recipe.id}',
+                    ),
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () => onPick(item),
+                  leading: Icon(
+                    item is RecentRecipe
+                        ? Icons.menu_book_outlined
+                        : Icons.restaurant_outlined,
+                  ),
+                  title: Text(
+                    switch (item) {
+                      RecentFood(:final food) => food.name,
+                      RecentRecipe(:final recipe) => recipe.name,
+                    },
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: const Icon(Icons.add_circle_outline),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: RfSpace.s3),
+      ],
+    );
+  }
+}
 
 class _Results extends StatelessWidget {
   const _Results({

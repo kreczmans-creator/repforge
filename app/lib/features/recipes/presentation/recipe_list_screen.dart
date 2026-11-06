@@ -9,6 +9,7 @@ import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 import 'package:repforge/features/recipes/application/recipe_list_providers.dart';
 import 'package:repforge/features/recipes/application/recipe_providers.dart';
 import 'package:repforge/features/recipes/presentation/recipe_format.dart';
+import 'package:repforge/features/recipes/presentation/recipe_log_sheet.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
@@ -20,7 +21,11 @@ import 'package:repforge/ui/tokens.dart';
 /// Recipe list (RCP-011): cards with per-portion energy, provenance and total
 /// time, a one-tap favourite toggle and a persistent favourites filter.
 class RecipeListScreen extends ConsumerStatefulWidget {
-  const RecipeListScreen({super.key});
+  const RecipeListScreen({super.key, this.pickMode = false});
+
+  /// Reached from the add flow: tapping a recipe opens the log sheet and,
+  /// once logged, returns the entry to the caller.
+  final bool pickMode;
 
   @override
   ConsumerState<RecipeListScreen> createState() => _RecipeListScreenState();
@@ -28,10 +33,26 @@ class RecipeListScreen extends ConsumerStatefulWidget {
 
 class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
   String _query = '';
+  String? _category;
+
+  Future<void> _open(Recipe r) async {
+    if (!widget.pickMode) {
+      await context.push<void>(RfRoutes.fuelRecipe(r.id));
+      return;
+    }
+    final entry = await showRecipeLogSheet(context, r);
+    if (!mounted || entry == null) return;
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop(entry);
+  }
 
   Future<void> _new() async {
     final saved = await context.push<Recipe>(RfRoutes.fuelRecipeNew);
     if (!mounted || saved == null) return;
+    if (widget.pickMode) {
+      await _open(saved);
+      return;
+    }
     await context.push<void>(RfRoutes.fuelRecipe(saved.id));
   }
 
@@ -49,15 +70,26 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     final recipes = ref.watch(recipesProvider);
     final favOnly = ref.watch(recipeFavouritesOnlyProvider).value ?? false;
     return Scaffold(
-      appBar: AppBar(title: const Text('Recipes')),
+      appBar: AppBar(
+        title: Text(widget.pickMode ? 'Choose a recipe' : 'Recipes'),
+      ),
       body: recipes.when(
         loading: () => const RfLoading(),
         error: (e, _) => const RfErrorState(message: 'Could not load recipes.'),
         data: (all) {
           final q = _query.trim().toLowerCase();
+          final categories =
+              <String>{
+                  for (final r in all)
+                    if (r.category.trim().isNotEmpty) r.category.trim(),
+                }.toList()
+                ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+          // A category that no recipe has any more no longer filters.
+          final category = categories.contains(_category) ? _category : null;
           final shown = [
             for (final r in all)
               if ((!favOnly || r.favourite) &&
+                  (category == null || r.category.trim() == category) &&
                   (q.isEmpty || r.name.toLowerCase().contains(q)))
                 r,
           ];
@@ -101,6 +133,23 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   },
                 ),
               ),
+              if (categories.isNotEmpty) ...[
+                const SizedBox(height: RfSpace.s2),
+                Wrap(
+                  key: const Key('recipe-category-filter'),
+                  spacing: RfSpace.s2,
+                  children: [
+                    for (final c in categories)
+                      FilterChip(
+                        key: Key('category-$c'),
+                        label: Text(c),
+                        selected: category == c,
+                        onSelected: (v) =>
+                            setState(() => _category = v ? c : null),
+                      ),
+                  ],
+                ),
+              ],
               const SizedBox(height: RfSpace.s2),
               if (shown.isEmpty)
                 RfEmptyState(
@@ -117,7 +166,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                 for (final r in shown) ...[
                   _RecipeCard(
                     recipe: r,
-                    onOpen: () => context.push(RfRoutes.fuelRecipe(r.id)),
+                    onOpen: () => _open(r),
                     onToggle: () => _toggle(r),
                   ),
                   const SizedBox(height: RfSpace.s2),
