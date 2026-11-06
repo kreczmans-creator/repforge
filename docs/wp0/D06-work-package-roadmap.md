@@ -16,6 +16,7 @@ flowchart LR
   WP5 & WP9 & WP10 --> WP11
   WP3 --> WP12
   WP10 & WP9 --> WP13
+  WP8 -->|expanded anatomy and taxonomy| WP11
   WP1 -.-> WP14
 ```
 
@@ -43,6 +44,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: README, ADRs, D03 updated with pinned versions.
 
 ### WP 2 — Application foundation and design system
+- Status: **Accepted by the owner 2026-11-03** (`docs/delivery-record/WP2.md`); the four brand deviations are approved; TalkBack/VoiceOver device pass and Stage 2 glyph exports remain tracked items.
 - Objective: reusable UI system before any feature screens.
 - Scope: design tokens (colour, typography, spacing, radii, elevation), light and dark themes, components (`RfCard`, `RfButton`, `RfTextField` with numeric/unit variants, `RfMacroBar`, `RfStatTile`, `RfTrendChart`, `RfEmptyState`, `RfErrorState`, `RfLoading`, `RfListTile`), navigation shell with bottom tabs, accessibility baseline (48 dp targets, semantics labels, text scaling), a component gallery screen (debug only), golden tests.
 - Dependencies: WP 1.
@@ -51,6 +53,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: `docs/design-system.md`.
 
 ### WP 3 — Domain models and local persistence
+- Status: **Accepted by the owner 2026-11-04** (`docs/delivery-record/WP3.md`): two audit fixes approved, 80 % coverage gate on hand-written code enforced in CI, TD-22..26 tracked with resolution packages.
 - Objective: the data foundation for all features, fully tested, with backup.
 - Scope: domain entities and value objects (units, nutrient profile, portion, provenance, exercise types, set records, measurement sites, goals); drift schema for foods, food log, recipes, ingredients, exercises, workouts, sessions, sets, measurements, goals, settings; repositories; migration test harness; JSON backup export/import round trip; an explicit assessment and ADR on encryption at rest and the privacy implications of locally stored fitness and body-composition data (owner direction, 2026-11-01).
 - Dependencies: WP 1.
@@ -59,13 +62,16 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Documentation: `docs/data-model.md` with ER diagram.
 
 ### WP 4 — Navigation, dashboard and application shell
+- Status: **Accepted by the owner 2026-11-04** (`docs/delivery-record/WP4.md`): B1/B2 evidence tests, atomic target save, record corrections; B3–B7a tracked as TD-27..31.
 - Objective: the daily "cockpit" screen and navigation between domains.
-- Scope: go_router routes, bottom navigation (Home, Food, Recipes, Train, Progress, Settings), dashboard showing today's calories/macros vs targets, next session, latest weight, workouts count; settings screen with persisted targets and units; empty states for every panel.
+- Scope: go_router routes, bottom navigation with the five tabs of the approved brand mock-up (Home, Train, Fuel, Track, Goals; Settings is pushed from the app bar — amended 2026-11-04 at owner direction, the approved design is authoritative), dashboard showing today's calories/macros vs targets, next session, latest weight, workouts count; settings screen with persisted targets and units; empty states for every panel.
 - Dependencies: WP 2, WP 3.
 - Acceptance: dashboard reflects database changes live; targets persist across restart; widget tests for each panel state.
 - Verification: widget tests; integration test "change target, restart, verify".
 
 ### WP 5 — Nutrition and food database
+- Status: **Rejected as delivered 2026-11-04, then accepted by owner decision 2026-11-04 at df0f6d9** after the closure actions (`docs/delivery-record/WP5.md`): unknown nutrients never shown as 0 (schema v4), distinct no-target/unknown states, five-measure weekly summary, search 404 handling, record corrections. **Open: airplane-mode device verification (R6) is unconfirmed** — owner-owned verification item D05 V-01, due at WP 6 acceptance, blocks WP 6 acceptance and R0.
+- Owner allocation of NUT P1 items not delivered by WP 5 (2026-11-04): **NUT-017** (calculation specification) and **NUT-019** (weakest provenance on totals) and **NUT-022** (imperial portion entry) stay in **WP 5** — NUT-017 before any further nutrition-calculation work; **NUT-011** (meal rename/reorder) → **WP 7**; **NUT-023** (import date) → **WP 14** alongside import/export; **NUT-018 part 3** stays in the requirements backlog with its original wording until its scope and owner are clarified (D04 §7). NUT-006 is WP 6; NUT-008 and NUT-014 were never allocated to WP 5.
 - Objective: fast, correct food logging.
 - Scope: food search (Open Food Facts client with typed errors, debounce, caching), custom foods, custom serving sizes, portion entry in g/ml/servings, meal assignment, daily diary with edit/delete, date navigation, fibre, saved meals, provenance labels, daily and weekly summaries.
 - Dependencies: WP 4.
@@ -73,27 +79,33 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for nutrition maths; widget tests; integration test for log/edit/delete; manual offline test.
 
 ### WP 6 — Barcode scanning and food logging
+- Status: **Implementation accepted for conditional acceptance 2026-11-04 at 501dc6c** (`docs/delivery-record/WP6.md`); ADR-0006 approved. **Not closed:** physical-device checklist (Android, iOS or approved deviation), D05 V-01 and TD-34 device verification outstanding.
 - Objective: scan → lookup → portion → log, on both platforms.
 - Scope: `BarcodeScanner` adapter with `mobile_scanner`, permission flow with rationale, capability detection, cached product table, not-found path leading to custom food creation.
 - Dependencies: WP 5.
-- Acceptance: scan of a known EAN logs a correctly scaled entry on Android and iOS physical devices; unavailable camera hides the scan action with explanation.
+- Acceptance: scan of a known EAN logs a correctly scaled entry on Android and iOS physical devices; unavailable camera hides the scan action with explanation; **the WP 5 airplane-mode device verification (D05 V-01) is performed and recorded in the same owner device session** (added 2026-11-04).
 - Verification: integration test with fake adapter; manual device checklist for both platforms recorded with device models.
 
 ### WP 7 — Recipe management and meal planning
+- Status: **Accepted and closed by the owner 2026-11-05 at 7c62e9c** (closure record eb8f769; `docs/delivery-record/WP7.md`). NUT-017 calculation specification rev 1.3 approved. TD-40 open as debt.
 - Objective: recipes as first-class, calculable entities.
 - Scope: recipe CRUD, ingredients with quantities linked to foods, per-portion nutrition computed from ingredients (not typed in), portion scaling, prep/cook/storage/freezing/reheating fields, favourites, substitutions, seed import of the 22 legacy recipes flagged `estimated`, log a portion to the diary, weekly meal plan and prep list (P2).
+- Added 2026-11-04 (owner allocation from WP 5): **NUT-011** named meals rename/reorder, with its D04 acceptance criteria.
 - Dependencies: WP 5.
 - Acceptance: computed per-portion nutrition matches hand-calculated fixtures; seed recipes visible with the `estimated` label; RCP P1 criteria pass.
 - Verification: unit tests for recipe maths; widget tests.
 
 ### WP 8 — Exercise library and training architecture
+- Status: **Active — scope expanded 2026-11-05** (owner decision: the comprehensive exercise library is delivered within WP 8; no WP 16). Stages 1–2 and review fixes implemented and verified (b1ab45a; `docs/delivery-record/WP8.md`), not accepted. Remaining stages 3–6 and the deferred media workstream: `docs/wp8-delivery-plan.md` (approved structure). **Stage 4 approved 2026-11-05** (OQ-22, OQ-23, ADR-0010; `docs/catalogue/`). **Stage 5 authorised in principle**, gated behind stage 3 tooling and the 5.1 chest pilot with re-baselining. **Stage 3 authorised 2026-11-06** (plan revision 3, b63c4d9; safeguards §21). Requirements: TRN-001..012 (TRN-010(1) amended) and LIB-001..014 (`docs/exercise-library-expansion.md`). OQ-09 decided 2026-11-05.
 - Objective: structured exercise and set model supporting all six exercise types.
-- Scope: exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries.
+- Scope: exercise library (seeded, editable), categories, muscle groups, equipment, exercise type with type-specific set fields, workout plan and split models, history queries. **Expanded 2026-11-05**: comprehensive, extensible exercise reference and discovery system — four-level anatomy with multiple primary and secondary targets, movement pattern, mechanics, laterality, difficulty, relationships, instructions, provenance and catalogue updates, search and discovery, media readiness (LIB-001..014).
 - Dependencies: WP 4.
-- Acceptance: a set of each exercise type can be stored and read back with correct fields; invalid combinations rejected at use-case level.
-- Verification: unit tests; schema migration test.
+- Acceptance: a set of each exercise type can be stored and read back with correct fields; invalid combinations rejected at use-case level (original; met with evidence). **Final acceptance (expanded)**: `docs/wp8-delivery-plan.md` §15, including the structured coverage matrix for catalogue population.
+- Verification: unit tests; schema migration test; integrity and coverage reports in CI; owner content review per regional tranche.
+- Sequencing: stage 3 code after WP 9 acceptance (shared code) and final authorisation; stage 4 documentation proceeds now; WP 10 proceeds independently, subject to schema version coordination; WP 11 depends on WP 8's expanded anatomy and exercise taxonomy (stage 3) for its training analytics.
 
 ### WP 9 — Workout planning and workout execution
+- Status: **ACCEPTED and CLOSED** (owner, 2026-11-06) at **0c35ef1**; record `docs/delivery-record/WP9.md`. Device-campaign items, Low findings, limitations and deferred requirements recorded; exercise history paging allocated to WP 8 stage 6.
 - Objective: fast in-gym logging.
 - Scope: plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
 - Dependencies: WP 8.
@@ -101,16 +113,18 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Verification: unit tests for PR and volume rules; integration test for a full session; manual device test for timer.
 
 ### WP 10 — Body composition and measurement tracking
+- Status: **ACCEPTED and CLOSED** (owner, 2026-11-05) at **bb5f788**; record `docs/delivery-record/WP10.md` (a98db40). Deferred device and spreadsheet verification recorded; OQ-18 and OQ-02 open; TD-43 debt.
 - Objective: dated measurements, trends and export.
 - Scope: measurement entry (weight + 12 sites, left/right separate), date picker with validation, history with edit/delete, trend chart with axes and date range, comparisons between two dates, CSV export, export/import UI from WP 3.
-- Dependencies: WP 4, WP 3.
+- Dependencies: WP 4, WP 3. Proceeds independently of WP 8's library stages, subject to schema version coordination (2026-11-05).
 - Acceptance: BCM P1 criteria pass; chart renders correctly for 1, 2 and 100 points; export opens in a spreadsheet.
 - Verification: widget and golden tests for chart; unit tests for comparisons.
 
 ### WP 11 — Analytics and progress visualisation
 - Objective: goals and weekly insight without automated coaching.
 - Scope: calorie/macro/weight/measurement/training goals, weekly summary screen, progress indicators, historical comparison; explicit gate recorded that no recommendations ship until data-quality criteria (GOL) are met.
-- Dependencies: WP 5, WP 9, WP 10.
+- Added 2026-11-04 (owner allocation from WP 7 review): **NUT-019** day-total provenance badge (weakest provenance shown on daily and weekly nutrition totals; the shared rule already exists, spec §8).
+- Dependencies: WP 5, WP 9, WP 10; and WP 8's expanded anatomy and exercise taxonomy (stage 3) for training analytics such as volume per muscle (OQ-19 rule).
 - Acceptance: GOL P1 criteria pass; summaries match fixture data.
 
 ### WP 12 — User accounts, backup and synchronisation (optional)
@@ -128,7 +142,18 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 ### WP 14 — Quality assurance and release engineering (continuous from WP 1)
 - Objective: release-grade confidence.
 - Scope: coverage thresholds, nightly integration runs, release workflow, signing, store listings, manual device checklist, crash reporting decision (opt-in), beta distribution (Play internal testing, TestFlight).
+- Added 2026-11-04 (owner allocation from WP 5): **NUT-023** import source and date, alongside the import/export capability.
 - Acceptance: a tagged release produces signed artefacts and a changelog without manual steps beyond approval.
+
+### WP 15 — Nutrition entry units (added 2026-11-04, owner allocation)
+- Objective: enter food quantities in the units people use, with exact canonical storage.
+- Scope: **NUT-022** — kg, l (and mg where meaningful) entry with conversion to canonical g/ml (spec §2.3, GEN-004 table); explicit decision on which imperial input units are supported (OQ-02) and their entry; validation and display conversion; applies to food logging, portion sheets and recipe ingredients; no mass↔volume conversion without a stated density (NUT-022(2)).
+- Dependencies: WP 5 (accepted), WP 7.
+- Acceptance: NUT-022 criteria pass (0.25 kg stored and shown as 250 g; 1 kg = 1000 g and 1 l = 1000 ml exactly; round-trip within 0.001); spec §2.3 worked examples executed as tests; the chosen imperial units documented.
+- Verification: unit tests for conversions; widget tests for entry in each unit; spec examples.
+
+### WP 16 — superseded (2026-11-05)
+- Historical only. The WP 16 proposal (2026-11-05) is **superseded by the WP 8 scope decision**: its scope is WP 8 internal stages 3–6 and a deferred media workstream. Not a delivery package and not a dependency of any work package. No WP 16 implementation is authorised.
 
 ## Sizing guidance
 

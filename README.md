@@ -19,7 +19,7 @@ All assets and checksums: [debug-latest release](https://github.com/kreczmans-cr
 | Architecture | Flutter + Riverpod + drift (SQLite) + go_router + freezed; layered domain / application / data / presentation; platform adapters | `docs/wp0/D03-target-architecture.md`, `docs/adr/` |
 | Delivered | WP 0 recovery baseline; WP 1 foundation: body-weight logging end to end, design-system basics, 29 automated tests, CI for Android, iOS simulator and emulator integration tests | `docs/delivery-record/` |
 | Next | WP 2 design system, WP 3 domain models and persistence with backup, then nutrition (WP 5–6), recipes, training, measurements, analytics | `docs/wp0/D06-work-package-roadmap.md` |
-| Legacy | Kotlin prototype kept read-only for reference; does not compile | `legacy/android/`, `docs/wp0/D01-project-recovery-report.md` |
+| Legacy | Kotlin prototype kept read-only for reference; does not compile. Original ZIP uploads removed from the tree (ADR-0003), still in git history | `legacy/android/`, `docs/wp0/D01-project-recovery-report.md` |
 
 ## Repository layout
 

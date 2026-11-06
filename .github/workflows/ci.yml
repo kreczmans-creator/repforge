@@ -44,9 +44,29 @@ jobs:
       - name: Resolve dependencies (pinned)
         run: flutter pub get --enforce-lockfile
 
+      # Runs in app/ (defaults.run.working-directory). The historical
+      # step-by-step shapes (WP 8 stage 3b-3) are not a build_runner output,
+      # so they are regenerated here too, from the frozen v1..v7 snapshots
+      # only: `schema steps` reads every JSON in its folder, and a later
+      # drift_schema_v8.json must not change this pinned file.
+      # Schema v8 (WP 8 stage 3b-2, not connected to the app): the dump must
+      # equal a fresh dump of AppDatabaseV8, and its step shapes live in a
+      # separate file generated from the v7 and v8 snapshots only.
       - name: Verify generated code is current
         run: |
           dart run build_runner build --delete-conflicting-outputs
+          historical="$(mktemp -d)"
+          cp drift_schemas/drift_schema_v[1-7].json "$historical"/
+          dart run drift_dev schema steps "$historical" lib/data/db/migration/schema_versions.g.dart
+          rm -rf "$historical"
+          dump="$(mktemp -d)"
+          dart run drift_dev schema dump lib/data/db/v8/app_database_v8.dart "$dump"/
+          cmp "$dump"/drift_schema_v8.json drift_schemas/drift_schema_v8.json
+          rm -rf "$dump"
+          v8steps="$(mktemp -d)"
+          cp drift_schemas/drift_schema_v7.json drift_schemas/drift_schema_v8.json "$v8steps"/
+          dart run drift_dev schema steps "$v8steps" lib/data/db/migration/schema_v8_shapes.g.dart
+          rm -rf "$v8steps"
           git diff --exit-code -- lib
 
       - name: Format check
@@ -58,10 +78,60 @@ jobs:
       - name: Unit and widget tests
         run: flutter test --coverage --reporter expanded
 
+      # Owner decision at WP 3 acceptance (2026-11-04): 80 % line coverage of
+      # hand-written code, generated files excluded. Not lowered without an
+      # ADR and owner approval (engineering standards §7).
+      - name: Coverage gate (80 % of hand-written code)
+        run: dart run tool/coverage_gate.dart coverage/lcov.info --min 80
+
       - name: Upload coverage
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov
           path: app/coverage/lcov.info
           if-no-files-found: error
           retention-days: 14
+
+  # WP 8 3B-ACC-01 WS5: real process kills (3b-6) and the large profile with
+  # host timing (3b-9 host part). Both tags are skipped by default
+  # (dart_test.yaml), so the quality job and its coverage figure are
+  # unchanged. Linux only: the kill suite builds a separate child process
+  # with `dart build cli` and ends it with SIGKILL. Concurrency 1: the
+  # timing figures and the kill moments must not compete with other tests.
+  # Same triggers as the quality job (every push touching app/), by owner
+  # request: the kill and timing evidence comes from CI, not only locally.
+  # Takes about 10 minutes.
+  recovery:
+    name: Recovery (process kill, large profile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies (pinned)
+        run: flutter pub get --enforce-lockfile
+
+      - name: Kill and heavy suites
+        run: >-
+          flutter test --run-skipped --tags "kill || heavy"
+          --concurrency=1 --reporter expanded test/migration_v8/
+
+      - name: Upload kill, profile and timing reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-v8-ws5-reports
+          path: app/build/migration_v8_ws5/
+          if-no-files-found: warn
+          retention-days: 30

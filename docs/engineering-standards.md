@@ -34,7 +34,7 @@ Status: Proposed (applies from WP 1). Enforced by CI where a tool exists; otherw
 - Unit tests for every domain rule and use case; widget tests for every screen state; integration tests for each P1 user flow.
 - Tests mirror `lib/` paths under `test/`. Test names describe behaviour: `'scales protein by portion weight'`.
 - Fakes over mocks for adapters; `mocktail` where a mock is clearer.
-- Coverage threshold set in WP 1 and never lowered without an ADR.
+- Coverage threshold: **80 % line coverage of hand-written code**, enforced in CI by `app/tool/coverage_gate.dart` (generated `*.g.dart`, `*.freezed.dart` and `generated_migrations/` excluded; the lcov report stays available as a CI artefact). Set by owner decision at WP 3 acceptance (2026-11-04; proposed in WP 1). Never lowered without an ADR and owner approval.
 
 ## 8. Documentation
 - Public domain types and use cases carry doc comments.
@@ -48,7 +48,9 @@ Status: Proposed (applies from WP 1). Enforced by CI where a tool exists; otherw
 - Never commit secrets, keystores, provisioning profiles, or generated build output.
 
 ## 10. Placeholders and mock data
-- Any mock data, placeholder screen or stubbed integration carries a visible `// TODO(placeholder)` comment and, in debug UI, a "Placeholder" badge. None ships in a release build.
+- Any mock data, placeholder screen or stubbed integration carries a `// TODO(placeholder)` comment at its definition so removal can be tracked.
+- Mock data and stubbed integrations never ship in a release build.
+- A placeholder screen may ship in a release build only when it is the `RfNotYetAvailable` component (visibly labelled "NOT YET AVAILABLE" with the work package that delivers the feature) and contains no other content. This keeps the five-pillar navigation stable across work packages without pretending a feature exists.
 
 ## 11. Security and privacy
 - Permissions requested on first use with rationale text.

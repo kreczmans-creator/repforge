@@ -5,6 +5,7 @@ import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/domain/measurements/measurements.dart';
 
 import '../helpers/pump.dart';
 
@@ -13,7 +14,7 @@ void main() {
   setUp(() => db = AppDatabase.inMemory());
   tearDown(() => db.close());
 
-  testWidgets('bottom navigation switches between Home and Weight', (
+  testWidgets('bottom navigation switches between the five pillars', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -24,13 +25,104 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Your cockpit'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('nav-weight')));
+    expect(find.byKey(const Key('kcal-tile')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-track')));
     await tester.pumpAndSettle();
-    expect(find.text('Body weight'), findsOneWidget);
+    expect(find.text('Track'), findsWidgets);
+    expect(find.byKey(const Key('add-measurements')), findsOneWidget);
+    expect(find.byKey(const Key('site-weight')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-fuel')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('log-food')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-train')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('exercise-search')), findsOneWidget);
+    expect(find.byKey(const Key('new-exercise')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-goals')));
+    await tester.pumpAndSettle();
+    expect(find.text('Goals'), findsWidgets);
+    expect(find.text('NOT YET AVAILABLE'), findsOneWidget);
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
-    expect(find.text('Your cockpit'), findsOneWidget);
+    expect(find.byKey(const Key('kcal-tile')), findsOneWidget);
     await unmount(tester);
+  });
+
+  testWidgets('training plan, split and schedule routes resolve', (
+    tester,
+  ) async {
+    expect(RfRoutes.trainPlans, '/train/plans');
+    expect(RfRoutes.trainPlanNew, '/train/plans/new');
+    expect(RfRoutes.trainPlan('p1'), '/train/plans/p1');
+    expect(RfRoutes.trainSplitNew, '/train/splits/new');
+    expect(RfRoutes.trainSplit('s1'), '/train/splits/s1');
+    expect(RfRoutes.trainSchedule, '/train/schedule');
+    expect(RfRoutes.trainSession('s1'), '/train/session/s1');
+    expect(RfRoutes.trainHistory, '/train/history');
+    expect(RfRoutes.trainHistoryDetail('s1'), '/train/history/s1');
+
+    final expected = <String, String>{
+      RfRoutes.trainPlans: 'new-plan',
+      RfRoutes.trainPlanNew: 'plan-name-field',
+      RfRoutes.trainPlan('missing'): 'plan-missing',
+      RfRoutes.trainSplitNew: 'split-name-field',
+      RfRoutes.trainSplit('missing'): 'split-missing',
+      RfRoutes.trainSchedule: 'schedule-on-date',
+      RfRoutes.trainSession('missing'): 'session-missing',
+      RfRoutes.trainHistory: 'history-list-empty',
+      RfRoutes.trainHistoryDetail('missing'): 'detail-missing',
+    };
+    for (final entry in expected.entries) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [databaseProvider.overrideWithValue(db)],
+          child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(entry.value)), findsOneWidget, reason: entry.key);
+      await unmount(tester);
+    }
+  });
+
+  testWidgets('measurement routes resolve (WP 10)', (tester) async {
+    expect(RfRoutes.settingsBackup, '/settings/backup');
+    expect(RfRoutes.trackEntry, '/track/entry');
+    expect(RfRoutes.trackUnreadable, '/track/unreadable');
+    expect(RfRoutes.trackProgress, '/track/progress');
+    expect(
+      RfRoutes.trackSite(MeasurementSite.thighLeft),
+      '/track/site/thighLeft',
+    );
+    expect(RfRoutes.trackCompare(), '/track/compare');
+    expect(
+      RfRoutes.trackCompare(MeasurementSite.waist),
+      '/track/compare?site=waist',
+    );
+
+    final expected = <String, String>{
+      RfRoutes.trackEntry: 'field-weight',
+      RfRoutes.settingsBackup: 'export-backup',
+      RfRoutes.trackUnreadable: 'unreadable-empty',
+      RfRoutes.trackProgress: 'progress-empty',
+      RfRoutes.trackSite(MeasurementSite.weight): 'site-empty',
+      '/track/site/nonsense': 'site-unknown',
+      RfRoutes.trackCompare(): 'compare-site-picker',
+      RfRoutes.trackCompare(MeasurementSite.waist): 'outcome-nodata-first',
+      '/track/compare?mode=periods': 'period-empty-first',
+    };
+    for (final entry in expected.entries) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [databaseProvider.overrideWithValue(db)],
+          child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(entry.value)), findsOneWidget, reason: entry.key);
+      await unmount(tester);
+    }
   });
 }

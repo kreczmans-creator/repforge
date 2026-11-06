@@ -1,0 +1,97 @@
+{
+  "app": "repforge",
+  "formatVersion": 2,
+  "schemaVersion": 7,
+  "exportedAt": "2026-11-06T12:00:00.000Z",
+  "tables": {
+    "measurements": [],
+    "foods": [],
+    "food_servings": [],
+    "food_log_entries": [],
+    "saved_meals": [],
+    "saved_meal_items": [],
+    "recipes": [],
+    "recipe_ingredients": [],
+    "recipe_substitutes": [],
+    "meal_plan_items": [],
+    "prep_batches": [],
+    "exercises": [],
+    "workout_plans": [],
+    "plan_exercises": [],
+    "workout_sessions": [],
+    "session_exercises": [],
+    "session_sets": [],
+    "scheduled_workouts": [],
+    "training_splits": [],
+    "split_days": [],
+    "legacy_quarantine": [],
+    "goals": [],
+    "settings": [
+      {
+        "key": "units",
+        "value": "metric",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "theme",
+        "value": "dark",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "exertionScale",
+        "value": "rpe",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "dayStartHour",
+        "value": "4",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "weekStartDay",
+        "value": "1",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "mealLabels",
+        "value": "{\"order\":[\"breakfast\",\"lunch\",\"dinner\",\"snack\"],\"labels\":{\"breakfast\":\"Frühstück\",\"lunch\":\"Lunch\",\"dinner\":\"Dinner\",\"snack\":\"Snacks\"}}",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "seedRecipesVersion",
+        "value": "1",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "recipeFavouritesOnly",
+        "value": "false",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "availableEquipment",
+        "value": "barbell,bench,dumbbell,squatRack",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "equipmentBodyweightOnly",
+        "value": "false",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "seedExercisesVersion",
+        "value": "1",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "defaultRestSeconds",
+        "value": "90",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      },
+      {
+        "key": "restTimerNotifications",
+        "value": "true",
+        "updated_at": "2026-01-12T07:30:00.000Z"
+      }
+    ]
+  }
+}

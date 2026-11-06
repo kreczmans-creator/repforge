@@ -2,87 +2,344 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/domain/goals/daily_targets.dart';
+import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/units/display.dart';
+import 'package:repforge/domain/units/units.dart';
+import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/measurements/presentation/weight_providers.dart';
+import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/ui/components/rf_card.dart';
+import 'package:repforge/ui/components/rf_list_tile.dart';
+import 'package:repforge/ui/components/rf_macro_bar.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
+import 'package:repforge/ui/components/rf_section_header.dart';
 import 'package:repforge/ui/components/rf_stat_tile.dart';
 import 'package:repforge/ui/components/rf_states.dart';
 import 'package:repforge/ui/tokens.dart';
 
-/// Daily overview. In WP 1 it shows body weight only; nutrition and training
-/// panels arrive with their work packages and are not mocked here.
+/// Daily overview ("cockpit"): nutrition vs targets, next session, latest
+/// weight and recent activity, all live from the database. Every panel has
+/// an explicit empty state; nothing is mocked.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final now = ref.watch(clockProvider).now().toLocal();
+    final date = DateFormat('EEEE d MMMM').format(now);
+    final greeting = switch (now.hour) {
+      < 12 => 'Good morning',
+      < 18 => 'Good afternoon',
+      _ => 'Good evening',
+    };
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: RfSpace.gutter),
+      children: [
+        RfScreenTitle(title: greeting, caption: date),
+        const _NutritionPanel(),
+        const SizedBox(height: RfSpace.s4),
+        const RfSectionHeader(title: 'Training'),
+        const _TrainingPanel(),
+        const SizedBox(height: RfSpace.s4),
+        const RfSectionHeader(title: 'Body'),
+        const _BodyPanel(),
+        const SizedBox(height: RfSpace.s4),
+        const RfSectionHeader(title: 'Recent activity'),
+        const _ActivityPanel(),
+        const SizedBox(height: RfSpace.s8),
+      ],
+    );
+  }
+}
+
+class _NutritionPanel extends ConsumerWidget {
+  const _NutritionPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summary = ref.watch(todaySummaryProvider);
+    return summary.when(
+      loading: () => const RfLoading(),
+      error: (e, _) =>
+          const RfErrorState(message: "Could not load today's nutrition."),
+      data: (s) {
+        final t = s.targets;
+        final remaining = s.kcalRemaining;
+        return Column(
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: RfStatTile(
+                      key: const Key('kcal-tile'),
+                      label: remaining == null ? 'Calories' : 'Calories left',
+                      value: _n(remaining ?? s.intake.kcal),
+                      unit: 'kcal',
+                      progress: t.kcal == null || t.kcal == 0
+                          ? null
+                          : s.intake.kcal / t.kcal!,
+                      caption: t.kcal == null
+                          ? 'No target set'
+                          : '${_n(s.intake.kcal)} of ${_n(t.kcal!)}',
+                    ),
+                  ),
+                  const SizedBox(width: RfSpace.s3),
+                  Expanded(
+                    child: RfStatTile(
+                      key: const Key('protein-tile'),
+                      label: 'Protein',
+                      value: numberOrNa(s.intake.proteinG),
+                      unit: s.intake.proteinG == null ? null : 'g',
+                      // Progress only for a known value and a usable target.
+                      progress:
+                          s.intake.proteinG == null ||
+                              t.proteinG == null ||
+                              t.proteinG == 0
+                          ? null
+                          : s.intake.proteinG! / t.proteinG!,
+                      caption: _proteinCaption(s),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: RfSpace.s3),
+            if (s.entryCount == 0 && t.isEmpty)
+              const RfEmptyState(
+                key: Key('nutrition-empty'),
+                icon: Icons.restaurant_outlined,
+                message:
+                    'Set daily targets in Settings; food logging arrives '
+                    'with the Fuel work package.',
+              )
+            else
+              RfCard(
+                child: Column(
+                  children: [
+                    RfMacroBar(
+                      label: 'Protein',
+                      amount: s.intake.proteinG,
+                      target: t.proteinG,
+                      unknownCount: s.totals.unknownCount(Nutrient.proteinG),
+                    ),
+                    RfMacroBar(
+                      label: 'Carbs',
+                      amount: s.intake.carbsG,
+                      target: t.carbsG,
+                      unknownCount: s.totals.unknownCount(Nutrient.carbsG),
+                      color: context.rf.textSecondary,
+                    ),
+                    RfMacroBar(
+                      label: 'Fat',
+                      amount: s.intake.fatG,
+                      target: t.fatG,
+                      unknownCount: s.totals.unknownCount(Nutrient.fatG),
+                      color: context.rf.textSecondary,
+                    ),
+                    RfMacroBar(
+                      label: 'Fibre',
+                      amount: s.intake.fibreG,
+                      target: t.fibreG,
+                      unknownCount: s.totals.unknownCount(Nutrient.fibreG),
+                      color: context.rf.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  static String _n(double v) => v.round().toString();
+
+  /// Target caption plus the unknown marker for a partly known total.
+  static String _proteinCaption(DailySummary s) {
+    final target = s.targets.proteinG == null
+        ? 'No target set'
+        : 'of ${_n(s.targets.proteinG!)} g';
+    final unknown = s.totals.unknownCount(Nutrient.proteinG);
+    return s.intake.proteinG == null || unknown == 0
+        ? target
+        : '$target · $unknown unknown';
+  }
+}
+
+class _TrainingPanel extends ConsumerWidget {
+  const _TrainingPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plans = ref.watch(plansProvider);
+    final sessions = ref.watch(recentSessionsProvider);
+    return plans.when(
+      loading: () => const RfLoading(),
+      error: (e, _) => const RfErrorState(message: 'Could not load plans.'),
+      data: (list) {
+        final count = sessions.value?.length ?? 0;
+        if (list.isEmpty) {
+          return RfEmptyState(
+            key: const Key('training-empty'),
+            icon: Icons.fitness_center_outlined,
+            message: count == 0
+                ? 'No workout plans yet. Plans and session logging arrive '
+                      'with the Train work packages.'
+                : '$count recent session(s). No plan scheduled.',
+          );
+        }
+        // Scheduling (which plan is next) arrives in WP 9; until then the
+        // panel reports what exists without guessing an order.
+        final names = list.take(3).map((p) => p.name).join(' · ');
+        return RfCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('PLANS', style: context.rfText.kicker),
+              const SizedBox(height: RfSpace.s1),
+              Text(
+                '${list.length} plan${list.length == 1 ? '' : 's'}'
+                '${count == 0 ? '' : ' · $count recent session(s)'}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Text(names, style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BodyPanel extends ConsumerWidget {
+  const _BodyPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final latest = ref.watch(latestWeightProvider);
     final entries = ref.watch(weightEntriesProvider);
-    final theme = Theme.of(context);
-    final today = DateFormat('EEEE, d MMMM')
-        .format(ref.watch(clockProvider).now().toLocal());
-
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: RfSpace.lg),
+    final units =
+        ref.watch(settingsProvider.select((s) => s.value?.units)) ??
+        UnitSystem.metric;
+    return latest.when(
+      loading: () => const RfLoading(),
+      error: (e, _) =>
+          const RfErrorState(message: 'Could not load body weight.'),
+      data: (entry) => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            RfScreenTitle(kicker: today, title: 'Your cockpit'),
-            latest.when(
-              loading: () => const RfLoading(),
-              error: (e, _) =>
-                  const RfErrorState(message: 'Could not load body weight.'),
-              data: (entry) => Row(
-                children: [
-                  Expanded(
-                    child: RfStatTile(
-                      key: const Key('latest-weight'),
-                      label: 'Latest weight',
-                      value: entry?.weight.label ?? '—',
-                      caption: entry == null
-                          ? 'Nothing logged yet'
-                          : DateFormat.yMMMd().format(
-                              entry.recordedAt.toLocal(),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: RfSpace.md),
-                  Expanded(
-                    child: RfStatTile(
-                      key: const Key('weight-count'),
-                      label: 'Entries',
-                      value: '${entries.value?.length ?? 0}',
-                      caption: 'body-weight records',
-                    ),
-                  ),
-                ],
+            Expanded(
+              child: RfStatTile(
+                key: const Key('latest-weight'),
+                label: 'Latest weight',
+                value: entry == null
+                    ? '—'
+                    : bodyWeightParts(entry.weight, units).value,
+                unit: entry == null
+                    ? null
+                    : bodyWeightParts(entry.weight, units).unit,
+                caption: entry == null
+                    ? 'Nothing logged yet'
+                    : DateFormat.yMMMd().format(entry.recordedAt.toLocal()),
               ),
             ),
-            const SizedBox(height: RfSpace.lg),
-            RfCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Scope of this build',
-                    style: theme.textTheme.labelSmall,
-                  ),
-                  const SizedBox(height: RfSpace.sm),
-                  Text(
-                    'WP 1 foundation: body-weight logging only. Nutrition, '
-                    'recipes, training, measurements and goals are delivered '
-                    'in later work packages and are intentionally absent here.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+            const SizedBox(width: RfSpace.s3),
+            Expanded(
+              child: RfStatTile(
+                key: const Key('weight-count'),
+                label: 'Entries',
+                value: '${entries.value?.length ?? 0}',
+                caption: 'body-weight records',
               ),
             ),
-            const SizedBox(height: RfSpace.xxl),
           ],
         ),
       ),
     );
   }
+}
+
+class _ActivityPanel extends ConsumerWidget {
+  const _ActivityPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weightsAsync = ref.watch(weightEntriesProvider);
+    final sessionsAsync = ref.watch(recentSessionsProvider);
+    final units =
+        ref.watch(settingsProvider.select((s) => s.value?.units)) ??
+        UnitSystem.metric;
+    if (weightsAsync.isLoading || sessionsAsync.isLoading) {
+      return const RfLoading();
+    }
+    if (weightsAsync.hasError || sessionsAsync.hasError) {
+      return const RfErrorState(message: 'Could not load recent activity.');
+    }
+    final weights = weightsAsync.value ?? const [];
+    final sessions = sessionsAsync.value ?? const [];
+    final items = <_Activity>[
+      for (final e in weights.take(5))
+        _Activity(
+          at: e.recordedAt,
+          icon: Icons.monitor_weight_outlined,
+          title: 'Weigh-in',
+          subtitle: formatBodyWeight(e.weight, units),
+        ),
+      for (final s in sessions)
+        _Activity(
+          at: s.startedAt,
+          icon: Icons.fitness_center,
+          title: s.name,
+          subtitle: _sessionLine(s),
+        ),
+    ]..sort((a, b) => b.at.compareTo(a.at));
+    if (items.isEmpty) {
+      return const RfEmptyState(
+        key: Key('activity-empty'),
+        icon: Icons.history,
+        message: 'Log a weight on the Track tab to see it here.',
+      );
+    }
+    return RfCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: RfSpace.s4,
+        vertical: RfSpace.s1,
+      ),
+      child: Column(
+        children: [
+          for (final a in items.take(5))
+            RfListTile(
+              icon: a.icon,
+              title: a.title,
+              subtitle:
+                  '${DateFormat.MMMd().format(a.at.toLocal())} · ${a.subtitle}',
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String _sessionLine(WorkoutSession s) {
+    final sets = s.sets.where((x) => x.completed).length;
+    return '$sets sets';
+  }
+}
+
+final class _Activity {
+  const _Activity({
+    required this.at,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+  final DateTime at;
+  final IconData icon;
+  final String title;
+  final String subtitle;
 }

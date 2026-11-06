@@ -1,0 +1,379 @@
+{
+  "formatVersion": 1,
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
+  },
+  "provider": "repforge",
+  "locale": "en-GB",
+  "description": "21 existing equipment ids unchanged (status existing) plus 12 additions approved by the owner on 2026-11-05 (status approved). equipmentClass feeds the coverage matrix. role is the item's DEFAULT role: load (supplies the resistance or assistance), support (holds the body or an implement, adds no load), cardio (a cardio machine) or implement (a tool with its own load or movement). An exercise may override the default for one item with equipmentRoles (for example the barbell in an inverted row is a support). lifecycle is active or retired.",
+  "classes": [
+    "freeWeight",
+    "machine",
+    "cable",
+    "smithMachine",
+    "band",
+    "kettlebell",
+    "bodyweight",
+    "other"
+  ],
+  "nodes": [
+    {
+      "id": "barbell",
+      "sort": 10,
+      "label": "Barbell",
+      "equipmentClass": "freeWeight",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "ezBar",
+      "sort": 20,
+      "label": "EZ bar",
+      "equipmentClass": "freeWeight",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "trapBar",
+      "sort": 30,
+      "label": "Trap bar",
+      "equipmentClass": "freeWeight",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "dumbbell",
+      "sort": 40,
+      "label": "Dumbbells",
+      "equipmentClass": "freeWeight",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "kettlebell",
+      "sort": 50,
+      "label": "Kettlebell",
+      "equipmentClass": "kettlebell",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "cable",
+      "sort": 60,
+      "label": "Cable station",
+      "equipmentClass": "cable",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "machine",
+      "sort": 70,
+      "label": "Machine (selectorised or plate-loaded)",
+      "equipmentClass": "machine",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "smithMachine",
+      "sort": 80,
+      "label": "Smith machine",
+      "equipmentClass": "smithMachine",
+      "role": "load",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "bench",
+      "sort": 90,
+      "label": "Bench",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "existing",
+      "note": "Flat or adjustable bench. A support item: it adds no external load.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "squatRack",
+      "sort": 100,
+      "label": "Squat rack",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "existing",
+      "note": "Support item.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "pullUpBar",
+      "sort": 110,
+      "label": "Pull-up bar",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "existing",
+      "note": "Support item.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "dipBars",
+      "sort": 120,
+      "label": "Dip bars",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "existing",
+      "note": "Support item.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "resistanceBand",
+      "sort": 130,
+      "label": "Resistance band",
+      "equipmentClass": "band",
+      "role": "load",
+      "status": "existing",
+      "note": "Covers loop bands, tube bands and mini bands.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "plate",
+      "sort": 140,
+      "label": "Weight plate",
+      "equipmentClass": "freeWeight",
+      "role": "load",
+      "status": "existing",
+      "note": "Also used for weighted bodyweight work, such as plate-loaded planks.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "medicineBall",
+      "sort": 150,
+      "label": "Medicine ball",
+      "equipmentClass": "other",
+      "role": "load",
+      "status": "existing",
+      "note": "Covers slam balls and wall balls.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "rings",
+      "sort": 160,
+      "label": "Gymnastic rings",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "existing",
+      "note": "Support item.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "treadmill",
+      "sort": 170,
+      "label": "Treadmill",
+      "equipmentClass": "other",
+      "role": "cardio",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "bike",
+      "sort": 180,
+      "label": "Exercise bike",
+      "equipmentClass": "other",
+      "role": "cardio",
+      "status": "existing",
+      "note": "Covers upright, recumbent and air bikes unless the owner asks for a split.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "rower",
+      "sort": 190,
+      "label": "Rowing machine",
+      "equipmentClass": "other",
+      "role": "cardio",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "elliptical",
+      "sort": 200,
+      "label": "Cross-trainer",
+      "equipmentClass": "other",
+      "role": "cardio",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "skippingRope",
+      "sort": 210,
+      "label": "Skipping rope",
+      "equipmentClass": "other",
+      "role": "implement",
+      "status": "existing",
+      "lifecycle": "active"
+    },
+    {
+      "id": "landmine",
+      "sort": 220,
+      "label": "Landmine attachment",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "Anchors one end of a barbell. Enables angled presses, rows and rotational work that no existing item represents. Tagged together with barbell or plate, which supply the load. Without it, a user without an anchor still sees these exercises.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "sled",
+      "sort": 230,
+      "label": "Sled",
+      "equipmentClass": "other",
+      "role": "implement",
+      "status": "approved",
+      "note": "The seed tags the sled push as plate. A sled is a distinct item many gyms lack. Needed for push and drag patterns in conditioning.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "plyoBox",
+      "sort": 240,
+      "label": "Plyo box or step",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "Needed for box jumps, step-ups and elevated work. The seed uses bench for step-ups; a box is the more accurate requirement.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "suspensionTrainer",
+      "sort": 250,
+      "label": "Suspension trainer",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "Adjustable straps hung from an anchor (generic name; no brand). Supports inverted rows, push-up variants, fallouts and assisted single-leg work.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "battleRopes",
+      "sort": 260,
+      "label": "Battle ropes",
+      "equipmentClass": "other",
+      "role": "implement",
+      "status": "approved",
+      "note": "Needed for rope conditioning patterns.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "preacherBench",
+      "sort": 270,
+      "label": "Preacher bench",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "Angled arm pad for preacher curls. The seed tags preacher curl as ezBar and bench, which shows it to users who own a flat bench only.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hyperextensionBench",
+      "sort": 280,
+      "label": "Back extension bench",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "Roman chair or 45 degree bench. Required for back extensions and reverse hyperextensions, essential for Lower back coverage.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "abWheel",
+      "sort": 290,
+      "label": "Ab wheel",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "The seed rollout lists no equipment, so it appears as bodyweight-only. The wheel is a required item. It adds no external load, so it is a support item and the exercise stays in the bodyweight class.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "stabilityBall",
+      "sort": 300,
+      "label": "Stability ball",
+      "equipmentClass": "bodyweight",
+      "role": "support",
+      "status": "approved",
+      "note": "Needed for ball curls, rollouts and ball-supported core work. It adds no external load, so it is a support item and the exercise stays in the bodyweight class (a dumbbell held on the ball still gives free weight).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "skiErg",
+      "sort": 320,
+      "label": "Ski ergometer",
+      "equipmentClass": "other",
+      "role": "cardio",
+      "status": "approved",
+      "note": "Approved 2026-11-05. Named by the `ergometer` pattern.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "stairClimber",
+      "sort": 330,
+      "label": "Stair climber",
+      "equipmentClass": "other",
+      "role": "cardio",
+      "status": "approved",
+      "note": "Approved 2026-11-05. Stair-climbing machine or stepper.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "foamRoller",
+      "sort": 340,
+      "label": "Foam roller",
+      "equipmentClass": "other",
+      "role": "implement",
+      "status": "approved",
+      "note": "Approved as one of the 12 additions. Soft tissue release content is deferred by owner decision (2026-11-05), so no coverage entry depends on this item.",
+      "lifecycle": "active"
+    }
+  ],
+  "notProposed": [
+    {
+      "id": "parallettes",
+      "label": "Low parallel bars",
+      "reason": "Push-up and L-sit variations can be tagged without them; add only if the owner wants gymnastic content."
+    },
+    {
+      "id": "gluteHamDeveloper",
+      "label": "Glute-ham developer",
+      "reason": "Back extension bench covers the common cases; a separate item adds little."
+    },
+    {
+      "id": "weightBelt",
+      "label": "Dip belt or weighted vest",
+      "reason": "Weighted pull-ups and dips can be tagged plate or dumbbell; the logging type already records the added load."
+    },
+    {
+      "id": "sandbag",
+      "label": "Sandbag",
+      "reason": "Rare in gyms. Defer."
+    },
+    {
+      "id": "airBike",
+      "label": "Air bike",
+      "reason": "Folded into bike."
+    },
+    {
+      "id": "trx",
+      "label": "Branded suspension trainers",
+      "reason": "Brand names are not used; see suspensionTrainer."
+    },
+    {
+      "id": "sliders",
+      "label": "Sliders or gliding discs",
+      "reason": "Slider curls and body saws can be described with the stability ball or as bodyweight work; add a sliders item only if the owner wants them as a separate requirement (F20: slider curls removed from the knee-flexion pattern and the inventory)."
+    }
+  ]
+}

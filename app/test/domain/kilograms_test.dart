@@ -4,8 +4,8 @@ import 'package:repforge/domain/units/kilograms.dart';
 
 void main() {
   group('Kilograms.of', () {
-    test('accepts values inside the range and rounds to 0.1 kg', () {
-      final r = Kilograms.of(82.44);
+    test('accepts values inside the range in 0.1 kg steps', () {
+      final r = Kilograms.of(82.4);
       expect(r, isA<Ok<Kilograms>>());
       expect((r as Ok<Kilograms>).value.value, 82.4);
       expect(r.value.label, '82.4 kg');
@@ -17,14 +17,14 @@ void main() {
     });
 
     test('rejects values below 20.0 kg', () {
-      final r = Kilograms.of(19.94);
+      final r = Kilograms.of(19.9);
       expect(r, isA<Err<Kilograms>>());
       expect((r as Err<Kilograms>).error, isA<ValidationError>());
       expect((r.error as ValidationError).field, 'weightKg');
     });
 
     test('rejects values above 500.0 kg', () {
-      expect(Kilograms.of(500.05), isA<Err<Kilograms>>());
+      expect(Kilograms.of(500.1), isA<Err<Kilograms>>());
     });
 
     test('rejects NaN and infinity', () {
@@ -57,13 +57,23 @@ void main() {
       (Kilograms.of(80) as Ok<Kilograms>).value,
       equals((Kilograms.of(80) as Ok<Kilograms>).value),
     );
-    expect(
-      (Kilograms.of(80) as Ok<Kilograms>).value,
-      (Kilograms.of(80.04) as Ok<Kilograms>).value,
-    );
+    expect((Kilograms.of(80) as Ok<Kilograms>).value, Kilograms.fromStored(80));
   });
 
-  test('fromStored throws on a corrupt value', () {
+  test('stored reads use the strict rule and never snap', () {
     expect(() => Kilograms.fromStored(5), throwsStateError);
+    expect(() => Kilograms.fromStored(80.05), throwsStateError);
+    expect(Kilograms.tryFromStored(5), isNull);
+    expect(Kilograms.tryFromStored(double.nan), isNull);
+    // Off-step and just-out-of-range stored values are not corrected.
+    expect(Kilograms.tryFromStored(80.05), isNull);
+    expect(Kilograms.tryFromStored(80.04), isNull);
+    expect(Kilograms.tryFromStored(19.96), isNull);
+    expect(Kilograms.tryFromStored(500.04), isNull);
+    // Valid values and float noise stay readable.
+    expect(Kilograms.tryFromStored(80.1)!.value, 80.1);
+    expect(Kilograms.tryFromStored(80.10000000000001)!.value, 80.1);
+    expect(Kilograms.tryFromStored(20)!.value, 20);
+    expect(Kilograms.tryFromStored(500)!.value, 500);
   });
 }

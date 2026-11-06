@@ -1,0 +1,959 @@
+{
+  "formatVersion": 1,
+  "status": "Approved by the owner 2026-11-05 (OQ-22 / OQ-23)",
+  "approval": {
+    "date": "2026-11-05",
+    "by": "owner",
+    "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
+  },
+  "amendments": [
+    {
+      "date": "2026-11-06",
+      "by": "owner",
+      "decisions": "WP 8 stage 3a (X3): trunkExtension includes the wording Machine back extensions in which the spine itself moves."
+    }
+  ],
+  "provider": "repforge",
+  "locale": "en-GB",
+  "description": "Proposed movement pattern hierarchy (OQ-22): family then pattern. relatedCategories on a family lists the existing exercise categories it usually accompanies; categories stay independent. lifecycle is active or retired. Decision rules R1 to R8 for borderline movements are in movement-patterns.md section 4.",
+  "nodes": [
+    {
+      "id": "lowerBodyCompound",
+      "parent": null,
+      "level": 1,
+      "sort": 10,
+      "label": "Lower-body compound",
+      "definition": "Multi-joint movements that bend and straighten the hips and knees under load.",
+      "includes": "Squat, hinge and lunge patterns.",
+      "excludes": "Single-joint knee or hip work (Knee joint, Hip joint).",
+      "relatedCategories": [
+        "legs"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "squat",
+      "parent": "lowerBodyCompound",
+      "level": 2,
+      "sort": 10,
+      "label": "Squat",
+      "definition": "Knees and hips bend together with the trunk fairly upright and both feet loaded.",
+      "includes": "Barbell, goblet, hack and Smith squats; leg press; wall sit; sissy squat.",
+      "excludes": "Split stances (Lunge); hip-dominant lifts (Hinge).",
+      "note": "Leg press and wall sit are classed here: debatable. A thruster is a squat first and a vertical push second (decision rule R3).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hinge",
+      "parent": "lowerBodyCompound",
+      "level": 2,
+      "sort": 20,
+      "label": "Hinge",
+      "definition": "The hips travel back and forward with a near-neutral spine; knees bend only a little.",
+      "includes": "Deadlifts, Romanian deadlifts, good mornings, kettlebell swings, pull-throughs.",
+      "excludes": "Squats; isolated hip thrusts (Hip extension); back extensions (Trunk extension or Hip extension, decision rule R5).",
+      "note": "Kettlebell swing is a ballistic hinge.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "lunge",
+      "parent": "lowerBodyCompound",
+      "level": 2,
+      "sort": 30,
+      "label": "Lunge and split stance",
+      "definition": "One leg leads or carries most of the load while the other supports from behind or the side.",
+      "includes": "Lunges, split squats, step-ups, single-leg squats, skater squats.",
+      "excludes": "Bilateral squats; single-leg hinges (Hinge).",
+      "note": "Single-leg hinges are Hinge with unilateral laterality.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "upperPush",
+      "parent": null,
+      "level": 1,
+      "sort": 20,
+      "label": "Upper-body push",
+      "definition": "Movements that press a load or the body away from the torso.",
+      "includes": "Horizontal and vertical push.",
+      "excludes": "Single-joint elbow extension and fly movements.",
+      "relatedCategories": [
+        "push"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "horizontalPush",
+      "parent": "upperPush",
+      "level": 2,
+      "sort": 10,
+      "label": "Horizontal push",
+      "definition": "Pressing along a line roughly level with the chest, including inclines up to about 45 degrees.",
+      "includes": "Bench and chest presses, push-ups, floor presses.",
+      "excludes": "Overhead presses (Vertical push); flys (Shoulder horizontal adduction).",
+      "note": "Incline angles above about 45 degrees count as vertical push.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "verticalPush",
+      "parent": "upperPush",
+      "level": 2,
+      "sort": 20,
+      "label": "Vertical push",
+      "definition": "Pressing overhead or steeply upwards, or pushing the body upwards against the hands.",
+      "includes": "Overhead presses, push presses (decision rule R1), pike push-ups, dips.",
+      "excludes": "Flat presses (Horizontal push).",
+      "note": "Dips are classed here: debatable. A push press stays here: the leg dip assists a press that is still the main demand.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "upperPull",
+      "parent": null,
+      "level": 1,
+      "sort": 30,
+      "label": "Upper-body pull",
+      "definition": "Movements that pull a load or the body towards the torso.",
+      "includes": "Horizontal and vertical pull.",
+      "excludes": "Single-joint elbow flexion and shoulder blade work.",
+      "relatedCategories": [
+        "pull"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "horizontalPull",
+      "parent": "upperPull",
+      "level": 2,
+      "sort": 10,
+      "label": "Horizontal pull",
+      "definition": "Pulling the hands towards the torso along a roughly horizontal line.",
+      "includes": "Rows with any implement, inverted rows, seated cable rows.",
+      "excludes": "Pulldowns and pull-ups (Vertical pull).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "verticalPull",
+      "parent": "upperPull",
+      "level": 2,
+      "sort": 20,
+      "label": "Vertical pull",
+      "definition": "Pulling the hands down towards the torso, pulling the body up towards the hands, or pulling a load up along the torso with the elbows leading.",
+      "includes": "Pull-ups, chin-ups, lat pulldowns; upright rows (decision rule R4).",
+      "excludes": "Rows (Horizontal pull); straight-arm pulldowns (Shoulder extension); shrugs (Scapular elevation).",
+      "note": "Upright rows are given this home at review (F12): the hands travel vertically and the elbows lead. Primary target sideDelts with trapeziusUpper as secondary. Owner may prefer a pattern of their own.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "elbowJoint",
+      "parent": null,
+      "level": 1,
+      "sort": 40,
+      "label": "Elbow",
+      "definition": "Single-joint movements at the elbow.",
+      "includes": "Elbow flexion and extension.",
+      "excludes": "Compound presses and pulls.",
+      "relatedCategories": [
+        "push",
+        "pull"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "elbowFlexion",
+      "parent": "elbowJoint",
+      "level": 2,
+      "sort": 10,
+      "label": "Elbow flexion",
+      "definition": "Bending the elbow against resistance.",
+      "includes": "All curl variations.",
+      "excludes": "Pull-ups and rows, which are compound pulls.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "elbowExtension",
+      "parent": "elbowJoint",
+      "level": 2,
+      "sort": 20,
+      "label": "Elbow extension",
+      "definition": "Straightening the elbow against resistance with the upper arm held in place.",
+      "includes": "Pushdowns, skull crushers, overhead extensions, kickbacks.",
+      "excludes": "Presses (Horizontal or Vertical push).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderJoint",
+      "parent": null,
+      "level": 1,
+      "sort": 50,
+      "label": "Shoulder joint",
+      "definition": "Single-joint movements of the arm at the shoulder.",
+      "includes": "Abduction, flexion, extension, horizontal movements and rotation.",
+      "excludes": "Pressing and pulling.",
+      "relatedCategories": [
+        "push",
+        "pull"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderAbduction",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 10,
+      "label": "Shoulder abduction",
+      "definition": "Raising the arm out to the side.",
+      "includes": "Lateral raises, cable lateral raises, scaption.",
+      "excludes": "Upright rows, which are compound (Vertical pull).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderFlexion",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 20,
+      "label": "Shoulder flexion",
+      "definition": "Raising the arm forward and up.",
+      "includes": "Front raises, plate raises.",
+      "excludes": "Overhead presses.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderExtension",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 30,
+      "label": "Shoulder extension",
+      "definition": "Pulling the straight arm down and back.",
+      "includes": "Straight-arm pulldowns, dumbbell pullovers.",
+      "excludes": "Rows and pulldowns with bent elbows.",
+      "note": "Pullover is classed here: debatable (it also trains chest).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderHorizontalAdduction",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 40,
+      "label": "Shoulder horizontal adduction",
+      "definition": "Bringing the arms together across the chest.",
+      "includes": "Chest flys, cable crossovers, pec deck.",
+      "excludes": "Presses (Horizontal push).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderHorizontalAbduction",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 50,
+      "label": "Shoulder horizontal abduction",
+      "definition": "Moving the arms apart behind the line of the shoulders.",
+      "includes": "Reverse flys, face pulls, band pull-aparts.",
+      "excludes": "Rows (Horizontal pull).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderExternalRotation",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 60,
+      "label": "Shoulder external rotation",
+      "definition": "Turning the upper arm outward.",
+      "includes": "Cable and band external rotations, side-lying rotations.",
+      "excludes": "Face pulls, which are horizontal abduction first.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "shoulderInternalRotation",
+      "parent": "shoulderJoint",
+      "level": 2,
+      "sort": 70,
+      "label": "Shoulder internal rotation",
+      "definition": "Turning the upper arm inward.",
+      "includes": "Cable and band internal rotations.",
+      "excludes": "Pressing.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "scapularMotion",
+      "parent": null,
+      "level": 1,
+      "sort": 60,
+      "label": "Shoulder blade",
+      "definition": "Movements of the shoulder blade on the ribcage.",
+      "includes": "Elevation, retraction, protraction, depression.",
+      "excludes": "Arm movements at the shoulder joint.",
+      "relatedCategories": [
+        "pull"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "scapularElevation",
+      "parent": "scapularMotion",
+      "level": 2,
+      "sort": 10,
+      "label": "Scapular elevation",
+      "definition": "Lifting the shoulder blades towards the ears.",
+      "includes": "Shrugs of every implement.",
+      "excludes": "Rows; upright rows, whose elbow-led pull is classed as Vertical pull.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "scapularRetraction",
+      "parent": "scapularMotion",
+      "level": 2,
+      "sort": 20,
+      "label": "Scapular retraction",
+      "definition": "Drawing the shoulder blades together.",
+      "includes": "Scapular rows, prone Y-T-W, band retractions.",
+      "excludes": "Full rows (Horizontal pull).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "scapularProtraction",
+      "parent": "scapularMotion",
+      "level": 2,
+      "sort": 30,
+      "label": "Scapular protraction",
+      "definition": "Pushing the shoulder blades forward around the ribcage.",
+      "includes": "Push-up plus, cable serratus punch.",
+      "excludes": "Presses.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "scapularDepression",
+      "parent": "scapularMotion",
+      "level": 2,
+      "sort": 40,
+      "label": "Scapular depression",
+      "definition": "Pulling the shoulder blades down away from the ears.",
+      "includes": "Straight-arm scapular pulls, support holds on dip bars.",
+      "excludes": "Dips.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "kneeJoint",
+      "parent": null,
+      "level": 1,
+      "sort": 70,
+      "label": "Knee",
+      "definition": "Single-joint movements at the knee.",
+      "includes": "Knee extension and flexion.",
+      "excludes": "Squats, lunges and hinges.",
+      "relatedCategories": [
+        "legs"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "kneeExtension",
+      "parent": "kneeJoint",
+      "level": 2,
+      "sort": 10,
+      "label": "Knee extension",
+      "definition": "Straightening the knee against resistance with the hip fixed.",
+      "includes": "Leg extensions, band knee extensions, terminal knee extensions.",
+      "excludes": "Squats and presses.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "kneeFlexion",
+      "parent": "kneeJoint",
+      "level": 2,
+      "sort": 20,
+      "label": "Knee flexion",
+      "definition": "Bending the knee against resistance with the hip fixed.",
+      "includes": "Leg curls, Nordic curls, stability-ball curls.",
+      "excludes": "Romanian deadlifts (Hinge).",
+      "note": "Slider curls are not listed: no sliders item is proposed (equipment.md section 4).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hipJoint",
+      "parent": null,
+      "level": 1,
+      "sort": 80,
+      "label": "Hip",
+      "definition": "Single-joint movements at the hip.",
+      "includes": "Extension, abduction, adduction, flexion, rotation.",
+      "excludes": "Squats, lunges and hinges.",
+      "relatedCategories": [
+        "legs",
+        "core"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "hipExtension",
+      "parent": "hipJoint",
+      "level": 2,
+      "sort": 10,
+      "label": "Hip extension",
+      "definition": "Driving the thigh back with the knee and trunk largely fixed.",
+      "includes": "Hip thrusts, glute bridges, kickbacks, reverse hyperextensions, back extensions done with a neutral spine and the hips as the hinge (hip-driven).",
+      "excludes": "Hinges (Hinge); back extensions in which the spine itself moves (Trunk extension).",
+      "note": "Decision rule R5: classified by the joint that moves, set by technique. Reverse hyperextension and hip-driven back extension are hip extension, with lowerBack as a secondary.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hipAbduction",
+      "parent": "hipJoint",
+      "level": 2,
+      "sort": 20,
+      "label": "Hip abduction",
+      "definition": "Moving the leg out to the side.",
+      "includes": "Machine and cable abduction, side-lying raises, banded walks, clamshells.",
+      "excludes": "Side planks (Anti-lateral flexion); squats with a band.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hipAdduction",
+      "parent": "hipJoint",
+      "level": 2,
+      "sort": 30,
+      "label": "Hip adduction",
+      "definition": "Moving the leg towards the midline.",
+      "includes": "Machine and cable adduction, Copenhagen plank, squeeze-ball work.",
+      "excludes": "Wide-stance compound lifts, which are classed by their main pattern.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hipFlexion",
+      "parent": "hipJoint",
+      "level": 2,
+      "sort": 40,
+      "label": "Hip flexion",
+      "definition": "Lifting the thigh towards the trunk.",
+      "includes": "Hanging knee raises, hanging leg raises, standing cable knee drives, supine leg raises.",
+      "excludes": "Crunches (Trunk flexion).",
+      "note": "Hanging raises often pair hip flexion with trunk flexion.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "hipRotation",
+      "parent": "hipJoint",
+      "level": 2,
+      "sort": 50,
+      "label": "Hip rotation",
+      "definition": "Turning the thigh in or out at the hip.",
+      "includes": "Seated and prone hip rotations, 90/90 transitions, banded external rotations.",
+      "excludes": "Hinges and squats.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "ankleFoot",
+      "parent": null,
+      "level": 1,
+      "sort": 90,
+      "label": "Ankle and foot",
+      "definition": "Single-joint movements at the ankle.",
+      "includes": "Plantar flexion, dorsiflexion, inversion and eversion.",
+      "excludes": "Squats and lunges.",
+      "relatedCategories": [
+        "legs"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "plantarFlexion",
+      "parent": "ankleFoot",
+      "level": 2,
+      "sort": 10,
+      "label": "Plantar flexion",
+      "definition": "Pointing the foot down, as in a calf raise.",
+      "includes": "Standing, seated, donkey and single-leg calf raises.",
+      "excludes": "Jumps and skipping.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "dorsiflexion",
+      "parent": "ankleFoot",
+      "level": 2,
+      "sort": 20,
+      "label": "Dorsiflexion",
+      "definition": "Lifting the toes towards the shin.",
+      "includes": "Tibialis raises, banded dorsiflexion.",
+      "excludes": "Plantar flexion.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "ankleInversionEversion",
+      "parent": "ankleFoot",
+      "level": 2,
+      "sort": 30,
+      "label": "Ankle inversion and eversion",
+      "definition": "Turning the sole inward or outward.",
+      "includes": "Banded inversion and eversion, side-lying foot raises.",
+      "excludes": "Plantar flexion and dorsiflexion.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "trunkMotion",
+      "parent": null,
+      "level": 1,
+      "sort": 100,
+      "label": "Trunk movement",
+      "definition": "Movements in which the trunk itself moves.",
+      "includes": "Flexion, extension, rotation and side flexion.",
+      "excludes": "Bracing against movement (Trunk stability).",
+      "relatedCategories": [
+        "core"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "trunkFlexion",
+      "parent": "trunkMotion",
+      "level": 2,
+      "sort": 10,
+      "label": "Trunk flexion",
+      "definition": "Curling the ribcage towards the pelvis.",
+      "includes": "Crunches, cable crunches, sit-ups, reverse crunches.",
+      "excludes": "Leg raises that mainly flex the hip (Hip flexion).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "trunkExtension",
+      "parent": "trunkMotion",
+      "level": 2,
+      "sort": 20,
+      "label": "Trunk extension",
+      "definition": "Arching the spine or lifting the trunk against gravity.",
+      "includes": "Back extensions in which the spine itself moves into extension, supermans. Machine back extensions in which the spine itself moves.",
+      "excludes": "Hip thrusts (Hip extension); hinges; reverse hyperextensions and hip-driven back extensions (Hip extension).",
+      "note": "Decision rule R5: classified by the joint that moves, set by technique. Only a moving spine is trunk extension; primary lowerBack.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "trunkRotation",
+      "parent": "trunkMotion",
+      "level": 2,
+      "sort": 30,
+      "label": "Trunk rotation",
+      "definition": "Turning the ribcage relative to the pelvis against resistance.",
+      "includes": "Cable woodchops, Russian twists, rotational throws.",
+      "excludes": "Anti-rotation holds.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "trunkLateralFlexion",
+      "parent": "trunkMotion",
+      "level": 2,
+      "sort": 40,
+      "label": "Trunk lateral flexion",
+      "definition": "Bending the trunk sideways against resistance.",
+      "includes": "Side bends, weighted side bends, hanging side tilts.",
+      "excludes": "Side planks.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "trunkStability",
+      "parent": null,
+      "level": 1,
+      "sort": 110,
+      "label": "Trunk stability",
+      "definition": "Exercises that resist unwanted trunk movement.",
+      "includes": "Anti-extension, anti-rotation, anti-lateral flexion.",
+      "excludes": "Movements in which the trunk is the mover.",
+      "relatedCategories": [
+        "core"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "antiExtension",
+      "parent": "trunkStability",
+      "level": 2,
+      "sort": 10,
+      "label": "Anti-extension",
+      "definition": "Resisting arching of the lower back.",
+      "includes": "Planks, rollouts, dead bugs, body saws.",
+      "excludes": "Crunches (Trunk flexion).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "antiRotation",
+      "parent": "trunkStability",
+      "level": 2,
+      "sort": 20,
+      "label": "Anti-rotation",
+      "definition": "Resisting twisting of the trunk.",
+      "includes": "Pallof presses, bird dogs, single-arm planks.",
+      "excludes": "Cable woodchops (Trunk rotation).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "antiLateralFlexion",
+      "parent": "trunkStability",
+      "level": 2,
+      "sort": 30,
+      "label": "Anti-lateral flexion",
+      "definition": "Resisting sideways bending of the trunk.",
+      "includes": "Suitcase carries, side planks, single-arm overhead holds.",
+      "excludes": "Side bends (Trunk lateral flexion).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "carries",
+      "parent": null,
+      "level": 1,
+      "sort": 120,
+      "label": "Carries",
+      "definition": "Moving while holding a load.",
+      "includes": "Bilateral and unilateral carries.",
+      "excludes": "Loaded movements without walking (see Locomotion).",
+      "relatedCategories": [
+        "core"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "carryBilateral",
+      "parent": "carries",
+      "level": 2,
+      "sort": 10,
+      "label": "Bilateral carry",
+      "definition": "Walking with equal loads in both hands, on both shoulders or at the front.",
+      "includes": "Farmer's carries, front-rack carries, yoke carries.",
+      "excludes": "Unilateral carries.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "carryUnilateral",
+      "parent": "carries",
+      "level": 2,
+      "sort": 20,
+      "label": "Unilateral carry",
+      "definition": "Walking with a load on one side or in one arm.",
+      "includes": "Suitcase carries, waiter's carries, offset carries.",
+      "excludes": "Bilateral carries.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "conditioning",
+      "parent": null,
+      "level": 1,
+      "sort": 130,
+      "label": "Conditioning and locomotion",
+      "definition": "Repeated movement that raises heart rate and trains work capacity.",
+      "includes": "Running, ergometers, skipping, sled work, crawling and whole-body circuits.",
+      "excludes": "Strength lifts and plyometrics.",
+      "relatedCategories": [
+        "cardio",
+        "fullBody"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "walkRun",
+      "parent": "conditioning",
+      "level": 2,
+      "sort": 10,
+      "label": "Walking and running",
+      "definition": "Moving on foot at any pace.",
+      "includes": "Treadmill and outdoor walking, running and sprinting; incline walking.",
+      "excludes": "Sled work and cardio machines.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "ergometer",
+      "parent": "conditioning",
+      "level": 2,
+      "sort": 20,
+      "label": "Ergometer work",
+      "definition": "Continuous or interval work on a cardio machine.",
+      "includes": "Bike, rower, cross-trainer, ski ergometer, stair climber (the last two need the proposed equipment items `skiErg` and `stairClimber`).",
+      "excludes": "Running on a treadmill (Walking and running), which is a locomotion pattern.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "skipping",
+      "parent": "conditioning",
+      "level": 2,
+      "sort": 30,
+      "label": "Skipping",
+      "definition": "Repeated small jumps over a rope.",
+      "includes": "Single, double and alternate-foot skipping.",
+      "excludes": "Box jumps (Vertical jump).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "sledPushPull",
+      "parent": "conditioning",
+      "level": 2,
+      "sort": 40,
+      "label": "Sled push and pull",
+      "definition": "Moving a loaded sled by pushing or pulling.",
+      "includes": "Sled push, sled drag, backward drag.",
+      "excludes": "Weighted carries.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "crawl",
+      "parent": "conditioning",
+      "level": 2,
+      "sort": 50,
+      "label": "Crawling",
+      "definition": "Moving on hands and feet or hands and knees.",
+      "includes": "Bear, crab and leopard crawls.",
+      "excludes": "Sled work.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "fullBodyConditioning",
+      "parent": "conditioning",
+      "level": 2,
+      "sort": 60,
+      "label": "Whole-body conditioning",
+      "definition": "Multi-joint circuits and drills not covered by another conditioning pattern.",
+      "includes": "Burpees, battle ropes, mountain climbers, jumping jacks.",
+      "excludes": "Olympic lift derivatives (Explosive lift); thrusters (Squat then Vertical push, decision rule R3).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "power",
+      "parent": null,
+      "level": 1,
+      "sort": 140,
+      "label": "Power and plyometrics",
+      "definition": "Fast, forceful movements and jumps.",
+      "includes": "Jumps, upper-body plyometrics and explosive lifts.",
+      "excludes": "Slow strength lifts.",
+      "relatedCategories": [
+        "fullBody"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "verticalJump",
+      "parent": "power",
+      "level": 2,
+      "sort": 10,
+      "label": "Vertical jump",
+      "definition": "Jumping upward and landing.",
+      "includes": "Box jumps, squat jumps, tuck jumps.",
+      "excludes": "Skipping (Conditioning).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "horizontalJump",
+      "parent": "power",
+      "level": 2,
+      "sort": 20,
+      "label": "Horizontal jump",
+      "definition": "Jumping forward or bounding.",
+      "includes": "Broad jumps, bounds, hurdle hops.",
+      "excludes": "Vertical jumps.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "lateralJump",
+      "parent": "power",
+      "level": 2,
+      "sort": 30,
+      "label": "Lateral jump",
+      "definition": "Jumping or bounding side to side.",
+      "includes": "Skater jumps, lateral box jumps.",
+      "excludes": "Forward jumps.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "upperPlyometric",
+      "parent": "power",
+      "level": 2,
+      "sort": 40,
+      "label": "Upper-body plyometric",
+      "definition": "Fast throws, slams and explosive push-ups.",
+      "includes": "Medicine ball slams and throws, clap push-ups.",
+      "excludes": "Slow presses.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "explosiveLift",
+      "parent": "power",
+      "level": 2,
+      "sort": 50,
+      "label": "Explosive lift",
+      "definition": "Fast lifts that finish with a hip and knee extension; cleans and snatches also catch the load.",
+      "includes": "Cleans, snatches, high pulls and their dumbbell or kettlebell forms.",
+      "excludes": "Kettlebell swings (Hinge); push presses (Vertical push, decision rule R1).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "wristGrip",
+      "parent": null,
+      "level": 1,
+      "sort": 150,
+      "label": "Wrist and grip",
+      "definition": "Movements and holds at the wrist and hand.",
+      "includes": "Wrist flexion and extension, forearm rotation, grip holds.",
+      "excludes": "Elbow flexion.",
+      "relatedCategories": [
+        "pull",
+        "core"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "wristFlexion",
+      "parent": "wristGrip",
+      "level": 2,
+      "sort": 10,
+      "label": "Wrist flexion",
+      "definition": "Curling the hand towards the forearm.",
+      "includes": "Wrist curls, plate pinches with wrist movement.",
+      "excludes": "Finger-only grip work (Grip hold).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "wristExtension",
+      "parent": "wristGrip",
+      "level": 2,
+      "sort": 20,
+      "label": "Wrist extension",
+      "definition": "Lifting the back of the hand towards the forearm.",
+      "includes": "Reverse wrist curls.",
+      "excludes": "Wrist flexion.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "forearmRotation",
+      "parent": "wristGrip",
+      "level": 2,
+      "sort": 30,
+      "label": "Forearm rotation",
+      "definition": "Turning the palm up or down.",
+      "includes": "Pronation and supination with a dumbbell or bar.",
+      "excludes": "Elbow flexion with a supinated grip.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "gripHold",
+      "parent": "wristGrip",
+      "level": 2,
+      "sort": 40,
+      "label": "Grip hold",
+      "definition": "Holding a position or object with the hand muscles.",
+      "includes": "Dead hangs, plate pinches, towel hangs.",
+      "excludes": "Carries (Carries).",
+      "note": "Dead hang is classed here and has category core in the seed.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "mobilityStretch",
+      "parent": null,
+      "level": 1,
+      "sort": 160,
+      "label": "Mobility and stretching",
+      "definition": "Work aimed at range of motion rather than load.",
+      "includes": "Static stretches, dynamic mobility, spinal mobility, soft tissue release.",
+      "excludes": "Strength exercises done through a long range.",
+      "relatedCategories": [
+        "mobility"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "staticStretch",
+      "parent": "mobilityStretch",
+      "level": 2,
+      "sort": 10,
+      "label": "Static stretch",
+      "definition": "Holding a lengthened position for time.",
+      "includes": "Hamstring, hip flexor and chest stretches; child's pose.",
+      "excludes": "Movement through range (Dynamic mobility).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "dynamicMobility",
+      "parent": "mobilityStretch",
+      "level": 2,
+      "sort": 20,
+      "label": "Dynamic mobility",
+      "definition": "Moving through a joint range under control without load.",
+      "includes": "Leg swings, world's greatest stretch, arm circles.",
+      "excludes": "Held stretches (Static stretch).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "spinalMobility",
+      "parent": "mobilityStretch",
+      "level": 2,
+      "sort": 30,
+      "label": "Spinal mobility",
+      "definition": "Moving the spine through flexion, extension or rotation.",
+      "includes": "Cat-cow, thoracic extension, open-book rotation.",
+      "excludes": "Loaded trunk flexion or extension (Trunk movement).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "softTissueRelease",
+      "parent": "mobilityStretch",
+      "level": 2,
+      "sort": 40,
+      "label": "Soft tissue release",
+      "definition": "Self-applied pressure with a roller or ball.",
+      "includes": "Foam rolling, ball release.",
+      "excludes": "Held stretches (Static stretch) and movement through range (Dynamic mobility).",
+      "note": "Content deferred by owner decision 2026-11-05; the pattern is kept in the list and carries no coverage minimum (count 0).",
+      "lifecycle": "active"
+    },
+    {
+      "id": "neckMotion",
+      "parent": null,
+      "level": 1,
+      "sort": 170,
+      "label": "Neck movement",
+      "definition": "Movements of the head and neck.",
+      "includes": "Flexion, extension, side flexion and rotation.",
+      "excludes": "Shoulder blade work.",
+      "relatedCategories": [
+        "pull"
+      ],
+      "lifecycle": "active"
+    },
+    {
+      "id": "neckFlexion",
+      "parent": "neckMotion",
+      "level": 2,
+      "sort": 10,
+      "label": "Neck flexion",
+      "definition": "Nodding the head forward against resistance.",
+      "includes": "Harness, plate and manual-resistance flexion; chin tucks.",
+      "excludes": "Neck extension, side flexion and rotation.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "neckExtension",
+      "parent": "neckMotion",
+      "level": 2,
+      "sort": 20,
+      "label": "Neck extension",
+      "definition": "Tilting the head back against resistance.",
+      "includes": "Harness, plate and manual-resistance extension.",
+      "excludes": "Neck flexion, side flexion and rotation.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "neckLateralFlexion",
+      "parent": "neckMotion",
+      "level": 2,
+      "sort": 30,
+      "label": "Neck lateral flexion",
+      "definition": "Tilting the ear towards the shoulder against resistance.",
+      "includes": "Manual-resistance and band side flexion.",
+      "excludes": "Neck flexion, extension and rotation.",
+      "lifecycle": "active"
+    },
+    {
+      "id": "neckRotation",
+      "parent": "neckMotion",
+      "level": 2,
+      "sort": 40,
+      "label": "Neck rotation",
+      "definition": "Turning the head to look over the shoulder against resistance.",
+      "includes": "Manual-resistance and band rotation (sternocleidomastoid and splenius).",
+      "excludes": "Neck flexion, extension and side flexion.",
+      "lifecycle": "active"
+    }
+  ]
+}

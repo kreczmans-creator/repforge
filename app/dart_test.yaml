@@ -1,0 +1,12 @@
+tags:
+  trial:
+    skip: "Migration trial; run explicitly with --run-skipped --tags trial"
+  # WP 8 3B-ACC-01 WS5: real process kills (separate OS process, SIGKILL).
+  # The CI job "Recovery (process kill, large profile)" (ci.yml, job
+  # `recovery`, every push) runs kill and heavy.
+  kill:
+    skip: "Process-kill suite; run with --run-skipped --tags \"kill || heavy\" --concurrency=1"
+  # WS5 and 3b-4: the large profile (5,000 exercises, 100,000 sets), host
+  # timing and the large v8 migration.
+  heavy:
+    skip: "Large-profile suite; run with --run-skipped --tags \"kill || heavy\" --concurrency=1"

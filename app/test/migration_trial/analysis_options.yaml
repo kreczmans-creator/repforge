@@ -1,0 +1,19 @@
+# The stage 3b trial is throw-away measurement code, not product code. It
+# keeps the repository's rules except style rules that fight generated-data
+# helpers and SQL strings.
+include: ../../analysis_options.yaml
+
+linter:
+  rules:
+    async_return_with_no_await: false
+    avoid_equals_and_hash_code_on_mutable_classes: false
+    avoid_js_rounded_ints: false
+    avoid_redundant_argument_values: false
+    cascade_invocations: false
+    cast_nullable_to_non_nullable: false
+    prefer_if_elements_to_conditional_expressions: false
+    prefer_single_quotes: false
+    unnecessary_brace_in_string_interps: false
+    use_is_even_rather_than_modulo: false
+    matching_super_parameters: false
+    lines_longer_than_80_chars: false

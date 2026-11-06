@@ -1,0 +1,297 @@
+# Delivery record — WP 9: Workout planning and workout execution
+
+Date: 2026-11-05
+Branch: `ccr-9fda2c32-wr163b`
+Status: **ACCEPTED and CLOSED** by the owner on 2026-11-06 at commit **0c35ef1**. All commit and CI references below are preserved. Device-specific behaviour is not verified; device-campaign items, Low findings, limitations and deferred requirements remain recorded below.
+
+## Scope (D06 WP 9)
+Plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
+Acceptance (D06): logging a set takes ≤ 3 interactions; PRs detected per exercise and type; rest timer fires in background on Android and when the app is foregrounded on iOS (documented limitation).
+Verification (D06): unit tests for PR and volume rules; integration test for a full session; manual device test for the timer (deferred to the owner's end-to-end and device campaign, by owner instruction).
+Requirements: D04 TRN-013 (screens), TRN-014 (screens), TRN-015..027; PLT-007/PLT-008 for the rest-timer notification only.
+Debt owned here: TD-42 (plan re-save with a later-archived exercise).
+
+## Constraints from WP 8 (owner decisions still open)
+WP 9 builds on the WP 8 implementation and must not settle WP 8 decisions 1–5 by implication:
+1. **Taxonomy** — use the enums by identifier only; add, rename or remove no category, muscle group or equipment item; no logic keyed on labels.
+2. **OQ-09 library source** — do not change the seed asset or the import.
+3. **Legacy-data policy** — do not change the v6 migration, the M4 mapping or `legacy_quarantine`. Any schema v7 change is additive and reinterprets no existing value.
+4. **TRN-020 exertion rule** — validate only through `TrainingRules.validExertion`, so the owner's decision changes one function.
+5. **UI scope** — WP 9 adds the plan, schedule and session screens; it does not rework the WP 8 library screens beyond links into them.
+
+Update 2026-11-05 (D04 §7): WP 8 is active with expanded scope; its decisions 2 (OQ-09), 3 (legacy values), 4 (TRN-020: RIR integer 0–5) and 5 (screen ownership: WP 9 owns planning, execution, sessions, sets, rest timers) are decided; decision 1 is folded into the approved anatomy hierarchy. WP 9 scope is unchanged and WP 9 code already follows these decisions. OQ-19 is decided (set counts per primary target; kg-volume clarification pending) and affects only the per-muscle rule, which has no WP 9 screen.
+
+## Open questions this package touches (not decided here)
+| Question | WP 9 handling | Owner decision needed |
+|---|---|---|
+| OQ-05 rest-timer alert in background or locked | Opt-in local notifications (PLT-007) through the ADR-0007 adapter; Android exact-alarm permission offered with inexact fallback (OQ-24, 0c35ef1); iOS foreground alert as the documented baseline. | **Decided 2026-11-05** (D04 §7): background rest alerts are required where the platform allows; Android exact scheduling offered, inexact fallback; iOS background delivery unverified until device evidence exists |
+| OQ-12 default exertion scale | Keeps the existing setting (default RPE since WP 3) and per-set stored scale; changes no default. | Yes |
+| OQ-18 day boundary and week start | Uses the existing settings (`dayStartHour`, `weekStartDay`, default Monday as TRN-027 states); changes no default. | Yes |
+| OQ-02 imperial units | Loads are entered and shown in kg only; no pound entry or display is added (GEN-003 metric default). | Yes |
+| TRN-028 progressive overload charts (P2) | Not in D06 WP 9 scope; no allocation in D06. Proposed for WP 11 (progress visualisation). | Allocation |
+
+## Gap analysis against WP 8
+| Requirement | WP 8 state | WP 9 change |
+|---|---|---|
+| TRN-013 plan builder, reorder by drag or move controls | model, validation, `reorder` | plan builder screen; TD-42 rule |
+| TRN-014 split | model, `SaveSplit` | split editor screen |
+| TRN-015 schedule by date, weekday, split cycle; move or skip without changing the plan | `scheduledWeekdays` on plan only | dated scheduled workouts (8 weeks), move, skip |
+| TRN-016 start from plan (pre-filled with previous weights), past session or empty | none | start-session use cases |
+| TRN-017 add, remove, replace, reorder exercises in a session | order stored per set only | session exercise entries; replace keeps recorded sets with the original |
+| TRN-018 confirm a pre-filled set in ≤ 2 taps; numeric keyboard on weight | `RecordSet` | session screen |
+| TRN-019 warm-up / working / failure per set | missing | set kind stored per set |
+| TRN-020 scale from settings for new entries | setting and per-set scale exist | session screen uses them |
+| TRN-021/022 rest timer: planned or default 90 s, pause, +15 s, skip; alert | rest stored per set/plan | timer rules, settings default, alert and opt-in notification |
+| TRN-023 notes on session and each session exercise (≥ 2000 characters), shown in histories | session notes, per-set note | per-exercise notes |
+| TRN-024 edit and delete past sessions, exercises, sets; delete undoable ≥ 10 s | none | edit/delete use cases, undo |
+| TRN-025 history by session, 20 then more on scroll | query and detail screen (WP 8) | notes and set kinds in history |
+| TRN-026 PRs per exercise and type, removed when no longer best | none | pure PR rules, PR indicator |
+| TRN-027 volume per exercise, session, muscle group, week | none | pure volume rules |
+
+## Decisions (proposed; owner confirmation requested at delivery)
+1. **PRs are derived, not stored**: computed from recorded working and failure sets, so an edit or delete always updates them (TRN-024(1), TRN-026(3)).
+2. **Scheduled workouts are stored as dated rows** generated for 8 weeks, so moving or skipping one never changes the plan (TRN-015(2)).
+3. **Rest timer runs on wall-clock end time**, so it stays correct while the app is backgrounded (the state is in memory: it does not survive the process being killed, and the OS notification then still fires if scheduled); correctness never depends on a background task (PLT-008(2)).
+
+## What was built
+| Stage | Commit | Content |
+|---|---|---|
+| 1 — domain, schema v7, use cases (no UI) | ebff8d0 | set kind; session exercise entries with notes; start, finish, edit and delete session use cases; personal-record and volume rules; scheduled workouts; rest-timer rules and settings; TD-42; schema v7 (additive); providers. CI 42003487020, Android 42003486896, iOS 42003486889, integration 42003486856 — all success. |
+| 2 — screens for plans, splits and scheduling | eb2485e | plan list with archive and restore; plan builder with exercise picker, reorder by drag and by buttons, TD-42 errors, unsaved-changes guard; split editor; schedule screen (8 weeks by date; schedule by date, weekdays or split; move and skip); routes; widget tests. CI 42009074987, Android 42009075284, iOS 42009074969, integration 42009075205 — all success. |
+| Stage 1 review fixes | 66a2a00 | F1–F10, N1–N3 (see Independent review). CI 42013923681, Android 42013923697, iOS 42013923648, integration 42013923649 — all success. |
+| 3a — session screen, rest timer UI, history UI | fb0a8d4 | session screen (entries with notes, pre-filled next-set row, set kind, exertion, rest, edit and delete sets, add/remove/replace/reorder exercises, finish); rest timer panel (wall clock, pause, +15 s, skip, foreground alert behind `RestAlert`); PR badges; volume per exercise and session; start from empty, plan, scheduled occurrence and past session; history list (20 then more), workout detail, edit details, delete with Undo; settings for default rest and the notification preference; routes; widget tests. No plugin or platform notification code (stage 3b, ADR-0007).. CI 42021551985, Android 42021552033, iOS 42021551906, integration 42021551855 — all success. |
+| 3b — rest notifications, integration test | 6a2d8ff | `RestAlertScheduler` port, `flutter_local_notifications` adapter and fake, wiring in the rest timer controller, permission flow in Settings, Android/iOS configuration, plugin-isolation architecture test, integration test for a full session. ADR-0007 stays Proposed. CI 42025560277, Android 42025560293, iOS 42025560262, integration (incl. full-session test) 42025560279 — all success. |
+| Final review fixes | 27dd8b0 | M2, M3, L1–L12, re-check N1–N3 (see Final review). CI 42038742516, Android 42038742592 (debug and release APK with R8), iOS 42038742554, integration 42038742486 — all success. |
+| M1 exact-alarm flow (OQ-24) | 0c35ef1 | Exact-timing port, settings explanation and status, lifecycle re-read; independent review no High/Medium. CI 42046991394, Android 42046991233 (debug and release APK with R8), iOS 42046991251, integration 42046991316 — all success. |
+
+### Stage 1 — domain, schema v7, use cases (no UI)
+- **TRN-019 set kind**: `SetKind` warm-up / working / failure on `SessionSet`, stored in `session_sets.set_kind` (existing rows `working`); `RecordSet` and `EditSet` take it.
+- **TRN-017/023 session exercises**: `session_exercises` (ordered entries with a note of at most 4000 characters), created by the migration from each session's distinct (exercise order, exercise) of its sets. Sets link to their entry (`session_exercise_id`); `position` is authoritative and `exercise_order` mirrors it. Use cases `AddSessionExercise`, `RemoveSessionExercise`, `ReplaceSessionExercise`, `ReorderSessionExercises`, `SetSessionExerciseNote`, `SetSessionNote`.
+- **TRN-016/024 sessions**: `StartEmptySession`, `StartSessionFromPlan` (pre-fill returned as data: plan targets and `lastPerformance`; no set stored), `StartSessionFromPast`, `FinishSession`, `EditSessionDetails`, `EditSet`, `DeleteSet`, `DeleteSession` (soft delete) and `RestoreSession`.
+- **TRN-026 / TRN-027** pure rules `personal_records.dart` and `volume.dart`, derived from history and never stored; use cases `GetExerciseRecords`, `GetWeeklyVolume`.
+- **TRN-015 scheduling**: `scheduled_workouts` rows; `ScheduleOnDate`, `ScheduleWeekdays`, `ScheduleSplitCycle`, `MoveScheduledWorkout`, `SkipScheduledWorkout`, `ScheduledWorkoutsInRange`; starting from a plan links the occurrence to the session.
+- **TRN-021** pure `RestTimer` (wall-clock end); settings `defaultRestSeconds` (90) and `restTimerNotifications` (off). The notification itself and the alert are stage 2 or later (UI and platform).
+- **TD-42** resolved: `SavePlan` refuses only newly added archived exercises.
+- **Schema v7** is additive (see `docs/data-model.md`, Migrations 6 → 7); the v6 migration, the legacy taxonomy mapping and `legacy_quarantine` are unchanged in behaviour (the one edit to the v5 → v6 step lists the two new `session_sets` columns in `newColumns`, because drift copies into the current table shape). Pre-v7 backups restore with entries created by the same backfill.
+
+Assumptions and decisions for the owner to confirm (none touches WP 8 decisions 1–5):
+1. **Archived or deleted exercise when starting from a plan or past session**: skipped with a reported warning, the session still starts, the plan is unchanged. (Alternative: refuse.)
+2. **Several entries per exercise are allowed** (review F1; the owner never decided a one-entry rule): adding an exercise already in the session makes a second entry, a plan listing an exercise twice starts a session with both, and sets are recorded against an entry id. Replacing an entry with the exercise it already holds is refused; recorded sets of a replaced exercise stay with the original entry and the new exercise gets a new entry right after it (an entry with no sets is changed in place).
+3. **Note limit 4000 characters** for session, exercise and set notes (TRN-023 asks for at least 2000).
+4. **PR definitions**: weighted = heaviest at each exact rep count 1–12; bodyweight = most reps and timed = longest duration, both ignoring any added load; distance = longest distance; assisted and cardio have **no PR** (D04 defines none, recorded as a gap, nothing invented). The first set in a slot is a PR; ties are not. The older `TrainingRules.isPersonalRecord` and `volumeKg` remain but are not used by the app.
+5. **Volume**: bodyweight added load is not kg volume (D04 TRN-027(2)); a session counts in the week of its start (set times are not stored); secondary muscle volume is reported separately and never added to primary.
+6. **Delete**: a session delete is soft and restorable any time (no purge exists); deleting a set or an exercise entry removes the rows (the confirmation is the screen's); deleting a session puts its linked scheduled occurrence back to planned and keeps the session id on it; restoring the session re-links only that occurrence, while it is still planned and still carries that id (review F10, N1, N2).
+7. **Scheduling**: duplicate rule by (plan, source date, origin), skipped and moved occurrences are not regenerated by weekday or split generation; scheduling on a date is refused only when the plan has a planned or done occurrence there; only a planned occurrence can be moved or skipped and only a skipped one restored; the same plan cannot be planned twice on one date; archived plans cannot be scheduled or started.
+8. **Backup**: `formatVersion` is 2 (review F10), `schemaVersion` in the file is 7; restore accepts format 1 and 2. The WP 8 app refuses format 2 (it refuses anything above 1).
+9. **Entry ids** created by the backfill are `legacy:<session>:<position>`; ids made by the app are UUIDs.
+
+Local gate for stage 1: `dart format` clean, `flutter analyze --fatal-infos` clean, 1005 tests pass, coverage gate 90.9 % (minimum 80 %). CI is run at commit.
+
+### Stage 2 — screens for plans, splits and scheduling
+- **Routes** (Train tab, entered from two buttons on the library header, library screens otherwise unchanged): `/train/plans` (plans and splits list), `/train/plans/new`, `/train/plans/:id` (plan builder), `/train/splits/new`, `/train/splits/:id` (split editor), `/train/schedule`.
+- **Plan list (TRN-013)**: non-archived plans, archive and restore (`ArchivePlan`), create; the splits are listed on the same screen.
+- **Plan builder (TRN-013)**: name; exercises chosen in a searchable picker (archived exercises hidden); per exercise sets, rep range (weighted, bodyweight, assisted), duration as mm:ss through `parseDuration` (timed, distance, cardio), distance in metres (distance, cardio), optional load through `LoadKg.of` (all but distance and cardio) and rest seconds. Reorder by drag handle and by `plan-move-up-<i>` / `plan-move-down-<i>`. Errors from `SavePlan` (including the TD-42 archived-exercise refusal) show next to the field or on the exercise row; leaving with unsaved changes asks first.
+- **Split editor (TRN-014)**: name, 1 to 14 days, each a workout or a rest day, saved by `SaveSplit`.
+- **Schedule (TRN-015)**: scheduled workouts of the next 8 weeks grouped by date (earlier and later 8-week pages); schedule a workout on a date, on weekdays or from a split cycle; move (date picker) and skip (after a confirmation). Use-case errors show in the sheet next to the field, or in a snackbar for move and skip.
+
+Assumptions and decisions for the owner to confirm (none touches WP 8 decisions 1–5):
+1. **Load unit**: a target load is typed in kg whatever the unit setting (the field says kg), because `LoadKg.of` only accepts 0.25 kg steps and a typed pound value would be rejected or rounded. Pound entry and display depend on OQ-02 (open); not added in WP 9.
+2. **Plans keep their weekdays and split**: the builder does not edit `scheduledWeekdays` or `split`; saving an existing plan passes the stored values back to `SavePlan`, so they are preserved.
+3. **A plan needs at least one exercise in the screen** (`SavePlan` itself allows none); this is the only rule checked in the screen rather than by a use case. Empty rep fields mean no rep target; the rest field empty means the default rest.
+4. **Field to row mapping**: `SavePlan` reports the first failing exercise by field only, so the screen finds the row by validating each row with `validatePlanExercise`; the rep-range message shows once, under "Reps to".
+5. **Splits cannot be deleted or archived** from the screens: no use case exists and none was added. A new split starts as 7 rest days.
+6. **Today** for the schedule is the diary day (`dayStartHour` applied), the same as the diary; dates are local calendar dates. The weekday chips follow `weekStartDay`.
+7. **Skip can be undone** (review F3): skipping asks for confirmation; a skipped occurrence shows a Restore button (`UnskipScheduledWorkout`), a done occurrence shows no actions.
+8. **Wiring added in `lib/features/training/application`** (new files only, nothing in stage 1 files changed): `archive_plan.dart` (`ArchivePlan`, there was no use case to archive a plan) and `plan_providers.dart` (plan, split and schedule read providers, so screens never touch a repository).
+9. **Drag reorder** is started from a handle (no long-press), so scrolling the list is not hijacked; the buttons are the accessible path.
+
+Local gate for stage 2: `dart format` clean, `flutter analyze --fatal-infos` clean, 1034 tests pass (29 added: plan list, plan builder, split editor, schedule, route resolution, narrow width and 1.3x text), coverage gate 91.3 % (minimum 80 %). CI is run at commit.
+
+### Stage 3a — session screen, rest timer UI, history UI
+- **Routes**: `/train/session/:id` (session screen; also opens finished sessions to correct sets), `/train/history` (history list), `/train/history/:id` (workout detail). Links: Train tab (`start-empty-session`, `open-history`, and a `continue-session` card while a workout is unfinished), plans list (`plan-start-<planId>`), schedule rows (`schedule-start-<occurrenceId>`, links the occurrence), history rows and detail (`history-repeat-<id>`, `detail-repeat`).
+- **Session screen (TRN-016..021, TRN-023, TRN-024, TRN-026, TRN-027)**: ordered entries with notes; each entry shows `Plan: ...` and `Last: 80 kg × 5` hints, its logged sets (kind, exertion, rest, note, PR badge, edit, delete) and one pre-filled next-set row with a `Log set` button. Confirming a correct pre-filled set is one tap (test counts it). Editing a set opens a sheet whose first field has focus with a numeric keyboard. Entries: add, replace, remove (confirmation when it has sets), move up/down, note. Session note, edit details (name, start, length), finish.
+- **Rest timer (TRN-021, TRN-022(1))**: `RestTimerController` (Riverpod notifier over the pure `RestTimer`) starts when a set is confirmed, from the set's rest, else the plan row's rest, else `defaultRestSeconds`; pause, resume, +15 s, skip; time derives from the injected clock. The foreground alert is the domain interface `RestAlert` (`lib/domain/training/rest_alert.dart`); the default `HapticRestAlert` (final review M2) fires a pattern of three strong haptic pulses 200 ms apart through `HapticFeedback.heavyImpact`; it plays no sound (`SystemSound.alert` is silent on Android and iOS). The rest of the foreground cue is the panel's emphasised "Rest over" state and a screen-reader announcement. A sound comes only from the notification, when the app is in the background and the channel is audible. The device's touch-vibration (Android) or system-haptics (iOS) setting can suppress the pulses, so the visual state and the announcement carry the alert too. No plugin, no platform code.
+- **History (TRN-024, TRN-025)**: newest first, 20 per page, more on scroll and through a `Show more` button; detail with notes, set kinds, exertion, PR badges and volume; delete asks, then an Undo snackbar of 12 s (`persist: false`, because Flutter keeps snackbars that have an action until dismissed); Undo calls `RestoreSession`. The exercise detail history now shows set kind and PR badges.
+- **Settings**: `default-rest` field (0 to 3600 s, validated by `SaveSettings`) and a `rest-notifications-switch` that only persists `restTimerNotifications` (labelled so; permission and scheduling are stage 3b).
+- **New application code** (no new write use case was needed; every write goes through a stage 1 use case): `LoadSessionView` (read use case: session, exercises, per-entry pre-fill, PR set ids), providers `sessionViewProvider`, `sessionHistoryProvider`, `activeSessionProvider`, `exerciseRecordSetIdsProvider`, `startWarningsProvider`, `restTimerProvider`, `restAlertProvider`.
+- **Stable keys for the stage 3b integration test**: `plan-start-<planId>`, `start-empty-session`, `add-exercise`, `picker-exercise-<exerciseId>`, `newset-<entryId>-load|reps|duration|metres|hr|exertion|rest|note`, `newset-<entryId>-kind-warmUp|working|failure`, `newset-details-<entryId>`, `newset-log-<entryId>`, `set-<setId>`, `set-text-<setId>`, `set-edit-<setId>`, `set-delete-<setId>`, `delete-set-confirm`, `editset-load|reps|...`, `editset-save`, `pr-badge-<setId>`, `entry-volume-<entryId>`, `session-volume`, `prev-hint-<entryId>`, `rest-timer-panel`, `rest-remaining`, `rest-pause`, `rest-resume`, `rest-extend`, `rest-skip`, `finish-session`, `detail-title`, `history-session-<id>`, `detail-delete`, `delete-session-confirm`, `session-deleted-snackbar`, `default-rest`, `save-default-rest`, `rest-notifications-switch`.
+
+Assumptions and decisions for the owner to confirm (none touches WP 8 decisions 1–5):
+1. **Tap count**: with a pre-filled row, logging a set is **1 tap** (`Log set`); TRN-018(1) allows 2 and D06 allows 3. The widget test `a pre-filled set is confirmed in at most 2 taps` counts taps through a helper and asserts 1. The numeric keyboard "opens automatically on the weight field" is implemented for the edit-set sheet (first field autofocus). The inline next-set row does not autofocus, so a screen with several exercises does not open the keyboard unasked; tapping its weight field opens the same numeric keyboard.
+2. **Pre-fill order**: the entry's last non-warm-up set, else the set at the same position in the previous session with the exercise (the last one when it had fewer), else the plan row (low end of the rep range, target load). The previous session is the most recent other, non-deleted session that started no later than this one. A plan row maps to entries by order: the k-th entry of an exercise takes the k-th plan row of it.
+3. **Kg only**: loads are typed in kg through `LoadKg.of` (strict, 0.25 kg steps, never rounded) and the session screens always display kg, whatever the units setting (OQ-02 open). The older exercise-detail history keeps using the units setting.
+4. **Exertion**: a new set uses the settings scale; a set that has an exertion keeps its scale on edit (the sheet shows the stored scale). The screen only turns text into numbers; `TrainingRules.validExertion` is applied by `RecordSet` and `EditSet`, so an out-of-range value (RPE 11) is refused with the use-case message and nothing is stored. The settings screen note still says RIR 0 to 10 while the rule is 0 to 5 (WP 3 text, left unchanged here).
+5. **Inline row details**: kind, exertion, rest and set note are behind a `Type, effort, rest` toggle so the common path stays one tap; a validation error in those fields opens the toggle. Cardio energy cannot be entered in the session screen (the WP 8 library had no entry screen either); duration, distance and average heart rate can.
+6. **Rest timer**: starts for every confirmed set including warm-ups; a rest of 0 s starts no timer; at 0 s the panel reads `Rest over` (with how long ago it ended when seen late) until skipped or the next set; `+15 s` on a finished timer restarts it. There is one timer for the app, so a new confirmed set replaces a running one. Finishing a session skips the timer. A one-shot timer fires the alert promptly and the panel's one-second tick covers a late wake-up; neither is needed for correctness of the displayed time.
+7. **Reorder** is by up and down buttons (accessible path), no drag in the session screen. **Add exercise** reuses the stage 2 picker, which hides archived exercises. An archived exercise already in a session shows a note instead of the set row; a deleted one shows `Removed exercise`.
+8. **Finish** is one tap with no confirmation and opens the workout summary; a finished workout can be reopened with `Edit sets` (sets can also be added). A session with no sets can be finished.
+9. **Undo window** 12 s (`sessionUndoWindow`), above the 10 s requirement. The Undo callback holds the `RestoreSession` use case taken before the screen closes, so it works after navigation. Deleting is only offered on the workout detail screen, not in the list.
+10. **Edit details** takes name, start date, start time and length in whole minutes (empty = in progress); the end time is start plus length. Validation (name, end not before start) is `EditSessionDetails`.
+11. **History paging** uses the live session stream with a growing limit (20, 40, ...), so changes show at once; sessions with the same start time follow the repository order.
+12. **Start warnings** (archived or deleted exercise left out) are held in a provider by session id and shown on the session screen until dismissed; they are lost when the app restarts.
+13. **Settings default rest** is a text field with its own save button (0 to 3600 s, whole seconds); the notification switch saves at once and is labelled as saving the choice only.
+14. **Exercise history** (WP 8 detail) shows set kind text and PR badges; that is the only change to the WP 8 library screens besides the Train tab links (start, history, continue card).
+15. **Not done in this stage**: background notification, permission request, plugin and manifest changes, `RestAlertScheduler` (stage 3b, ADR-0007); integration test (stage 3b); manual device check of the haptic alert; drag reorder; per-muscle and weekly volume on a screen (`GetWeeklyVolume` exists, no screen asks for it in TRN-027's session and history items; weekly figures belong with WP 11).
+
+Local gate for stage 3a: `dart format` clean, `flutter analyze --fatal-infos` clean, 1108 tests pass (49 added: session screen, history and detail, full flow, settings, layout at 360x690 and 1.3x text, defaults and form parsing, rest controller and alert, session view, routes), coverage gate 91.5 % (minimum 80 %). CI is run at commit.
+
+### Stage 3b
+- **Port and adapters**: `RestAlertScheduler` (`lib/domain/training/rest_alert_scheduler.dart`, Flutter-free: `status`, `request`, `schedule`, `cancel`, `cancelAll`, plus `openSettings` because the plugin offers it) with `NotificationPermission` (granted, denied) and a `NoopRestAlertScheduler` default (desktop, web, tests that do not care). `LocalNotificationsRestAlertScheduler` is the only file importing `flutter_local_notifications` and `timezone` (checked by `test/architecture/plugin_isolation_test.dart`, which also covers `mobile_scanner` and `permission_handler`). `FakeRestAlertScheduler` records calls. Bound in `main.dart` on Android and iOS through `restAlertSchedulerProvider` (`lib/app/providers.dart`).
+- **Versions**: `flutter_local_notifications` 22.3.2 (published before the two-week rule; 22.3.3 exists and is not used) and `timezone` 0.11.2 (published 2026-10-12, 24 days before this stage), both exact pins. The plugin compiles against SDK 36 (Flutter's default here), minSdk 24, so the permission_handler SDK 37 problem does not recur.
+- **Wiring**: `RestTimerController` reconciles one notification (id `rest-timer`, text `Rest over` / `Time for your next set.`) after every state change: start, extend and resume schedule it at the timer's `endAt` when `restTimerNotifications` is on (the setting is read from the repository at that moment); pause, skip, finish (which skips), a replacement by a 0 s rest and the alert firing in the foreground cancel it; a new timer replaces it under the same id. Scheduler failures are caught and logged; they never reach the session screen or a set write. The timer state still derives only from the clock (PLT-008(2)).
+- **Settings**: turning the switch on calls `request()`; granted saves the setting, otherwise the switch stays off and a snackbar explains and offers `Open settings` (plugin `openAppNotificationSettings`). Turning it off saves and calls `cancelAll()` (PLT-007(2)). Nothing is requested at startup or at install (PLT-007(1)); the adapter initialises lazily and iOS initialisation asks for no permission.
+- **Android configuration**: notification channel `Rest timer` (high importance, created on first use). Exact scheduling (`exactAllowWhileIdle`) only when `canScheduleExactNotifications()` is true, otherwise `inexactAllowWhileIdle`; an exact call refused at run time is retried inexact. Manifest: `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `ScheduledNotificationReceiver`. `USE_EXACT_ALARM` is not declared and the exact-alarm settings screen is never opened. Core library desugaring enabled in the app Gradle file (plugin requirement). Play policy: from Android 14 `SCHEDULE_EXACT_ALARM` is denied by default for new installs. Verify the current Google Play exact-alarm policy for `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` before release (no claim is made here either way); that check is the owner's release task. Without the grant the inexact fallback applies.
+- **iOS configuration**: no `Info.plist`, entitlement or `AppDelegate` change. The plugin's `UNUserNotificationCenter` delegate is deliberately not set, so a notification that fires while the app is in the foreground is not shown (the haptic alert covers the foreground).
+- **Foreground** (changed by final review L2): the notification is scheduled only while the app is not resumed. Going to the background (inactive, hidden or paused) schedules it at the end time when a timer runs and the setting is on; returning to the foreground cancels it (and removes it if shown), so no heads-up or channel sound shows beside the in-app cue. While in the background pause and skip cancel it, and start, extend and resume reschedule it. All scheduler calls run in request order (L1), so a cancel cannot overtake a schedule.
+- **Tests**: scheduling on start, extend, resume, pause, skip, finish, replace, 0 s rest, foreground and background end, failing scheduler, setting off schedules nothing (`rest_alert_scheduling_test.dart`); session screen flow with the setting on; settings switch (no request until used, grant saves, refusal keeps it off with explanation and Open settings, failing platform, off cancels all, failing cancel still saves); adapter against a mocked plugin channel (lazy init without prompt, channel `Rest timer`, permission mapping, exact vs inexact, past time, failures, unsupported platform); architecture test. Coverage: `tool/coverage_gate.dart` excludes only generated code, so the adapter counts and is covered by the channel-mock tests.
+- **Integration test** (`integration_test/app_test.dart`, in-memory database, fake scheduler and fake foreground alert): Train tab, `open-plans`, `plan-start-it-plan`, `newset-log-<entry>` (one tap, pre-filled 60 kg x 5), `rest-timer-panel`, `rest-remaining`, scheduled end seen on the fake scheduler, `rest-extend` (end moves by 15 s), `rest-skip` (panel gone, nothing scheduled), `pr-badge-<set>`, second set, `finish-session`, `detail-title`, back to Train, `open-history`, `history-session-<id>`. Because the timer's tick never lets `pumpAndSettle` return, the test pumps frames while the timer shows. Exercise and plan are seeded through repositories, not typed through the plan editor. Run locally only as a widget-test copy (flow passes); the device run is CI.
+- **Assumptions and limitations**: (1) A notification is scheduled only while the app is in the background (final review L2); turning the setting on while a timer is running takes effect at the next background transition. (2) The permission is requested only from the Settings switch; if it is revoked later in system settings the setting shows Blocked and nothing is scheduled (M1 implementation). (3) iOS background delivery is unverified (no device): D06 keeps the foreground-only limitation as the iOS acceptance baseline. (4) The inexact fallback (no exact-alarm grant, Android 14+ default) may deliver after the 2 s target; Doze and OEM battery managers can also delay or drop it. (5) A boot receiver is not declared, so a pending alert is lost on reboot (a rest is seconds to minutes long). (6) The android device test and the iOS check belong to the owner's later device campaign (WP 9 manual device test). (7) `cancelAll` clears every notification of the app; rest alerts are the only ones it schedules. (8) Release builds use R8 by default in Flutter: code shrinking is on and resource shrinking follows. Plugin 22.3.2 ships its own Gson rules (README: from v19 the ProGuard rules are provided by Gson), so no `proguard-rules.pro` is added; the notification icon is looked up by name at run time, so `res/raw/keep.xml` keeps `@drawable/ic_stat_rest` and `@mipmap/ic_launcher`. The Android workflow now also runs `flutter build apk --release` (debug-signed, no secrets) so R8 is exercised in CI; it has not been run locally (no Android SDK). The notification small icon is a monochrome vector (`drawable/ic_stat_rest.xml`), not the launcher icon.
+
+Local gate for stage 3b: `dart format` clean, `flutter analyze --fatal-infos` clean, 1137 tests pass, coverage gate 91.4 % (minimum 80 %). The Android and iOS builds with the new plugin, the desugaring and manifest changes, and the integration test on the API 34 emulator are verified by CI at commit only (no Android SDK or emulator was available locally).
+
+### Gaps found at stage 3a (owner decision or allocation needed at delivery)
+- **TRN-018(2)** numeric keyboard on the weight field: the edit-set sheet focuses the weight field with a numeric keyboard; the inline next-set row does not autofocus, so the keyboard does not cover a multi-exercise screen unasked. Pre-filled sets need no typing (one tap).
+- **TRN-027** volume per muscle group and per week: rules and `GetWeeklyVolume` exist and are tested; no screen shows them (D06 WP 9 names "volume per session"). Proposed for WP 11 with TRN-028.
+- **TRN-007** cardio energy: stored and validated since WP 8, but the session screen offers no entry field.
+- The settings help text said RIR 0–10 (WP 3); corrected to the TRN-020 rule in this commit.
+
+## Independent review
+### Stage 1 (fresh reviewer, range 034ec8b..ebff8d0, code read and probe tests)
+No high findings. Schema v7, backfill, backup, write-path validation, PR, volume and rest-timer rules verified by probes.
+
+| ID | Finding | Severity | Resolution |
+|---|---|---|---|
+| F1 | A plan with the same exercise twice starts a session with the second occurrence silently dropped (assumption 2) | Medium | Fixed (product decision: no one-entry-per-exercise rule). A session may hold an exercise in several entries; `RecordSet` records against `sessionExerciseId` and validates against that entry's exercise; add and replace no longer refuse a present exercise (replace still refuses the same exercise); start-from-plan keeps every plan row with its own targets and pre-fill; start-from-past copies every entry. Tests: `review_fixes_test.dart` group F1 |
+| F2 | `EditSet` replaces every field: omitted kind becomes working (changes PRs and volume); exertion, rest and note cleared; exertion scale can change on edit (TRN-020(2)) | Medium | Fixed. `EditSet` arguments are optional and null keeps the stored value (data, completed, kind, exertion, rest, note); `clearExertion`, `clearRest`, `clearNote` remove; a value with its clear flag is refused. A different exertion scale on a set that has one is refused (TRN-020(2)), same-scale changes allowed. Tests: group F2 |
+| F3 | A skipped dated occurrence blocks scheduling the plan on that date again, yet a weekday schedule creates it; message contradicts the doc comment; no un-skip | Medium | Fixed. `ScheduleOnDate` refuses only a planned or done occurrence of the plan on that date (message says so); a skipped one does not block. New `UnskipScheduledWorkout` (skipped to planned, refused if the date is now planned or done) and a Restore button on skipped rows. Tests: group F3, schedule screen widget test |
+| F4 | Schedule generation writes many rows without a transaction | Low | Fixed. `ScheduleWeekdays` and `ScheduleSplitCycle` write all rows inside the `Transactor` (new required `transactor` argument). Tests: failing repository injected on the 3rd and 5th write, nothing stored |
+| F5 | `scheduleDate` takes the UTC date of a UTC instant, not the local date | Low | Fixed. `scheduleDate` converts a UTC value to local time first. Tests: group F5 (compares with `toLocal()`; on a UTC machine the old code agrees, so the failing run used `TZ=Pacific/Auckland`) |
+| F6 | Weekly volume range not aligned to week boundaries | Low | Fixed. `GetWeeklyVolume` widens `from` and `to` to whole weeks (`VolumeRules.weekStart` with `weekStartDay` and `dayStartHour`); a range ending exactly on a week start adds no week. Tests: group F6 |
+| F7 | PR tie between sessions with equal start time broken by random id | Low | Fixed. `PerformedSet` carries the session `createdAt`; order is start, creation time, session id, exercise order, set order (repository query and rule). Tests: group F7 (ids sort against creation order) |
+| F8 | Backfill merges the same exercise at two orders into one entry | Low | Fixed (affects only devices not yet on v7). One entry per (session, `exercise_order`, exercise) group, never merged across orders; A@0, B@1, A@2 gives three entries in order; the join to an existing entry was removed. Stored `exercise_order` still untouched; idempotent. Tests: `migration_v7_test` and a v6 backup restore test |
+| F9 | Exercise history carries no session or entry notes (TRN-023(2)) | Low | Fixed. `ExerciseSessionHistory` has `sessionNote` and `entryNotes` (this exercise's entries, session order); the exercise detail history shows them under the session heading. Set notes are not shown there (they were not before). Tests: group F9, widget test |
+| F10 | Backup `formatVersion` 1 lets a v6 app restore a v7 file and silently drop set kinds, entry notes and schedules; a done occurrence whose session is deleted cannot be started again | Low | Fixed. `formatVersion` is now 2 (restore accepts 1 and 2). The WP 8 app (b1ab45a) refuses any `formatVersion` above 1, so it does refuse a version 2 file; see data-model.md. `DeleteSession` sets a linked occurrence from done back to planned in one transaction and keeps the session id as the released link; `RestoreSession` re-links only that occurrence while it is still planned and carries the id (corrected after re-verification N1/N2). Tests: group F10 (incl. N1, N2), backup tests |
+
+### Re-verification of the stage 1 fixes (same reviewer, code read and probe tests)
+F1–F9 resolved; F10 partly resolved, completed as below. Targeted suites (157 tests) and the stage 2 and WP 8 screen tests pass, also under `TZ=Pacific/Auckland` and `TZ=America/Los_Angeles`.
+
+| ID | Finding | Severity | Resolution |
+|---|---|---|---|
+| N1 | Undo re-linked by "planned on the session's start date": an occurrence started a day late stayed planned after delete-and-undo, so it could be started twice | Low | Fixed: delete keeps the session id on the released occurrence; restore re-links only that one. Test N1 (failed on the previous code) |
+| N2 | Undo of a session started without an occurrence marked an unrelated planned occurrence on that date done | Low | Fixed by the same change. Test N2 (failed on the previous code) |
+| N3 | Stale statements in data-model.md (RecordSet joins by exercise; PR order without creation time; occurrence stays done; "foreign keys stay on") | Low | Fixed |
+| N4 | `clearExertion` followed by a value on the other scale succeeds (two explicit user actions) | Low | Accepted: an explicit clear then a new entry is a new recording under TRN-020(2); recorded for owner awareness |
+
+F5's regression test cannot fail under CI's UTC time zone; it was shown failing on the old code under `TZ=Pacific/Auckland`. The fix tests were run locally under that zone at this commit.
+
+Local gate for the stage 1 review fixes: `dart format` clean, `flutter analyze --fatal-infos` clean, 1059 tests pass, coverage 91.4 %; fix and schedule tests also pass under `TZ=Pacific/Auckland`.
+
+
+### Final review (fresh reviewer, stages 2, 3a, 3b and end to end, at 6a2d8ff; code read, 110 targeted tests, probe tests)
+No high findings. CI on 6a2d8ff all green, including the new full-session emulator test (about 8 s).
+
+| ID | Finding | Severity | Resolution |
+|---|---|---|---|
+| M1 | Android 14+ new installs lack `SCHEDULE_EXACT_ALARM`; the app never offered the grant, so alerts were usually inexact (TRN-022(2)) | Medium | **Resolved in 0c35ef1** (owner decision OQ-24): exact-alarm permission offered with an explanation; inexact fallback; status reflects permission state; lifecycle handled. Device verification pending (M1-F4) |
+| M2 | Foreground alert is weak: `SystemSound.alert` is silent on Android and iOS; one haptic tick, suppressed when touch vibration is off; docs claim a sound | Medium | Fixed. `HapticRestAlert` is a pattern of three heavy-impact pulses 200 ms apart (no `SystemSound`); the panel switches to an emphasised "Rest over" state (accent background, icon, bold text), is a live region and announces "Rest over" once. Docs and ADR-0007 now state it honestly: haptic pattern + visual + announcement; a sound only from the notification in the background; touch-vibration can suppress haptics. Tests: haptic pattern (platform channel and spacing), panel announce and live region |
+| M3 | Pre-fill matches today's working sets against previous sets including warm-ups, so a warm-up can be logged as a working set in one tap (TRN-019(2), TRN-026) | Medium | Fixed. The matched previous set's kind pre-fills the row; warm-ups match previous warm-ups and working or failure sets match previous working or failure sets, position counted per kind group (`matchPrevious`). The hint names the same set. Only warm-up versus working carries over; a matched failure set pre-fills a working row (re-check N3). Tests: reviewer's probe as unit and widget test, skipped warm-up, no previous warm-ups, warm-ups only |
+| M4 | Exercise history (WP 8 screen) stops at 20 sessions with no way to load more (TRN-025(2)) | Medium | **Owner decision 2026-11-05 (OQ-25): allocated to WP 8 stage 6**; WP 9 limitation, not delivered here |
+| L1 | Schedule and cancel can reach the platform out of order; a stale notification can remain | Low | Fixed. Scheduler calls run on one future chain in request order; a stale schedule is dropped by generation. Tests: delayed `schedule` then skip leaves nothing scheduled; ordered pause/resume with delayed calls |
+| L2 | Notification scheduled while in the foreground; heads-up and channel sound can show before the in-app cancel | Low | Fixed. Scheduling follows the app lifecycle (`AppLifecycleListener`): scheduled on inactive/hidden/paused, cancelled on resume; nothing is scheduled in the foreground; the switch turned on mid-timer takes effect at the next background transition. Tests: foreground, background, resume, pause and skip in the background, timer ended while away, setting on mid-timer; integration test updated |
+| L3 | Docs say shrinking is off; release builds use R8 by default; release build untested; launcher icon as notification icon | Low | Fixed. Docs corrected (Flutter release builds use R8 by default; D03 and WP 9 updated). `android.yml` builds the release APK (debug-signed, no secrets). Monochrome `ic_stat_rest` vector icon used by the adapter; `res/raw/keep.xml` keeps it; no ProGuard file needed for 22.3.2 (README). Test: adapter initialises with the monochrome icon. The release build itself is verified by CI only |
+| L4 | "Rest over" panel stops ticking; no live-region announcement | Low | Fixed. A 5 s refresh keeps "ended ... ago" current while the rest is over; the panel is a live region and announces at 0. Test: label updates 20 s later |
+| L5 | Timer state is in memory; docs claim it survives process death | Low | Fixed (docs). `RestTimer`, the controller and WP 9 say the state survives backgrounding, not process death; the OS notification still fires |
+| L6 | Integration test asserts after a fixed pump; possible flake | Low | Fixed. The integration test waits with `pumpUntilCount` for both set rows instead of a fixed pump (device run is CI) |
+| L7 | Settings screen reads a repository directly; `debugPrint` instead of a logger (TD-32) | Low | Fixed. The settings screen saves through the new `UpdateSettings` use case (`updateSettingsProvider`) at both places (default rest and `_saveSettings`); no direct repository read. `debugPrint` stays: no logger exists yet (TD-32, TD-35). Test: saving goes through the overridden use case |
+| L8 | Play Console declaration statement may name the wrong permission | Low | Fixed (docs). The Play Console statement is replaced by: verify the current Google Play exact-alarm policy for `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` before release |
+| L9 | Stale status line, PR-definition text, typo, ADR-0007 sound promise | Low | Fixed. Status line, PR definition (distance = longest distance), typo and the ADR-0007 sound promise corrected |
+| L10 | A second workout can start while one is unfinished; double tap creates two | Low | Fixed. Start is guarded by a busy flag; an unfinished workout asks "Continue current workout or start a new one?" (continue opens it); a reopened finished session starts no rest timer and schedules nothing. Tests: double tap, continue, start new, correcting a finished session |
+| L11 | Exertion range labels hard-coded | Low | Fixed. `TrainingRules` has `rpeMin/rpeMax/rpeStep/rirMin/rirMax` and `exertionRange`; `validExertion`, the field labels, the validation messages and the settings note use them. Tests: constants and labels (compile-time failure on the old code) |
+| L12 | Previous-performance lookup limited to 3 sessions; no hint when correcting an old session | Low | Fixed. The lookup pages through the exercise history until it finds the newest other session that started no later than the current one. Test: correcting the second of six sessions hints with the first |
+| N1 (re-check) | A pre-filled warm-up row showed no kind and the hint did not say warm-up, so typing a working set over it logged a warm-up | Medium | Fixed. The collapsed row shows a kind chip and the button reads "Log warm-up"; the hint reads "Last: 40 kg × 10 (warm-up)"; typing over the pre-filled values switches the row to Working visibly, and an explicit kind choice is kept. Tests: visible kind and hint, typing logs Working, explicit warm-up logs warm-up |
+| N2 (re-check) | Starting a workout read the session repository from presentation code | Low | Fixed. New read use case `FindUnfinishedSession` (`findUnfinishedSessionProvider`, latest 100 sessions); `session_starter.dart` no longer reads the repository. Test: the dialog follows an overridden use case |
+| N3 (re-check) | A matched Failure set carried its kind into the new row | Low | Fixed. Only warm-up versus working carries over; failure maps to Working. Test: previous [100×5 W, 100×5 W, 100×3 F] |
+
+| N1a (re-check 2) | A pre-filled warm-up edited away and back to last time's values stays Working (visible: chip removed, button "Log set") | Low | Recorded as a known behaviour; optional refinement in a later change |
+| N1b (re-check 2) | Tapping the already-selected Warm-up chip does not mark the kind as chosen, so a later load edit switches to Working (visible) | Low | Recorded; fix candidate (mark choice from the chip's selection event) |
+
+Re-check 2 verdict: N1, N2, N3 resolved; no medium or high findings; tree ready for CI. Not locally verifiable: release APK build (R8, desugaring) and the emulator lifecycle simulation — verified by CI on the commit below.
+
+### M1 implementation (OQ-24)
+- **Design**: `RestAlertScheduler` gets `exactTimingStatus()` (`available | unavailable | notApplicable`) and `requestExactTiming()` (opens the system exact-alarm screen, result read afterwards, not trusted from the call). Only `lib/data/platform/` touches the plugin (`canScheduleExactNotifications`, `requestExactAlarmsPermission`); `FakeRestAlertScheduler` scripts status, grant-on-request and delays. `SCHEDULE_EXACT_ALARM` stays declared, `USE_EXACT_ALARM` is not added. Details in ADR-0007 (implementation record).
+- **Settings**: enabling asks for notification permission, then, if exact timing is unavailable, shows a dialog (benefit; "Allow precise timing" / "Not now"). The area under the switch states the effective state (off, on with precise timing, on but timing may be delayed by Android with an "Allow precise timing" action, on without claim on iOS, blocked with "Open settings"). Keys: `rest-alerts-status`, `rest-alerts-allow-exact`, `rest-alerts-open-settings`, `exact-timing-dialog`, `exact-timing-allow`, `exact-timing-not-now`.
+- **Permission lifecycle**: statuses are re-read on screen open and on app resume. Revocation while on: shown as Blocked (never "On"), the stored preference is kept, the timer controller checks `status()` and schedules nothing, logging and the timer are unaffected; re-granting works again without re-toggling. Declining or not granting exact access keeps notifications on, inexact. A failing platform reads as blocked / not precise.
+- **Tests**: adapter (status mapping, null/failure, request route, safe failures, iOS/other not applicable, re-check on each schedule); controller (revoked schedules nothing and recovers, scheduling independent of exact status); settings widget tests (exact available no prompt; unavailable explanation and Not now; Allow then granted; Allow then still denied then later grant on resume; delayed state action and revocation of exact on resume; notification permission denied; revoked while on then re-granted; re-enable; iOS-like; failing platform); session flow (revoked: set logged, timer runs, nothing scheduled, re-grant schedules). These failed on the previous code (12 widget/controller/flow tests; adapter tests on missing methods). No integration step added: it would need the emulator to drive a dialog and resume path that the fake cannot reproduce faithfully, and cannot be verified locally; the UI path is covered by widget tests.
+- **Limitations**: no device or emulator verification (no Android SDK locally); OEM variants of "Alarms & reminders" untested; below Android 12 exact reads as available because the plugin reports it so; the plugin completes the request only when the activity result returns, so the screen also re-reads on resume. Play policy: `SCHEDULE_EXACT_ALARM` needs a Play Console check before release.
+
+- **Independent review of M1** (same reviewer, code read, plugin 22.3.2 source checked, 83 targeted tests, probe including a request pending for an hour): every owner requirement resolved; no High or Medium findings; ready for CI. Low findings:
+
+| ID | Finding | Resolution |
+|---|---|---|
+| M1-F1 | If the system exact-alarm screen fails to open on some OEM builds, or its result never returns, the plugin keeps the request "in progress" until restart and refuses later permission requests, so re-enabling could show a misleading "not allowed" message | Recorded limitation; Android 14 device/emulator step added to the device campaign |
+| M1-F2 | The dialog decision reads a stored status that a concurrent resume re-read may overtake; negligible because exact grant cannot change in the foreground | Recorded; minor follow-up |
+| M1-F3 | Opening Settings on mobile initialises the plugin and creates the "Rest timer" channel without enabling alerts (no permission prompt; PLT-007(1) holds) | Accepted |
+| M1-F4 | No device verification of the flow | Device campaign: grant, deny, revoke, return from settings on Android 14 |
+
+Acceptance view (reviewer): D06 set logging ≤ 3 interactions met (one tap); PRs per type met (assisted and cardio gap documented); background timer on Android partly met (M1); iOS foreground baseline met; full-session integration test met (narrow); TRN-013..017, 019..021, 023, 024 met; TRN-018(2), TRN-025, TRN-027 partly (gaps documented or M4).
+
+## Tests, CI
+- Final implementation commit **0c35ef1** (M1). Local: `dart format` clean, `flutter analyze --fatal-infos` clean, **1186 tests** pass (`--concurrency=2`), hand-written coverage **91.5 %** (gate 80 %).
+- CI on 0c35ef1, all success, first attempt: CI 42046991394; Android 42046991233 (debug APK, then **release APK with R8 and desugaring**, step passed in 2 min 41 s); iOS 42046991251; integration on the API 34 emulator 42046991316.
+- Previous final-review fix commit 27dd8b0:
+  CI 42038742516; Android 42038742592 (debug APK, then **release APK with R8 and core library desugaring**, 2 min 49 s); iOS 42038742554; integration on the API 34 emulator 42038742486 (includes the full-session test with background and return simulation).
+- Every stage commit had all four workflows green (see "What was built").
+
+## Acceptance criteria (D06 WP 9) and evidence
+| Criterion | Evidence | Result |
+|---|---|---|
+| Logging a set takes ≤ 3 interactions (TRN-018(1): pre-filled set ≤ 2 taps) | Tap-count widget test and emulator test: one tap on `newset-log` | Met |
+| PRs detected per exercise and type (TRN-026) | `personal_records_test`; derived badges update on edit and delete | Met (assisted and cardio have no D04 definition — recorded gap) |
+| Rest timer fires in background on Android | OS notification scheduled while the app is not in the foreground; exact-alarm permission offered with an explanation (OQ-24); exact when granted, inexact fallback otherwise | Met in code and CI; real-device timing not verified (device campaign) |
+| iOS: alert when foregrounded (documented limitation) | Haptic pattern, visual state and announcement in the foreground; background delivery unverified | Met as the documented baseline |
+| Unit tests for PR and volume rules | `personal_records_test`, `volume_test`, records use-case tests | Met |
+| Integration test for a full session | Emulator: start from plan, one-tap sets, rest timer extend/skip and background/return, PR badge, finish, history | Met (narrow scope) |
+| Manual device test for the timer | Not run | **Deferred** to the owner's device campaign (owner instruction) |
+
+TRN coverage (reviewer): TRN-013..017, 019..021, 023, 024 met; TRN-018(2) partly (keyboard autofocus only in the edit sheet); TRN-022(2) partly (M1); TRN-025(2) partly (M4); TRN-027 per muscle and per week: rules only, no screen (proposed for WP 11; OQ-19 terminology applies).
+
+## Deviations and limitations
+- Exercise history paging (TRN-025(2)) **not delivered by WP 9** — allocated to WP 8 stage 6 (owner decision M4 / OQ-25, 2026-11-05).
+- Android background alert timing: exact-alarm permission flow implemented (0c35ef1); if the user declines, delivery is inexact and may be delayed. OEM exact-alarm screen behaviour untested (M1-F1); device verification pending (M1-F4).
+- No foreground sound; haptics can be switched off by the phone's touch-vibration setting.
+- A pending rest alert is lost on reboot; timer state survives backgrounding, not process death (the OS notification still fires).
+- Revoked notification permission leaves the setting shown as on.
+- Google Play exact-alarm policy to be verified before release.
+- Known Low items N1a, N1b (visible kind changes in the new-set row).
+
+## Owner decisions (2026-11-05)
+- M1 / OQ-24: implement the exact-alarm permission flow with inexact fallback — **implemented in 0c35ef1, independently reviewed, CI green**.
+- M4 / OQ-25: exercise history paging allocated to WP 8 stage 6; WP 9 limitation.
+- All eight WP 9 assumptions confirmed (calculated personal records; date-specific schedule entries; wall-clock rest timer; several entries of the same exercise; 4,000-character notes; 12-second undo; archived exercises skipped on start; kg-only entry while OQ-02 stays open).
+- ADR-0007 accepted; OQ-05 decided.
+
+## Owner decisions requested (at delivery, now decided — see above)
+1. **M1 / OQ-24** — offer the Android exact-alarm grant with an explanation when the user enables rest alerts (recommended), or accept inexact alerts as a recorded limitation.
+2. **M4 / OQ-25** — exercise history paging: a narrow WP 9 fix, or allocation to WP 8 stage 6 with a recorded WP 9 gap.
+3. Confirm the WP 9 decisions and assumptions recorded per stage (derived PRs; dated schedule rows; wall-clock rest timer; several entries per exercise; 4000-character notes; skipped archived exercises on start; 12 s undo; kg-only entry pending OQ-02).
+4. ADR-0007 (rest-timer alerts) — approve (status Proposed). *Decided 2026-11-05: ADR-0007 accepted; OQ-05 decided (see Owner decisions above).*
+
+## Recommendation
+Accept WP 9 at **0c35ef1**. All D06 criteria are met in code, tests and CI; the manual device test of the timer, iOS background delivery and real-device exact-alarm behaviour remain for the owner's device campaign. No High or Medium findings are open. Limitations: exercise history paging allocated to WP 8 stage 6 (M4); Low items N1a, N1b, M1-F1..F4 recorded.
+
+## Owner acceptance (2026-11-06)
+- **WP 9 ACCEPTED at 0c35ef1.** Accepted: the documented implementation, requirements evidence, CI results (four workflows green on every delivery commit; Android debug and release with R8; iOS; emulator full-session test), test results (1,186 tests, 91.5 % coverage) and independent reviews with targeted re-checks; no High or Medium findings outstanding.
+- The exact-alarm flow (M1 / OQ-24) is accepted **as delivered, not as proof of identical behaviour across Android manufacturers**.
+
+| Item | Treatment |
+|---|---|
+| N1a / N1b | Recorded Low findings |
+| M1-F1 to M1-F4 | Device campaign |
+| Assisted and cardio PR definitions | Recorded requirements gap |
+| Exercise history paging (TRN-025(2)) | Allocated to WP 8 stage 6 |
+| Per-muscle and per-week volume screens (TRN-027) | Future delivery |
+| Rest alert lost on device restart | Recorded limitation |
+| Google Play exact-alarm policy | Pre-release check |
+| Real-device notification timing | Device campaign |
+
+Device-campaign findings are handled through follow-up maintenance or separately approved work; WP 9 is not reopened.

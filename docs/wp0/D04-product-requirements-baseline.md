@@ -158,7 +158,7 @@ Recipe management, recipe nutrition calculation, portion scaling, recipe favouri
 | TRN-024 | The user shall be able to edit and delete past sessions, exercises and sets. | (1) Editing a set recalculates volume and personal records that depend on it. (2) Deleting a session requires confirmation and can be undone for at least 10 seconds. | P1 Must | |
 | TRN-025 | The app shall show exercise history: every recorded set for an exercise, grouped by session date. | (1) History for an exercise lists sets with date, weight, reps (or relevant fields) and exertion. (2) The history loads the most recent 20 sessions first and further sessions on scroll. | P1 Must | |
 | TRN-026 | The app shall detect and record personal records (PRs) per exercise using type-appropriate definitions. | (1) For weighted exercises, a PR is recorded for the heaviest weight at each repetition count from 1 to 12. (2) For timed, distance-based and bodyweight exercises, the PR is respectively the longest duration, longest distance, and most repetitions. (3) Confirming a set of 82.5 kg × 5 where the previous best at 5 reps was 80 kg shows a PR indicator, and editing or deleting that set removes the PR if it is no longer the best. | P1 Must | Warm-up sets excluded (TRN-019). |
-| TRN-027 | The app shall calculate training volume as the sum of weight × repetitions in kg for weighted working sets, and report it per exercise, per session, per muscle group and per week. | (1) Sets of 80 kg × 5 and 80 kg × 4 give a volume of 720 kg. (2) Bodyweight, assisted, timed and distance sets are excluded from kg volume and reported by their own measures (repetitions, seconds, metres). (3) Weekly volume per muscle group counts primary muscle volume in full and shows secondary attribution separately; weeks run Monday to Sunday unless the user changes the first day of the week. | P1 Must | Definition is a proposal; it is documented in the app help. |
+| TRN-027 | The app shall calculate training volume as the sum of weight × repetitions in kg for weighted working sets, and report it per exercise, per session, per muscle group and per week. | (1) Sets of 80 kg × 5 and 80 kg × 4 give a volume of 720 kg. (2) Bodyweight, assisted, timed and distance sets are excluded from kg volume and reported by their own measures (repetitions, seconds, metres). (3) Weekly volume per muscle group counts primary muscle volume in full and shows secondary attribution separately; weeks run Monday to Sunday unless the user changes the first day of the week. | P1 Must | Definition is a proposal; it is documented in the app help. Per-muscle attribution: OQ-19 (attributed set counts; primary full, secondary separate; not physiological measurements). |
 | TRN-028 | The app shall provide progressive overload tracking per exercise. | (1) For a chosen exercise, a chart shows top-set weight, estimated 1RM (if applicable), and session volume over time. (2) The app states when a measure has increased, stayed level or decreased compared with the previous session of that exercise, without giving an instruction to the user. | P2 Should | Descriptive only; no coaching (GOL-011). |
 
 ### 4.4 Body composition and measurements (BCM)
@@ -169,8 +169,8 @@ Recipe management, recipe nutrition calculation, portion scaling, recipe favouri
 | BCM-002 | The user shall be able to record neck, chest, waist and hip circumference in cm. | (1) Each accepts values from 10.0 to 300.0 cm in steps of 0.1 cm. (2) The user can record any subset of measurements in one entry, and omitted ones are stored as absent. | P1 Must | Measurement site definitions (such as waist at navel) shown as help text. |
 | BCM-003 | Right and left thigh, calf, bicep and forearm circumferences shall be stored as separate values. | (1) Each of the eight limb measurements has its own field and its own history. (2) Entering right thigh only does not create or alter a left thigh value. | P1 Must | Stored individually even when charted together. |
 | BCM-004 | Every measurement shall be dated, and the user shall be able to back-date, edit and delete entries. | (1) The date defaults to today and cannot be in the future. (2) Editing or deleting an entry updates charts and summaries immediately. (3) Each measurement type has a history list, newest first, available offline. | P1 Must | |
-| BCM-005 | The app shall show trend charts per measurement over a selectable period (4 weeks, 12 weeks, 1 year, all). | (1) Right and left series for the same site can be shown on one chart as two distinct, labelled series. (2) Dates without data are shown as gaps; the app does not interpolate or invent values. | P1 Must | Chart rules in UXD-009. |
-| BCM-006 | The app shall show a weight trend line as a moving average alongside the raw entries. Proposed method: 7-day moving average over days with entries. | (1) Raw entries remain visible as individual points. (2) With fewer than 3 entries in the window, no trend value is drawn for that window. | P1 Must | Smoothing method is a proposal. |
+| BCM-005 | The app shall show trend charts per measurement over a selectable period (4 weeks, 12 weeks, 1 year, all). | (1) Right and left series for the same site can be shown on one chart as two distinct, labelled series. (2) Dates without data are shown as gaps; the app does not interpolate or invent values. | P1 Must | Chart rules in UXD-009. Gap rule decided 2026-11-05 (§7): readings up to and including 7 days apart may be joined; longer gaps break the line. |
+| BCM-006 | The app shall show a weight trend line as a moving average alongside the raw entries. Method: 7-day moving average (decided 2026-11-05, §7). | (1) Raw entries remain visible as individual points. (2) With fewer than 3 entries in the window, no trend value is drawn for that window. | P1 Must | Method decided 2026-11-05 (§7, WP 10 D1): trailing 7-calendar-day average ending on each day with an entry; daily means first; a trend point needs at least three individual readings in the window. |
 | BCM-007 | The user shall be able to compare measurements between two selected dates or periods. | (1) Given waist 90.0 cm on 2026-11-01 and 87.5 cm on 2026-12-01, the comparison shows -2.5 cm and -2.8 %. (2) If either date has no entry, the app offers the nearest entry on either side and states its date. | P1 Must | |
 | BCM-008 | The app shall show a progress summary over a chosen period covering weight change and change in each measured site. | (1) The summary lists first value, latest value and difference for each type with at least two entries in the period. (2) Types with fewer than two entries are listed as "not enough data". | P1 Must | |
 | BCM-009 | The user shall be able to export body weight and measurement data. | (1) Export produces CSV with one row per entry and columns for date, type, value and unit. (2) Export is also included in the full JSON export (DAT-005). | P1 Must | |
@@ -265,11 +265,11 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-02 | Is imperial unit support (lb, oz, in, fl oz) required in v1, or only metric? | Adds conversion, display and test scope across nutrition, training and body data. | GEN-004, NUT-022 |
 | OQ-03 | Which markets and languages are in scope for v1 (for example UK English only)? | Affects food database choice, label conventions (such as energy in kJ), number formats and translation effort. | GEN-016, NUT-005 |
 | OQ-04 | Do recipes need photos? If yes, are they stored only on the device and included in backup? | Affects storage size, backup size, camera and gallery permissions and sync cost. | RCP-001, DAT-003 |
-| OQ-05 | Must the rest timer alert the user when the app is in the background or the screen is locked? | Requires notification permission and background handling that differ between Android and iOS. | TRN-022, PLT-007, PLT-008 |
+| OQ-05 | Must the rest timer alert the user when the app is in the background or the screen is locked? | **Decided 2026-11-05** (§7): yes — background rest alerts are required where the platform allows, through opt-in local notifications (ADR-0007, accepted); on Android exact scheduling is offered (exact-alarm permission with an explanation) with inexact delivery as the fallback; iOS background delivery remains unverified until device evidence exists. | TRN-022, PLT-007, PLT-008 |
 | OQ-06 | What is the retention policy for local backups, cloud data after account deletion, and deleted records (immediate purge or recoverable for a period)? | Drives privacy commitments, storage use and the deletion wording. | DAT-008, DAT-012, DAT-013 |
 | OQ-07 | When a scanned barcode is not in the local database, may the app query an online source? If so, which, and is the barcode sent off the device? | Conflicts with offline-first and privacy minimisation unless handled as an explicit opt-in. | NUT-006, GEN-009 |
 | OQ-08 | Is cloud sync intended at all, and if so which provider, which sign-in methods and which data is in scope? | Determines whether the sync, authentication and secure storage work packages are needed. | DAT-009 to DAT-011, PLT-009 |
-| OQ-09 | What is the source and licence of the exercise library (own content, licensed dataset, or open source)? Are demonstration images or videos required? | Affects content creation effort, app size and licence compliance. | TRN-008 |
+| OQ-09 | What is the source and licence of the exercise library (own content, licensed dataset, or open source)? Are demonstration images or videos required? | Affects content creation effort, app size and licence compliance. | TRN-008, LIB-001..014 | **Decided 2026-11-05** (§7): original RepForge-authored content; compatible open datasets with provenance; no proprietary content; media deferred (WP 16e).
 | OQ-10 | Is any crash reporting or usage analytics acceptable, and if so is it opt-in and which data may it contain? | Conflicts with data minimisation unless defined; affects the ability to find defects in the field. | GEN-009 |
 | OQ-11 | Which devices and operating system versions are the reference for performance targets and minimum support (for example the oldest supported Android API level and iOS version)? What barcode scan success rate is acceptable? | The proposed performance targets cannot be verified without reference devices. | GEN-013, GEN-014, PLT-002 |
 | OQ-12 | Should the default exertion scale be RPE or RIR, and may users switch? | Affects defaults, training copy and the meaning of stored values. | TRN-020 |
@@ -279,3 +279,331 @@ These questions need an owner decision. Until answered, the linked requirements 
 | OQ-16 | Should Health Connect and HealthKit integrations be read-only, or also write workouts, weight and nutrition back? | Write access widens the permission scope and the privacy review. | PLT-005, PLT-006 |
 | OQ-17 | On restore, should the default be replace-all or merge? How are duplicates handled? | Affects data-loss risk and the complexity of the restore flow. | DAT-004 |
 | OQ-18 | What are the day boundary and week start rules (local midnight, Monday start)? Should users be able to change them? | Affects every daily and weekly total and the consistency of comparisons. | NUT-001, NUT-016, TRN-028 |
+| OQ-19 | How is training volume attributed when an exercise has several primary anatomical targets? | TRN-027 per-muscle volume and WP 11 reporting. **Decided and confirmed 2026-11-05** (§7): attributed set counts — primary muscle: full attribution of each recorded exercise set; secondary muscle: separately recorded attribution, excluded from primary totals; not physiological measurements of muscle stimulus. | TRN-027 |
+| OQ-20 | Does TRN-010(1) ("exactly one primary group") still hold? | Conflicts with multiple primary targets. **Closed 2026-11-05** by WP 16 decision 3 (§7): one or more primary targets. | TRN-010 |
+| OQ-21 | What counts as an "imported" exercise (versus system-supplied and user-created)? | Source separation and update rules. **Decided 2026-11-05** (§7): brought in by a user from an external file, application or user-controlled source; open datasets in the official catalogue are system content with provenance and licence. | LIB-011 |
+| OQ-22 | Which anatomy nodes (L1–L4) and movement patterns form the controlled reference lists? | **APPROVED 2026-11-05** (§7): 126-node anatomy, 17 families and 62 patterns (79 entries), rules R1–R8, `docs/catalogue/`. | LIB-004, LIB-005 |
+| OQ-23 | What are the minimum coverage targets per anatomical region? | **APPROVED 2026-11-05** (§7): 325 slot minimums in 21 groups plus 70 conditioning, power and mobility entries; 5.1 chest pilot then re-baselining and owner approval before 5.2–5.7. | LIB-001, LIB-002 |
+| OQ-24 | WP 9 review M1: Android 14+ rest alerts usually inexact. | **Decided 2026-11-05** (§7): offer the exact-alarm permission with an explanation when rest alerts are enabled; inexact notifications remain the fallback. **Implemented 2026-11-05 in 0c35ef1** (independent review: no High/Medium; CI green incl. release build); device verification in the owner's device campaign. | TRN-022, PLT-007 |
+| OQ-25 | WP 9 review M4: exercise history paging (TRN-025(2)). | **Decided 2026-11-05** (§7): allocated to WP 8 stage 6; recorded as a WP 9 limitation. | TRN-025 |
+
+## 7. Amendments (owner decisions)
+
+### 2026-11-04 — WP 5 acceptance decisions
+- **Provenance labels: fourth category `crowdsourced` approved as a deviation** from GEN-005 / NUT-018 (which list verified, user-entered, estimated). It labels community-maintained data from Open Food Facts, which is neither verified by a curated source nor entered by this user. Order of strength for NUT-019 aggregate totals, weakest last: verified › crowdsourced › userEntered › estimated; a total carries the weakest label among its inputs (implementation: WP 5 closure, NUT-019).
+- **NUT-018 part 3** ("editing a verified food creates a user-entered copy" per the original acceptance text) is retained with its original wording. It is not descoped and not assigned until its intended behaviour and owner are clarified by the owner.
+- **Allocation of P1 nutrition items not delivered by WP 5**: NUT-017, NUT-019, NUT-022 → WP 5 closure; NUT-011 → WP 7; NUT-023 → WP 14. Recorded in D06.
+- **NUT-021 interpretation**: an unknown nutrient value is stored and shown as unavailable, never as 0; a total built from inputs with unknown values states how many inputs were unknown.
+
+### 2026-11-04 — WP 7 acceptance decisions
+- **OQ-14 decided**: UK/EU convention — carbohydrate is available carbohydrate; fibre separate, never added or subtracted; energy as stated. Limitation accepted for US-labelled products (calculation specification §4).
+- **Portion precision**: portion counts are stored to at least 0.01 (calculation specification §2.1 rev 1.3); gram/ml quantities stay at 0.1.
+- **Allocation**: NUT-019 day-total provenance badge → WP 11; NUT-022 kg/l/imperial entry → new WP 15 (Nutrition entry units). Accepted WP 5 is not reopened.
+- **Seed recipes**: imported with freezing "unknown" regardless of legacy flags; declared nutrition kept as estimated until every ingredient note is replaced by a linked ingredient.
+
+### 2026-11-05 — NUT-017 approved
+- **NUT-017** is satisfied by the approved calculation specification (`docs/nutrition-calculation-spec.md`, revision 1.3) and its 41 worked examples executed as tests.
+
+### 2026-11-05 — Exercise library scope amendment (owner requirement)
+- The exercise library shall be a comprehensive, extensible exercise reference and discovery system (breadth benchmark: historical bodybuilding and strength-training reference apps), not a minimal set for logging. Ten capabilities recorded as **LIB-001..LIB-010** (identifiers proposed) in `docs/exercise-library-expansion.md` §1, with the owner's architectural, content and acceptance requirements (anatomical coverage, diversity, classification quality, discoverability, extensibility, integrity over raw count). No built-in programmes or programme generation at this stage.
+- WP 8 is not assumed to satisfy it: gap analysis and proposed WP 16 in `docs/exercise-library-expansion.md` (proposed, pending owner decisions §5). WP 9 scope unchanged.
+
+### 2026-11-05 — WP 16 exercise library decisions (owner)
+Full text: `docs/exercise-library-expansion.md` §5.
+1. **Engineering Object** defined: first-class persistent domain entity with stable identity, defined type and schema, explicit source and provenance, validation and integrity constraints, creation and modification metadata, defined relationships, lifecycle-appropriate versioning, and persistence, query, backup and restore. Not every object needs its own history or table. Exercises are persistent entities.
+2. **OQ-09 decided**: original RepForge-authored content; compatible openly licensed datasets allowed with recorded provenance; no Bodybuilding.com content (breadth benchmark only); multiple providers; commercial licensing deferred.
+3. **Anatomy**: four levels (region, muscle group, anatomical muscle, subdivision or head); tag at the most meaningful defensible level; multiple primary and secondary targets; existing exercise ids and the 19 muscle-group ids preserved; qualitative classifications not presented as precise biomechanics. **TRN-010(1) amended**: "one or more primary targets" replaces "exactly one primary group" (OQ-20 closed by this decision).
+4. **Difficulty**: beginner, intermediate, advanced as defined; technical complexity, not load or fitness.
+5. **Relationships**: variation of, progression of, regression of, alternative to, unilateral counterpart; validated, directional where appropriate, no circular or invalid references; not programme functionality.
+6. **Coverage**: structured coverage matrix is the formal WP 16c acceptance mechanism; regional minimums defined before population (OQ-23); explicit gap report; raw count insufficient.
+7. **Languages**: English (UK) first; localisation without duplicate identities; translation deferred.
+8. **Governance**: WP 16 separate; WP 8 not reopened or renumbered; WP 9 unchanged; WP 10/11 inspected before sequencing; unrelated work not blocked.
+9. **Structure**: WP 16a–16e approved; schema v8 approved as target subject to architectural review.
+10. **Additional**: separate system, user and imported exercises (LIB-011); catalogue updates never silently overwrite user customisations, idempotent import and update (LIB-012); provenance, validation, duplicate detection, integrity reporting (LIB-013); discovery by anatomy, equipment, pattern, classification, difficulty; future metrics, tempo, range of motion, execution guidance and recommendations accommodated but outside current acceptance.
+- Owner retains approval of architectural decisions, work-package acceptance, merges and releases. WP 16a implementation awaits authorisation of `docs/wp16a-implementation-plan.md` (ADR-0008, ADR-0009 proposed).
+
+### 2026-11-05 — Library expansion incorporated into WP 8 (owner; supersedes WP 16 governance)
+- **WP 8 stays the active work package** and delivers the expanded library (LIB-001..014 and the library decisions above). **WP 16 is not created** as a delivery package; the earlier proposal is withdrawn.
+- This supersedes library decision 8 (WP 16 separate; WP 8 not reopened) and re-organises decision 9: workstreams 16a–16e become **WP 8 stages 3 (architecture and reference data), 4 (catalogue tooling and quality assurance), 5 (anatomical catalogue population), 6 (search, discovery and exercise screens) and a deferred media workstream**. All other library decisions stand (Engineering Objects, OQ-09, anatomy, difficulty, relationships, coverage matrix, language, schema v8 target, additional requirements). No WP 8A–8E renumbering.
+- Completed WP 8 work, identifiers, migrations and tests are preserved; the 89-exercise implementation is a foundation and does not satisfy the expanded requirements. Previously accepted work is not reopened. WP 9 is unchanged.
+- Revised plan, the five-way distinction (implemented and verified; original criteria; expanded requirements; remaining work; final acceptance criteria) and sequencing: `docs/wp8-delivery-plan.md` (proposed; was `docs/wp16a-implementation-plan.md`). Implementation awaits owner review and authorisation.
+
+### 2026-11-05 — WP 8 governance confirmed; OQ-19 and OQ-21 decided (owner)
+- **WP 8 remains the active work package**; the expanded exercise library is WP 8 scope. **No WP 16 implementation is authorised**; the WP 16 proposal is superseded by the WP 8 scope decision and kept only as history. Its design, domain model, migration strategy, catalogue reconciliation and testing approach are retained as WP 8 internal stages (`docs/wp8-delivery-plan.md`). ADR-0008 and ADR-0009 keep their numbers and history and govern WP 8 stage 3 (still Proposed). WP 9 stage 3b continues independently. WP 10 may proceed independently, subject to schema version coordination. WP 11 keeps its dependency on the expanded anatomy and exercise taxonomy.
+- **OQ-19 approved**: each primary muscle target receives the full recorded exercise-set volume. Secondary targets are reported separately and excluded from primary volume totals. These figures attribute recorded sets; they are not physiological volume measurements.
+- **OQ-21 approved**: imported exercises are brought into RepForge by a user from an external file, application or user-controlled source. Open datasets incorporated into the official RepForge catalogue are system-provided content with recorded provenance and licensing.
+- **Technical qualifications** for WP 8 stage 3: preserve all exercise ids, muscle-group ids and user data; demonstrate that the `exercises` table rebuild is preferable to an incremental migration; prove migration value equality across supported schema versions; preserve backup and restore compatibility; system catalogue updates never overwrite user customisations; retired exercises keep historical workout references; catalogue releases atomic, repeatable and auditable. Plan response: `docs/wp8-delivery-plan.md` §17.
+
+### 2026-11-05 — WP 8 decisions approved; stage 4 authorised; stage 3 gated (owner)
+**Approved**
+1. **ADR-0008** (exercise domain model): architectural direction approved.
+2. **ADR-0009** (catalogue provenance and updates): architectural direction approved.
+3. **Muscle identifiers**: the 19 existing muscle-group ids are preserved and mapped into the approved hierarchy; `fullBody` is retained as a non-anatomical top-level classification.
+4. **`exercises` table rebuild** approved, conditional on demonstrated complete value preservation, historical workout reference integrity, and justification against incremental migration.
+5. **OQ-19**: each primary muscle target receives the full recorded exercise-set count; secondary muscles are reported separately and excluded from primary volume totals; these are set counts, not physiological volume measurements. *Clarification requested by the architect*: TRN-027(3) also reports kg volume per muscle group — does kg volume follow the same attribution, or is per-muscle reporting set counts only? Not assumed either way.
+6. **OQ-21**: imported exercises are user-supplied from external files, applications or user-controlled sources; open datasets in the official catalogue are system-provided content with recorded provenance and licensing.
+7. **Legacy invalid values** (WP 8 decision 3): never silently corrected or replaced; original preserved in quarantine; operational value cleared or retained according to field semantics; records and relationships preserved; **a migration report identifies every affected record** (the reporting surface is WP 8 stage 3 work; see TD-41).
+8. **TRN-020** (WP 8 decision 4): RIR is an integer from 0 to 5 inclusive, enforced at the domain and persistence boundaries. The domain rule exists (WP 8 review fix M3); persistence enforcement (the v6 CHECK allows 0–10) is WP 8 stage 3 work, with out-of-range stored values handled by decision 7.
+9. **Screen ownership** (WP 8 decision 5): WP 8 owns exercise library, taxonomy, discovery, exercise detail and favourites. WP 9 owns workout planning, workout execution, sessions, sets and rest timers. No unnecessary duplication.
+
+**Stage 4 authorised now**, alongside WP 9: exercise editorial guide; anatomical coverage matrix; muscle reference data; movement-pattern reference data; catalogue population standards; provenance and licensing requirements; catalogue quality and duplicate-detection specifications. Restriction: no change to shared production code, database schemas or WP 9 implementation; outputs are reviewable documentation and reference data for use after stage 3.
+
+**Stage 3 implementation gate**: not before (1) WP 9 stage 3b CI completes successfully, (2) Android and iOS build results are reviewed (core library desugaring with the supported Android build configuration in particular), (3) the emulator full-session test passes, (4) the independent WP 9 review is complete, (5) WP 9 delivery is formally accepted. Then the stage 3 plan returns for final authorisation.
+
+Governance: WP 8 active and expanded; WP 16 withdrawn; WP 9 scope unchanged; accepted work not reopened.
+
+### 2026-11-05 — WP 8 decisions confirmed; OQ-22 and OQ-23 review requirements (owner)
+- **Confirmed**: ADR-0008 and ADR-0009; the 19 muscle-group ids and their mapping; `fullBody` as a non-anatomical top-level classification; OQ-19; OQ-21; legacy invalid-value handling; TRN-020 (RIR whole numbers 0–5); WP 8 owns the exercise library and discovery screens, WP 9 owns planning and session screens; stage 4 alongside WP 9.
+- **OQ-19 terminology (confirmed)**: primary muscle — full attribution of each recorded exercise set; secondary muscle — separately recorded attribution, excluded from primary volume totals; these are **attributed set counts, not physiological measurements of muscle stimulus**. The distinction is shown in reporting and documentation. Where TRN-027(3) reports kg volume per muscle, it is the kg volume of the attributed sets, labelled the same way (architect's reading of "full attribution of each recorded exercise set"; correct if not intended).
+- **Retired exercises**: never deleted; identifiers never reused; an automated integrity check verifies that every historical set (and plan) reference resolves to an existing exercise, retired ones included.
+- **`exercises` rebuild**: conditional approval stands — the trial comparison against incremental migration, migration value-equality tests, backup compatibility and preservation of historical references are recorded as evidence **before sub-stage 3b is finalised**. The comparison may not be skipped.
+- **OQ-22**: direction approved; the owner reviews the actual anatomy and movement-pattern lists (stable ids, display names, parents, definitions, inclusion and exclusion criteria, mapping to existing records) before they become controlled reference data.
+- **OQ-23**: coverage minimums are proposed per anatomical region from the actual anatomical structure, covering compound, isolation, equipment diversity, movement patterns, unilateral and bilateral, difficulty distribution and meaningful variations; reviewed before stage 5. **No catalogue population before OQ-22 and OQ-23 are approved.**
+- Sequencing unchanged: WP 9 stage 3b CI and independent review complete, and WP 9 formally accepted, before WP 8 stage 3 code; WP 10 independent with schema coordination; WP 11 follows the expanded taxonomy. WP 8 active and expanded; WP 16 withdrawn.
+
+### 2026-11-05 — WP 8 stage 4 approved: OQ-22, OQ-23, ADR-0010 and related decisions (owner)
+- **OQ-22 APPROVED**: the 126-node anatomy hierarchy; the movement-pattern taxonomy (17 families, 62 patterns, 79 entries); the 19 existing ids unchanged; the proposed classifications; rules R1–R8. Neck: include conventional gym exercises. Pelvic floor: excluded. Soft-tissue release: deferred.
+- **Primary-muscle principle APPROVED**: primary targets are the muscles an exercise is designed and normally selected to train; other muscles making significant contributions are secondary. Applied consistently (rows, deadlifts, dips, chin-ups and other compound movements); disputed individual assignments are resolved in each tranche's content review; no additional primary target merely because a muscle contributes significantly.
+- **ADR-0010 / Q-F APPROVED (Accepted)**: `fullBody` is a flagged, childless, non-anatomical L1 node; only the single primary of qualifying whole-body or conditioning exercises; never secondary; never with anatomical primaries; excluded from anatomical roll-ups, coverage and attributed muscle set counts; shown separately in reports, labelled non-anatomical; historical references preserved and listed in the migration report.
+- **OQ-23 APPROVED**: 325 anatomical slot minimums across 21 groups (chest 36, shoulders 35, upper back 25, lats 20, quadriceps 28, glutes 25, triceps 24, forearms 19, abs 18, biceps and brachialis 17, hamstrings 13, obliques 13, rotator cuff 10, neck 10, calves 9, lower back 5, adductors 4, hip flexors 4, shin and outer lower leg 4, abductors 3, deep hip rotators 3); separate 70 conditioning, power and mobility minimums; one slot per exercise per group; primary targets determine coverage; no L4 minimums; optional superficial variations; class diversity cap; release-2 classifications; duplicate-detection thresholds; 5.1 chest pilot with mandatory re-baselining and explicit owner approval before 5.2–5.7; seed baseline 67/325 and 20/70 accepted. The framework is an acceptance mechanism, not a demand to add exercises to meet numbers; quality and meaningful variation take precedence.
+- **Other decisions APPROVED**: all 12 equipment additions (including ski ergometer and stair climber); one generic `machine` id retained (a later split is a reference-data enhancement); equipment load/support rule; all seven optional controlled exercise attributes with their vocabulary and boundary rules (the attribute fallback is not required); cardio and mobility mechanics empty; content: original RepForge content remains the default; AI drafting assistance permitted and recorded in provenance; a named human editor is the accountable author; share-alike datasets excluded entirely; third-party datasets only with demonstrably compatible provenance and licensing; attribution on a credits screen; legal review before the first public release.
+- **Deferred**: review items X1–X4 stay deferred to WP 8 stage 3a or the 5.1 pilot; stage 4 scope is not expanded.
+- **Stage 5** is authorised in principle, gated: no bulk population before WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified; then the 5.1 pilot; then re-baselining and owner approval before 5.2–5.7.
+- **WP 9** continues independently; M1 and M4 are open owner decisions (OQ-24, OQ-25). Workstreams and acceptance records stay separate.
+
+### 2026-11-05 — WP 9 owner decisions (M1, M4, assumptions, ADR-0007)
+- **M1 / OQ-24 approved**: when rest alerts are enabled, explain why exact-alarm access helps and offer the Android exact-alarm permission (existing `SCHEDULE_EXACT_ALARM`; no `USE_EXACT_ALARM` without separate technical and policy justification). If declined or not granted, inexact notifications remain the fallback. The setting reflects permission state and never implies precise timing when exact scheduling is unavailable. Denial, return from settings, revocation and re-enablement are handled. Notification permission is never a prerequisite for logging sets or using the timer. Requires implementation and verification before WP 9 acceptance.
+- **M4 / OQ-25 approved**: exercise history paging (TRN-025(2)) is allocated to **WP 8 stage 6**; it is a recorded WP 9 limitation and is not delivered by WP 9.
+- **WP 9 assumptions confirmed**: (1) personal records are calculated from recorded data, not stored; (2) schedule entries are date-specific; (3) the rest timer uses wall-clock time; (4) several entries of the same exercise are allowed in a session; (5) session, exercise and set notes have a 4,000-character limit; (6) the undo window is 12 seconds; (7) archived exercises are skipped when starting a workout; (8) weight entry is kg-only while OQ-02 is open — an interim constraint; **OQ-02 stays open**.
+- **ADR-0007 approved** (Option 1, notification adapter). **OQ-05 decided**: background rest alerts are required where the platform allows, with Android exact scheduling offered and inexact fallback.
+- WP 9 is **not accepted**: it remains delivered, awaiting acceptance, until M1 is implemented, verified and reviewed by the owner.
+
+### 2026-11-05 — WP 10 owner decisions D1–D5
+- **D1 — BCM-006 weight trend (method decided)**: trailing seven-calendar-day moving average ending on each day that has an entry; multiple readings on one day are averaged first, then the daily means are averaged; a trend point is shown only when the window holds **at least three individual readings** (not three distinct days); raw readings stay visible.
+- **D2 — file output**: `share_plus` for exports and `file_selector` for choosing a restore file, behind a platform-neutral port (ADR-0011, accepted); package compatibility verified before implementation.
+- **D3 — backup screen**: a minimal Settings screen using the existing `DriftBackupRepository`; backup date and record counts shown before restore confirmation; invalid or newer-format backups rejected without modifying existing data.
+- **D4 — comparison**: periods are compared by their mean, with the number of readings shown for each period; for a selected date without an exact reading, the nearest earlier and later readings are shown with their actual dates and neither is silently substituted (the user chooses).
+- **D5 — CSV**: columns `date, type, value, unit`; UTF-8; header row; one row per reading; date as ISO 8601 local date-time including the UTC offset.
+- Authority: stages 1 and 2 continue with these decisions; stage 3 proceeds only after ADR-0011 and the file-output implementation have been reviewed; no schema migration unless evidence shows it is necessary; WP 9, PR #5 and `main` unchanged; WP 10 stays delivered-awaiting-acceptance until the owner accepts it.
+
+### 2026-11-05 — WP 10 chart gap rule (BCM-005(2))
+- **Option B approved**: readings separated by 7 days or less may be connected; gaps greater than 7 days must break the chart line. No missing reading is interpolated or fabricated; actual timestamps and values are preserved. A connection is a visual link between recorded observations, not continuous measurement.
+- WP 10 stage 3a (11c4889) local gate, independent review and two re-checks accepted; CI is the verification gate for stage 3b.
+
+### 2026-11-05 — WP 10 stage 3b architect decisions (owner may override)
+Taken under owner decision D3 ("reject invalid or newer-format backups without modifying existing data"), as the safer reading:
+- **Empty backups rejected**: a backup with no restorable records (empty or only unknown tables) is rejected at preview — "This backup contains no records. Nothing was changed." A restore never wipes all data; deleting all data, if ever wanted, would be its own explicit action.
+- **Android restore picker unfiltered**: the picker does not filter by file type on Android (providers such as Drive or mail often report `.json` as `text/plain`); the backup validator remains the guard; iOS keeps the `public.json` filter.
+- **CSV columns**: D5 (a `unit` column) supersedes DAT-006(1) "metric units in column names" for the body-measurements CSV.
+
+### 2026-11-05 — WP 10 accepted (owner)
+- **WP 10 ACCEPTED at bb5f788**; the delivery evidence and acceptance matrix in `docs/delivery-record/WP10.md` are accepted.
+- **D3 decisions retained with clarification**: reject structurally empty or invalid backups, but do not reject a valid full backup merely because it contains zero measurement records; the Android restore picker needs no file-type filter and the restore validator remains authoritative. The implemented rule (reject only when no restorable row exists in any table) meets this; the brand-new-app export edge case is noted in the WP 10 record for owner confirmation.
+- **OQ-18 and OQ-02 remain open.** Device-campaign and spreadsheet-compatibility checks remain deferred verification, not completed evidence.
+
+### 2026-11-05 — Backup edge case confirmed (owner)
+- The implemented behaviour is confirmed; no code change. A settings-only backup (valid data, zero measurement records) is accepted. A completely empty backup (every table present, no records anywhere) is rejected and cannot overwrite an existing database. WP 10 acceptance and closure at bb5f788 are unchanged; WP 10 is not reopened.
+- WP 8 sequence confirmed: WP 9 acceptance review → authorisation of the stage 3 plan → stage 3a (domain model) → `exercises` rebuild trial and value-equality evidence before finalising 3b → migration, reference data and catalogue update. Stage 3 does not bypass the WP 9 acceptance gate or the agreed migration evidence.
+
+### 2026-11-06 — WP 9 accepted; WP 8 stage 3 authorisation withheld pending plan correction (owner)
+- **WP 9 ACCEPTED at 0c35ef1**, with the qualifications recorded in `docs/delivery-record/WP9.md` (Low findings N1a/N1b; M1-F1..F4 and real-device timing to the device campaign; assisted and cardio PR definitions as a requirements gap; exercise history paging to WP 8 stage 6; per-muscle and per-week volume screens as future delivery; rest alert lost on restart as a limitation; Google Play exact-alarm policy as a pre-release check). The exact-alarm flow is accepted as delivered, not as proof of identical behaviour across Android manufacturers.
+- **WP 8 stage 3**: architectural direction, ADRs and technical decisions stand; implementation authorisation is withheld until `docs/wp8-delivery-plan.md` is corrected (§2/§14 approvals, schema v8 availability, §4 from the approved `anatomy.json`, §11 criteria) and re-reviewed. Retained requirements: report every affected legacy record; never silently correct invalid values; RIR 0–5 enforced in the database; deterministic, repeatable loading of the approved reference data with validation; retired exercises remain available to historical records; catalogue releases never overwrite user data; conditional table-rebuild approval subject to the comparison trial and migration evidence.
+- Stage 4: previously authorised preparation continues; no stage 5 bulk population before stage 3 tooling is implemented and verified, the 5.1 pilot is reviewed, and the coverage matrix is approved.
+
+### 2026-11-06 — WP 8 stage 3 authorised (owner)
+- WP 8 delivery plan revision 3 (b63c4d9) **approved**; **stage 3 implementation authorised** (3a domain model; 3b schema v8, migration, repositories, backup format 3; 3c catalogue format, release reconciliation, integrity tooling; 3d WP 8/WP 9 integration; combined review and owner acceptance). Independent review and explicit gates at each sub-stage; implementation completion is not acceptance.
+- Binding safeguards (plan §21): A — SQLite foreign-key sequence (no `PRAGMA foreign_keys` change inside a transaction; atomic migration; foreign-key check; enforcement restored and verified); B — 31-node migration bootstrap distinct from the complete approved catalogue (126 / 79 / 33), loaded deterministically without duplicates; C — TRN-020 per-scale database constraints from the authoritative text (RPE 1–10 in 0.5 steps; RIR integers 0–5; no RPE–RIR conversion invented).
+
+### 2026-11-06 — WP 8 stage 3a decisions and acceptance; stage 3b authorised (owner)
+- **X1 geometry cut points approved in principle**: bench angle 10°, arm position 20° and 135°, knee angle 10°; a bench tilted 5° head-down is flat. **X1 closes only when the exact inclusive/exclusive boundary texts are recorded** with no gaps or overlaps.
+- **X2 IC-412**: the **narrow rule (19 pairs)** — the name-token gate is skipped only when a recorded attribute differs and the load items are equal; pairs documented; positive and negative tests.
+- **X3**: wording "Machine back extensions in which the spine itself moves." approved.
+- **IC-809**: `regionChest` relabelled **"Chest region"**; stable id and hierarchy unchanged.
+- **ED-501**: a functional double-tag violation is an **error for system-supplied content**, never downgraded; user content may be handled differently but must not bypass fundamental domain integrity constraints.
+- **Name normalisation**: full Unicode **NFKD** for comparison and duplicate-detection keys, covering Latin, Greek and full-width characters; no new dependency; display names never rewritten; consistent case handling; tests for accented, compatibility, Greek and full-width forms and for no false merges of distinct names.
+- **OQ-19 roll-up**: when a primary and a secondary target of one exercise resolve to the same parent group, **only the primary credit is counted at that parent level**; the exercise's target assignments are unchanged (calculation rule only).
+- **Release and version fields** for anatomy, movement-pattern and equipment records approved for stage 3c; no schema change in 3a.
+- **Stage 3a technical delivery accepted at f2f9e9e**, subject to recording the final X1 boundary wording.
+- **Stage 3b authorised**, beginning with the table-rebuild comparison trial (5,000 exercises, 100,000 sets; performance, integrity, crash recovery). Mandatory before the migration is finalised or committed: trial documented and returned to the owner; value equality; crash recovery; foreign-key integrity; migration from every supported schema; backup formats 1–3; independent review.
+
+### 2026-11-06 — WP 8 stage 3b approach decisions; letter folds; X1 precedence (owner)
+- **Comparison trial** (77b1d4c): the owner accepts it as evidence for the approach, not as acceptance of the migration.
+- **`exercises`:** option A, table rebuild, is the canonical path. The owner rejects B3 if it leaves a definition different from a fresh install.
+- **TRN-020:** rebuild `session_sets`; the table definition enforces the RPE and RIR rules. The migration keeps valid values. It reports and quarantines invalid legacy values and never silently rounds or corrects them.
+- **Foreign keys:**
+  - The migration checks the affected tables and relationships, including exercise and set references.
+  - The test campaign adds a full `foreign_key_check` and `integrity_check`.
+  - A whole-database check is not the only startup gate where unrelated existing damage could block access unnecessarily.
+  - The report shows any broader failure separately and never ignores it silently.
+- **No primary target:** block and report. No placeholder and no blanket legacy exception. The report lists every affected exercise id and its current data. Acceptance needs an explicit, reviewed disposition for every affected record.
+- **Migration report:**
+  - Minimum categories: migrated successfully; preserved unchanged; quarantined or unresolved; rejected or blocked; warnings requiring review.
+  - Each record shows stable id, original value, field, reason and disposition. Counts reconcile.
+  - The owner has not approved detailed labels.
+- **Schema version 8:** the migration writes it inside its transaction. It becomes visible only after all work and checks succeed. A rollback leaves version 7.
+- **Backup v3:**
+  - A complete, self-consistent contract with user, reference and catalogue data, stable ids and relationships.
+  - It states its format and schema version. Restore validates it before changing anything.
+  - Restore is atomic and keeps the reference tables. It supports formats 1 to 3. A version 7 backup never fails part-way.
+  - A settings-only backup stays valid; a structurally empty one stays invalid.
+- **Versions 2 to 6:** frozen schemas and representative fixtures are required evidence. They prove each supported upgrade path, including the known version 5 to 6 incompatibility. Nobody rewrites them.
+- **Device timing** is an acceptance condition. It uses representative Android and iOS devices, the bundled SQLite and realistic data. Records give device, OS, database size, elapsed time and outcome.
+- **Implementation latitude:** the team chooses SQL and mechanics, subject to independent review.
+  - It invents and weakens no domain rule, and keeps the accepted TRN-020 semantics.
+  - It transforms no legacy value silently.
+  - It documents every backup and restore assumption for owner approval.
+- **Name keys:** fold `ø`→`o`, `đ`→`d`, `ł`→`l`, `æ`→`ae`, `œ`→`oe`, both cases, in comparison and duplicate keys only. Other letters stay distinct; no general transliteration.
+- **X1:** the owner approves both precedence rules. Elbow and floor are no longer mandatory conditions; "typically" fits where they are descriptive. The exact thresholds and inclusive or exclusive wording must be visible in the decision record. The precedence rules must be unambiguous at boundary cases. X1 stays open until the owner signs off the table and boundary cases in `delivery-record/WP8.md`.
+- **Stage 3b acceptance** needs:
+  - evidence for upgrades from versions 1 to 6 and for backup formats 1 to 3;
+  - recovery after a real process kill;
+  - restore that keeps the reference tables;
+  - device timing and independent review.
+- **Migration:** stays unimplemented until the project resolves the remaining evidence and the disposition of all 303 records.
+
+### 2026-11-06 — WP 8 stage 3b implementation authorised; disposition of exercises with no primary target (owner)
+- **Implementation authorised:** build the v8 migration and its evidence on the branch. Schema version 8 appears only in isolated tests and migration fixtures.
+  - The production schema version stays 7 until the owner explicitly accepts stage 3b.
+  - This authorises implementation and testing, not release or production migration.
+  - The migration stays behind the version 7 production gate. It does not ship active.
+  - A passing test suite is not stage 3b acceptance.
+- **Exercises with no primary target:** block each affected exercise individually. Never fail the whole migration or lock the user out.
+  - Keep its stable id, original data and all historical references.
+  - Mark it blocked: unavailable for normal selection and new workout planning.
+  - Keep historical workout and session records readable and intact.
+  - The migration report gives its id, original target state and reason.
+  - Create no placeholder target and infer no anatomical target.
+  - Provide a route to correct the record later without rewriting historical sessions.
+  - This is a disposition for invalid legacy records, not a relaxed rule. New or imported system exercises still need a primary target.
+  - Stage 3b acceptance verifies that blocked records cannot enter new workouts, while their history stays accessible and consistent.
+- **CI:** CI on 77b1d4c does not substitute for CI on 52cbdef.
+- **X1:** not signed off. The owner asked for the exact table, ordered checks and boundary inclusivity in the conversation.
+
+### 2026-11-06 — X1 closed (owner)
+- The owner signed off the X1 classification table and boundary cases in `delivery-record/WP8.md`.
+- Bench −10° and +10° are flat; incline starts above +10°. A bench 5° head-down is flat.
+- Knee 10° is straight; bent starts above 10°.
+- An arm at exactly 20° is `besideBody`, behind the trunk included; `behindBody` starts above 20°.
+- `supportedInFront` wins over every other valid arm value; invalid angles stay invalid. `behindBody` is checked before `overhead`.
+- Values outside the valid ranges get no classification. The classifiers never clamp them.
+- Authorised follow-up: align `coverage.json` and `coverage-matrix.md` with the approved wording and remove the superseded elbow conditions. Thresholds and classifier stay unchanged.
+- The owner closes X1 against the current decision and implementation evidence. This is not stage 3b acceptance.
+
+### 2026-11-06 — WP 8 stage 3b plan approved; report, restore, integrity, attributes, device timing (owner)
+- **Plan:** the owner approved the staged plan (3b-1 to 3b-10) and the isolated version 8 schema.
+  - 3b-2 defines the version 8 schema but never connects it to the app.
+  - 3b-4 never repairs legacy data silently.
+  - The production switch is a separate change that needs explicit owner authorisation after stage 3b acceptance.
+- **Analyzer incident (ede7808, fixed in b22224e):** a process failure. The delivery record keeps the finding and the fix traceable. History stays unchanged.
+- **Report detail:**
+  - Each quarantined, blocked, rejected, changed or exceptional record gets its own row: stable id, field, original value, reason, disposition.
+  - Clean records appear only as reconciled counts by table and outcome.
+  - The report states records examined, migrated cleanly, preserved, blocked, quarantined and rejected. Counts reconcile to the input.
+  - A secondary suppressed by the OQ-19 roll-up rule is normal handling, not a warning. Target assignments stay preserved.
+- **Restore conflicts:** device wins for reference data.
+  - Restore inserts missing reference rows from the backup and overwrites no existing device row.
+  - The same stable id with conflicting immutable content is reported, and the restore fails atomically.
+  - Restore merges migration report history and never replaces it. Stable event ids prevent duplicates on repeated restores. Each report keeps its provenance and timestamp.
+- **3b check scope:** stage 3b verifies blocking and reporting at the domain, data and use-case layers.
+  - Blocked exercises cannot be selected for new work through the use cases.
+  - Workout and session history stays readable.
+  - The report lists each blocked exercise with stable id and reason.
+  - The correction route leaves historical sessions unchanged.
+  - Screen checks, including Settings › Data, move to 3d or the production-switch campaign. Data-layer tests are not evidence that the UI is complete.
+- **Damaged database at upgrade:** if `quick_check` fails before migration, the migration stops.
+  - No version 8 migration, no version 8 written, no record changed or quarantined.
+  - The app reports the integrity failure and shows the recovery and backup route.
+  - The original database stays intact for diagnosis.
+  - The app stays on its version 7 path where safe. It never promises normal operation on a damaged database.
+- **Attributes and equipment roles:** version 8 includes them now.
+  - Each single-valued, stable attribute is a typed column on the exercise.
+  - Equipment roles sit on each exercise-to-equipment association.
+  - Before 3b-2, ADR-0008 states each attribute's exact name, type, values, nullability and validation. A multi-valued or extensible attribute gets its own model.
+  - Nothing is inferred or invented: the schema follows the approved catalogue contract.
+- **Device timing:** one mid-range Android phone and one supported iPhone, with recorded specifications. This is platform evidence, not universal compatibility.
+  - Data: 5,000 exercises, 100,000 sets, the full reference bootstrap, the 303 synthetic no-primary exercises, a representative report and user data.
+  - At least three runs per device from an identical restored start. Record median and worst duration, model, OS, SQLite version, database size and outcome.
+  - Include a normal run and a recovery or retry run.
+  - The profile is a stress profile. Any material difference from the real production profile is recorded.
+- **Structural identity:** the migrated version 8 schema must equal a fresh version 8 database structurally: tables, indexes, triggers, constraints and foreign keys.
+- **Sub-stage authorisation:** 3b-1, 3b-3 and 3b-4 proceed. 3b-2 proceeds once ADR-0008 makes the attributes and equipment roles explicit. 3b-5 to 3b-9 are mandatory acceptance evidence. 3b-10 needs independent review, four green CI workflows, a complete record and owner acceptance.
+- **Production schema** stays version 7 throughout.
+
+### 2026-11-06 — ADR-0008 clarification approved; 3b-1 accepted as foundation (owner)
+- **ADR-0008 clarification approved** with decisions on Q1 to Q16 (ADR-0008, section E). Key points:
+  - The seven attribute value lists are schema contracts; a change needs a new schema version.
+  - NULL means no recorded or applicable value; nothing infers a value or reads NULL as "not applicable".
+  - Overrides only to `load` or `support`, never on `cardio` or `implement` items; the note is internal and required.
+  - Default equipment roles are immutable. A changed meaning needs a new equipment id.
+  - An exercise with unknown equipment is blocked individually and never becomes newly visible.
+  - `equipment_json` is dropped after a successful copy. Quarantine keeps the original only where conversion is incomplete.
+  - Equipment class and lifecycle wait for stage 3c.
+  - Version 3 restore: device wins; an invalid value rejects the whole restore.
+  - Custom copies copy equipment links, attributes and overrides as values.
+- **3b-1 accepted** as the required historical test foundation. The fixtures stay immutable and the manifest hash check stays.
+- **3b-3** continues independently. **3b-2** starts after the ADR-0008 commit, with a version 8 schema that reflects these decisions.
+- Production stays at schema version 7, with no connection to the version 8 database. Stage 3b acceptance keeps all agreed gates.
+
+### 2026-11-06 — WP 8 3b-3 complete; 3b-2 rules (owner)
+- **3b-3 complete at 31f7652.** The delivery record keeps the independent review, both re-checks and the test evidence.
+- Coverage (93.3 %) is supporting evidence only. It never replaces the migration acceptance tests.
+- **3b-2 proceeds** under these rules:
+  - Implement version 8 strictly against the approved ADR-0008 decisions.
+  - Version 7 stays the immutable production baseline. No app connection, no production database change, no schema version advance.
+  - Frozen v1–v7 snapshots, migration steps and locked manifests stay unchanged.
+  - Ambiguities are never resolved silently. An assumption register records each: decision, sources, alternatives, recommendation, implications, and whether it blocks.
+  - A choice that materially affects the schema, migration behaviour, data integrity or compatibility stops for owner approval.
+  - Independent review checks every applicable ADR-0008 decision, v7 unchanged, frozen evidence intact, and schema comparison with reproducible tests.
+- **Stage 3b overall is not accepted.** The remaining gates stay: migration and report, crash and process-kill tests, backup, blocked records, device timing, CI and independent review.
+
+### 2026-11-06 — WP 8 3B-ACC-01 accelerated stage 3b campaign authorised (owner)
+- **Authorised:** coordinated parallel workstreams WS1–WS6 (schema, migration engine, backup and restore, integrity and report, recovery and performance, domain and use cases). Agents may implement, integrate, test, review and commit isolated version 8 work in reviewable increments.
+- **Not authorised:** production schema version 8, app connection to version 8, production migration rollout, stage 3b acceptance, or any domain-rule change without owner approval.
+- **Hard constraints:** frozen fixtures and manifests immutable; all v1–v7 paths tested; fresh and migrated v8 schemas structurally identical; no silent deletion, inference, rounding or correction; material assumptions resolved through owner approval, never by inference.
+- **Required behaviours:** the owner's scenario table (clean v7 migrates; failed integrity stays v7; no-primary and unknown-equipment exercises blocked individually; duplicate equipment ids reported; invalid TRN-020 values preserved and reported; restore conflicts rejected atomically; missing reference rows inserted only; crash leaves v7 or full v8; repeat migration writes nothing twice; v7 and settings-only backups restore; empty backups rejected).
+- **Reviews:** A (schema and contracts), B (migration and compatibility), C (integrated release candidate). Reviewers inspect diffs and tests. High and Medium findings are fixed and re-checked; Low findings get a recorded disposition.
+- **Never rushed:** v1–v7 compatibility on frozen fixtures; real process termination; real-device timing. Anything not completed stays outstanding, never "passed".
+- **Handback:** the complete evidence package listed by the owner. Stage 3b stays unaccepted until the owner accepts it explicitly.
+
+### 2026-11-06 — WP 8 3b-2 register R-01 to R-11 approved; 3b-4 authorised (owner)
+- **R-01 Block key:** one row per exercise and blocking reason. Each reason is recorded and resolved independently. An exercise can have several active reasons. Resolving one reason never unblocks it while another stays active.
+- **R-02:** a separate reason code `invalidEquipment`, distinct from `unknownEquipment`.
+- **R-03:** the report gains the action `blocked`.
+- **R-04 Reconciliation:** four mutually exclusive record outcomes sum to the records examined. Every examined record belongs to exactly one outcome. Warnings are additional counts. They may reference records in any outcome and never inflate the total.
+- **R-05 Category codes:** five stored codes, persistent internal identifiers, never editable display text: `migrated` (migrated successfully), `preserved` (preserved unchanged), `quarantinedOrUnresolved` (quarantined or unresolved), `rejectedOrBlocked` (rejected or blocked), `warningForReview` (warnings requiring review). A later change needs an explicit compatibility decision. Display labels are decided separately.
+- **R-06 Original values:** one JSON text encoding contract. It keeps SQL NULL, JSON null, strings and numbers distinct, and never collapses any of them into an empty string.
+- **R-07 Event ids:** deterministic from run id, table, record id, field, position and rule. A resumed migration reuses its original run id. A genuinely new attempt gets a new run id.
+- **R-08 Provenance:** structured: source device or backup, app version and merge time.
+- **R-09 Bootstrap provider:** template values; attribution stays empty until stage 3c.
+- **R-10 Release 1:** hash the exact bundled seed-file bytes with the project's established convention (SHA-256, lowercase hex). The release record states the algorithm and encoding. Nothing hashes a re-serialised form.
+- **R-11 Secondary order:** contiguous and deterministic, as IC-309 requires. A removed or rejected entry leaves no gap.
+- **3b-4 authorised** once these decisions are recorded. All earlier safeguards stay: production schema 7, atomic migration, invalid records kept and reported, blocked history kept, full reconciliation, crash recovery and backup compatibility, independent review. Stage 3b stays unaccepted.
+
+### 2026-11-06 — WP 8 3b-2 register R-12, R-14, R-15, R-19 to R-24 decided; 3c deferrals (owner)
+- **R-12 Foreign keys (mixed):**
+  - Catalogue relationships get foreign keys: provider links, movement-pattern links and exercise-name records.
+  - Exercise-owned child records with no independent lifecycle use `ON DELETE CASCADE`.
+  - User exercise state gets no database key. IC-902 stays a reported check, like plan exercises.
+  - A referenced catalogue record cannot be deleted. Exercise retirement never deletes workout or session history.
+  - Tests cover cascades explicitly, including an exercise with several child records.
+  - IC-902 names orphaned user-state records by stable id with actionable diagnostics. A missing key never permits ignoring an integrity failure.
+- **R-20 Default-role immutability (application enforcement):** the release reconciler, backup restore validation and explicit conflict detection against the existing item enforce it. A conflicting role rejects the whole restore atomically. No trigger. Tests show that neither a later release nor a restore can silently change a default role.
+- **R-14:** every system exercise needs a provider and a revision; a database constraint enforces it.
+- **R-15:** `source` has no default; every insert states it.
+- **R-22:** an override note may exist without an override.
+- **R-23:** an existing device reference row wins silently during the version 8 migration.
+- **R-24:** `archived` stays beside the retirement date; user archiving and catalogue retirement are distinct states.
+- **R-19:** already resolved: overrides apply to load and support only, enforced in the domain.
+- **Deferred to stage 3c (requirements, not forgotten):** R-13 release columns on anatomy, patterns and equipment; R-16 relationships table; R-17 content table and body-length rule; R-18 media table; R-21 reference lifecycle and creation times. They must not enter version 8 now, and the version 8 design must not prevent them later.
+- **Device timing:** mandatory acceptance evidence. The harness may be completed now; real runs stay outstanding until performed on physical Android and iOS devices. Records give device model and hardware, OS version, SQLite version, database size and record counts, durations across repeated runs, outcome and errors.
+- R-12 and R-20 may now be implemented. Stage 3b stays unaccepted.
+
+### 2026-11-06 — WP 8 3b-7 backup decisions B-03, B-04, B-08, B-09; WS3 high finding (owner)
+- **B-03:** keep the device's quarantine rows on a device-wins restore (option b). Quarantine records are part of the device's migration history. Restore inserts the backup's rows, renumbers colliding ids and rewrites the merged report links.
+- **B-04:** the immutable reference field list implemented by WS3 is normative. Neither a restore nor a catalogue update may silently change reference identity or structural relationships.
+- **B-08:** only user tables and user or imported exercises count as user data. A catalogue-only backup is never an instruction to wipe user data.
+- **B-09:** a backup with unknown parts is rejected atomically. Nothing ignores unrecognised content silently.
+- **WS3 H1 (release blocker):** every restored exercise is validated against database constraints and domain invariants. A system exercise without a valid primary target is rejected. Any failing exercise rejects the whole restore; no partial row, catalogue change or selectable invalid exercise survives. The malformed backups join the regression suite. Q15 applies to domain-invalid values, not only malformed SQL values.
+- **WS3 closure evidence:** H1 fixed; four Medium findings resolved and independently re-checked; B-03 tested with migration-report links intact; B-04 documented and tested; B-08 and B-09 tested; existing equivalence, atomicity and device-wins evidence retained; full regression and four green CI workflows.
+- Strong existing evidence does not offset the domain-validation defect. The Medium fixes are not accepted merely because the High issue is resolved. WS3 stays open until the corrected work passes independent review.
+- B-01, B-02 and B-07 (with R-30) stay open.

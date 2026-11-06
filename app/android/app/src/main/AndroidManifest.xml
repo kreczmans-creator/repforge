@@ -1,5 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Camera is optional: the app must install on devices without one (PLT-004). -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <!-- Rest-timer end notification (ADR-0007). POST_NOTIFICATIONS is requested
+         at run time only when the user turns the setting on (PLT-007).
+         SCHEDULE_EXACT_ALARM lets the alert arrive on time where the OS allows
+         it; without the grant the app schedules an inexact alarm. The
+         restricted USE_EXACT_ALARM is deliberately not used. No boot receiver
+         or RECEIVE_BOOT_COMPLETED: a rest timer is not worth restoring after
+         a reboot. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <application
+        android:allowBackup="false"
         android:label="RepForge"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -25,6 +38,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

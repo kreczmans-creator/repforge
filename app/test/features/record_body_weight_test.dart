@@ -55,6 +55,19 @@ void main() {
     expect(stored, entry);
   });
 
+  test(
+    'rejects an off-step weight such as 82.45 instead of rounding it',
+    () async {
+      for (final text in ['82.45', '82.05', '1e2', '+82']) {
+        final result = await useCase(weightText: text);
+        expect(result, isA<Err<WeightEntry>>(), reason: text);
+      }
+      expect(await repo.latest(), isNull);
+      final ok = await useCase(weightText: '82.5');
+      expect((ok as Ok<WeightEntry>).value.weight.value, 82.5);
+    },
+  );
+
   test('stores an empty note as null', () async {
     final result = await useCase(weightText: '80', note: '   ');
     expect((result as Ok<WeightEntry>).value.note, isNull);
