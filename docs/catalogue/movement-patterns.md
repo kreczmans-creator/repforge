@@ -1,6 +1,7 @@
 # Movement patterns (OQ-22) — approved
 
 - Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation and reference data only): 17 families, 62 patterns (79 entries including families), decision rules R1 to R8. Soft tissue release content is deferred by owner decision (count 0).
+- Amendment 2026-11-06 (owner, WP 8 stage 3a, X3): `trunkExtension` includes "Machine back extensions in which the spine itself moves."
 - Machine-readable source: `docs/catalogue/reference/movement-patterns.json` (format version 1).
 - Requirements: LIB-002, LIB-005; ADR-0008 decision 4 (hierarchical, one or more per exercise, the first is primary).
 
@@ -93,7 +94,7 @@ Every existing exercise has a proposed pattern in `mapping-existing.md`. No exis
 | &nbsp;&nbsp;`ankleInversionEversion` | Ankle inversion and eversion | Turning the sole inward or outward. | Banded inversion and eversion, side-lying foot raises. | Plantar flexion and dorsiflexion. |  |
 | **`trunkMotion`** | **Trunk movement** (family) | Movements in which the trunk itself moves. | Flexion, extension, rotation and side flexion. | Bracing against movement (Trunk stability). | Usual categories: core |
 | &nbsp;&nbsp;`trunkFlexion` | Trunk flexion | Curling the ribcage towards the pelvis. | Crunches, cable crunches, sit-ups, reverse crunches. | Leg raises that mainly flex the hip (Hip flexion). |  |
-| &nbsp;&nbsp;`trunkExtension` | Trunk extension | Arching the spine or lifting the trunk against gravity. | Back extensions in which the spine itself moves into extension, supermans, machine back extensions. | Hip thrusts (Hip extension); hinges; reverse hyperextensions and hip-driven back extensions (Hip extension). | Decision rule R5: classified by the joint that moves, set by technique. Only a moving spine is trunk extension; primary lowerBack. |
+| &nbsp;&nbsp;`trunkExtension` | Trunk extension | Arching the spine or lifting the trunk against gravity. | Back extensions in which the spine itself moves into extension, supermans. Machine back extensions in which the spine itself moves. | Hip thrusts (Hip extension); hinges; reverse hyperextensions and hip-driven back extensions (Hip extension). | Decision rule R5: classified by the joint that moves, set by technique. Only a moving spine is trunk extension; primary lowerBack. |
 | &nbsp;&nbsp;`trunkRotation` | Trunk rotation | Turning the ribcage relative to the pelvis against resistance. | Cable woodchops, Russian twists, rotational throws. | Anti-rotation holds. |  |
 | &nbsp;&nbsp;`trunkLateralFlexion` | Trunk lateral flexion | Bending the trunk sideways against resistance. | Side bends, weighted side bends, hanging side tilts. | Side planks. |  |
 | **`trunkStability`** | **Trunk stability** (family) | Exercises that resist unwanted trunk movement. | Anti-extension, anti-rotation, anti-lateral flexion. | Movements in which the trunk is the mover. | Usual categories: core |

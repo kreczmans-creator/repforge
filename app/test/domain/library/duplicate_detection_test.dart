@@ -94,8 +94,14 @@ void main() {
       });
     });
 
-    test('IC-412 literal X2 rule (default) adds 14 pairs, 30 in all', () {
-      final x2 = detectDuplicates(exercises: seed, reference: ref.data);
+    test('IC-412 literal X2 rule (option, not default) gives 30 pairs', () {
+      final x2 = detectDuplicates(
+        exercises: seed,
+        reference: ref.data,
+        options: const DuplicateOptions(
+          tokenGate: TokenGateRule.whenAnyAttributeDiffers,
+        ),
+      );
       final old = detectDuplicates(
         exercises: seed,
         reference: ref.data,
@@ -121,6 +127,87 @@ void main() {
       expect(x2.pairs.length, old.pairs.length);
     });
 
+    test('the default token gate is the narrow rule (owner, 2026-11-06)', () {
+      expect(
+        const DuplicateOptions().tokenGate,
+        TokenGateRule.whenAttributesDifferAndLoadsEqual,
+      );
+      final byDefault = detectDuplicates(exercises: seed, reference: ref.data);
+      expect(byDefault.familyLinkCandidates, hasLength(19));
+    });
+
+    test('IC-412 at the default: the 19 documented pairs, exactly', () {
+      final a = detectDuplicates(exercises: seed, reference: ref.data);
+      String pair(({ExerciseId a, ExerciseId b, double score}) p) =>
+          '${p.a}|${p.b}|${p.score.toStringAsFixed(3)}';
+      expect(a.familyLinkCandidates.map(pair).toSet(), {
+        'lib-assisted-pull-up|lib-band-assisted-pull-up|0.740',
+        'lib-assisted-pull-up|lib-pull-up|0.675',
+        'lib-band-assisted-pull-up|lib-pull-up|0.675',
+        'lib-barbell-curl|lib-cable-curl|0.725',
+        'lib-barbell-curl|lib-db-curl|0.725',
+        'lib-bench-press|lib-db-bench-press|0.725',
+        'lib-bench-press|lib-incline-bench-press|0.963',
+        'lib-cable-crunch|lib-crunch|0.675',
+        'lib-cable-curl|lib-db-curl|0.725',
+        'lib-cable-fly|lib-db-fly|0.725',
+        'lib-chin-up|lib-pull-up|0.900',
+        'lib-db-bench-press|lib-incline-bench-press|0.710',
+        'lib-db-bench-press|lib-incline-db-press|0.925',
+        'lib-db-curl|lib-hammer-curl|0.888',
+        'lib-deadlift|lib-sumo-deadlift|0.900',
+        'lib-dumbbell-rdl|lib-romanian-deadlift|0.750',
+        'lib-incline-bench-press|lib-incline-db-press|0.710',
+        'lib-leg-curl|lib-lying-leg-curl|0.925',
+        'lib-plank|lib-weighted-plank|0.725',
+      });
+    });
+
+    test('positive: pairs differing by attributes alone are flagged', () {
+      final keys = {
+        for (final p in detectDuplicates(
+          exercises: seed,
+          reference: ref.data,
+        ).familyLinkCandidates)
+          '${p.a}|${p.b}',
+      };
+      expect(
+        keys,
+        containsAll([
+          'lib-deadlift|lib-sumo-deadlift',
+          'lib-chin-up|lib-pull-up',
+          'lib-db-curl|lib-hammer-curl',
+        ]),
+      );
+    });
+
+    test('negative: pairs that differ in load items too are not flagged', () {
+      final keys = {
+        for (final p in detectDuplicates(
+          exercises: seed,
+          reference: ref.data,
+        ).familyLinkCandidates)
+          '${p.a}|${p.b}',
+      };
+      // Each pair has a differing attribute and differing load items, so the
+      // token gate stays on and the names share too few tokens.
+      for (final k in const [
+        'lib-barbell-curl|lib-hammer-curl',
+        'lib-barbell-curl|lib-preacher-curl',
+        'lib-bench-press|lib-incline-db-press',
+        'lib-cable-curl|lib-hammer-curl',
+        'lib-cable-curl|lib-preacher-curl',
+        'lib-db-curl|lib-preacher-curl',
+        'lib-glute-bridge|lib-hip-thrust',
+        'lib-hammer-curl|lib-preacher-curl',
+        'lib-incline-bench-press|lib-machine-chest-press',
+        'lib-incline-db-press|lib-machine-chest-press',
+        'lib-overhead-triceps-extension|lib-triceps-pushdown',
+      ]) {
+        expect(keys, isNot(contains(k)), reason: k);
+      }
+    });
+
     test('narrow X2 rule (attributes differ, load items equal): 19 pairs', () {
       String key(({ExerciseId a, ExerciseId b, double score}) p) =>
           '${p.a}|${p.b}';
@@ -132,13 +219,7 @@ void main() {
         ).familyLinkCandidates)
           key(p),
       };
-      final narrow = detectDuplicates(
-        exercises: seed,
-        reference: ref.data,
-        options: const DuplicateOptions(
-          tokenGate: TokenGateRule.whenAttributesDifferAndLoadsEqual,
-        ),
-      );
+      final narrow = detectDuplicates(exercises: seed, reference: ref.data);
       expect(narrow.familyLinkCandidates, hasLength(19));
       expect(
         {for (final p in narrow.familyLinkCandidates) key(p)}.difference(base),
@@ -495,10 +576,22 @@ void main() {
           a.copyWith(attributes: {ExerciseAttribute.grip: 'pronated'}),
           b.copyWith(attributes: {ExerciseAttribute.grip: 'supinated'}),
         ];
+        // Load items differ as well, so the default narrow rule keeps the
+        // token gate; the literal rule opens it.
         expect(
           detectDuplicates(
             exercises: withAttr,
             reference: ref.data,
+          ).findings.codes,
+          isNot(contains('IC-412')),
+        );
+        expect(
+          detectDuplicates(
+            exercises: withAttr,
+            reference: ref.data,
+            options: const DuplicateOptions(
+              tokenGate: TokenGateRule.whenAnyAttributeDiffers,
+            ),
           ).findings.codes,
           contains('IC-412'),
         );
@@ -509,6 +602,23 @@ void main() {
             options: const DuplicateOptions(tokenGate: TokenGateRule.always),
           ).findings.codes,
           isNot(contains('IC-412')),
+        );
+        // Same load items, attribute differs, no shared name tokens: the
+        // narrow rule skips the gate and flags the pair.
+        final sameLoads = [
+          a.copyWith(attributes: {ExerciseAttribute.grip: 'pronated'}),
+          a.copyWith(
+            id: xid('lib-d'),
+            names: ExerciseNames.english('Zulu thing'),
+            attributes: {ExerciseAttribute.grip: 'supinated'},
+          ),
+        ];
+        expect(
+          detectDuplicates(
+            exercises: sameLoads,
+            reference: ref.data,
+          ).findings.codes,
+          contains('IC-412'),
         );
         // Same load items, same attributes: nothing to link.
         final same = [

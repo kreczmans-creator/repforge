@@ -396,6 +396,43 @@ void main() {
       },
     );
 
+    test('ED-501 is an error for every functional pair of system content', () {
+      for (final pair in functionalDoubleTagPairs) {
+        final e = exercise(
+          'lib-x',
+          targets: [
+            primary(pair.muscle.value, 0),
+            primary(pair.function.value, 1),
+          ],
+        );
+        final f = check(e).withCode('ED-501');
+        expect(f, isNotEmpty, reason: '$pair');
+        expect(
+          f.every((x) => x.severity == Severity.error),
+          isTrue,
+          reason: '$pair',
+        );
+      }
+    });
+
+    test('ED-501 is never downgraded: a system exercise is refused', () {
+      final e = exercise(
+        'lib-x',
+        targets: [primary('gluteusMedius', 0), primary('abductors', 1)],
+      );
+      final r = requireValidExercise(e, ctx);
+      expect(r.isOk, isFalse);
+      final err = (r as Err<CatalogueExercise>).error as ValidationError;
+      expect(err.fieldErrors.keys, contains('ED-501:targets'));
+      // A user exercise is reported as a warning, never as clean.
+      final u = exercise(
+        'u1',
+        source: ExerciseSource.user,
+        targets: [primary('gluteusMedius', 0), primary('abductors', 1)],
+      );
+      expect(check(u).withCode('ED-501').single.severity, Severity.warning);
+    });
+
     test('one primary and one secondary is the rule', () {
       expect(
         check(

@@ -99,7 +99,14 @@ final class AttributedSetCounts {
 /// With [rollUpToLevel], a target deeper than that level is attributed to its
 /// ancestor at the level, once per distinct ancestor per exercise (two primary
 /// heads of one muscle give that muscle the sets once, not twice). Without
-/// it, each node receives its own figures. These are **attributed set
+/// it, each node receives its own figures. When a primary and a secondary
+/// target of one exercise roll up to the same node, that node keeps the
+/// primary credit and the duplicate secondary credit is suppressed (OQ-19,
+/// owner decision 2026-11-06); the exercise's target assignments are not
+/// changed. The comparison is by the node each target is placed at: a primary
+/// target shallower than [rollUpToLevel] stays at its own node, so a
+/// secondary that rolls up to a deeper-level node is a different node and both
+/// are credited. These are **attributed set
 /// counts, not physiological measurements** ([attributedSetCountsNotice]).
 AttributedSetCounts attributeSetCounts(
   Iterable<AttributedExercise> entries,
@@ -144,6 +151,10 @@ AttributedSetCounts attributeSetCounts(
         (t.isPrimary ? np : ns).add(target);
       }
     }
+    // OQ-19 roll-up (owner decision 2026-11-06): where a primary and a
+    // secondary target of one exercise resolve to the same parent group,
+    // only the primary credit counts at that level.
+    if (rollUpToLevel != null) s.removeAll(p);
     add(primary, p, e);
     add(secondary, s, e);
     add(nonPrimary, np, e);

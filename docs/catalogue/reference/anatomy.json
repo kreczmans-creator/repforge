@@ -6,6 +6,13 @@
     "by": "owner",
     "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
   },
+  "amendments": [
+    {
+      "date": "2026-11-06",
+      "by": "owner",
+      "decisions": "WP 8 stage 3a: regionChest relabelled Chest region (IC-809); id and hierarchy unchanged"
+    }
+  ],
   "provider": "repforge",
   "locale": "en-GB",
   "description": "Proposed anatomy hierarchy (OQ-22). L1 region, L2 muscle group, L3 anatomical muscle or named functional muscle set whose members cannot be trained separately, L4 head, part or named member of such a set. sort orders siblings (ascending, step 10). lifecycle is active or retired (retired nodes stay in the file and in ledger.json; ids are never reused). Qualitative only; no activation values.",
@@ -300,7 +307,7 @@
       "level": 1,
       "nonAnatomical": false,
       "sort": 30,
-      "label": "Chest",
+      "label": "Chest region",
       "definition": "The front of the ribcage and the muscles that lie over it.",
       "includes": "Pectoral muscles and serratus anterior.",
       "excludes": "Deltoid, which is a shoulder muscle.",

@@ -146,6 +146,144 @@ void main() {
     },
   );
 
+  group('OQ-19 roll-up: primary and secondary under one parent', () {
+    test('the duplicate secondary credit is suppressed at the parent', () {
+      final r = attributeSetCounts(
+        [
+          AttributedExercise(
+            targets: [primary('frontDelts', 0), secondary('sideDelts', 1)],
+            sets: 3,
+            volumeKg: 900,
+          ),
+        ],
+        ref.data.anatomy,
+        rollUpToLevel: 3,
+      );
+      expect(r.primary[node_('deltoid')], const AttributedTotals(3, 900));
+      expect(r.secondary.containsKey(node_('deltoid')), isFalse);
+    });
+
+    test('suppression applies per exercise, not across exercises', () {
+      final r = attributeSetCounts(
+        [
+          AttributedExercise(
+            targets: [primary('frontDelts', 0), secondary('sideDelts', 1)],
+            sets: 3,
+          ),
+          // Another exercise with the deltoid only as a secondary keeps it.
+          AttributedExercise(
+            targets: [primary('chest', 0), secondary('rearDelts', 1)],
+            sets: 2,
+          ),
+        ],
+        ref.data.anatomy,
+        rollUpToLevel: 3,
+      );
+      expect(sets(r.primary, 'deltoid'), 3);
+      expect(sets(r.secondary, 'deltoid'), 2);
+    });
+
+    test('different parents are unaffected', () {
+      final r = attributeSetCounts(
+        [
+          AttributedExercise(
+            targets: [primary('chest', 0), secondary('triceps', 1)],
+            sets: 3,
+          ),
+          AttributedExercise(
+            targets: [primary('frontDelts', 0), secondary('triceps', 1)],
+            sets: 2,
+          ),
+        ],
+        ref.data.anatomy,
+        rollUpToLevel: 3,
+      );
+      expect(sets(r.primary, 'chest'), 3);
+      expect(sets(r.primary, 'deltoid'), 2);
+      expect(sets(r.secondary, 'triceps'), 5);
+    });
+
+    test('leaf-level counts are unchanged without roll-up', () {
+      final r = attributeSetCounts([
+        AttributedExercise(
+          targets: [primary('frontDelts', 0), secondary('sideDelts', 1)],
+          sets: 3,
+        ),
+      ], ref.data.anatomy);
+      expect(sets(r.primary, 'frontDelts'), 3);
+      expect(sets(r.secondary, 'sideDelts'), 3);
+      expect(sets(r.primary, 'deltoid'), 0);
+      expect(sets(r.secondary, 'deltoid'), 0);
+    });
+
+    test('two secondaries under one parent, no primary: counted once', () {
+      final r = attributeSetCounts(
+        [
+          AttributedExercise(
+            targets: [
+              primary('chest', 0),
+              secondary('frontDelts', 1),
+              secondary('sideDelts', 2),
+            ],
+            sets: 4,
+          ),
+        ],
+        ref.data.anatomy,
+        rollUpToLevel: 3,
+      );
+      expect(sets(r.secondary, 'deltoid'), 4);
+      expect(sets(r.primary, 'deltoid'), 0);
+    });
+
+    test('suppression holds at roll-up levels 1 and 2', () {
+      for (final entry in {1: 'regionShoulder', 2: 'shoulders'}.entries) {
+        final r = attributeSetCounts(
+          [
+            AttributedExercise(
+              targets: [primary('frontDelts', 0), secondary('sideDelts', 1)],
+              sets: 3,
+            ),
+          ],
+          ref.data.anatomy,
+          rollUpToLevel: entry.key,
+        );
+        expect(sets(r.primary, entry.value), 3, reason: 'level ${entry.key}');
+        expect(r.secondary, isEmpty, reason: 'level ${entry.key}');
+      }
+    });
+
+    test(
+      'a primary shallower than the level is not matched: both credited',
+      () {
+        // The primary stays at shoulders (level 2), the secondary rolls up to
+        // the deltoid (level 3): different nodes, so nothing is suppressed.
+        final r = attributeSetCounts(
+          [
+            AttributedExercise(
+              targets: [primary('shoulders', 0), secondary('frontDelts', 1)],
+              sets: 3,
+            ),
+          ],
+          ref.data.anatomy,
+          rollUpToLevel: 3,
+        );
+        expect(sets(r.primary, 'shoulders'), 3);
+        expect(sets(r.secondary, 'deltoid'), 3);
+      },
+    );
+
+    test('the exercise target assignments are not modified', () {
+      final targets = [primary('frontDelts', 0), secondary('sideDelts', 1)];
+      attributeSetCounts(
+        [AttributedExercise(targets: targets, sets: 1)],
+        ref.data.anatomy,
+        rollUpToLevel: 3,
+      );
+      expect(targets.length, 2);
+      expect(targets.last.isPrimary, isFalse);
+    });
+  });
+
   test(
     'without roll-up each node keeps its own figures; unknown ids pass through',
     () {

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/library/exercise_attributes.dart';
-import 'package:repforge/domain/library/finding.dart';
 import 'package:repforge/domain/library/library_enums.dart';
 import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/preserved_ids.dart';
@@ -117,19 +116,55 @@ void main() {
       expect(ref.data.anatomy.length, 126);
     });
 
-    test('labels: only the documented duplicate "Chest" (IC-809, warning)', () {
-      final findings = validateReferenceLabels(
-        anatomy: ref.anatomy.nodes,
-        patterns: ref.patterns.nodes,
-        equipment: ref.equipment.items,
-      );
-      expect(findings, hasLength(1));
-      expect(findings.single.code, 'IC-809');
-      expect(findings.single.severity, Severity.warning);
+    test(
+      'labels: no duplicate label, IC-809 does not fire (IC-809 relabel)',
+      () {
+        final findings = validateReferenceLabels(
+          anatomy: ref.anatomy.nodes,
+          patterns: ref.patterns.nodes,
+          equipment: ref.equipment.items,
+        );
+        expect(findings, isEmpty);
+      },
+    );
+
+    test('the amendment records of 2026-11-06 are present and tolerated', () {
+      for (final f in [
+        'reference/anatomy.json',
+        'reference/movement-patterns.json',
+      ]) {
+        final json = readJson(f)! as Map<String, Object?>;
+        final amendments = json['amendments']! as List<Object?>;
+        expect((amendments.single! as Map)['date'], '2026-11-06');
+        expect((amendments.single! as Map)['by'], 'owner');
+      }
+      // The parsers read both files with the extra field.
+      expect(ref.anatomy.nodes, hasLength(126));
+      expect(ref.patterns.nodes, hasLength(79));
+    });
+
+    test('X3: trunkExtension carries the approved wording', () {
+      final json =
+          readJson('reference/movement-patterns.json')! as Map<String, Object?>;
+      final node = (json['nodes']! as List)
+          .cast<Map<String, Object?>>()
+          .firstWhere((n) => n['id'] == 'trunkExtension');
       expect(
-        {findings.single.subjectId, ...findings.single.related},
-        {'chest', 'regionChest'},
+        node['includes'],
+        contains('Machine back extensions in which the spine itself moves.'),
       );
+    });
+
+    test('regionChest is labelled "Chest region"; id and parent unchanged', () {
+      final region = ref.anatomy.nodes.singleWhere(
+        (n) => n.id.value == 'regionChest',
+      );
+      expect(region.label, 'Chest region');
+      expect(region.level, 1);
+      expect(region.parentId, isNull);
+      final chest = ref.anatomy.nodes.singleWhere((n) => n.id.value == 'chest');
+      expect(chest.label, 'Chest');
+      expect(chest.parentId?.value, 'regionChest');
     });
   });
 

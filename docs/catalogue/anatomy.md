@@ -1,6 +1,7 @@
 # Anatomy hierarchy (OQ-22) — approved
 
 - Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** Part of WP 8 stage 4 (documentation and reference data only): 126 nodes, the 19 existing ids and the proposed placements are approved. Pelvic floor content is excluded by owner decision (the id is kept). Nothing here is implemented yet. Stage 3 loads this list into the anatomy node table; stage 5 population tags exercises against it.
+- Amendment 2026-11-06 (owner, WP 8 stage 3a, IC-809): the label of `regionChest` is now "Chest region". Id and hierarchy are unchanged.
 - Machine-readable source: `docs/catalogue/reference/anatomy.json` (format version 1). Id history: `reference/ledger.json`. Id history: `reference/ledger.json`. Id history: `reference/ledger.json`. Id history: `reference/ledger.json`.
 - Requirements: LIB-001, LIB-004; owner decision 3 (four levels, most defensible level, multiple primary and secondary targets, 19 ids preserved, no precision claims); `docs/wp8-delivery-plan.md` section 4.
 
@@ -57,7 +58,7 @@ Each existing id becomes a node at the level the plan sets. Stored values map on
 |---|---|---|---|---|---|
 | Neck | 1 | 3 | 6 | 0 | 10 |
 | Shoulder | 1 | 2 | 5 | 3 | 11 |
-| Chest | 1 | 1 | 3 | 2 | 7 |
+| Chest region | 1 | 1 | 3 | 2 | 7 |
 | Back | 1 | 3 | 8 | 3 | 15 |
 | Arm | 1 | 3 | 10 | 11 | 25 |
 | Trunk | 1 | 3 | 4 | 0 | 8 |
@@ -144,11 +145,11 @@ Diaphragm, intercostals, intrinsic hand and foot muscles, plantaris, popliteus, 
 | `teresMinor` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Teres minor | Small cuff muscle on the upper part of the lateral (outer) border of the shoulder blade. | Shoulder external rotation. | Teres major (filed under Lats). |  |
 | `subscapularis` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Subscapularis | Cuff muscle on the front of the shoulder blade. | Shoulder internal rotation. | Pectoralis major. |  |
 
-### Chest (`regionChest`)
+### Chest region (`regionChest`)
 
 | Id | L | Name | Definition | Includes | Excludes | Note |
 |---|---|---|---|---|---|---|
-| `regionChest` | 1 | Chest | The front of the ribcage and the muscles that lie over it. | Pectoral muscles and serratus anterior. | Deltoid, which is a shoulder muscle. |  |
+| `regionChest` | 1 | Chest region | The front of the ribcage and the muscles that lie over it. | Pectoral muscles and serratus anterior. | Deltoid, which is a shoulder muscle. |  |
 | `chest` * | 2 | &nbsp;&nbsp;Chest | Muscle group covering the pectorals and serratus anterior. | Pressing and fly movements that load the pectorals. | Deltoid and triceps. | Preserved WP 8 id (L2 group). |
 | `pectoralisMajor` | 3 | &nbsp;&nbsp;&nbsp;&nbsp;Pectoralis major | Large fan-shaped muscle of the upper chest wall. | Horizontal adduction, shoulder flexion and internal rotation, pressing. | Pectoralis minor. |  |
 | `pectoralisMajorClavicular` | 4 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pectoralis major, clavicular head | Upper fibres attaching to the collarbone. | Incline pressing and shoulder flexion at the chest. | Sternocostal head. | Qualitative emphasis only; incline angles shift emphasis, they do not isolate it. |

@@ -68,12 +68,10 @@ void main() {
               16, // info, empty cardio and mobility mechanics (documented 16)
           'IC-210': 89, // warning, instructions not written yet (documented 89)
           'IC-311': 2, // warning, kettlebell swing and thruster (documented 2)
-          'IC-412': 30, // warning; 16 before X2 (documented), +14 with X2
+          'IC-412': 19, // warning; 16 before X2 (documented), +3 with narrow X2
           'IC-508': 2, // warning, hip abduction/adduction and push-up/pull-up
           'IC-602': 4, // warning (documented 4)
           'IC-603': 7, // info (documented 7)
-          'IC-809':
-              1, // warning, two nodes are labelled "Chest" (not in section 6)
         });
       });
 
@@ -90,8 +88,9 @@ void main() {
           isTrue,
         );
         expect(release2.findingsFor('IC-207'), hasLength(16));
-        // Everything else: IC-602 (4), IC-412 (30; 16 before X2), IC-809 (1).
-        expect(release2.warnings, 93 + 4 + 30 + 1);
+        // Everything else: IC-602 (4), IC-412 (19; 16 before X2). IC-809 no
+        // longer fires: regionChest is labelled "Chest region".
+        expect(release2.warnings, 93 + 4 + 19);
         expect(release2.infos, 16 + 7);
       });
 
@@ -188,7 +187,7 @@ void main() {
         () {
           final md = release2.toMarkdown();
           expect(md, contains('# Integrity report'));
-          expect(md, contains('| 0 | 128 | 23 |'));
+          expect(md, contains('| 0 | 116 | 23 |'));
           expect(md, contains('### IC-210 (89)'));
           expect(md, contains('## Duplicate pairs'));
           expect(md, contains('lib-back-squat'));
@@ -684,12 +683,9 @@ void main() {
         AcceptedGap(
           id: 'AG-7',
           kind: AcceptedGapKind.duplicate,
-          pair: [
-            ExerciseId('lib-triceps-pushdown'),
-            ExerciseId('lib-overhead-triceps-extension'),
-          ],
+          pair: [ExerciseId('lib-pull-up'), ExerciseId('lib-chin-up')],
           decision: 'distinct',
-          reason: 'Different arm position.',
+          reason: 'Different grip.',
           acceptedBy: 'KR',
         ),
       ]);
@@ -698,15 +694,15 @@ void main() {
           .findingsFor('IC-412')
           .singleWhere(
             (x) =>
-                x.subjectId == 'lib-overhead-triceps-extension' &&
-                x.related.contains('lib-triceps-pushdown'),
+                x.subjectId == 'lib-chin-up' &&
+                x.related.contains('lib-pull-up'),
           );
       expect(f.disposition, 'distinct (AG-7)');
       expect(r.findingsFor('ED-901'), isEmpty);
       // Other IC-412 findings stay open.
       expect(
         r.findingsFor('IC-412').where((x) => x.disposition == null),
-        hasLength(29),
+        hasLength(18),
       );
     });
 
@@ -776,6 +772,34 @@ void main() {
       );
       expect(r.findingsFor('IC-204').single.disposition, isNull);
       expect(r.passed, isFalse);
+    });
+
+    test('ED-501 on system content is an error that nothing silences', () {
+      final gaps = AcceptedGaps([
+        AcceptedGap(
+          id: 'AG-2',
+          kind: AcceptedGapKind.warning,
+          code: 'ED-501',
+          exerciseId: xid('lib-x'),
+          reason: 'No.',
+          acceptedBy: 'owner',
+        ),
+      ]);
+      final bad = exercise(
+        'lib-x',
+        targets: [primary('gluteusMedius', 0), primary('abductors', 1)],
+      );
+      final r = runIntegrityChecks(
+        withExercises(ref, [bad], acceptedGaps: gaps),
+      );
+      final f = r.findingsFor('ED-501').single;
+      expect(f.severity, Severity.error);
+      expect(f.disposition, isNull);
+      expect(r.passed, isFalse);
+      expect(
+        r.checks.firstWhere((c) => c.code == 'ED-501').severity,
+        Severity.error,
+      );
     });
 
     test('a coverage gap accepted by the owner becomes accepted', () {

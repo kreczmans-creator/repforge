@@ -79,7 +79,7 @@ Stored kinds: `variationOf`, `progressionOf`, `alternativeTo`, `unilateralCounte
 | IC-409 | `alternativeTo` between two members of one `variationOf` family | warning |
 | IC-410 | `variationOf` pair has different primary patterns and disjoint primary targets (probably not the same movement) | warning |
 | IC-411 | A unilateral or alternating entry with a bilateral twin by structure (same primary-target lift, primary pattern, load items and mechanics) and no `unilateralCounterpartOf` | warning (error at tranche acceptance) |
-| IC-412 | Two exercises with the same primary-target lift, primary pattern, laterality and mechanics, whose names share at least 40 % of their tokens, which are not in one family, and **either** whose load-item sets differ **or** whose recorded attributes differ: "probable variation without a family link". A recorded attribute difference does **not** clear this check (it shows the pair is a variation and so needs its `variationOf` link); it clears only IC-601 to IC-603. A difference in grip, stance, angle or arm position counts only when both exercises record the attribute; otherwise it is a review checklist item (editorial guide section 3, test 4) | warning |
+| IC-412 | Two exercises with the same primary-target lift, primary pattern, laterality and mechanics, whose names share at least 40 % of their tokens, which are not in one family, and **either** whose load-item sets differ **or** whose recorded attributes differ: "probable variation without a family link". A recorded attribute difference does **not** clear this check (it shows the pair is a variation and so needs its `variationOf` link); it clears only IC-601 to IC-603. A difference in grip, stance, angle or arm position counts only when both exercises record the attribute; otherwise it is a review checklist item (editorial guide section 3, test 4) **Amended 2026-11-06 (owner, X2):** the name-token gate is skipped only when a recorded attribute differs and the load items are equal (narrow rule, 19 pairs). See `docs/delivery-record/WP8.md`; the full specification update is stage 3c. | warning |
 | IC-413 | Relationship to a retired exercise from an active system exercise | error |
 | IC-414 | The longest `progressionOf` chain in the catalogue exceeds 6 steps (a reviewer note is required that the chain is a real ladder) | warning |
 
@@ -299,7 +299,7 @@ A throwaway script applied the checks of IC-200 to IC-500 and IC-600 to the appr
 Before the fix, the three alias collisions (*Pullup*, *Chinup*, *Farmers walk*) would have raised IC-502 and IC-503 errors; they are removed in the proposal (`mapping-existing.md` section 7). No other collision exists after `norm` and `squash`.
 
 ### 6.1 Near-duplicate pairs after the signature fix (IC-600)
-Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-411 0; IC-412 16.
+Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-411 0; IC-412 16. *Amended 2026-11-06 (owner, X2): the default rule gives IC-412 19 pairs, 16 plus 3 attribute-only pairs; see `docs/delivery-record/WP8.md`. Full update in stage 3c.*
 
 **IC-601 probable duplicates:** none.
 
@@ -325,6 +325,8 @@ Seed-wide: 89 exercises, 3,916 pairs. Flagged: IC-601 0; IC-602 4; IC-603 7; IC-
 **Pairs distinguished by recorded attributes** (cleared from IC-601 to IC-603, which they would otherwise have triggered; where the rest of the signature matches they appear below under IC-412 instead): `lib-leg-curl` and `lib-lying-leg-curl` (body position seated and lying); `lib-bench-press` and `lib-incline-bench-press`, `lib-db-bench-press` and `lib-incline-db-press` (angle); `lib-deadlift` and `lib-sumo-deadlift` (stance); `lib-db-curl` and `lib-hammer-curl` (grip); `lib-pull-up` and `lib-chin-up` (grip). Corrected from the first draft: `lib-treadmill-run` and `lib-outdoor-run` are not a close pair any more (they differ in equipment, logging type and name); the real structural pair is `lib-run-400m` and `lib-outdoor-run`.
 
 **IC-412 probable variations without a family link (16 pairs).** This is the family-link worklist for the tranche releases, not a defect of release 2 (the seed has no relationships). Pairs separated only by recorded attributes are included:
+
+*Amended 2026-11-06 (owner, X2): the narrow rule flags 19 pairs, the 16 below plus 3 attribute-only pairs listed in `docs/delivery-record/WP8.md`. Full specification update in stage 3c.*
 - `lib-bench-press` and `lib-incline-bench-press` (0.963)
 - `lib-leg-curl` and `lib-lying-leg-curl` (0.925)
 - `lib-db-bench-press` and `lib-incline-db-press` (0.925)

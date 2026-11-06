@@ -6,6 +6,13 @@
     "by": "owner",
     "decisions": "OQ-22 and OQ-23 (stage 4 approval)"
   },
+  "amendments": [
+    {
+      "date": "2026-11-06",
+      "by": "owner",
+      "decisions": "WP 8 stage 3a (X3): trunkExtension includes the wording Machine back extensions in which the spine itself moves."
+    }
+  ],
   "provider": "repforge",
   "locale": "en-GB",
   "description": "Proposed movement pattern hierarchy (OQ-22): family then pattern. relatedCategories on a family lists the existing exercise categories it usually accompanies; categories stay independent. lifecycle is active or retired. Decision rules R1 to R8 for borderline movements are in movement-patterns.md section 4.",
@@ -511,7 +518,7 @@
       "sort": 20,
       "label": "Trunk extension",
       "definition": "Arching the spine or lifting the trunk against gravity.",
-      "includes": "Back extensions in which the spine itself moves into extension, supermans, machine back extensions.",
+      "includes": "Back extensions in which the spine itself moves into extension, supermans. Machine back extensions in which the spine itself moves.",
       "excludes": "Hip thrusts (Hip extension); hinges; reverse hyperextensions and hip-driven back extensions (Hip extension).",
       "note": "Decision rule R5: classified by the joint that moves, set by technique. Only a moving spine is trunk extension; primary lowerBack.",
       "lifecycle": "active"

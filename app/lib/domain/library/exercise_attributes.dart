@@ -30,12 +30,16 @@ enum ArmDirection { forward, lateral, behind }
 /// Vocabulary and boundary rules of the seven attributes.
 ///
 /// The value names equal the approved `coverage.json` vocabulary (a test
-/// compares them). **X1 (deferred review item, resolved here):** the approved
-/// boundary texts left gaps (angle 10 to 15 degrees, arm 20 to 90 degrees, knee
-/// 10 to 90 degrees). The boundary texts below are the contiguous form; the
-/// classifiers in [AttributeBoundaries] implement exactly these texts, so every
-/// measurement maps to exactly one value. The numeric cut points are the
-/// architect's proposal for owner confirmation (delivery record, stage 3a).
+/// compares them). **X1 (open until the owner confirms this wording):** the
+/// approved boundary texts left gaps (angle 10 to 15 degrees, arm 20 to 90
+/// degrees, knee 10 to 90 degrees). The texts below match the classifiers in
+/// [AttributeBoundaries] exactly: every measurement maps to exactly one value,
+/// and where two arm texts could both fit, a precedence sentence says which
+/// value wins (`supportedInFront` over all other arm values, `behindBody`
+/// over `overhead`). The cut points (bench 10 degrees, arm 20 and 135 degrees,
+/// knee 10 degrees) are approved in principle by the owner (2026-11-06). A
+/// measurement outside an attribute's range has no value; that is derived,
+/// not a text.
 abstract final class AttributeVocabulary {
   static const Map<ExerciseAttribute, List<AttributeValue>> values = {
     ExerciseAttribute.angle: [
@@ -51,37 +55,42 @@ abstract final class AttributeVocabulary {
       ),
       AttributeValue(
         'decline',
-        'Bench lowered with the head more than 10 degrees below the hips.',
+        'Bench lowered with the head more than 10 and up to 90 degrees below '
+            'the hips.',
       ),
     ],
     ExerciseAttribute.armPosition: [
       AttributeValue(
         'besideBody',
-        'Upper arm hangs by the side, up to 20 degrees from the trunk line.',
+        'Upper arm hangs by the side, from 0 to 20 degrees inclusive from the '
+            'trunk line, in any direction.',
       ),
       AttributeValue(
         'behindBody',
-        'Elbow behind the trunk line by more than 20 degrees (for example an '
-            'incline curl).',
+        'Elbow behind the trunk line by more than 20 and up to 180 degrees '
+            '(for example an incline curl). Takes precedence over overhead.',
       ),
       AttributeValue(
         'supportedInFront',
-        'Upper arm rests on a pad, bench or thigh in front of the trunk.',
+        'Upper arm rests on a pad, bench or thigh in front of the trunk, at '
+            'any angle from 0 to 180 degrees from the trunk line. Takes '
+            'precedence over every other arm value.',
       ),
       AttributeValue(
         'overhead',
-        'Upper arm raised more than 135 degrees from the trunk line, elbow at '
-            'or above ear height.',
+        'Upper arm raised forward or to the side more than 135 and up to 180 '
+            'degrees from the trunk line (typically with the elbow at or above '
+            'ear height). Not used for an arm behind the trunk.',
       ),
       AttributeValue(
         'flexed90',
-        'Upper arm raised forward more than 20 and up to 135 degrees '
-            '(about level with the floor).',
+        'Upper arm raised forward more than 20 and up to 135 degrees from the '
+            'trunk line (typically about 90 degrees).',
       ),
       AttributeValue(
         'abducted90',
-        'Upper arm out to the side more than 20 and up to 135 degrees with '
-            'the elbow bent (90/90).',
+        'Upper arm raised to the side more than 20 and up to 135 degrees from '
+            'the trunk line (typically 90/90 with the elbow bent).',
       ),
     ],
     ExerciseAttribute.bodyPosition: [
@@ -124,11 +133,13 @@ abstract final class AttributeVocabulary {
     ExerciseAttribute.kneePosition: [
       AttributeValue(
         'straight',
-        'Knee from fully straight to 10 degrees of flexion inclusive.',
+        'Knee from fully straight (0 degrees) to 10 degrees of flexion '
+            'inclusive.',
       ),
       AttributeValue(
         'bent',
-        'Knee bent more than 10 degrees (typically about 90).',
+        'Knee bent more than 10 and up to 180 degrees of flexion (typically '
+            'about 90).',
       ),
     ],
     ExerciseAttribute.stance: [

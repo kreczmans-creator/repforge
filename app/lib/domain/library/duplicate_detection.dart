@@ -18,7 +18,7 @@ import 'package:repforge/domain/training/training.dart'
 /// any recorded attribute differs);
 /// [whenAttributesDifferAndLoadsEqual] 19 pairs (the narrow rule: skip the
 /// gate only for a pair that differs by attributes alone, with equal load
-/// items). The owner decides between the last two.
+/// items). The owner chose the narrow rule as the default on 2026-11-06.
 enum TokenGateRule {
   /// The token share is always required.
   always,
@@ -41,7 +41,7 @@ final class DuplicateOptions {
     this.closeThreshold = 0.85,
     this.similarThreshold = 0.75,
     this.tokenShareThreshold = 0.4,
-    this.tokenGate = TokenGateRule.whenAnyAttributeDiffers,
+    this.tokenGate = TokenGateRule.whenAttributesDifferAndLoadsEqual,
   });
 
   /// Score from which a pair is a probable duplicate (IC-601).
@@ -56,8 +56,9 @@ final class DuplicateOptions {
   /// Share of name tokens (Jaccard) two names must have for IC-412.
   final double tokenShareThreshold;
 
-  /// X2: the IC-412 token gate rule; the literal reading is the default
-  /// until the owner decides ([TokenGateRule]).
+  /// X2: the IC-412 token gate rule. The default is the narrow rule (19
+  /// pairs on release 2), decided by the owner on 2026-11-06
+  /// ([TokenGateRule]).
   final TokenGateRule tokenGate;
 }
 
