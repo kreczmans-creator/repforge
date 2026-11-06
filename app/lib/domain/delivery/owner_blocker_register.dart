@@ -142,19 +142,25 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP8-04',
     workPackage: BlockerWorkPackage.wp8,
     stage: '3b-7 / WS3',
-    reference: 'B-15 (conditional acceptance, D04 §7 2026-11-06)',
+    reference: 'B-15 (conditional acceptance, D04 §7 2026-11-06); IC-101',
     title:
         'B-15: the migration itself creates IC-101 system exercises; '
-        'choose how to proceed',
+        'choose option (a), (b) or (c)',
     description:
         'B-15 was accepted on condition that an independent re-check '
         'confirmed the v7 to v8 migration does not create system exercises '
-        'without a valid primary target (IC-101). The re-check verdict, '
-        'reported by the WP 8 session on 2026-11-06 at 22:01, is that it '
-        'does: the frozen fixtures v2 to v5 produce a selectable system row '
-        '(ex-bench) with no migration-report entry. Per the owner '
-        'instruction the WP 8 work stopped at that point and three options '
-        '(a), (b) and (c) were put to the owner in the WP 8 session.',
+        'that fail IC-101 (system id format). The re-check (WP 8 session, '
+        '2026-11-06 22:01) found that it does. Frozen fixtures v2, v3, v4 '
+        'and v5 each hold one built-in exercise "ex-bench" (Bench Press, '
+        'is_custom = 0). The frozen v5 to v6 step maps is_custom 0 to '
+        'supplied 1, and the 3b-4 migration maps supplied 1 to source = '
+        'system (provider repforge, revision 1). The resulting system row '
+        'fails IC-101, the migration writes no report entry for it, and it '
+        'stays selectable exactly as in v7. A device that migrated it '
+        'cannot restore its own format 3 backup on another device: the '
+        'restore rejects ex-bench under IC-101. Fixtures v1, v6 and v7 '
+        'produce none. Real-data likelihood is probably rare, because no '
+        'screen created exercises before schema 6.',
     category: BlockerCategory.ownerDecision,
     priority: BlockerPriority.high,
     initialStatus: BlockerStatus.awaitingOwner,
@@ -162,23 +168,33 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     whyBlocked:
         'The owner decision B-15 says that if the migration introduces the '
         'IC-101 problem, work stops and the inconsistency is resolved '
-        'before B-15 is accepted. Resolving it changes either the '
-        'migration (3b-4, already reviewed) or the validation boundary, '
-        "which is the owner's call.",
+        'before B-15 is accepted. The WP 8 session stopped and put three '
+        'options to the owner.',
     actionRequired:
-        'Read the re-check evidence and the options (a), (b) and (c) in '
-        'the WP 8 session and the WP 8 record, then choose one and record '
-        'it in D04 §7.',
+        'Choose one and record it in D04 §7. (a) Block such exercises: the '
+        'migration blocks every system exercise whose id fails IC-101. '
+        '(b) Keep them as labelled legacy ids: the migration keeps the '
+        'exercise exactly as v7 has it (selectable, id unchanged), records '
+        'one report entry per such exercise (category warningForReview, '
+        'rule IC-101), and a format 3 restore exempts IC-101 for such an '
+        "exercise only when the backup's own report history holds that "
+        'migration warning; every other id-format violation stays '
+        'rejected; a test pins both migration and restore. (c) Accept that '
+        'these backups cannot be restored on another device.',
     recommendation:
-        'The WP 8 session holds the detailed options, evidence and its '
-        'recommendation; the integration lead takes no position beyond '
-        'this: prefer the option that reports and blocks the affected '
-        'system rows in the migration report over leaving them selectable.',
+        'The WP 8 session recommends (b): the visible state equals v7, '
+        'every affected record is reported, nothing is silent, and '
+        'cross-device restore works. The integration lead takes no '
+        'separate position.',
     consequences:
-        'Until decided, WS3 (backup format 3) cannot close, 3b-7 earns '
-        'nothing, stage 3b stays unaccepted and the v8 switch-over waits. '
-        'The released app is unaffected: it runs schema v7 and the v8 '
-        'migration is not connected.',
+        "(a) hides exercises that v7 shows today, which breaks the owner's "
+        '"no change in visibility" principle in the other direction. '
+        '(c) keeps own-device restore working but cross-device restore of '
+        'affected devices fails; not recommended. Until decided, WS3 '
+        '(backup format 3) cannot close, 3b-7 earns nothing, stage 3b '
+        'stays unaccepted and the v8 switch-over waits. The released app '
+        'is unaffected: it runs schema v7 and the v8 migration is not '
+        'connected.',
     dependencies: [
       'WP 8 session push of the WS3 branch (87a3221..d3913a3)',
       'WP 8 session push of the decision-baseline implementation',
@@ -189,9 +205,13 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         reference: 'D04 §7, 2026-11-06 "3b-7 B-15 (conditional) and B-16"',
       ),
       BlockerEvidence(
-        'Re-check verdict (WP 8 session status, 2026-11-06 22:01)',
-        reference:
-            'docs/verification/overnight-campaign-2026-11-06.md, Workstream A',
+        'Re-check probe R5 (WS3 independent re-check; scratch file in the '
+        'WP 8 session, to be recorded in WP8.md with the decision)',
+        reference: 'ws3_ic101_test.dart over fixtures fixture_v2..v5.sqlite',
+      ),
+      BlockerEvidence(
+        'Campaign ledger, Workstream A (22:01 and 22:20 reports)',
+        reference: 'docs/verification/overnight-campaign-2026-11-06.md',
       ),
       BlockerEvidence(
         'WS3 review findings H1, M1 to M4; O1, O2 open',
