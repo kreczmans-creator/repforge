@@ -11,6 +11,9 @@ import 'package:repforge/data/repositories/v8/backup_schema_v8.dart';
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/library/exercise_rules.dart';
+import 'package:repforge/domain/library/finding.dart';
+import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/migration_report.dart';
 
 export 'package:repforge/data/repositories/v8/backup_restore_plan_v8.dart'
@@ -151,6 +154,14 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       );
     } on RestoreRejected catch (e) {
       return Err(e.toError());
+    } on Object catch (e) {
+      // Never thrown by phase 1a; the port promises a Result.
+      return Err(
+        ValidationError(
+          'This backup cannot be read: $e. Nothing was changed.',
+          field: 'file',
+        ),
+      );
     }
   }
 
@@ -164,28 +175,14 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
   @override
   Future<Result<BackupSummary>> importJson(String json) async {
     final RestorePlan plan;
-    final _Decision decision;
-    final runId = config.newRunId();
     try {
       plan = planRestore(json);
-      if (plan.restorableRows == 0) return const Err(_empty);
-      decision = await _decide(plan);
-      // A new run id per restore (R-07): never one already recorded.
-      final taken = await _select(
-        'SELECT id FROM migration_runs WHERE id IN (?, ?)',
-        [runId, '$runId:integrity'],
-      );
-      if (runId.isEmpty || taken.isNotEmpty) {
-        throw StateError('The restore run id "$runId" is already in use.');
-      }
     } on RestoreRejected catch (e) {
       return Err(e.toError());
-    } on Object catch (e) {
-      return Err(
-        StorageError('Restore failed; nothing was changed.', cause: e),
-      );
     }
+    if (plan.restorableRows == 0) return const Err(_empty);
 
+    final runId = config.newRunId();
     final now = config.clock.now().toUtc().toIso8601String();
     int? keysBefore;
     Map<String, int> written;
@@ -197,9 +194,24 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         throw StateError('Foreign keys could not be switched off.');
       }
       await _phase(RestorePhase.keysOff);
-      written = await _db.transaction(
-        () => _write(plan, decision, runId: runId, now: now),
-      );
+      // Phase 1b reads the device inside the write transaction (review L3),
+      // so nothing can change between the checks and the writes; a
+      // rejection rolls back a transaction that has written nothing.
+      written = await _db.transaction(() async {
+        await _phase(RestorePhase.transactionStarted);
+        final decision = await _decide(plan);
+        // A new run id per restore (R-07): never one already recorded.
+        final taken = await _select(
+          'SELECT id FROM migration_runs WHERE id IN (?, ?)',
+          [runId, '$runId:integrity'],
+        );
+        if (runId.isEmpty || taken.isNotEmpty) {
+          throw StateError('The restore run id "$runId" is already in use.');
+        }
+        return await _write(plan, decision, runId: runId, now: now);
+      });
+    } on RestoreRejected catch (e) {
+      return Err(e.toError());
     } on Object catch (e) {
       return Err(
         StorageError('Restore failed; nothing was changed.', cause: e),
@@ -385,6 +397,33 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       }
     }
 
+    // Every foreign key of the composed state, before the domain rules read
+    // the references.
+    _checkComposedForeignKeys(plan, d, deviceRef, keptSystem);
+
+    // The domain rules on every exercise a format 3 restore inserts
+    // (review H1; ADR-0008 E Q15), against the composed reference data.
+    if (!plan.isLegacy && d.exercisesInsert.isNotEmpty) {
+      List<Map<String, Object?>> composed(String table) => [
+        ...deviceRef[table]!.values,
+        ...?d.referenceInsert[table],
+      ];
+      final ctx = ExerciseRuleContext(
+        reference: referenceDataOf(
+          nodes: composed('anatomy_nodes'),
+          patterns: composed('movement_patterns'),
+          items: composed('equipment_items'),
+        ),
+        providers: {
+          for (final r in composed('content_providers'))
+            ProviderId(r['id']! as String),
+        },
+      );
+      for (final x in d.exercisesInsert) {
+        problems.addAll(restoreDomainProblems(x, ctx));
+      }
+    }
+
     // Report history: merged by stable id (R-07), never replaced.
     await _decideReport(plan, d, problems);
 
@@ -394,9 +433,6 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         problems,
       );
     }
-
-    // Every foreign key of the composed state.
-    _checkComposedForeignKeys(plan, d, deviceRef, keptSystem);
     return d;
   }
 
@@ -637,7 +673,6 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     required String runId,
     required String now,
   }) async {
-    await _phase(RestorePhase.transactionStarted);
     final written = <String, int>{};
     void tally(String table, [int n = 1]) =>
         written.update(table, (v) => v + n, ifAbsent: () => n);
@@ -1208,6 +1243,78 @@ String? ic315Problem({
         'override (IC-315, ADR-0008 E Q6)';
   }
   return null;
+}
+
+/// The catalogue completeness rules of `validateExercise` that a restore
+/// does not apply (register B-15): the name length (IC-201), the
+/// classifications a system exercise needs before a catalogue tranche
+/// (IC-205 patterns, IC-207 mechanics, IC-208 laterality, IC-209
+/// difficulty, IC-211 aliases) and the recorded author (IC-212 on
+/// `provenance`, which v8 does not store). Release 1 content, migrated from
+/// v7, has none of them, so applying them would refuse every migrated
+/// device's own backup. They stay the catalogue release's checks (3c).
+const Set<String> restoreExemptCompletenessCodes = {
+  'IC-201',
+  'IC-205',
+  'IC-207',
+  'IC-208',
+  'IC-209',
+  'IC-211',
+};
+
+/// The domain problems of one exercise a format 3 restore would insert
+/// (review H1). Empty when the exercise may be restored.
+///
+/// - Every error-severity finding of `validateExercise` (system or
+///   user/imported rules, as the domain splits them) rejects, except the
+///   completeness rules in [restoreExemptCompletenessCodes] and IC-212 on
+///   `provenance`; IC-315 is reported by its own check.
+/// - A **user** exercise with an unresolved `noPrimaryTarget` block row in
+///   the backup is valid as blocked: its IC-204 is the reason it is blocked
+///   (D04 2026-11-06, per-exercise blocking). No other finding is excused,
+///   and `system` and `imported` exercises are never excused (D04: new or
+///   imported system exercises still need a primary target). The
+///   equipment block reasons excuse nothing: their unknown or invalid
+///   values were never linked.
+/// - A **user** exercise whose stored `type`, `category` or `aliases_json`
+///   is not a domain identifier (a v7 value kept by the migration; WS4
+///   review L9, OPEN) is restored as stored; any other exercise that cannot
+///   be read in the domain is refused.
+List<String> restoreDomainProblems(
+  ExerciseAggregate x,
+  ExerciseRuleContext ctx,
+) {
+  final where = 'exercises ${x.id}';
+  for (final c in ['created_at', 'updated_at', 'retired_at']) {
+    final v = x.row[c];
+    if (v is String && DateTime.tryParse(v) == null) {
+      return ['$where: $c ${jsonEncode(v)} is not a date-time'];
+    }
+  }
+  final e = catalogueExerciseOf(x);
+  if (e == null) {
+    if (x.source == 'user') return const [];
+    const why =
+        'its type, category or aliases are not domain values (only a user '
+        'exercise is kept as stored)';
+    return ['$where: $why'];
+  }
+  final blockedNoPrimary =
+      x.source == 'user' &&
+      x.blocks.any(
+        (b) =>
+            b['reason'] == BlockReason.noPrimaryTarget.name &&
+            b['resolved_at'] == null,
+      );
+  return [
+    for (final f in validateExercise(e, ctx))
+      if (f.severity == Severity.error &&
+          f.code != 'IC-315' &&
+          !restoreExemptCompletenessCodes.contains(f.code) &&
+          !(f.code == 'IC-212' && f.field == 'provenance') &&
+          !(f.code == 'IC-204' && blockedNoPrimary))
+        '$where: ${f.message} (${f.code})',
+  ];
 }
 
 /// What phase 1b decided.

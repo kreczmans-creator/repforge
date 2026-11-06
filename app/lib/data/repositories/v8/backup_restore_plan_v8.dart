@@ -6,9 +6,16 @@ import 'package:repforge/data/db/migration/v7_to_v8.dart' show V7ToV8Migration;
 import 'package:repforge/data/repositories/v8/backup_schema_v8.dart';
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/library/catalogue_exercise.dart';
+import 'package:repforge/domain/library/exercise_attributes.dart';
 import 'package:repforge/domain/library/legacy_v8_mapping.dart';
+import 'package:repforge/domain/library/library_enums.dart';
+import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/migration_report.dart';
+import 'package:repforge/domain/library/reference_data.dart';
 import 'package:repforge/domain/library/sha256_hex.dart';
+import 'package:repforge/domain/training/training.dart'
+    show ExerciseCategory, ExerciseType;
 
 /// Phase 1a of a restore into schema v8 (WP 8 sub-stage 3b-7;
 /// `docs/backup-format-3.md` section 4): parse, classify, map and validate a
@@ -232,8 +239,20 @@ final class RestorePlan {
   bool get isLegacy => format < backupFormatV8;
 }
 
-/// Phase 1a. Throws [RestoreRejected] for every invalid backup.
+/// Phase 1a. Throws [RestoreRejected] for every invalid backup, and only
+/// that: anything unexpected while reading a file (review M1) is a
+/// [RestoreRejected] as well, so the preview never throws.
 RestorePlan planRestore(String json) {
+  try {
+    return _planRestore(json);
+  } on RestoreRejected {
+    rethrow;
+  } on Object catch (e) {
+    throw RestoreRejected('This backup cannot be read:', ['$e']);
+  }
+}
+
+RestorePlan _planRestore(String json) {
   final envelope = parseBackupEnvelope(
     json,
     supportedFormatVersion: backupFormatV8,
@@ -596,6 +615,17 @@ final class _LegacyPlanner {
         '$where: id must be a non-empty text',
       ]);
     }
+    // Review M1: the classification reads stored SQLite values; a JSON
+    // boolean, array or object is none and is refused, never coerced.
+    for (final column in const ['exertion_scale', 'exertion_value']) {
+      final v = row[column];
+      if (v != null && v is! String && v is! num) {
+        final problem =
+            '$where: $column must be a text, a number or null, not '
+            '${jsonEncode(v)}';
+        throw RestoreRejected('This backup holds an invalid row:', [problem]);
+      }
+    }
     final c = classifyLegacyExertion(
       setId: id,
       scale: row['exertion_scale'],
@@ -819,7 +849,12 @@ final class _Format3Planner {
         if (t.kind == TableKind.user && t.name != 'legacy_quarantine')
           t.name: rows[t.name]!,
     };
-    var restorable = rows['exercises']!.length;
+    // Register B-08 (review M4): user tables and user or imported exercises
+    // count; system exercises are catalogue content the device keeps, and
+    // reference and report rows alone restore nothing of the user's.
+    var restorable = rows['exercises']!
+        .where((r) => r['source'] != 'system')
+        .length;
     for (final t in schemaV8Tables) {
       if (t.kind == TableKind.user) restorable += rows[t.name]!.length;
     }
@@ -996,4 +1031,173 @@ ReportEvent reportEventOfRow(Map<String, Object?> r) {
     reason: r['reason']! as String,
     blockReason: block,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Domain validation of the exercises a format 3 restore inserts (review H1).
+
+/// The [ReferenceData] of the composed state (device rows kept plus the
+/// backup's rows to insert), for `validateExercise`. Reference lifecycle and
+/// equipment class wait for stage 3c (R-21, Q11): every row is active and
+/// items carry [EquipmentClass.other], which the rules never read (the same
+/// convention as `DriftLibraryRepositoryV8`).
+ReferenceData referenceDataOf({
+  required Iterable<Map<String, Object?>> nodes,
+  required Iterable<Map<String, Object?>> patterns,
+  required Iterable<Map<String, Object?>> items,
+}) => ReferenceData(
+  anatomy: AnatomyTree([
+    for (final n in nodes)
+      AnatomyNode(
+        id: AnatomyNodeId(n['id']! as String),
+        parentId: switch (n['parent_id']) {
+          final String p => AnatomyNodeId(p),
+          _ => null,
+        },
+        level: n['level']! as int,
+        sort: n['sort_order']! as int,
+        labels: const {},
+        nonAnatomical: n['non_anatomical'] == 1,
+        providerId: ProviderId(n['provider_id']! as String),
+      ),
+  ]),
+  patterns: PatternTree([
+    for (final p in patterns)
+      MovementPattern(
+        id: MovementPatternId(p['id']! as String),
+        parentId: switch (p['parent_id']) {
+          final String id => MovementPatternId(id),
+          _ => null,
+        },
+        level: p['parent_id'] == null ? 1 : 2,
+        sort: p['sort_order']! as int,
+        labels: const {},
+        providerId: ProviderId(p['provider_id']! as String),
+      ),
+  ]),
+  equipment: EquipmentCatalogue([
+    for (final i in items)
+      EquipmentItem(
+        id: EquipmentItemId(i['id']! as String),
+        sort: i['sort_order']! as int,
+        labels: const {},
+        equipmentClass: EquipmentClass.other,
+        defaultRole:
+            enumByName(EquipmentDefaultRole.values, i['default_role']) ??
+            (throw StateError('default role ${i['default_role']}')),
+        providerId: ProviderId(i['provider_id']! as String),
+      ),
+  ]),
+);
+
+List<String>? _stringList(Object? json) {
+  if (json is! String) return null;
+  try {
+    final v = jsonDecode(json);
+    if (v is! List) return null;
+    final out = <String>[];
+    for (final x in v) {
+      if (x is! String) return null;
+      out.add(x);
+    }
+    return out;
+  } on FormatException {
+    return null;
+  }
+}
+
+/// The domain exercise of [x], read as `DriftLibraryRepositoryV8` reads a
+/// stored exercise; null when the stored `type`, `category` or
+/// `aliases_json` is not a domain identifier or a JSON list of strings (v7
+/// hides such an exercise; WS4 review L9, OPEN), or when a stored date or
+/// value cannot be represented in the domain.
+CatalogueExercise? catalogueExerciseOf(ExerciseAggregate x) {
+  final r = x.row;
+  final type = enumByName(ExerciseType.values, r['type']);
+  final category = enumByName(ExerciseCategory.values, r['category']);
+  final aliases = _stringList(r['aliases_json']);
+  final source = enumByName(ExerciseSource.values, r['source']);
+  final created = DateTime.tryParse(r['created_at']! as String);
+  final updated = DateTime.tryParse(r['updated_at']! as String);
+  if (type == null ||
+      category == null ||
+      aliases == null ||
+      source == null ||
+      created == null ||
+      updated == null) {
+    return null;
+  }
+  int ord(Map<String, Object?> a) => a['ordinal']! as int;
+  List<Map<String, Object?>> sorted(List<Map<String, Object?>> rows) =>
+      [...rows]..sort((a, b) => ord(a).compareTo(ord(b)));
+  try {
+    return CatalogueExercise(
+      id: ExerciseId(x.id),
+      names: ExerciseNames({
+        canonicalLocale: LocalizedName(r['name']! as String, aliases: aliases),
+        for (final n in x.names)
+          n['locale']! as String: LocalizedName(
+            n['name']! as String,
+            aliases: _stringList(n['aliases_json']) ?? const [],
+          ),
+      }),
+      type: type,
+      category: category,
+      source: source,
+      providerId: switch (r['provider_id']) {
+        final String p => ProviderId(p),
+        _ => null,
+      },
+      revision: r['revision'] as int?,
+      targets: [
+        for (final t in sorted(x.targets))
+          ExerciseTarget(
+            node: AnatomyNodeId(t['node_id']! as String),
+            role:
+                enumByName(TargetRole.values, t['role']) ??
+                (throw StateError('target role')),
+            ordinal: ord(t),
+          ),
+      ],
+      patterns: [
+        for (final p in sorted(x.patterns))
+          MovementPatternId(p['pattern_id']! as String),
+      ],
+      equipment: [
+        for (final e in sorted(x.equipment))
+          ExerciseEquipment(
+            EquipmentItemId(e['equipment_id']! as String),
+            roleOverride: enumByName(EquipmentRole.values, e['role_override']),
+            overrideNote: e['override_note'] as String?,
+          ),
+      ],
+      mechanics: enumByName(Mechanics.values, r['mechanics']),
+      laterality: enumByName(Laterality.values, r['laterality']),
+      difficulty: enumByName(Difficulty.values, r['difficulty']),
+      attributes: {
+        for (final (attribute, column) in const [
+          (ExerciseAttribute.angle, 'angle'),
+          (ExerciseAttribute.armPosition, 'arm_position'),
+          (ExerciseAttribute.bodyPosition, 'body_position'),
+          (ExerciseAttribute.grip, 'grip'),
+          (ExerciseAttribute.gripWidth, 'grip_width'),
+          (ExerciseAttribute.kneePosition, 'knee_position'),
+          (ExerciseAttribute.stance, 'stance'),
+        ])
+          if (r[column] case final String v) attribute: v,
+      },
+      retiredAt: switch (r['retired_at']) {
+        final String t => DateTime.tryParse(t),
+        _ => null,
+      },
+      copiedFromId: switch (r['copied_from_id']) {
+        final String c => ExerciseId(c),
+        _ => null,
+      },
+      createdAt: created,
+      updatedAt: updated,
+    );
+  } on Object {
+    return null;
+  }
 }

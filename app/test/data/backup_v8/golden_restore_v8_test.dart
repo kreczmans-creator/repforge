@@ -217,6 +217,52 @@ void main() {
     });
   });
 
+  test('every clean golden onto a device migrated from each fixture '
+      '(63 combinations): restored, or rejected atomically only where an id '
+      'is a system exercise on the device and a user exercise in the backup '
+      '(register B-01)', () async {
+    final rejected = <String>{};
+    for (final fv in digest.fixtureVersions) {
+      for (final (key, path) in clean) {
+        await inBackupTempDir((dir) async {
+          final file = mig.copyFixture(digest.fixturePath(fv), dir);
+          expect(await mig.openV8(file), isNull);
+          final v8 = await V8File.open(file);
+          try {
+            final before = v8.digests();
+            final result = await v8.repo().importJson(readGolden(path));
+            if (result case Err(:final error)) {
+              rejected.add('v$fv <- $key');
+              expect(error, isA<ValidationError>());
+              expect(
+                error.message,
+                contains(
+                  'source is "user" in the backup and "system" on '
+                  'this device',
+                ),
+              );
+              expect(v8.digests(), before);
+            } else {
+              v8.readOnly(
+                (db) => expect(digest.foreignKeyViolations(db), isEmpty),
+              );
+            }
+            expect(await v8.foreignKeys(), 1);
+          } finally {
+            await v8.close();
+          }
+        });
+      }
+    }
+    // Fixtures v2 to v5 hold the custom exercises as pre-v6 rows with
+    // is_custom 0, which the v6 step maps to supplied (system); the v6 and
+    // v7 era goldens hold the same ids as user exercises.
+    expect(rejected, {
+      for (final v in [2, 3, 4, 5])
+        for (final g in ['format1_v6', 'format1_v7', 'format2_v7']) 'v$v <- $g',
+    });
+  });
+
   test('every clean golden plans without error and its report events are '
       'the mapping events (pure phase 1)', () {
     for (final (key, path) in clean) {

@@ -4,10 +4,12 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
+import 'package:repforge/data/repositories/v8/backup_schema_v8.dart';
 import 'package:repforge/data/repositories/v8/drift_backup_repository_v8.dart';
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/library/migration_report.dart';
+import 'package:repforge/domain/library/sha256_hex.dart';
 
 import '../../migration_v8/migration_digest.dart' as digest;
 import '../../migration_v8/v8_migration_support.dart' as mig;
@@ -405,6 +407,171 @@ void main() {
         return jsonEncode(env);
       }, contains('no anatomy_nodes row'));
     });
+
+    // Review H1: validateExercise on every exercise a format 3 restore
+    // inserts, against the composed reference data.
+    Future<void> accepts(
+      String Function(Map<String, Object?> envelope) mutate,
+    ) async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await richV8(await V8File.create(dir, 'b.sqlite'));
+        try {
+          final env = decode(await a.repo().exportJson());
+          final result = await b.repo().importJson(mutate(env));
+          expect(result, isA<Ok<Object?>>(), reason: '$result');
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    }
+
+    Map<String, Object?> exRichPrimary(Map<String, Object?> env) =>
+        rowsOf(env, 'exercise_targets').firstWhere(
+          (t) => t['exercise_id'] == 'ex-rich' && t['role'] == 'primary',
+        );
+
+    void dropPrimary(Map<String, Object?> env, String id) {
+      (tablesOf(env)['exercise_targets']! as List).removeWhere(
+        (t) => (t as Map)['exercise_id'] == id && t['role'] == 'primary',
+      );
+      var i = 0;
+      for (final t in rowsOf(env, 'exercise_targets')) {
+        if (t['exercise_id'] == id) t['ordinal'] = i++;
+      }
+    }
+
+    Map<String, Object?> block(String id, {String? resolvedAt}) => {
+      'exercise_id': id,
+      'reason': 'noPrimaryTarget',
+      'original_json': '{}',
+      'blocked_at': restoreStamp,
+      'resolved_at': resolvedAt,
+    };
+
+    test('H1 probe (a): a user exercise without a primary target and '
+        'without a block row (IC-204)', () async {
+      await rejects((env) {
+        dropPrimary(env, 'ex-rich');
+        return jsonEncode(env);
+      }, allOf(contains('ex-rich'), contains('IC-204')));
+    });
+
+    test(
+      'H1 probe (b): target ordinals that are not contiguous (IC-309)',
+      () async {
+        await rejects((env) {
+          for (final t in rowsOf(env, 'exercise_targets')) {
+            if (t['exercise_id'] == 'ex-rich' && t['role'] == 'secondary') {
+              t['ordinal'] = 7;
+            }
+          }
+          return jsonEncode(env);
+        }, allOf(contains('ex-rich'), contains('IC-309')));
+      },
+    );
+
+    test(
+      'H1 probe (c): a target and its ancestor on one exercise (IC-303)',
+      () async {
+        await rejects((env) {
+          final chest = rowsOf(
+            env,
+            'anatomy_nodes',
+          ).firstWhere((n) => n['id'] == exRichPrimary(env)['node_id']);
+          addRow(env, 'exercise_targets', {
+            'exercise_id': 'ex-rich',
+            'node_id': chest['parent_id'],
+            'role': 'secondary',
+            'ordinal': 2,
+          });
+          return jsonEncode(env);
+        }, allOf(contains('ex-rich'), contains('IC-303')));
+      },
+    );
+
+    test('H1 probe (d): a system exercise new to the device without targets '
+        '(IC-204; a new system exercise needs a primary target)', () async {
+      await rejects((env) {
+        final copy = Map<String, Object?>.of(
+          rowsOf(env, 'exercises').firstWhere((e) => e['id'] == 'lib-deadlift'),
+        )..['id'] = 'lib-new-thing';
+        addRow(env, 'exercises', copy);
+        return jsonEncode(env);
+      }, allOf(contains('lib-new-thing'), contains('IC-204')));
+    });
+
+    test('H1 exception: a user exercise with an unresolved noPrimaryTarget '
+        'block row is valid as blocked; a resolved row, a system or an '
+        'imported exercise is not excused', () async {
+      await accepts((env) {
+        dropPrimary(env, 'ex-rich');
+        addRow(env, 'exercise_blocks', block('ex-rich'));
+        return jsonEncode(env);
+      });
+      await rejects((env) {
+        dropPrimary(env, 'ex-rich');
+        addRow(
+          env,
+          'exercise_blocks',
+          block('ex-rich', resolvedAt: restoreStamp),
+        );
+        return jsonEncode(env);
+      }, contains('IC-204'));
+      await rejects((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['source'] = 'imported';
+        }
+        dropPrimary(env, 'ex-rich');
+        addRow(env, 'exercise_blocks', block('ex-rich'));
+        return jsonEncode(env);
+      }, allOf(contains('ex-rich'), contains('IC-204')));
+      await rejects((env) {
+        final copy = Map<String, Object?>.of(
+          rowsOf(env, 'exercises').firstWhere((e) => e['id'] == 'lib-deadlift'),
+        )..['id'] = 'lib-new-thing';
+        addRow(env, 'exercises', copy);
+        addRow(env, 'exercise_blocks', block('lib-new-thing'));
+        return jsonEncode(env);
+      }, allOf(contains('lib-new-thing'), contains('IC-204')));
+    });
+
+    test('H1: a type that is not a domain value is kept only on a user '
+        'exercise (WS4 L9); an unreadable date is refused', () async {
+      await accepts((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['type'] = 'stretching';
+        }
+        return jsonEncode(env);
+      });
+      await rejects((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['source'] = 'imported';
+          if (e['id'] == 'ex-rich') e['type'] = 'stretching';
+        }
+        return jsonEncode(env);
+      }, contains('not domain values'));
+      await rejects((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['created_at'] = 'yesterday';
+        }
+        return jsonEncode(env);
+      }, contains('is not a date-time'));
+    });
+
+    test(
+      'H1: the completeness rules are not restore rules (B-15): release '
+      '1 system exercises and a user name over 60 characters restore',
+      () async {
+        await accepts((env) {
+          for (final e in rowsOf(env, 'exercises')) {
+            if (e['id'] == 'ex-rich') e['name'] = 'N' * 80;
+          }
+          return jsonEncode(env);
+        });
+      },
+    );
   });
 
   group('reference and catalogue data: device wins, missing rows inserted '
@@ -613,6 +780,10 @@ void main() {
             "SELECT * FROM migration_report_entries WHERE run_id = 'run-1'",
           );
           expect(migrationEntries, isNotEmpty);
+          final quarantineBefore = {
+            for (final r in await v8.rows('SELECT * FROM legacy_quarantine'))
+              r['id']: r,
+          };
           final refBefore = v8.digests();
           final result = await v8.repo().importJson(
             readGolden(digest.goldenFormat2Path()),
@@ -636,6 +807,34 @@ void main() {
             ),
             migrationEntries,
           );
+          // Register B-03 (OPEN), made visible (review M2): legacy_quarantine
+          // is replaced as user data, so the migration run's quarantine
+          // links lose their rows. Of its 40 links, the 2 to the v7
+          // quarantine rows (ids kept by the backup) still find the same
+          // row; 38 dangle; none points to another row.
+          final quarantineAfter = {
+            for (final r in await v8.rows('SELECT * FROM legacy_quarantine'))
+              r['id']: r,
+          };
+          var same = 0;
+          var dangling = 0;
+          var other = 0;
+          for (final e in migrationEntries) {
+            final id = e['quarantine_id'];
+            if (id == null) continue;
+            final now = quarantineAfter[id];
+            if (now == null) {
+              dangling++;
+            } else if (jsonEncode(now) == jsonEncode(quarantineBefore[id])) {
+              same++;
+            } else {
+              other++;
+            }
+          }
+          expect(
+            (same: same, dangling: dangling, other: other),
+            (same: 2, dangling: 38, other: 0),
+          );
           for (final t in referenceTables) {
             expect(
               tableDigest(v8.digests(), t),
@@ -649,6 +848,322 @@ void main() {
         }
       });
     });
+  });
+
+  group('review fixes (M1, M3, M4, L1)', () {
+    test(
+      'M1: a JSON boolean, array or object in an exertion column of a '
+      'format 2 file is refused (ValidationError); preview never throws',
+      () async {
+        await inBackupTempDir((dir) async {
+          final v8 = await V8File.create(dir);
+          try {
+            final before = v8.digests();
+            for (final column in ['exertion_scale', 'exertion_value']) {
+              for (final value in <Object>[
+                true,
+                <Object?>[],
+                <String, Object?>{},
+              ]) {
+                final env = decode(readGolden(digest.goldenFormat2Path()));
+                rowsOf(env, 'session_sets').first[column] = value;
+                final json = jsonEncode(env);
+                final preview = v8.repo().previewJson(json);
+                expect(errorOf(preview), isA<ValidationError>());
+                final error = errorOf(await v8.repo().importJson(json));
+                expect(error, isA<ValidationError>(), reason: '$column $value');
+                expect(error.message, contains('$column must be a text'));
+              }
+            }
+            expect(v8.digests(), before);
+          } finally {
+            await v8.close();
+          }
+        });
+      },
+    );
+
+    test('M3 (R-08): runs exported from a migrated device are merged with '
+        'backup provenance; their produced fields stay as recorded', () async {
+      await inBackupTempDir((dir) async {
+        final file = mig.copyFixture(digest.fixturePath(7), dir);
+        expect(await mig.openV8(file), isNull);
+        final a = await V8File.open(file);
+        final b = await V8File.create(dir, 'b.sqlite');
+        try {
+          final runs = await a.rows('SELECT * FROM migration_runs ORDER BY id');
+          expect(runs.map((r) => r['id']), ['run-1', 'run-1:integrity']);
+          expect(runs.every((r) => r['provenance_kind'] == 'device'), isTrue);
+          final json = await a.repo().exportJson();
+          expect(await b.repo().importJson(json), isA<Ok<Object?>>());
+          final identity = 'sha256:${sha256Hex(utf8.encode(json))}';
+          for (final run in runs) {
+            final merged = (await b.rows(
+              "SELECT * FROM migration_runs WHERE id = '${run['id']}'",
+            )).single;
+            expect(merged, {
+              ...run,
+              'provenance_kind': 'backup',
+              'provenance_source': identity,
+              'merged_at': restoreStamp,
+            });
+            expect(run['provenance_source'], mig.installLabel);
+          }
+          // Entries and counts of the merged runs are unchanged.
+          for (final t in [
+            'migration_report_entries',
+            'migration_report_counts',
+          ]) {
+            expect(
+              await b.rows(
+                "SELECT * FROM $t WHERE run_id LIKE 'run-1%' ORDER BY rowid",
+              ),
+              await a.rows(
+                "SELECT * FROM $t WHERE run_id LIKE 'run-1%' ORDER BY rowid",
+              ),
+              reason: t,
+            );
+          }
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    });
+
+    test('M4 (B-08): a format 3 file with only system exercises, reference '
+        'and report rows is structurally empty', () async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await richV8(await V8File.create(dir, 'b.sqlite'));
+        try {
+          for (final t in schemaV8Tables) {
+            if (t.kind == TableKind.user) {
+              await a.db.customStatement('DELETE FROM "${t.name}"');
+            }
+          }
+          await a.db.customStatement(
+            "DELETE FROM exercises WHERE source <> 'system'",
+          );
+          final json = await a.repo().exportJson();
+          final env = decode(json);
+          expect(rowsOf(env, 'exercises'), hasLength(12));
+          expect(rowsOf(env, 'migration_report_entries'), isNotEmpty);
+          final before = b.digests();
+          final error = errorOf(await b.repo().importJson(json));
+          expect(error.message, contains('contains no records'));
+          expect(errorOf(b.repo().previewJson(json)).message, error.message);
+          expect(b.digests(), before);
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    });
+
+    test('L1 (B-05): acknowledged_at stays the device value both '
+        'ways', () async {
+      await inBackupTempDir((dir) async {
+        final v8 = await richV8(await V8File.create(dir));
+        try {
+          final ids = [
+            for (final r in await v8.rows(
+              'SELECT event_id FROM migration_report_entries ORDER BY '
+              'event_id LIMIT 2',
+            ))
+              r['event_id']! as String,
+          ];
+          Future<void> ack(String id, String? at) => v8.db.customStatement(
+            'UPDATE migration_report_entries SET acknowledged_at = ? WHERE '
+            'event_id = ?',
+            [at, id],
+          );
+          await ack(ids[1], 'backup-ack');
+          final json = await v8.repo().exportJson();
+          await ack(ids[0], 'device-ack');
+          await ack(ids[1], null);
+          expect(await v8.repo().importJson(json), isA<Ok<Object?>>());
+          final after = {
+            for (final r in await v8.rows(
+              'SELECT event_id, acknowledged_at FROM migration_report_entries',
+            ))
+              r['event_id']: r['acknowledged_at'],
+          };
+          expect(after[ids[0]], 'device-ack');
+          expect(after[ids[1]], isNull);
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+
+    test('L1 (safeguard A): foreign keys are off throughout phase 2', () async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await V8File.create(dir, 'b.sqlite');
+        try {
+          final seen = <RestorePhase, int>{};
+          final result = await b
+              .repo(
+                phaseProbe: (p) async {
+                  seen[p] =
+                      (await b.rows('PRAGMA foreign_keys')).single.values.first!
+                          as int;
+                },
+              )
+              .importJson(await a.repo().exportJson());
+          expect(result, isA<Ok<Object?>>());
+          expect(seen.keys.toSet(), RestorePhase.values.toSet());
+          expect(seen.values.toSet(), {0});
+          expect(await b.foreignKeys(), 1);
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    });
+
+    test('L1: a difference in an owned table of a device-kept system '
+        'exercise is reported per table', () async {
+      await inBackupTempDir((dir) async {
+        final v8 = await richV8(await V8File.create(dir));
+        try {
+          final env = decode(await v8.repo().exportJson());
+          final targets = rowsOf(
+            env,
+            'exercise_targets',
+          ).where((t) => t['exercise_id'] == 'lib-deadlift');
+          addRow(env, 'exercise_targets', {
+            'exercise_id': 'lib-deadlift',
+            'node_id': 'calves',
+            'role': 'secondary',
+            'ordinal': targets.length,
+          });
+          final before = await v8.rows(
+            "SELECT * FROM exercise_targets WHERE exercise_id = 'lib-deadlift'",
+          );
+          expect(
+            await v8.repo().importJson(jsonEncode(env)),
+            isA<Ok<Object?>>(),
+          );
+          expect(
+            await v8.rows(
+              'SELECT * FROM exercise_targets WHERE exercise_id = '
+              "'lib-deadlift'",
+            ),
+            before,
+          );
+          final w = (await v8.rows(
+            "SELECT * FROM migration_report_entries WHERE run_id = 'restore-1' "
+            "AND record_id = 'lib-deadlift'",
+          )).single;
+          expect(w['field'], 'exercise_targets');
+          expect(w['rule'], deviceWinsRule);
+          expect(w['original_value'], contains('calves'));
+          expect(w['resulting_value'], isNot(contains('calves')));
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+
+    test('L1: the v8 mapping of a device-kept system exercise in a v7 backup '
+        'writes no quarantine row', () async {
+      final env = decode(readGolden(digest.goldenFormat2Path()));
+      for (final e in rowsOf(env, 'exercises')) {
+        if (e['id'] == 'lib-deadlift') {
+          e['secondary_muscles_json'] = '["hamstrings","tail"]';
+        }
+      }
+      final json = jsonEncode(env);
+      const sql =
+          'SELECT * FROM legacy_quarantine WHERE source_table = '
+          "'exercises' AND row_id = 'lib-deadlift'";
+      await inBackupTempDir((dir) async {
+        final fresh = await V8File.create(dir, 'fresh.sqlite');
+        final kept = await richV8(await V8File.create(dir, 'kept.sqlite'));
+        try {
+          // On a device without it, the value is quarantined.
+          expect(await fresh.repo().importJson(json), isA<Ok<Object?>>());
+          expect(await fresh.rows(sql), hasLength(1));
+          // On a device that keeps it, nothing of the backup's row is used.
+          expect(await kept.repo().importJson(json), isA<Ok<Object?>>());
+          expect(await kept.rows(sql), isEmpty);
+        } finally {
+          await fresh.close();
+          await kept.close();
+        }
+      });
+    });
+
+    test(
+      'L1: a report count with the same key and another value rejects',
+      () async {
+        await inBackupTempDir((dir) async {
+          final v8 = await richV8(await V8File.create(dir));
+          try {
+            final env = decode(await v8.repo().exportJson());
+            // +1 on examined and migrated keeps the backup's own counts
+            // reconciled, so only the merge sees the conflict.
+            for (final c in rowsOf(env, 'migration_report_counts')) {
+              if (c['run_id'] == 'rich-1' &&
+                  c['source_table'] == 'exercises' &&
+                  (c['code'] == 'examined' || c['code'] == 'migrated')) {
+                c['record_count'] = (c['record_count']! as int) + 1;
+              }
+            }
+            final before = v8.digests();
+            final error = errorOf(await v8.repo().importJson(jsonEncode(env)));
+            expect(error.message, contains('migration_report_counts'));
+            expect(v8.digests(), before);
+          } finally {
+            await v8.close();
+          }
+        });
+      },
+    );
+
+    for (final (phase, sql, cause) in [
+      (
+        RestorePhase.restoreReportWritten,
+        'INSERT INTO food_servings (id, food_id, label, amount, unit, '
+            "sort_order) VALUES ('fs-ghost', 'ghost-food', 'g', 1.0, 'g', 0)",
+        'would break foreign keys',
+      ),
+      (
+        RestorePhase.foreignKeysChecked,
+        'INSERT INTO settings (key, value, updated_at) VALUES '
+            "('injected', 'x', '$_stamp')",
+        'self-check failed',
+      ),
+    ]) {
+      test(
+        'L1: the backstop that reports "$cause" aborts the restore',
+        () async {
+          await inBackupTempDir((dir) async {
+            final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+            final b = await richV8(await V8File.create(dir, 'b.sqlite'));
+            try {
+              final before = b.digests();
+              final result = await b
+                  .repo(
+                    phaseProbe: (p) async {
+                      if (p == phase) await b.db.customStatement(sql);
+                    },
+                  )
+                  .importJson(await a.repo().exportJson());
+              final error = errorOf(result) as StorageError;
+              expect('${error.cause}', contains(cause));
+              expect(b.digests(), before);
+              expect(await b.foreignKeys(), 1);
+            } finally {
+              await a.close();
+              await b.close();
+            }
+          });
+        },
+      );
+    }
   });
 
   group('atomicity and run ids', () {
