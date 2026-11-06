@@ -22,7 +22,7 @@ env:
 
 jobs:
   publish:
-    name: Build and publish debug APKs
+    name: Test, build and publish debug APKs
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -44,6 +44,24 @@ jobs:
       - name: Resolve dependencies (pinned)
         working-directory: app
         run: flutter pub get --enforce-lockfile
+
+      - name: Verify generated code is current
+        working-directory: app
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- app/lib
+
+      - name: Format check
+        working-directory: app
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static analysis
+        working-directory: app
+        run: flutter analyze --fatal-infos
+
+      - name: Unit and widget tests
+        working-directory: app
+        run: flutter test --coverage --reporter expanded
 
       - name: Build per-ABI and universal debug APKs
         working-directory: app
