@@ -31,6 +31,8 @@ Tests (`app/test/`): `domain/library/exercise_availability_test.dart`; `data/rep
 
 Each entry: decision; sources; alternatives; recommendation; implications; implemented; blocks.
 
+Numbering against the first WS6 handback: C-1, C-2, C-5, C-6 and C-7 keep their numbers; the earlier C-3 (blocked system exercises) is now **R-C9**, C-4 (equipment correction needs an added item) is superseded by **R-C4** (the field is set; an empty list is allowed), and C-8 (retired) is **R-C8**. C-3 below is new: the scope of the guards.
+
 | # | Decision needed | Sources | Alternatives | Recommendation | Implications | Implemented (provisional where open) | Blocks |
 |---|---|---|---|---|---|---|---|
 | **C-1** | How a user correction is recorded in the migration report | `quality-and-duplicates.md` §4.2 (triggers and actions); R-03, R-05, R-07; `migration_runs.trigger_kind` and `migration_report_entries.disposition` CHECKs; D04 "the correction route leaves historical sessions unchanged" | (a) existing vocabulary: own run, trigger `integrityCheck`, action `mapped`, category `migrated`, rule of the block entry; (b) new trigger `correction` and/or action `corrected` (schema CHECK and report-contract change); (c) no report entry, only `resolved_at` | (b) if the owner wants corrections visibly distinct in Settings › Data; else (a) | (b) changes the v8 CHECK lists, the backup v3 contract and restore validation (3b-7); (a) changes nothing in the schema | (a), **provisional**, isolated in `CorrectionReportContract`; each correction run reconciles (test) and the migration run is unchanged (test) | **Yes**: owner decision before 3b acceptance |
