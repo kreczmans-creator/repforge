@@ -125,22 +125,37 @@ void main() {
     expect(reaching.where((u) => !allowed.contains(u)), isEmpty);
   });
 
-  test('the unconnected v8 backup repository (3b-7) imports only the '
-      'frozen v6 mapping, the bootstrap, the frozen backfill and the v7 -> '
-      'v8 step from the chain', () {
-    const allowed = {
-      'package:repforge/data/db/migration/legacy_training_rows_v6.dart',
-      'package:repforge/data/db/migration/bootstrap_reference_v8.dart',
-      'package:repforge/data/db/migration/historical_steps.dart',
-      'package:repforge/data/db/migration/v7_to_v8.dart',
+  test('each file of the unconnected v8 repositories imports exactly its '
+      'allowed chain files (3b-7 backup, 3b-8 library; review O8)', () {
+    const chain = 'package:repforge/data/db/migration';
+    const allowed = <String, Set<String>>{
+      'backup_schema_v8.dart': {},
+      'backup_restore_plan_v8.dart': {
+        '$chain/legacy_training_rows_v6.dart',
+        '$chain/v7_to_v8.dart',
+      },
+      'drift_backup_repository_v8.dart': {
+        '$chain/bootstrap_reference_v8.dart',
+        '$chain/historical_steps.dart',
+        '$chain/v7_to_v8.dart',
+      },
+      'drift_library_repository_v8.dart': {},
+      'drift_migration_report_repository_v8.dart': {},
+      'v8_exercise_read_port.dart': {},
     };
-    final reaching = [
-      for (final f in dartFiles(v8RepositoryDir))
+    final files = dartFiles(v8RepositoryDir);
+    expect(
+      files.map((f) => normalise(f.path).split('/').last).toSet(),
+      allowed.keys.toSet(),
+    );
+    for (final f in files) {
+      final name = normalise(f.path).split('/').last;
+      final reaching = {
         for (final m in importPattern.allMatches(f.readAsStringSync()))
           if (reachesMigration(f, m.group(1)!)) asPackageUri(f, m.group(1)!),
-    ];
-    expect(reaching, isNotEmpty);
-    expect(reaching.where((u) => !allowed.contains(u)), isEmpty);
+      };
+      expect(reaching, allowed[name], reason: name);
+    }
   });
 
   test('the chain imports no app, feature, UI or repository code', () {

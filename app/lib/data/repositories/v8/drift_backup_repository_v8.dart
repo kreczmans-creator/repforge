@@ -15,6 +15,7 @@ import 'package:repforge/domain/library/exercise_rules.dart';
 import 'package:repforge/domain/library/finding.dart';
 import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/migration_report.dart';
+import 'package:repforge/domain/library/sha256_hex.dart';
 
 export 'package:repforge/data/repositories/v8/backup_restore_plan_v8.dart'
     show RestoreRejected, backupFormatV8, backupSchemaV8;
@@ -28,6 +29,7 @@ final class BackupV8Config {
     required this.appVersion,
     required this.installLabel,
     required this.newRunId,
+    required this.loadSeedBytes,
   });
 
   /// Export time, restore time (`generated_at`, `merged_at`, quarantine and
@@ -45,6 +47,12 @@ final class BackupV8Config {
   /// restore never reads or writes the migration run ledger (R-32; Review B
   /// re-check N2).
   final String Function() newRunId;
+
+  /// The exact bytes of the bundled seed `assets/seed/exercise_library.json`
+  /// (as `V8MigrationConfig.loadSeedBytes`). A restored v7 backup records
+  /// release 1 only when they hash to the pinned v7-era value (owner
+  /// decision R-30 / B-07 option b, the migration's rule).
+  final Future<List<int>> Function() loadSeedBytes;
 }
 
 /// Checkpoints of phase 2, for failure injection in tests.
@@ -332,9 +340,12 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       }
     }
 
-    // Exercises: user and imported ones are replaced; a system exercise on
-    // the device is catalogue content and wins (Q15); same id with another
-    // source or provider is a conflict.
+    // Exercises (B-01, decided: field-level ownership): user and imported
+    // ones on the device are replaced. A system exercise on the device is
+    // catalogue content: its catalogue fields and owned rows win (Q15), the
+    // user fields of the backup's version replace the device's
+    // ([userOwnedExerciseColumns]); a different system/user classification
+    // or provider never rejects the restore by itself.
     final deviceExercises = {
       for (final r in await _select(
         'SELECT id, source, provider_id FROM exercises',
@@ -350,20 +361,7 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         d.exercisesInsert.add(x);
         continue;
       }
-      final have = deviceExercises[x.id]!;
-      final spec = schemaV8ByName['exercises']!;
-      var conflict = false;
-      for (final c in spec.immutableColumns) {
-        if (have[c] != x.row[c]) {
-          conflict = true;
-          problems.add(
-            'exercises ${x.id}: $c is ${jsonEncode(x.row[c])} in the backup '
-            'and ${jsonEncode(have[c])} on this device',
-          );
-        }
-      }
-      if (conflict) continue;
-      d.deviceWins[x.id] = await _deviceWinsEvents(x);
+      d.deviceWins[x.id] = await _deviceWinsEvents(x, d);
     }
 
     // IC-315 on every equipment link the restore writes (R-19): a CHECK
@@ -476,14 +474,22 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
 
   /// Differences between the backup's version of a system exercise and the
   /// device's, one warning per column or child table.
-  Future<List<ReportEvent>> _deviceWinsEvents(ExerciseAggregate x) async {
+  Future<List<ReportEvent>> _deviceWinsEvents(
+    ExerciseAggregate x,
+    _Decision d,
+  ) async {
     final device = (await _select('SELECT * FROM exercises WHERE id = ?', [
       x.id,
     ])).single;
     final events = <ReportEvent>[];
     final spec = schemaV8ByName['exercises']!;
+    final userFields = <String, Object?>{};
     for (final c in spec.columns) {
-      if (spec.immutableColumns.contains(c.name)) continue;
+      if (userOwnedExerciseColumns.contains(c.name)) {
+        // User state: the backup's value replaces the device's.
+        if (device[c.name] != x.row[c.name]) userFields[c.name] = x.row[c.name];
+        continue;
+      }
       if (device[c.name] != x.row[c.name]) {
         events.add(
           _deviceWins(
@@ -496,6 +502,7 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         );
       }
     }
+    if (userFields.isNotEmpty) d.userFieldUpdates[x.id] = userFields;
     for (final MapEntry(key: table, value: rows) in x.children.entries) {
       final deviceRows = await _select(
         'SELECT * FROM "$table" WHERE exercise_id = ?',
@@ -801,6 +808,14 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         }
       }
     }
+    for (final MapEntry(key: id, value: fields) in d.userFieldUpdates.entries) {
+      final cols = fields.keys.toList();
+      await _db.customStatement(
+        'UPDATE exercises SET ${cols.map((c) => '"$c" = ?').join(', ')} '
+        'WHERE id = ?',
+        [for (final c in cols) fields[c], id],
+      );
+    }
     await _phase(RestorePhase.exercisesInserted);
 
     for (final spec in schemaV8Tables) {
@@ -810,6 +825,8 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         tally(spec.name);
       }
     }
+    final release1 = plan.isLegacy ? await _restoreRelease1(plan) : null;
+    if (release1?.inserted ?? false) tally('catalogue_releases');
     await _phase(RestorePhase.userDataInserted);
 
     // Quarantine (register B-03, decided): the device's rows stay; the
@@ -919,6 +936,7 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       now: now,
       preV8Quarantine: preV8Quarantine,
       quarantineIds: quarantineIds,
+      release1: release1,
     );
     await _phase(RestorePhase.restoreReportWritten);
 
@@ -952,7 +970,11 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         if (spec.kind == TableKind.reference)
           spec.name:
               before[spec.name]! +
-              (d.referenceInsert[spec.name] ?? const []).length,
+              (d.referenceInsert[spec.name] ?? const []).length +
+              (spec.name == 'catalogue_releases' &&
+                      (release1?.inserted ?? false)
+                  ? 1
+                  : 0),
       'migration_runs':
           before['migration_runs']! + d.runsInsert.length + restoreRuns.runs,
       'migration_report_entries':
@@ -1012,6 +1034,83 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         q,
   ];
 
+  /// Release 1 of a restored v7 backup (owner decision R-30 / B-07 option
+  /// b: "restored v7 backups follow the same rule" as the migration). Null
+  /// when the backup holds no `seedExercisesVersion` setting (nothing
+  /// examined). When it parses to 1 or more:
+  /// - the device already records release 1 of `repforge` → nothing (the
+  ///   device's release log wins, B-04);
+  /// - else the bundled seed bytes hash to the pinned v7-era value → one
+  ///   row: `applied_at` = the setting's `updated_at` verbatim,
+  ///   `applied_at_source` = the migration's, counts and `app_version` NULL
+  ///   (not known, never 0);
+  /// - else (another hash, or bytes that cannot be loaded) → no record and
+  ///   the migration's R-30 warning on the setting.
+  Future<({ReportEvent? warning, bool inserted})?> _restoreRelease1(
+    RestorePlan plan,
+  ) async {
+    Map<String, Object?>? setting;
+    for (final r
+        in plan.userRows['settings'] ?? const <Map<String, Object?>>[]) {
+      if (r['key'] == V7ToV8Migration.seedExercisesVersionKey) setting = r;
+    }
+    if (setting == null) return null;
+    final value = setting['value'];
+    final applied = value is String ? (int.tryParse(value) ?? 0) : 0;
+    if (applied < 1) return (warning: null, inserted: false);
+    final recorded = await _select(
+      'SELECT 1 FROM catalogue_releases WHERE provider_id = ? AND '
+      '"release" = 1',
+      [BootstrapReferenceV8.providerId],
+    );
+    if (recorded.isNotEmpty) return (warning: null, inserted: false);
+    String? hash;
+    String? loadError;
+    try {
+      hash = sha256Hex(await config.loadSeedBytes());
+    } on Object catch (e) {
+      loadError = '$e';
+    }
+    if (hash == V7ToV8Migration.v7SeedSha256) {
+      await _insert('catalogue_releases', {
+        'provider_id': BootstrapReferenceV8.providerId,
+        'release': 1,
+        'applied_at': setting['updated_at'],
+        'applied_at_source': V7ToV8Migration.release1AppliedAtSource,
+        'content_hash_algorithm': 'sha256',
+        'content_hash_encoding': 'hex-lower',
+        'content_hash': hash,
+        'inserted': null,
+        'updated': null,
+        'retired': null,
+        'app_version': null,
+      });
+      return (warning: null, inserted: true);
+    }
+    // The migration's warning, word for word (`_recordRelease1`).
+    final why = hash == null
+        ? 'the bundled seed could not be read ($loadError), so its hash '
+              'is unknown'
+        : 'the bundled seed hashes to $hash, not the v7-era release 1 '
+              'hash ${V7ToV8Migration.v7SeedSha256}';
+    return (
+      warning: ReportEvent(
+        table: V7ToV8Migration.settingsTable,
+        recordId: V7ToV8Migration.seedExercisesVersionKey,
+        field: V7ToV8Migration.settingValueField,
+        originalValue: encodeStoredValue(value),
+        resultingValue: encodeStoredValue(value),
+        action: ReportAction.none,
+        rule: MigrationRuleCodes.release1,
+        category: ReportCategory.warningForReview,
+        reason:
+            'The v7 seed was applied, but $why. No release 1 record is '
+            'created (R-30); the setting is kept unchanged.',
+      ),
+      inserted: false,
+    );
+  }
+
   /// Every foreign-key violation, keyed by table, primary key and parent.
   Future<Set<String>> _foreignKeyFindings() async {
     final out = <String>{};
@@ -1037,6 +1136,7 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     required String now,
     required List<Map<String, Object?>> preV8Quarantine,
     required Map<String, int> quarantineIds,
+    required ({ReportEvent? warning, bool inserted})? release1,
   }) async {
     final run = ReportRun(
       runId: runId,
@@ -1098,6 +1198,16 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         examined[V7ToV8Migration.legacyQuarantineTable] =
             preV8Quarantine.length;
       }
+    }
+    if (release1 != null) {
+      // The seed setting, examined as the migration examines it (R-30).
+      builder.examine(
+        table: V7ToV8Migration.settingsTable,
+        recordId: V7ToV8Migration.seedExercisesVersionKey,
+        cleanOutcome: ReportCategory.preserved,
+        events: [?release1.warning],
+      );
+      examined[V7ToV8Migration.settingsTable] = 1;
     }
     for (final MapEntry(key: table, value: rows)
         in plan.referenceRows.entries) {
@@ -1412,6 +1522,13 @@ List<String> restoreDomainProblems(
   ];
 }
 
+/// The user-owned columns of `exercises` (B-01, decided 2026-11-06):
+/// user archiving (R-24) and the user's own deletion (`deleted_at`; a
+/// catalogue never deletes, it retires). On a system exercise kept from the
+/// device they take the backup's value; every other column and owned row is
+/// catalogue content and stays the device's.
+const Set<String> userOwnedExerciseColumns = {'archived', 'deleted_at'};
+
 /// What phase 1b decided.
 final class _Decision {
   final Map<String, List<Map<String, Object?>>> referenceInsert = {};
@@ -1421,6 +1538,10 @@ final class _Decision {
   final List<Map<String, Object?>> runsInsert = [];
   final List<Map<String, Object?>> entriesInsert = [];
   final List<Map<String, Object?>> countsInsert = [];
+
+  /// User fields of a device-kept system exercise taken from the backup
+  /// (B-01), by exercise id.
+  final Map<String, Map<String, Object?>> userFieldUpdates = {};
 
   /// Backup `legacy_quarantine` id → id on this device after the restore
   /// (register B-03): the matching device row, the same id, or (after

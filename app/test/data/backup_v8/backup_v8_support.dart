@@ -30,15 +30,22 @@ String Function() countingRestoreIds([String prefix = 'restore']) {
   return () => '$prefix-${++n}';
 }
 
+/// The bundled seed, as the app ships it (its hash is the v7-era release 1
+/// hash; `v7_to_v8_test.dart` pins it).
+List<int> bundledSeedBytes() =>
+    File('assets/seed/exercise_library.json').readAsBytesSync();
+
 BackupV8Config restoreConfig({
   String Function()? newRunId,
   Clock? clock,
   String appVersion = restoreAppVersion,
+  Future<List<int>> Function()? loadSeedBytes,
 }) => BackupV8Config(
   clock: clock ?? restoreClock,
   appVersion: appVersion,
   installLabel: restoreInstallLabel,
   newRunId: newRunId ?? countingRestoreIds(),
+  loadSeedBytes: loadSeedBytes ?? () async => bundledSeedBytes(),
 );
 
 /// A temporary directory deleted after [body].
@@ -158,9 +165,11 @@ final List<String> richRows = [
   ]),
   _sql([
     'INSERT INTO catalogue_releases (provider_id, "release", applied_at,',
+    'applied_at_source,',
     'content_hash_algorithm, content_hash_encoding, content_hash,',
-    "inserted, updated, retired, app_version) VALUES ('repforge', 1,",
-    "'$restoreStamp', 'sha256', 'hex-lower', '${'a' * 64}', 0, 0, 0, NULL)",
+    "inserted, updated, retired, app_version) VALUES ('repforge', 2,",
+    "'$restoreStamp', 'test-fixture', 'sha256', 'hex-lower', '${'a' * 64}',",
+    'NULL, NULL, NULL, NULL)',
   ]),
   _sql([
     'INSERT INTO exercises (id, created_at, updated_at, deleted_at, name,',

@@ -241,11 +241,15 @@ const _dispositions = [
   'rejected',
   'blocked',
   'none',
+  'corrected',
 ];
 const _blockReasons = [
   'noPrimaryTarget',
   'unknownEquipment',
   'invalidEquipment',
+  'invalidSecondaryTarget',
+  'invalidClassification',
+  'invalidAliases',
 ];
 
 /// Every table of schema v8, in `AppDatabaseV8` order (parents before
@@ -631,7 +635,10 @@ final List<TableSpec> schemaV8Tables = List.unmodifiable([
     foreignKeys: const [
       ForeignKeySpec('provider_id', 'content_providers', 'id'),
     ],
-    immutableColumns: const ['source', 'provider_id'],
+    // No immutable column: B-01 (decided after B-04) lets a different
+    // classification or provider of a device-kept system exercise never
+    // reject the restore; field ownership decides
+    // (`userOwnedExerciseColumns`).
   ),
   TableSpec(
     name: 'workout_plans',
@@ -919,17 +926,22 @@ final List<TableSpec> schemaV8Tables = List.unmodifiable([
       ColumnSpec('provider_id', ColumnType.text, notNull: true),
       ColumnSpec('release', ColumnType.integer, notNull: true),
       ColumnSpec('applied_at', ColumnType.text, notNull: true),
+      ColumnSpec('applied_at_source', ColumnType.text, notNull: true),
       ColumnSpec('content_hash_algorithm', ColumnType.text, notNull: true),
       ColumnSpec('content_hash_encoding', ColumnType.text, notNull: true),
       ColumnSpec('content_hash', ColumnType.text, notNull: true),
-      ColumnSpec('inserted', ColumnType.integer, notNull: true),
-      ColumnSpec('updated', ColumnType.integer, notNull: true),
-      ColumnSpec('retired', ColumnType.integer, notNull: true),
+      ColumnSpec('inserted', ColumnType.integer),
+      ColumnSpec('updated', ColumnType.integer),
+      ColumnSpec('retired', ColumnType.integer),
       ColumnSpec('app_version', ColumnType.text),
     ],
     primaryKey: const ['provider_id', 'release'],
     checks: [
       CheckSpec('CHECK ("release" >= 1)', (r) => (r['release']! as num) >= 1),
+      CheckSpec(
+        'CHECK (length(applied_at_source) > 0)',
+        (r) => _sqlLength(r['applied_at_source']! as String) > 0,
+      ),
       _inList(
         "CHECK (content_hash_algorithm IN ('sha256'))",
         'content_hash_algorithm',
@@ -945,9 +957,12 @@ final List<TableSpec> schemaV8Tables = List.unmodifiable([
         "'*[^0-9a-f]*')",
         (r) => RegExp(r'^[0-9a-f]{64}$').hasMatch(r['content_hash']! as String),
       ),
-      CheckSpec('CHECK (inserted >= 0)', (r) => (r['inserted']! as num) >= 0),
-      CheckSpec('CHECK (updated >= 0)', (r) => (r['updated']! as num) >= 0),
-      CheckSpec('CHECK (retired >= 0)', (r) => (r['retired']! as num) >= 0),
+      // R-30 / B-07 option b: NULL means not known, never 0.
+      for (final c in const ['inserted', 'updated', 'retired'])
+        CheckSpec(
+          'CHECK ($c IS NULL OR $c >= 0)',
+          (r) => _isNull(r, c) || (r[c]! as num) >= 0,
+        ),
     ],
     foreignKeys: const [
       ForeignKeySpec('provider_id', 'content_providers', 'id'),
@@ -1188,7 +1203,7 @@ final List<TableSpec> schemaV8Tables = List.unmodifiable([
     checks: [
       _inList(
         'CHECK (reason IN '
-            "('noPrimaryTarget','unknownEquipment','invalidEquipment'))",
+            "('noPrimaryTarget','unknownEquipment','invalidEquipment', ...))",
         'reason',
         _blockReasons,
       ),
@@ -1213,9 +1228,16 @@ final List<TableSpec> schemaV8Tables = List.unmodifiable([
     checks: [
       _inList(
         'CHECK (trigger_kind IN '
-            "('migration','restore','integrityCheck','catalogueUpdate'))",
+            "('migration','restore','integrityCheck','catalogueUpdate',"
+            "'userCorrection'))",
         'trigger_kind',
-        const ['migration', 'restore', 'integrityCheck', 'catalogueUpdate'],
+        const [
+          'migration',
+          'restore',
+          'integrityCheck',
+          'catalogueUpdate',
+          'userCorrection',
+        ],
       ),
       _inList(
         "CHECK (provenance_kind IN ('device','backup'))",

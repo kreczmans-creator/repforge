@@ -689,6 +689,9 @@ final class _LegacyPlanner {
     final m = mapLegacyExercise(
       LegacyExerciseRow(
         id: id,
+        type: v7['type'],
+        category: v7['category'],
+        aliasesJson: v7['aliases_json'],
         primaryMuscle: v7['primary_muscle'],
         secondaryMusclesJson: v7['secondary_muscles_json'],
         equipmentJson: v7['equipment_json'],

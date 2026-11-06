@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
 import 'package:repforge/data/repositories/v8/backup_restore_plan_v8.dart';
+import 'package:repforge/data/repositories/v8/drift_backup_repository_v8.dart';
 import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
@@ -57,8 +58,10 @@ void main() {
             expect(await v8.foreignKeys(), 1);
             final after = v8.digests();
             // Reference tables: not changed by a v7 backup (bootstrap rows
-            // already on the device win).
+            // already on the device win); the release log may gain release
+            // 1 (B-07, checked below).
             for (final t in referenceTables) {
+              if (t == 'catalogue_releases') continue;
               expect(
                 tableDigest(after, t),
                 tableDigest(refBefore, t),
@@ -76,7 +79,7 @@ void main() {
 
           // Every user, exercise and reference table equals the oracle.
           for (final table in expected.tables.keys) {
-            if (reportTables.contains(table) || table == 'catalogue_releases') {
+            if (reportTables.contains(table)) {
               continue;
             }
             expect(
@@ -87,8 +90,23 @@ void main() {
           }
           expect(actual.columns, expected.columns);
 
-          // Release 1 is not recorded by a restore (register B-07).
-          expect(actual.rows('catalogue_releases'), isEmpty);
+          // Release 1 follows the migration's rule (B-07 / R-30 option b,
+          // decided): the bundled seed matches the v7-era hash, so a backup
+          // whose seed was applied records it, counts NULL, source stated.
+          final seeded = actual
+              .rows('settings')
+              .any(
+                (r) =>
+                    r['key'] == 'seedExercisesVersion' &&
+                    (int.tryParse('${r['value']}') ?? 0) >= 1,
+              );
+          expect(actual.rows('catalogue_releases'), hasLength(seeded ? 1 : 0));
+          for (final r in actual.rows('catalogue_releases')) {
+            expect(r['inserted'], isNull);
+            expect(r['updated'], isNull);
+            expect(r['retired'], isNull);
+            expect(r['applied_at_source'], 'seedExercisesVersion.updated_at');
+          }
 
           // The restore run equals the migration run, entries and counts.
           final runs = actual.rows('migration_runs');
@@ -218,10 +236,10 @@ void main() {
   });
 
   test('every clean golden onto a device migrated from each fixture '
-      '(63 combinations): restored, or rejected atomically only where an id '
-      'is a system exercise on the device and a user exercise in the backup '
-      '(register B-01)', () async {
-    final rejected = <String>{};
+      '(63 combinations) restores; in the 12 combinations where an id is a '
+      'system exercise on the device and a user exercise in the backup, '
+      'field-level ownership decides (B-01, decided)', () async {
+    final classified = <String>{};
     for (final fv in digest.fixtureVersions) {
       for (final (key, path) in clean) {
         await inBackupTempDir((dir) async {
@@ -229,25 +247,51 @@ void main() {
           expect(await mig.openV8(file), isNull);
           final v8 = await V8File.open(file);
           try {
-            final before = v8.digests();
-            final result = await v8.repo().importJson(readGolden(path));
-            if (result case Err(:final error)) {
-              rejected.add('v$fv <- $key');
-              expect(error, isA<ValidationError>());
-              expect(
-                error.message,
-                contains(
-                  'source is "user" in the backup and "system" on '
-                  'this device',
-                ),
-              );
-              expect(v8.digests(), before);
-            } else {
-              v8.readOnly(
-                (db) => expect(digest.foreignKeyViolations(db), isEmpty),
-              );
-            }
+            final deviceRows = {
+              for (final r in await v8.rows('SELECT * FROM exercises'))
+                r['id']: r,
+            };
+            final json = readGolden(path);
+            final result = await v8.repo().importJson(json);
+            expect(result, isA<Ok<Object?>>(), reason: '$fv $key $result');
+            v8.readOnly(
+              (db) => expect(digest.foreignKeyViolations(db), isEmpty),
+            );
             expect(await v8.foreignKeys(), 1);
+            final backup = {
+              for (final r in planRestore(json).exercises) r.id: r.row,
+            };
+            final after = {
+              for (final r in await v8.rows('SELECT * FROM exercises'))
+                r['id']: r,
+            };
+            for (final MapEntry(key: id, value: device) in deviceRows.entries) {
+              final b = backup[id];
+              if (device['source'] != 'system' || b == null) continue;
+              // A system exercise on the device: its catalogue fields stay,
+              // its user fields (archived, deleted_at) come from the backup.
+              final now = after[id]!;
+              for (final c in device.keys) {
+                expect(
+                  now[c],
+                  userOwnedExerciseColumns.contains(c) ? b[c] : device[c],
+                  reason: '$fv $key $id.$c',
+                );
+              }
+              if (b['source'] != 'system') {
+                classified.add('v$fv <- $key');
+                // The classification difference is reported, never a
+                // rejection.
+                final w = await v8.rows(
+                  'SELECT * FROM migration_report_entries WHERE run_id = '
+                  "'restore-1' AND record_id = '$id' AND field = 'source'",
+                );
+                expect(w, hasLength(1), reason: '$fv $key $id');
+                expect(w.single['original_value'], '"user"');
+                expect(w.single['resulting_value'], '"system"');
+                expect(w.single['rule'], deviceWinsRule);
+              }
+            }
           } finally {
             await v8.close();
           }
@@ -257,7 +301,7 @@ void main() {
     // Fixtures v2 to v5 hold the custom exercises as pre-v6 rows with
     // is_custom 0, which the v6 step maps to supplied (system); the v6 and
     // v7 era goldens hold the same ids as user exercises.
-    expect(rejected, {
+    expect(classified, {
       for (final v in [2, 3, 4, 5])
         for (final g in ['format1_v6', 'format1_v7', 'format2_v7']) 'v$v <- $g',
     });

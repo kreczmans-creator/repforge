@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/data/db/migration/v7_to_v8.dart' show V7ToV8Migration;
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
 import 'package:repforge/data/repositories/v8/backup_schema_v8.dart';
 import 'package:repforge/data/repositories/v8/drift_backup_repository_v8.dart';
@@ -52,9 +53,17 @@ void main() {
           expect(env['appVersion'], restoreAppVersion);
           expect(env['exportedAt'], restoreStamp);
           expect(env['releaseLog'], [
+            // Release 1, recorded by the v7 golden's restore (B-07).
             {
               'providerId': 'repforge',
               'release': 1,
+              'contentHashAlgorithm': 'sha256',
+              'contentHashEncoding': 'hex-lower',
+              'contentHash': V7ToV8Migration.v7SeedSha256,
+            },
+            {
+              'providerId': 'repforge',
+              'release': 2,
               'contentHashAlgorithm': 'sha256',
               'contentHashEncoding': 'hex-lower',
               'contentHash': 'a' * 64,
@@ -275,14 +284,6 @@ void main() {
         ];
         return jsonEncode(env);
       }, contains('content_hash'));
-      await rejects((env) {
-        for (final r in rowsOf(env, 'exercises')) {
-          if (r['id'] == 'lib-deadlift') r['source'] = 'user';
-          if (r['id'] == 'lib-deadlift') r['provider_id'] = null;
-          if (r['id'] == 'lib-deadlift') r['revision'] = null;
-        }
-        return jsonEncode(env);
-      }, contains('exercises lib-deadlift: source'));
     });
 
     test('an invalid IC-315 override (R-19): on a cardio item, and with a '
@@ -624,8 +625,8 @@ void main() {
       });
     });
 
-    test('a system exercise on the device wins; its differences are '
-        'reported; a v7 backup restores onto a migrated device', () async {
+    test('a system exercise on the device keeps its catalogue fields; its '
+        'user fields take the backup value (B-01)', () async {
       await inBackupTempDir((dir) async {
         final v8 = await richV8(await V8File.create(dir));
         try {
@@ -637,18 +638,20 @@ void main() {
             readGolden(digest.goldenFormat2Path()),
           );
           expect(r, isA<Ok<Object?>>(), reason: '$r');
+          // archived is user state (R-24): the backup's value (0) replaces
+          // the device's; no catalogue field differs, so nothing is
+          // reported.
           final row = (await v8.rows(
             "SELECT archived FROM exercises WHERE id = 'lib-deadlift'",
           )).single;
-          expect(row['archived'], 1);
-          final w = (await v8.rows(
-            'SELECT * FROM migration_report_entries WHERE run_id = '
-            "'restore-1' AND record_id = 'lib-deadlift'",
-          )).single;
-          expect(w['field'], 'archived');
-          expect(w['original_value'], '0');
-          expect(w['resulting_value'], '1');
-          expect(w['category'], 'warningForReview');
+          expect(row['archived'], 0);
+          expect(
+            await v8.rows(
+              'SELECT * FROM migration_report_entries WHERE run_id = '
+              "'restore-1' AND record_id = 'lib-deadlift'",
+            ),
+            isEmpty,
+          );
           // User exercises were replaced: the extra one is gone.
           expect(
             await v8.rows("SELECT id FROM exercises WHERE id = 'ex-rich'"),
@@ -808,9 +811,10 @@ void main() {
             migrationEntries,
           );
           // Register B-03, decided (b): the device keeps its quarantine
-          // rows, so all 40 links of the migration run still find the same
-          // row (with the earlier replace, 38 dangled; review M2). The
-          // backup's two v7 rows are the device's rows: not written again.
+          // rows, so all 47 links of the migration run still find the same
+          // row (with the earlier replace most dangled; review M2: 38 of 40
+          // before the unreadable-data blocks added 7). The backup's two v7
+          // rows are the device's rows: not written again.
           final quarantineAfter = {
             for (final r in await v8.rows('SELECT * FROM legacy_quarantine'))
               r['id']: r,
@@ -832,7 +836,7 @@ void main() {
           }
           expect(
             (same: same, dangling: dangling, other: other),
-            (same: 40, dangling: 0, other: 0),
+            (same: 47, dangling: 0, other: 0),
           );
           // Every device row is still there, unchanged.
           for (final MapEntry(:key, :value) in quarantineBefore.entries) {
@@ -1360,8 +1364,6 @@ void main() {
             'hex-upper',
             'content_hash_encoding',
           ),
-          ('exercises', 'lib-deadlift', 'source', 'imported', 'source'),
-          ('exercises', 'lib-deadlift', 'provider_id', 'other', 'provider_id'),
         ]) {
       test('B-04: $table $key.$column differing rejects atomically', () async {
         await rejectsOnRich((env) {
@@ -1377,6 +1379,46 @@ void main() {
         }, allOf(contains(column), contains(expected)));
       });
     }
+
+    test('B-01: a device-kept system exercise whose source, provider and '
+        'catalogue fields differ in a format 3 backup restores: catalogue '
+        'fields stay the device ones, user fields come from the backup, every '
+        'catalogue difference is reported, nothing rejects', () async {
+      await inBackupTempDir((dir) async {
+        final v8 = await richV8(await V8File.create(dir));
+        try {
+          final env = decode(await v8.repo().exportJson());
+          addProvider(env);
+          for (final r in rowsOf(env, 'exercises')) {
+            if (r['id'] == 'lib-deadlift') {
+              r['source'] = 'imported';
+              r['provider_id'] = 'other';
+              r['name'] = 'Renamed in the backup';
+              r['archived'] = 1;
+            }
+          }
+          final before = (await v8.rows(
+            "SELECT * FROM exercises WHERE id = 'lib-deadlift'",
+          )).single;
+          final result = await v8.repo().importJson(jsonEncode(env));
+          expect(result, isA<Ok<Object?>>(), reason: '$result');
+          final after = (await v8.rows(
+            "SELECT * FROM exercises WHERE id = 'lib-deadlift'",
+          )).single;
+          expect(after, {...before, 'archived': 1});
+          final fields = {
+            for (final w in await v8.rows(
+              'SELECT field FROM migration_report_entries WHERE run_id = '
+              "'restore-1' AND record_id = 'lib-deadlift'",
+            ))
+              w['field'],
+          };
+          expect(fields, {'source', 'provider_id', 'name'});
+        } finally {
+          await v8.close();
+        }
+      });
+    });
 
     test(
       'B-04: the mutable fields keep the device value (device wins)',
