@@ -7,7 +7,7 @@ import 'package:repforge/data/db/migration/repforge_migration.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import '../harness_v7_db.dart' show strictSchema;
-import 'migration_under_test.dart';
+import 'migration_registry.dart';
 
 /// Shared recovery, failure-injection and repeated-migration tools (WP 8
 /// 3B-ACC-01, WS5). Plain Dart: the kill child, the host tests and the
@@ -52,6 +52,14 @@ final class InjectedFailure implements Exception {
   @override
   String toString() => 'InjectedFailure at $checkpoint';
 }
+
+/// Whether [error] is an [InjectedFailure]. With the app engine
+/// (`createInBackground`) the probe runs in the calling isolate but drift
+/// reports the migration's error through its isolate channel, which wraps
+/// it (`DriftRemoteException`); its text still names the failure.
+bool isInjectedFailure(Object? error) =>
+    error is InjectedFailure ||
+    (error != null && '$error'.startsWith('InjectedFailure at '));
 
 /// A probe that throws [InjectedFailure] at the [occurrence]-th checkpoint
 /// matching [where] (1-based) and does nothing elsewhere.

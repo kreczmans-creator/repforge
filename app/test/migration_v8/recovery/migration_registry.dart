@@ -29,6 +29,7 @@ final class MigrationUnderTest {
   const MigrationUnderTest({
     required this.name,
     required this.targetVersion,
+    required this.inputVersion,
     required this.description,
     required this.standIn,
     required this.open,
@@ -39,6 +40,12 @@ final class MigrationUnderTest {
 
   /// Version a complete run reaches.
   final int targetVersion;
+
+  /// Schema version of the large profile a timing or random kill run
+  /// starts from (`buildLargeProfile(version:)`): 7 for the v7 → v8
+  /// migration; 5 for the historical stand-in, whose v5 → v7 run rebuilds
+  /// the large tables.
+  final int inputVersion;
 
   /// One line for reports.
   final String description;
@@ -56,6 +63,7 @@ final class MigrationUnderTest {
 final historicalChain = MigrationUnderTest(
   name: 'historical',
   targetVersion: 7,
+  inputVersion: 5,
   description:
       'historical chain v1→v7 (RepforgeMigration + HistoricalSteps), '
       'stand-in until the v7→v8 migration (3b-4) exists',

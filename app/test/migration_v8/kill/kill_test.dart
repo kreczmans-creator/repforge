@@ -13,7 +13,7 @@ import 'package:repforge/data/db/migration/repforge_migration.dart';
 import '../harness_v7_db.dart';
 import '../large/large_profile.dart';
 import '../migration_digest.dart';
-import '../recovery/migration_under_test.dart';
+import '../recovery/migration_registry.dart';
 import '../recovery/recovery_tools.dart';
 import '../recovery/v7_expectations.dart';
 import 'child_protocol.dart';
@@ -229,7 +229,8 @@ void main() {
 
   // ---- Random-time kills during a large run ---------------------------------
 
-  group('random-time kills during a large run (v5 profile through v5→v7)', () {
+  group('random-time kills during a large run '
+      '(v${migration.inputVersion} profile, ${migration.name})', () {
     const kills = 20;
     const seed = 20261106;
     late Directory dir;
@@ -240,10 +241,14 @@ void main() {
 
     setUpAll(() async {
       dir = Directory.systemTemp.createTempSync(ws5TempPrefix);
-      start = File('${dir.path}/large_v5.sqlite');
-      await buildLargeProfile(start.path, version: 5);
-      refs = {5: stateDigest(start)};
-      for (final target in [6, 7]) {
+      start = File('${dir.path}/large_input.sqlite');
+      await buildLargeProfile(start.path, version: migration.inputVersion);
+      refs = {migration.inputVersion: stateDigest(start)};
+      for (
+        var target = migration.inputVersion + 1;
+        target <= migration.targetVersion;
+        target++
+      ) {
         final copy = copyDatabase(start.path, dir, name: 'ref$target.sqlite');
         expect(
           await runMigration(copy, migration, targetVersion: target),
@@ -252,8 +257,9 @@ void main() {
         refs[target] = stateDigest(copy);
         copy.deleteSync();
       }
-      expect(refs[7]!.integrity, 'ok');
-      expect(refs[7]!.userVersion, 7);
+      final complete = refs[migration.targetVersion]!;
+      expect(complete.integrity, 'ok');
+      expect(complete.userVersion, migration.targetVersion);
 
       // Calibration: an uninterrupted run in a child process. It must end
       // in the same state as the in-process run (and so is a cross-process
@@ -272,7 +278,7 @@ void main() {
       );
       expect(await child.process.exitCode, doneExitCode);
       calibrationMs = int.parse(done.split('ms=').last);
-      expect(stateDigest(copy), refs[7]);
+      expect(stateDigest(copy), refs[migration.targetVersion]);
       copy.deleteSync();
 
       final rnd = Random(seed);
@@ -351,7 +357,7 @@ void main() {
               timeout: const Duration(minutes: 5),
             );
             expect(await rerun.process.exitCode, doneExitCode);
-            expect(stateDigest(db), refs[7]);
+            expect(stateDigest(db), refs[migration.targetVersion]);
 
             randomRecords.add({
               'kill': i + 1,

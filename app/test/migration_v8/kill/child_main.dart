@@ -7,7 +7,7 @@ import 'package:drift/native.dart';
 import 'package:repforge/data/db/migration/repforge_migration.dart';
 import 'package:sqlite3/sqlite3.dart' show Database, sqlite3;
 
-import '../recovery/migration_under_test.dart';
+import '../recovery/migration_registry.dart';
 import '../recovery/recovery_tools.dart';
 import 'child_protocol.dart';
 

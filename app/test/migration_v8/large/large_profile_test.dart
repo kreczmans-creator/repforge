@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import '../harness_v7_db.dart';
-import '../recovery/migration_under_test.dart';
+import '../recovery/migration_registry.dart';
 import '../recovery/recovery_tools.dart';
 import '../recovery/v7_expectations.dart';
 import 'large_profile.dart';
