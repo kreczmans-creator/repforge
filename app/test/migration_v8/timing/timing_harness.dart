@@ -27,6 +27,23 @@ import '../recovery/recovery_tools.dart';
 /// version, engine and outcome, and says when the migration is a stand-in.
 const timingHarnessVersion = 'ws5-timing/1';
 
+/// Host reference digests of the D04 profile (`StateDigest.toString()`,
+/// Linux host, 2026-11-06), by migration name: the restored start and the
+/// end state. A device run that reports other values did not build or
+/// migrate the same data. 3b-4 adds its own entry once its migration exists.
+const hostReferenceDigests = <String, ({String start, String end})>{
+  'historical': (start: 'v5 e18285a1cb9d27d2', end: 'v7 cb68ca68ae2be071'),
+};
+
+/// Host digest of the D04 profile built at v7 (the v7 → v8 input).
+const hostV7ProfileDigest = 'v7 602dbcd0601b46b7';
+
+bool _isD04(LargeProfileSpec s) =>
+    s.exercises == 5000 &&
+    s.sets == 100000 &&
+    s.noPrimary == 303 &&
+    s.seed == largeProfileSeed;
+
 /// Median of [values] (mean of the two middle values for an even count).
 double median(List<int> values) {
   final s = [...values]..sort();
@@ -86,7 +103,11 @@ Future<Map<String, Object?>> runTimingCampaign({
   Map<String, Object?>? v7Facts;
   if (recordV7Profile && migration.inputVersion != 7) {
     final v7 = File('${workDir.path}/timing_v7_profile.sqlite');
-    v7Facts = (await buildLargeProfile(v7.path, spec: spec)).toJson();
+    v7Facts = {
+      ...(await buildLargeProfile(v7.path, spec: spec)).toJson(),
+      'digest': stateDigest(v7).toString(),
+      if (_isD04(spec)) 'hostDigest': hostV7ProfileDigest,
+    };
     v7.deleteSync();
   }
 
@@ -211,9 +232,26 @@ Future<Map<String, Object?>> runTimingCampaign({
     'dbBytesBefore': facts.bytes,
     'dbBytesAfter': runs.last['bytesAfter'],
     'endState': endState.toString(),
+    'hostReference': ?_hostReference(migration, spec, startDigest, endState),
     'recovery': recovery,
     'outcome': allMigrated && recovery['outcome'] == 'recovered'
         ? 'pass'
         : 'FAIL',
+  };
+}
+
+Map<String, Object?>? _hostReference(
+  MigrationUnderTest migration,
+  LargeProfileSpec spec,
+  StateDigest start,
+  StateDigest? end,
+) {
+  final ref = hostReferenceDigests[migration.name];
+  if (ref == null || !_isD04(spec)) return null;
+  return {
+    'start': ref.start,
+    'end': ref.end,
+    'startMatches': start.toString() == ref.start,
+    'endMatches': end.toString() == ref.end,
   };
 }

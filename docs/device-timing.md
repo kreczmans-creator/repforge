@@ -104,11 +104,15 @@ Copy once per device.
 | Migration | v7 → v8 (3b-4) / stand-in v5 → v7 (say which) |
 | SQLite version (`sqliteVersion`) | |
 | Profile | 5,000 exercises, 100,000 sets, 303 no-primary, 150 unknown equipment, 40 duplicate equipment, 2,000 invalid TRN-020, seed 2026110603 |
+| Record counts (`profile.input.rowCounts`) | |
+| Start digest (`profile.startDigest`); equals host? (`hostReference.startMatches`) | |
+| End digest (`endState`); equals host? (`hostReference.endMatches`) | |
 | Database size before / after (bytes) | |
 | Runs (ms) | |
 | Median / worst (ms) | |
 | Recovery run: failed attempt / retry (ms), outcome | |
-| Outcome (`outcome`) | pass / FAIL |
+| Outcome (`outcome`) | pass / FAIL / INCOMPLETE / ERROR |
+| Errors (`error`, `recovery.failure` (expected: the injected one), `recovery.retryError`) | |
 | Material differences from the real production profile | |
 | Notes (battery, temperature, other load) | |
 
@@ -128,7 +132,18 @@ tests, 9 min 23 s):
 | Calling isolate | 7,205; 7,241; 7,088 | 7,205 / 7,241 | 6,599 / 6,102, recovered | 15,384,576 / 24,571,904 | pass |
 
 SQLite 3.54.1. The v7 D04 profile (the v8 input) is 24,506,368 bytes and
-builds in about 1.8 s on the host. The kill and heavy suites upload their
+builds in about 1.8 s on the host.
+
+Host reference digests (`StateDigest`, the same on every platform when the
+same rows are built). A device run must report the same values; otherwise
+it did not build or migrate the same data. The harness compares them and
+reports the result as `hostReference` (D04 profile only):
+
+| Database | Digest |
+|---|---|
+| Stand-in start: D04 profile at v5 | `v5 e18285a1cb9d27d2` |
+| Stand-in end: after v5 → v7 | `v7 cb68ca68ae2be071` |
+| D04 profile at v7 (the v7 → v8 input; `profile.v7Profile.digest`) | `v7 602dbcd0601b46b7` | The kill and heavy suites upload their
 JSON reports as the CI artefact `migration-v8-ws5-reports`.
 
 Observations from the host runs:
@@ -144,11 +159,33 @@ Observations from the host runs:
 
 ## Material differences from the real production profile
 
-To be completed with the owner's profile. Known differences:
-- The profile is synthetic and larger than a typical user database (stress
-  profile by decision).
-- The reference bootstrap and the migration report are written by the
-  v7 → v8 migration itself, so they are not in the v7 input. They appear in
-  the v8 result once 3b-4 exists.
-- The stand-in v5 input has no session entries, splits, schedules or
-  quarantine rows (v6/v7 tables). The v7 input has them.
+The profile is a stress profile by decision. It differs from a real user's
+database as follows (to be completed against the owner's own profile):
+- **Size:** 5,000 exercises and 100,000 sets is far above a typical library
+  and history.
+- **Session rhythm:** a session every 6 hours from 2023-01-01 (4,531
+  sessions), with about 22 sets per session (3 to 8 entries of 2 to 6 sets).
+  Real training is daily at most, with fewer sets.
+- **Exercise choice:** skewed toward low ids (cube of a uniform draw), so a
+  few exercises carry most sets. Real usage is skewed too, but not in this
+  shape.
+- **Extremes, on purpose:** every 50th session entry has a 4,000-character
+  note; some exercise names are about 2,000 characters; non-ASCII and quoted
+  text; boundary values (load 0 and 1000 kg, 100 reps, heart rate 250,
+  rest 3,600 s).
+- **Dangling references:** 97 sets (in 26 entries) and 5 plan exercises name
+  exercises that do not exist. Production can leave a few after deletions,
+  not this many.
+- **Legacy values at a fixed rate:** 303 exercises without a mappable
+  primary, 150 with unknown equipment, 40 with a duplicate equipment id and
+  2,000 sets (2 %) with invalid TRN-020 values.
+- **Other data:** 1,000 measurements, 300 foods, 3,000 food log entries,
+  40 recipes, 15 saved meals, 200 meal plan items, 25 earlier quarantine
+  rows. These are modest and evenly spread.
+- **Not in the v7 input:** the reference bootstrap and the migration report
+  are written by the v7 → v8 migration itself (3b-4). They appear only in
+  the v8 result.
+- **Stand-in (v5 input) only:** no session entries, splits, schedules or
+  quarantine rows (v6/v7 tables). The chain creates the 24,968 session
+  entries in the v6 → v7 backfill and quarantines 364 rows in v5 → v6. The
+  v7 input already holds 24,968 entries and 25 quarantine rows.

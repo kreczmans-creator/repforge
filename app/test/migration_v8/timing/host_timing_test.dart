@@ -67,6 +67,10 @@ void main() {
         );
         expect(result['outcome'], 'pass', reason: jsonEncode(result));
         expect(result['standIn'], isTrue);
+        // The pinned host digests: builder and migration are deterministic.
+        final ref = result['hostReference']! as Map;
+        expect(ref['startMatches'], isTrue, reason: '$ref');
+        expect(ref['endMatches'], isTrue, reason: '$ref');
         expect(result['standInNote'], contains('STAND-IN'));
         final runs = result['runs']! as List;
         expect(runs, hasLength(repetitions));
