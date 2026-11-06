@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:repforge/data/db/v8/app_database_v8.dart';
 import 'package:repforge/data/repositories/v8/drift_backup_repository_v8.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/core/result.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import '../../migration_v8/migration_digest.dart' as digest;
@@ -125,3 +126,79 @@ const reportTables = [
 ];
 
 String readGolden(String path) => File(path).readAsStringSync();
+
+/// A v8 database with every kind of v8 data: the format 2 v7 golden
+/// restored (exercises, blocks, quarantine, report runs `rich-1`), plus rows
+/// the golden cannot hold (attributes, a role override, a note without an
+/// override, patterns, names, user state, labels, a release record).
+Future<V8File> richV8(V8File v8) async {
+  final r = await v8
+      .repo(config: restoreConfig(newRunId: countingRestoreIds('rich')))
+      .importJson(readGolden(digest.goldenFormat2Path()));
+  if (r is! Ok) throw StateError('rich restore failed: $r');
+  for (final sql in richRows) {
+    await v8.db.customStatement(sql);
+  }
+  return v8;
+}
+
+/// Rows a v7 backup cannot hold.
+final List<String> richRows = [
+  _sql([
+    'INSERT INTO movement_patterns (id, parent_id, sort_order, provider_id)',
+    "VALUES ('mp-push', NULL, 10, 'repforge')",
+  ]),
+  _sql([
+    'INSERT INTO movement_patterns (id, parent_id, sort_order, provider_id)',
+    "VALUES ('mp-horizontal-push', 'mp-push', 10, 'repforge')",
+  ]),
+  _sql([
+    'INSERT INTO reference_labels (kind, id, locale, label) VALUES',
+    "('equipment', 'barbell', 'en-GB', 'Barbell')",
+  ]),
+  _sql([
+    'INSERT INTO catalogue_releases (provider_id, "release", applied_at,',
+    'content_hash_algorithm, content_hash_encoding, content_hash,',
+    "inserted, updated, retired, app_version) VALUES ('repforge', 1,",
+    "'$restoreStamp', 'sha256', 'hex-lower', '${'a' * 64}', 0, 0, 0, NULL)",
+  ]),
+  _sql([
+    'INSERT INTO exercises (id, created_at, updated_at, deleted_at, name,',
+    'type, category, aliases_json, search_key, copied_from_id, archived,',
+    'source, provider_id, revision, mechanics, laterality, difficulty,',
+    'retired_at, angle, arm_position, body_position, grip, grip_width,',
+    'knee_position, stance) VALUES',
+    "('ex-rich', '$restoreStamp', '$restoreStamp', NULL,",
+    '\'Incline press\', \'weighted\', \'push\', \'["Incline"]\',',
+    "'incline press incline', 'lib-deadlift', 0, 'user', NULL, NULL,",
+    "'compound', 'bilateral', 'beginner', NULL, 'incline', 'besideBody',",
+    "'lying', 'pronated', 'standard', 'bent', 'standard')",
+  ]),
+  _sql([
+    'INSERT INTO exercise_targets (exercise_id, node_id, role, ordinal)',
+    "VALUES ('ex-rich', 'chest', 'primary', 0),",
+    "('ex-rich', 'frontDelts', 'secondary', 1)",
+  ]),
+  _sql([
+    'INSERT INTO exercise_patterns (exercise_id, pattern_id, ordinal) VALUES',
+    "('ex-rich', 'mp-horizontal-push', 0)",
+  ]),
+  _sql([
+    'INSERT INTO exercise_equipment (exercise_id, equipment_id, ordinal,',
+    "role_override, override_note) VALUES ('ex-rich', 'barbell', 0,",
+    "'support', 'Racked: the bar is support here.'),",
+    "('ex-rich', 'bench', 1, NULL, 'A note without an override (R-22).')",
+  ]),
+  _sql([
+    'INSERT INTO exercise_names (exercise_id, locale, name, aliases_json)',
+    "VALUES ('ex-rich', 'de-DE', 'Schrägbankdrücken',",
+    '\'["Schrägbank"]\')',
+  ]),
+  _sql([
+    'INSERT INTO exercise_user_state (exercise_id, favourite, hidden,',
+    "last_used_at) VALUES ('ex-rich', 1, 0, '$restoreStamp'),",
+    "('lib-deadlift', 0, 1, NULL)",
+  ]),
+];
+
+String _sql(List<String> parts) => parts.join(' ');
