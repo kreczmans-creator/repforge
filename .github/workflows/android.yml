@@ -20,7 +20,7 @@ env:
 
 jobs:
   debug-apk:
-    name: Debug APK
+    name: Quality gates and debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -44,6 +44,20 @@ jobs:
 
       - name: Resolve dependencies (pinned)
         run: flutter pub get --enforce-lockfile
+
+      - name: Verify generated code is current
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- lib
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Unit and widget tests
+        run: flutter test --coverage --reporter expanded
 
       - name: Build debug APK
         run: flutter build apk --debug
