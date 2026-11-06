@@ -119,8 +119,17 @@ test/migration_v8/timing/` (Linux VM, 4 vCPU, JIT, SQLite 3.54.1). Stand-in
 historical chain v5 → v7 on the large profile. These figures show the
 harness works and give a relative baseline only.
 
-See the WS5 hand-back for the latest figures. The kill and heavy suites
-upload their JSON reports as the CI artefact `migration-v8-ws5-reports`.
+Run of 2026-11-06 (worktree branch of WS5; full `kill || heavy` run, 159
+tests, 9 min 23 s):
+
+| Engine | Runs (ms) | Median / worst (ms) | Recovery: failed attempt / retry (ms) | Size before / after (bytes) | Outcome |
+|---|---|---|---|---|---|
+| App engine (background isolate) | 20,313; 20,336; 19,099 | 20,313 / 20,336 | 19,887 / 17,193, recovered | 15,384,576 / 24,571,904 | pass |
+| Calling isolate | 7,205; 7,241; 7,088 | 7,205 / 7,241 | 6,599 / 6,102, recovered | 15,384,576 / 24,571,904 | pass |
+
+SQLite 3.54.1. The v7 D04 profile (the v8 input) is 24,506,368 bytes and
+builds in about 1.8 s on the host. The kill and heavy suites upload their
+JSON reports as the CI artefact `migration-v8-ws5-reports`.
 
 Observations from the host runs:
 - The engine matters. The app engine (background isolate) took about three

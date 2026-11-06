@@ -164,12 +164,12 @@ final class KillChild {
   ];
 
   /// Sends SIGKILL to this child (only this pid) and returns its exit code.
-  /// `killed` is false if the child had already exited.
+  /// `killed` comes from the exit code, not from the send: a child that had
+  /// just exited by itself (not yet reaped) may still accept the signal.
   Future<({bool killed, int exitCode})> sigkill() async {
-    final alreadyExited = _exit != null;
-    final sent = Process.killPid(pid, ProcessSignal.sigkill);
+    if (_exit == null) Process.killPid(pid, ProcessSignal.sigkill);
     final code = await process.exitCode;
-    return (killed: sent && !alreadyExited, exitCode: code);
+    return (killed: code == sigkillExitCode, exitCode: code);
   }
 
   /// Kills the child if it still runs (test tear-down; only this pid).
