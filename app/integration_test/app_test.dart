@@ -233,7 +233,9 @@ void main() {
     // Open the highest-priority WP 8 item and record a status change.
     await scrollTo(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
     await tester.tap(find.byKey(const Key('blocker-row-OB-WP8-01')));
-    await pumpUntil(tester, find.byKey(const Key('blocker-status-choice')));
+    // The detail page is a lazy list: wait for its app bar, then scroll to
+    // each control (the status list sits below the fold on a phone).
+    await pumpUntil(tester, find.widgetWithText(AppBar, 'OB-WP8-01'));
     final inProgress = find.descendant(
       of: find.byKey(const Key('blocker-status-choice')),
       matching: find.text('In progress'),
@@ -259,9 +261,11 @@ void main() {
     await pumpUntil(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
     await scrollTo(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
     await tester.tap(find.byKey(const Key('blocker-row-OB-WP8-01')));
-    await pumpUntil(tester, find.byKey(const Key('blocker-state-updated')));
-    expect(find.text('integration-test note'), findsOneWidget);
-    expect(find.textContaining('Changed '), findsOneWidget);
+    await pumpUntil(tester, find.widgetWithText(AppBar, 'OB-WP8-01'));
+    await scrollTo(tester, find.byKey(const Key('blocker-state-updated')));
+    // The note appears in the note field and in the history card.
+    expect(find.text('integration-test note'), findsWidgets);
+    expect(find.textContaining('Changed '), findsWidgets);
   });
 
   testWidgets('export measurements CSV and a backup through the fake file '
