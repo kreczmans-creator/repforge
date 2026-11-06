@@ -929,3 +929,19 @@ The owner's reconciliation asks for 3b to be refined against its sub-stages with
 
 ### Stage 3b decision baseline (owner, 2026-11-06)
 The owner approved the 13 open decisions and the 3b effort allocation (D04 §7, "stage 3b decision baseline"). The proposed 3b sub-allocation in the effort update above is now approved without change. Earned credit stays at 3.16 of 4.50 for 3b: approving decisions earns nothing. Implementation of the approved decisions is in progress.
+
+## Overnight integration campaign (2026-11-06/07) — WP 8 position
+
+**Scope of the campaign for WP 8.** The campaign integration lead (branch `claude/busy-hypatia-rhl3hu`, ledger `docs/verification/overnight-campaign-2026-11-06.md`) merged the owner-decision documents of this branch (`2cc7f91`, `5f1192e`: stage 3b decision baseline, B-15 conditional, B-16) and coordinated with the WP 8 implementation session, which kept ownership of all stage 3b code. Nothing beyond `5f1192e` of this branch was integrated.
+
+**Status reported by the WP 8 session (22:01 and 22:20, 2026-11-06).**
+- Decision-baseline implementation (unreadable-data blocks, C-1, R-30 option b, R-33; R-28, R-31, R-32 and the block-row codes confirmed): in progress, uncommitted, not reviewed.
+- WS3 (3b-7, backup format 3): on a local worktree branch (`87a3221..d3913a3`), not pushed, reviewed twice, **not closable**: Medium O1 (unknown envelope keys accepted, B-09) and O2 (IC-201 exemption too wide) open; B-01 field split and B-07 still to do.
+- **B-15 re-check verdict: the migration itself introduces IC-101 rows.** Frozen fixtures v2–v5 each hold the built-in `ex-bench` (is_custom = 0); the frozen v5→v6 step maps it to supplied 1 and the 3b-4 migration to source = system (repforge, revision 1); the row fails IC-101, gets no report entry, stays selectable (`requireNewWork('ex-bench')` returns Ok as in v7), and a format 3 backup of such a device is rejected on another device under IC-101. Fixtures v1, v6 and v7 produce none. Per the owner's B-15 condition, work stopped and three options were put to the owner: (a) block such exercises; **(b) keep them as labelled legacy ids with a `warningForReview` IC-101 report entry and a narrowly scoped restore exemption (the session's recommendation)**; (c) accept that such backups cannot be restored cross-device. The probe (`ws3_ic101_test.dart` over `fixture_v2..v5.sqlite`) is a scratch file in that session until committed with the decision. Register entry **OB-WP8-04** in the in-app Owner Actions & Delivery Blockers workspace carries the full text.
+- The session holds the owner constraint "no merge to main without my explicit approval"; the campaign respected it (main not advanced).
+
+**Effect on the release candidate.** The delivered app runs schema v7; the v8 migration and library are not connected, so the B-15 finding does not touch user data in the candidate. Stage 3b code is excluded from the candidate until pushed and reviewed.
+
+**Effort points (allocation 18.0, unchanged).** Earned stays **9.66 (53.7 %)** at evidence baseline `e50a047`; nothing in the campaign adds WP 8 credit (approving decisions earns nothing; the decision implementation is unpushed). Confidence low–medium. Not accepted.
+
+**Owner actions (in the workspace):** OB-WP8-04 B-15 option (high); OB-WP8-01/02 device timing runs (open until the decision baseline and the v7to8 device harness land); OB-WP8-03 sub-stage acceptances (hold until the baseline is re-reviewed). Preparation documents for the next stages: `docs/wp8-stage-3c-3d-5-6-preparation.md` (proposal, independently reviewed).
