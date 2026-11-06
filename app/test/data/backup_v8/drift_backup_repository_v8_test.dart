@@ -690,6 +690,43 @@ void main() {
       });
     }
 
+    // The legacy path writes the bootstrap, the v6 and v8 quarantine rows,
+    // the backfilled session entries and the mapping's report.
+    for (final phase in [
+      RestorePhase.referenceInserted,
+      RestorePhase.exercisesInserted,
+      RestorePhase.quarantineInserted,
+      RestorePhase.sessionExercisesBackfilled,
+      RestorePhase.restoreReportWritten,
+      RestorePhase.selfChecked,
+    ]) {
+      test('a format 1 (schema v5) restore failing at ${phase.name} leaves '
+          'the database unchanged', () async {
+        await inBackupTempDir((dir) async {
+          final v8 = await richV8(await V8File.create(dir));
+          try {
+            final json = readGolden(digest.goldenFormat1Path(5));
+            final before = v8.digests();
+            final result = await v8
+                .repo(
+                  phaseProbe: (p) async {
+                    if (p == phase) throw StateError('injected at $p');
+                  },
+                )
+                .importJson(json);
+            expect(errorOf(result), isA<StorageError>());
+            expect(v8.digests(), before);
+            expect(await v8.foreignKeys(), 1);
+            final ok = await v8.repo().importJson(json);
+            expect(ok, isA<Ok<Object?>>(), reason: '$ok');
+            expect(await v8.count('session_exercises'), 13);
+          } finally {
+            await v8.close();
+          }
+        });
+      });
+    }
+
     test(
       'a database error inside the transaction rolls back everything',
       () async {
