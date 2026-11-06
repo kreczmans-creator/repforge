@@ -860,3 +860,58 @@ The earlier 35% programme snapshot (6.30 earned points of 18) is superseded by t
 **Current blockers / dependencies:** stage 3b-2 commit and review; owner disposition of R-30 and R-28/R-31/R-32/R-33; completion and acceptance of 3b-4 through 3b-10; stage 3c, 3d and combined review; stage 5 remains gated as stated in the approved plan. No WP 9 regression or schema gate is waived.
 
 **Status correction:** the historical statements above describing stage 3 as gated pending WP 9 acceptance are retained as decision history. WP 9 was subsequently accepted on 2026-11-06 and the owner approved revision 3 and authorised stage 3 in sequence. This dated section is the current status and does not imply stage 3 acceptance.
+
+## Effort-point progress update (WP lead, 2026-11-06, evidence baseline e50a047)
+
+**Allocation:** 18.0 points. **Earned:** 9.66 points. **Progress:** 53.7 %. **Remaining:** 8.34 points.
+**Confidence:** low–medium. **Acceptance:** active; not accepted. Stage 3b is not accepted.
+
+### Proposed refinement of the stage 3b allocation (4.50 points; owner approval requested)
+The owner's reconciliation asks for 3b to be refined against its sub-stages without changing the 18-point total. This proposal keeps 3b at 4.50.
+- **Split rule per sub-stage:** 70 % implementation (committed to the campaign branch); 20 % independent review passed, including re-checks; 10 % owner acceptance of that sub-stage.
+- **No credit** for work that is not on the campaign branch, or for planned or device-only evidence not yet produced.
+
+| Sub-stage | Allocated | Earned | Evidence / status |
+|---|---:|---:|---|
+| 3b-1 Frozen historical evidence | 0.50 | 0.50 | 6c05f24; reviewed; accepted by the owner as foundation |
+| 3b-2 Schema v8, not connected | 0.50 | 0.45 | 2ba3997; Review A and two re-checks; owner acceptance outstanding |
+| 3b-3 Historical steps v1→v7 | 0.50 | 0.50 | 31f7652; reviewed; complete (owner) |
+| 3b-4 v7→v8 migration | 0.75 | 0.675 | e57834e; Review B and two re-checks; R-30 open; owner acceptance outstanding |
+| 3b-5 All paths v1..v7 → v8 | 0.25 | 0.225 | e57834e (`v8_all_paths_test`, every frozen fixture); verified in Review B |
+| 3b-6 Real process-kill recovery | 0.40 | 0.36 | WS5 0d912c2 and v8 integration e57834e; WS5 review, re-check and Review B re-check |
+| 3b-7 Backup format 3, restore 1–3 | 0.60 | 0.00 | Implemented on a workstream branch; review running; not yet on the campaign branch |
+| 3b-8 Domain and use cases | 0.40 | 0.36 | b644636..e50a047; review and re-check passed |
+| 3b-9 Device timing (harness 0.10, device runs 0.20) | 0.30 | 0.09 | Harness 0d912c2, reviewed; device runs outstanding (physical devices) |
+| 3b-10 Record, Review C, CI, owner acceptance | 0.30 | 0.00 | Not reached |
+| **3b total** | **4.50** | **3.16** | |
+
+### WP 8 stage table (other rows unchanged from the owner's reconciliation)
+| Stage / deliverable | Allocated | Earned |
+|---|---:|---:|
+| Stage 1 | 2.00 | 2.00 |
+| Stage 2 | 1.50 | 1.50 |
+| Review fixes stages 1–2 | 0.50 | 0.50 |
+| Stage 3a | 2.00 | 2.00 |
+| Stage 3b | 4.50 | 3.16 |
+| Stage 3c | 2.00 | 0.00 |
+| Stage 3d | 1.50 | 0.00 |
+| Stage 4 | 0.50 | 0.50 |
+| Stage 5 | 2.00 | 0.00 |
+| Stage 6 | 1.00 | 0.00 |
+| Combined final review and acceptance | 0.50 | 0.00 |
+| **Total** | **18.00** | **9.66** |
+
+**Programme roll-up (hybrid; other WPs unchanged from the 2026-11-06 snapshot):** full 77.11 / 105 = 73.4 %; core 77.11 / 97 = 79.5 %.
+
+**Blockers and dependencies:**
+- **Owner decisions:**
+  - R-30 (release 1), with B-07;
+  - visibility of unreadable secondaries, type, category or aliases (WS4 H1, L9);
+  - block-row rule codes;
+  - R-28, R-31, R-32, R-33;
+  - WS6 C-1, R-C4, R-C8;
+  - WS3 B-01, B-02, B-03.
+- **Physical-device timing runs.**
+- **Review of WS3, then Review C.**
+
+**Scope changes:** none to the WP total. The 3b sub-allocation is a refinement proposal awaiting owner approval.
