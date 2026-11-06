@@ -146,11 +146,12 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   Widget build(BuildContext context) {
     final from = _start;
     final to = _end(from);
+    final plansAsync = ref.watch(allWorkoutPlansProvider);
     final plans = {
-      for (final p
-          in ref.watch(allWorkoutPlansProvider).value ?? const <WorkoutPlan>[])
-        p.id: p,
+      for (final p in plansAsync.value ?? const <WorkoutPlan>[]) p.id: p,
     };
+    // Until the plans have loaded, a missing id is unknown, not deleted.
+    final plansLoaded = plansAsync.hasValue;
     final scheduled = ref.watch(scheduledRangeProvider((from: from, to: to)));
     return Scaffold(
       appBar: AppBar(title: const Text('Schedule')),
@@ -211,7 +212,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             ],
           ),
           const SizedBox(height: RfSpace.s2),
-          ..._list(scheduled, plans),
+          ..._list(scheduled, plans, plansLoaded: plansLoaded),
           const SizedBox(height: RfSpace.s8),
         ],
       ),
@@ -220,8 +221,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
 
   List<Widget> _list(
     AsyncValue<List<ScheduledWorkout>> scheduled,
-    Map<String, WorkoutPlan> plans,
-  ) {
+    Map<String, WorkoutPlan> plans, {
+    required bool plansLoaded,
+  }) {
     if (scheduled.hasError) {
       return [
         RfErrorState(
@@ -262,7 +264,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           ),
         );
       }
-      final name = plans[w.planId]?.name ?? 'Deleted workout';
+      final name =
+          plans[w.planId]?.name ?? (plansLoaded ? 'Deleted workout' : '…');
       out.add(
         Padding(
           padding: const EdgeInsets.only(bottom: RfSpace.s2),
@@ -273,7 +276,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             onSkip: () => _skip(w, name),
             onRestore: () => _restore(w),
             // A deleted plan cannot be started, so the row offers no Start.
-            onStart: plans[w.planId] == null
+            onStart: plansLoaded && plans[w.planId] == null
                 ? null
                 : () => ref.startFromPlan(
                     context,

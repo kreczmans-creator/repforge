@@ -54,6 +54,11 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(switch (result) {
+          Ok(:final value)
+              when value.exercises.length < plan.exercises.length =>
+            'Created "${value.name}" without '
+                '${plan.exercises.length - value.exercises.length} removed '
+                'exercise(s)',
           Ok(:final value) => 'Created "${value.name}"',
           Err(:final error) => userMessageFor(error),
         }),

@@ -31,7 +31,9 @@ void main() {
     );
     final found = importing(
       files,
-      RegExp('(import|export)\\s+[\'"]package:repforge/data/'),
+      RegExp(
+        '(import|export)\\s+[\'"](package:repforge/data/|(\\.\\./)+data/)',
+      ),
     );
     expect(found, isEmpty);
   });
