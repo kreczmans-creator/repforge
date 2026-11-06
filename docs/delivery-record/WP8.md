@@ -829,9 +829,9 @@ R-12 (mixed foreign keys), R-20 (application enforcement of default roles), R-14
 
 WP 8 has an approved programme baseline allocation of **18 effort points**. This is a relative effort allocation, not a time budget. WP 8 remains active and not accepted; this reporting requirement does not alter its scope, stage gates or acceptance criteria.
 
-The WP 8 lead must add a stage/deliverable breakdown totalling exactly 18 points to the active delivery plan and report allocated, earned and remaining points at every progress update. Earned points must be supported by completed deliverables and evidence; planned, assigned, started or unreviewed work does not earn credit by itself. Report confidence, blockers, dependencies, estimate variance and acceptance status alongside the percentage. Follow `docs/governance/effort-points-and-progress-reporting.md` and the repository-level `AGENTS.md`.
+The stage/deliverable breakdown is now recorded in the reconciliation section below and totals exactly 18 points. The WP 8 lead must maintain it and report allocated, earned and remaining points at every progress update. Earned points must be supported by completed deliverables and evidence; planned, assigned, started or unreviewed work does not earn credit by itself. Report confidence, blockers, dependencies, estimate variance and acceptance status alongside the percentage. Follow `docs/governance/effort-points-and-progress-reporting.md` and the repository-level `AGENTS.md`.
 
-The existing 35% programme snapshot is a provisional estimate (6.30 earned points of 18), not a stage-level earned-progress ledger. It must not be treated as a verified current percentage until the stage breakdown and evidence reconciliation are completed.
+The earlier 35% programme snapshot (6.30 earned points of 18) is superseded by the stage-level reconciliation below: 7.50 earned points of 18, or 41.7%, as of 2026-11-06. This remains a provisional, low–medium confidence estimate pending WP lead validation; it is not WP acceptance.
 
 
 ## Effort-point breakdown and evidence reconciliation (2026-11-06)
