@@ -1,26 +1,33 @@
 # Overnight integrated delivery campaign — 06/07 November 2026
 
-Status: **release candidate frozen at `d50f724`; CI evidence recorded below as it lands.** This file is the integration ledger and the morning delivery report. Integration lead: the campaign session on branch `claude/busy-hypatia-rhl3hu`. Final authority: the project owner.
+Status: **release candidate `695fab0`** (app content identical to `d50f724`; the last commit before the dispatch is the report draft). The four workflows were dispatched on this exact commit; results below. Later commits on the branch are report updates only (docs), no app change. This file is the integration ledger and the morning delivery report. Integration lead: the campaign session on branch `claude/busy-hypatia-rhl3hu`. Final authority: the project owner.
 
 ---
 
 # Morning delivery report
 
 ## A. Executive summary
-- **Completed and integrated** on `claude/busy-hypatia-rhl3hu` (release candidate `d50f724`): WP 15 stages 1–2 (entry units kg/l in the portion and ingredient sheets) and WP 17 S3–S4 (Fuel pick-from-library and recents, recipe duplicate and category filter, plan duplicate/delete, save session as plan, elapsed time, drag reorder), both with their independent review fixes; eight corrections from a new independent cross-package integration review; the new **Owner Actions & Delivery Blockers** workspace (Settings > Delivery) with a 19-entry canonical register, persisted status changes with history, and tests; WP 14 CI fixes (emulator disk-space root cause, APK signature and metadata verification, presentation-isolation test); planning documents for WP 11 and WP 8 stages 3c/3d/5/6; updated WP 8, WP 15 and WP 17 records and a programme snapshot.
+- **Completed and integrated** on `claude/busy-hypatia-rhl3hu` (release candidate `695fab0`): WP 15 stages 1–2 (entry units kg/l in the portion and ingredient sheets) and WP 17 S3–S4 (Fuel pick-from-library and recents, recipe duplicate and category filter, plan duplicate/delete, save session as plan, elapsed time, drag reorder), both with their independent review fixes; eight corrections from a new independent cross-package integration review; the new **Owner Actions & Delivery Blockers** workspace (Settings > Delivery) with a 19-entry canonical register, persisted status changes with history, and tests; WP 14 CI fixes (emulator disk-space root cause, APK signature and metadata verification, presentation-isolation test); planning documents for WP 11 and WP 8 stages 3c/3d/5/6; updated WP 8, WP 15 and WP 17 records and a programme snapshot.
 - **Excluded, isolated:** WP 8 stage 3b code (decision-baseline implementation and WS3 backup format 3). The WP 8 session kept it unpushed and unreviewed, and its independent re-check found that the v7→v8 migration itself creates IC-101 system rows, which by the owner's own B-15 condition stops that work for an owner decision (OB-WP8-04). The candidate runs schema v7 with v8 not connected, so user data is unaffected.
 - **`main` not advanced.** The WP 8 session holds the owner's standing constraint "no merge to main without my explicit approval", so the integrated commit stays on the campaign branch; advancing `main` is a fast-forward away and is the first owner action below.
-- **APK:** release-ready or provisional per section B (filled when the Android workflow on `d50f724` completes). Signing uses the existing configuration (debug keystore for both build types, as on the rolling release), so every RepForge build to date is "debug-signed for testing"; no store signing exists yet (WP 14).
+- **APK:** built by CI from `695fab0`, signature verified (V2, Android Debug certificate, the existing configuration used by every RepForge build and the rolling release), package and version verified; classification **release-ready as a test build** once the emulator workflow is green on the same commit, otherwise **provisional** with the exception stated in section D. No store signing exists yet (WP 14).
 
 ## B. APK delivery
 | Field | Value |
 |---|---|
-| Commit | `d50f724` (branch `claude/busy-hypatia-rhl3hu`) |
+| Commit | `695fab0` (branch `claude/busy-hypatia-rhl3hu`) |
 | Build variant | debug (`flutter build apk --debug`, the same variant as the rolling `debug-latest` release); the Android workflow also builds the release variant as an R8 check |
 | App version / code | 0.4.0+1 (`app/pubspec.yaml`), package `com.tempest.repforge` |
-| Artifact | GitHub Actions artifact `repforge-android-debug-apk` of the "Android build" run on `d50f724` (run id in section D), file `app-debug.apk`; SHA-256 and `apksigner verify --print-certs` / `aapt2 dump badging` output are printed in that run's "Report APKs" and "Verify APK signatures and metadata" steps |
+| Artifact | GitHub Actions run 42310425424 ("Android build", `695fab0`), artifact `repforge-android-debug-apk` (id 13548957953, https://github.com/kreczmans-creator/repforge/actions/runs/42310425424/artifacts/13548957953), file `app-debug.apk` |
+| File size | 201,431,460 bytes (debug, universal ABI) |
+| SHA-256 (app-debug.apk) | `aa8383dd767426c300d7b9deeb4978728690e802363d0f09aa1ac8e2f58d6365` |
+| Signing verification | `apksigner verify --print-certs`: V2 signer, certificate DN `C=US, O=Android, CN=Android Debug`, certificate SHA-256 `00be07b6f6645036262eb69542f4e7950bc89ff6c3a895d3a449aeea126de5f4` (the existing debug keystore; same identity on every RepForge build) |
+| Package metadata | `aapt2 dump badging`: `package: name='com.tempest.repforge' versionCode='1' versionName='0.4.0'`, `targetSdkVersion:'36'`, `application-label:'RepForge'` |
+| Release variant (R8 check, not distributed) | `app-release.apk` 88,617,141 bytes, SHA-256 `c7c905e9045c02f06365a729ae190fc6c5522e9636432663703e705fbc15fe6e`, same signer |
+| Build command | `flutter build apk --debug` (and `--release` for the R8 check), Flutter 3.47.9, JDK 17, on ubuntu-latest |
+| Build timestamp | 2026-11-06 23:31:05 UTC (debug), 23:35:11 UTC (release) |
 | Rolling release | not updated: `debug-release.yml` publishes only from `main`; when the owner fast-forwards `main` to `d50f724` it rebuilds and publishes the same commit to the `debug-latest` release automatically |
-| Local build | not possible in the campaign container (the Android SDK download host is blocked by the container's network policy); the CI build is the artifact of record |
+| Local build and local re-verification | not possible in the campaign container: the Android SDK download host and the artifact blob host are both refused by the container's network policy; the CI build and its in-log verification are the artifact of record |
 | Installation verification | emulator smoke tests (section D); no physical device was available overnight, so no physical-device claim is made |
 
 ## C. Integrated functionality (by work package)
@@ -39,14 +46,14 @@ Status: **release candidate frozen at `d50f724`; CI evidence recorded below as i
 ## D. CI and testing (release candidate `d50f724`)
 | Workflow | Run id | Conclusion | Notes |
 |---|---|---|---|
-| CI (format, analyse, test, coverage; recovery job) | RC-CI | RC-CI-RESULT | |
-| Android build | RC-ANDROID | RC-ANDROID-RESULT | debug + release (R8) APKs, signature and metadata verified in-log |
-| iOS build | RC-IOS | RC-IOS-RESULT | unsigned simulator build |
-| Integration tests (Android emulator) | RC-INTEGRATION | RC-INTEGRATION-RESULT | 7 integration tests incl. the workspace smoke test and the v8 timing smoke harness |
+| CI (format, analyse, test, coverage; recovery job) | 42310421837 | **success** (quality job 23:13–23:26; recovery job kill + heavy 23:14–23:32) | 2,742 passed, 5 skipped; coverage 93.0 % (20,145 of 21,671 hand-written lines) |
+| Android build | 42310425424 | **success** (23:13–23:35) | same quality gates, 2,742 passed; debug + release (R8) APKs; signature and metadata verified in-log |
+| iOS build | 42310429036 | **success** (23:13–23:18) | unsigned simulator build |
+| Integration tests (Android emulator) | 42310432671 | attempt 1 **failure: runner shutdown signal** before any test ran (infrastructure); attempt 2 RC-INTEGRATION-RESULT | 7 integration tests incl. the workspace smoke test and the v8 timing smoke harness |
 
-Local full suite on the candidate tree (`0cbdf13` app content; `669d1e7`/`d50f724` change only the integration test file and the workflow): **2,742 passed, 5 skipped**, coverage 93.0 % of hand-written lines (gate rc2 below). Skipped tests are the five tag-skipped suites (kill, heavy, trial), explained below; none was disabled or weakened. Baseline for comparison: 2,361 passed / 4 skipped at `ded976b` (parallel branch) and 2,662 / 5 at the first merge.
+Local full suite on the candidate tree (`0cbdf13` app content; `669d1e7`, `d50f724` and `695fab0` change only the integration test file, the workflow and docs): **2,742 passed, 5 skipped**, coverage 93.0 % of hand-written lines (gate rc2 below). Skipped tests are the five tag-skipped suites (kill, heavy, trial), explained below; none was disabled or weakened. Baseline for comparison: 2,361 passed / 4 skipped at `ded976b` (parallel branch) and 2,662 / 5 at the first merge.
 
-Infrastructure exceptions: the hosted emulator failed to start on three runs for lack of disk space (root cause and fix below); after the fix it boots in about 70 s.
+Infrastructure exceptions: the hosted emulator failed to start on three earlier runs for lack of disk space (root cause and fix below); after the fix it boots in about 65 s. The first attempt of the release-candidate emulator run was killed by a runner shutdown signal before any test ran; the failed job was re-run on the same commit.
 
 ## E. Independent review
 Three independent reviews ran overnight, each by a separate agent with no part in the implementation, each followed by a re-check of the corrections by the same reviewer:
@@ -112,7 +119,7 @@ Programme (105 full / 97 core): **73.4 % full, 79.5 % core** (77.11 points); wit
 
 ## CI classification notes
 - `claude/busy-hypatia-rhl3hu` `91ea266` Integration tests run 42305104781: the emulator exited at start-up with `FATAL | Not enough space to create userdata partition. Available: 7255.34 MB at /home/runner/.android/avd/test.avd, need 7372.80 MB`, so `adb` never saw a device and the action timed out after the (already raised) 900 s wait. **Root cause: hosted-runner disk space, not code.** The `ded976b` run 42298780193 (attempt 2) failed the same way. Correction (WP 14): a "Free disk space" step removes tool-chains the job never uses (dotnet, ghc, boost, CodeQL) and the AVD gets an explicit 4096 MB userdata partition.
-- `ce7f2fd` Integration tests run 42307776044 (first run with the fix): **the emulator booted in 68 s** and the suite ran; 6 of 7 tests passed, including the full training session, backup export, recipe, barcode and real on-device database tests and the v8 timing smoke harness. The one failure was the new blocker-workspace smoke test: it waited for the status control, which sits below the fold of the lazy detail list and is never laid out on a phone until scrolled. Test corrected (wait for the detail app bar, then scroll to each control; `findsWidgets` where the note appears twice). Also found: the first version of the free-space step removed the Android NDK, which the app build then re-downloaded (11 minutes); the NDK is kept.
+- `ce7f2fd` Integration tests run 42307776044 (first run with the fix): **the emulator booted in 68 s** and the suite ran; 6 of 7 tests passed, including the full training session, backup export, recipe, barcode and real on-device database tests and the v8 timing smoke harness. The one failure was the new blocker-workspace smoke test: it waited for the status control, which sits below the fold of the lazy detail list and is never laid out on a phone until scrolled. Test corrected (wait for the detail app bar, then scroll to each control; `findsWidgets` where the note appears twice). Also seen: the app build installs NDK 28.2 (about 2 minutes download and unzip) because the runner image does not ship that version; the free-space step no longer touches the NDK directory either way.
 - `main` `c6d380f` Integration tests run 42293964654: `Timeout waiting for emulator to boot` after `adb: device 'emulator-5554' not found` on every poll; no test ran. Infrastructure failure of the hosted emulator, not a code regression. The scheduled runs on `30e51b0` (41817441405, 42014801238, 42205883177) and the push run on `ded976b` (parallel branch) show the same workflow passing on the same code paths.
 
 ## Workstream D — cross-package integration review (independent reviewer, merge `cee71dd`)
