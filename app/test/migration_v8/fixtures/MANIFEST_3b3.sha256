@@ -1,0 +1,3 @@
+976b38d73e3e9c1ee41f2d43f56eefcebef76174549a4202ab0f0423b317d456  test/migration_v8/fixtures/v7_strict_schema_3b3.json
+7c75da68e06c6b483515668edc2e97ce18bed193d544e886bb61008124c31bc9  lib/data/db/migration/schema_versions.g.dart
+a50ae4f30d67cfdb2aabe1b49c68546651972495cd296cd13a3bd744ffb60385  lib/data/db/migration/legacy_training_rows_v6.dart

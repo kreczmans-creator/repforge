@@ -614,9 +614,9 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 
 | Sub-stage | Content | Status |
 |---|---|---|
-| 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | committed (see below) |
-| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | waits for the ADR-0008 clarification |
-| 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | authorised |
+| 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | committed 6c05f24; accepted by the owner as the test foundation |
+| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | ADR-0008 clarification approved 2026-11-06; starts after 3b-3 |
+| 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | committed (review and re-check passed) |
 | 3b-4 | v7→v8 migration: safeguard A, report, quarantine, blocks | authorised |
 | 3b-5 | All paths v1..v7 → v8 | mandatory evidence |
 | 3b-6 | Real process kill | mandatory evidence |
@@ -646,3 +646,87 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 - Review: an independent review (opus) found H1 (orphans in every fixture blocked any clean restore), M1–M4 and L1–L11. All are fixed. The re-review ran 11 mutation probes; all were detected, except a quoting-only CHECK change, which is ignored by design. Verdict: ready for the first commit.
 - Test: 64 tests in the normal suite, about 4 s.
 
+### 3b-3 — historical steps
+- Location: `app/lib/data/db/migration/` (four files) and `app/test/migration_v8/`. Nothing in the app uses the new code.
+- `AppDatabase`, its schema version 7, providers, repositories, screens and every 3b-1 file stay unchanged.
+
+**What was built**
+- `schema_versions.g.dart`: `dart run drift_dev schema steps drift_schemas/ lib/data/db/migration/schema_versions.g.dart` generates it (from `app/`).
+  - It holds the frozen shapes `Schema2`..`Schema7`. A second run writes a byte-identical file.
+  - CI now regenerates it before `git diff --exit-code -- lib`. The `.g.dart` name keeps it out of the analyzer and the coverage figure.
+  - CI copies only `drift_schema_v1..v7.json` into a temporary folder and generates from there. A later `drift_schema_v8.json` cannot change the file.
+  - Version 8 shapes go into a separate generated file in 3b-2. Only the v1..v7 snapshot files are frozen, not the whole folder.
+- `historical_steps.dart`: `from1To2`..`from6To7`, written against `Schema2`..`Schema7`, never against `tables.dart`.
+  - v1→v2 creates the v2 shape. Later steps add what each version added.
+  - v5→v6 rebuilds `exercises`, `plan_exercises` and `session_sets` into the `Schema6` shapes. This removes the v5→v6 hazard.
+  - Each step repeats the production statements in the same order. The production guards stay, so a crash-window database still completes.
+- `legacy_training_rows_v6.dart`: a frozen copy of `LegacyTrainingRows` for the v5→v6 step.
+  - It freezes the enum identifiers, labels, synonyms, ranges, reason texts and the search key with its diacritic table.
+  - Production restore keeps using `LegacyTrainingRows`. A test proves both agree today.
+- `repforge_migration.dart`: the strategy builder for the test harness now and for v8 later.
+  - It switches foreign keys off before any transaction and verifies them off.
+  - Each step runs in its own transaction. `PRAGMA user_version = N` is the last statement inside it.
+  - It switches foreign keys on afterwards and verifies them on.
+  - After a failure it restores the keys and rethrows the original error. A failing restore never hides it.
+  - An injected clock stamps `quarantined_at`. A probe (`@visibleForTesting`, null by default) sees four checkpoints per step.
+  - `steps` and `onCreate` stay public API: v8 passes its own steps through them.
+- `test/migration_v8/harness_v7_db.dart`: a test-only database on the frozen v7 snapshot classes that runs the new chain.
+
+**New frozen evidence** (new files only; `fixtures/README_3b3.md` describes them)
+- `v7_strict_schema_3b3.json`: production v7 schema with raw SQL, strict SQL and CHECK clauses. It covers a fresh database and all 13 migrated fixtures.
+- `build_3b3_evidence.dart` wrote it from live production v7. The generator refuses to overwrite.
+- `MANIFEST_3b3.sha256` pins that file, `schema_versions.g.dart` and `legacy_training_rows_v6.dart`.
+- **MANIFEST_3b3.sha256 SHA-256:** `61ab326cdcbb782ae2e5ffc85ed66bdc962f1e21264482f6bca16864a58e5e9d`. `frozen_3b3_artefacts_test.dart` pins it.
+- `/.gitattributes` marks the two pinned code files `-text`.
+
+**Erratum to 3b-1** (also in `fixtures/README_3b3.md`; the 3b-1 README stays unchanged)
+- `normaliseSql` replaces every bracket, comma and operator with a literal `$1`. Dart does not expand `$1` in `replaceAll`.
+- Scope: `create_sql`, `checks` and `index_sql` in `expected_v7_digests.json`. They cannot tell `<` from `>`, or `=` from `<`.
+- 12 of the 35 v7 CHECK clauses hold such an operator. `table_info`, index lists, foreign keys and row digests are unaffected.
+- The strict record corrects this. A test shows `normaliseSql` of it gives every stored `create_sql`, check and `index_sql`.
+
+**Evidence** (`historical_steps_test.dart`, 173 tests, about 12 s, normal suite)
+- (a) All 13 fixtures (v1..v7, v2..v7 orphans) migrate to exactly `expected_v7_digests.json`: rows, schema, foreign keys, integrity.
+- (b) The schema equals a fresh v7 snapshot and the frozen strict production record. It also equals live production while v7 exists.
+- (c) 48 injected failures (before work, after work, after the version write) leave the previous version and digest. A re-run reaches (a).
+- (d) Negative control: a v5→v6 rebuild into the v7 shape fails with `no such column: set_kind` and changes nothing.
+- (e) `user_version` is N after step N. Foreign keys are off during the chain and on afterwards.
+  - With keys switched on at connection setup, the chain still sees them off and reaches (a). 11 cases.
+  - After an injected failure the keys are on again, and the original error propagates.
+  - A direct `upgrade()` leaves the keys on without drift's `beforeOpen`.
+- (f) 50 crash-window cases complete to the (a) result:
+  - 11 with all production work committed and the old `user_version`;
+  - 18 with production work up to v6 committed, v6→v7 missing, `user_version` 2 to 5, orphans included;
+  - 21 with one chain step committed and its version reset.
+- The generated shapes `Schema2`..`Schema7` create exactly the frozen `schema_v2`..`schema_v7` snapshot schemas.
+- `LegacyTrainingRowsV6`: golden tests for every label, synonym and range boundary and a Unicode sample. Equivalence tests against production.
+- `frozen_3b3_artefacts_test.dart`: 5 tests on the 3b-3 manifest and files.
+- `test/architecture/migration_isolation_test.dart`: no file outside `lib/data/db/migration/` imports it; `AppDatabase.schemaVersion` is 7.
+  - The chain imports no live mapping, enum or table class.
+- Mutation probes: the review ran 17; 3b-3 added two for the key restore. Each one failed tests.
+- Local gate: `dart format` exit 0; `flutter analyze --fatal-infos` exit 0; targeted suites pass at concurrency 1.
+- Full suite with coverage (concurrency 2): 2,068 passed, 1 skipped. Coverage gate: 93.3 % of hand-written lines (minimum 80 %).
+- `build_runner` leaves `lib` unchanged. Both manifests verify.
+
+**Difference between the new chain and production:** none found.
+
+**Deviations from the plan and the review**
+- `backfillSessionExercises` is an `AppDatabase` method, so the chain holds a frozen copy (`backfillSessionExercisesV7`).
+  - Restore also calls the production method, so v8 may change it. The copy must not change.
+  - Test (a) proves both produce the same rows on every fixture.
+- The private quarantine helpers are copied as well; the clock replaces `DateTime.now()`.
+- The harness accepts a target version below 7. Only the failure tests use it, for reference states.
+- The strict record is named `v7_strict_schema_3b3.json`, not `expected_v7_strict_schema.json`.
+  - The 3b-1 manifest test claims every `expected_*` file in `fixtures/`. That test is frozen.
+- `MANIFEST_3b3` does not pin `text_normalisation_table.g.dart`. The frozen v6 copy does not use it.
+  - Production `exerciseSearchKey` uses `search_key.dart` and Dart's `toLowerCase`, not the NFKD table.
+  - Pinning it would freeze unrelated live library code. A Unicode golden test pins the lower-casing instead.
+- `@visibleForTesting` marks only the probe. `steps` and `onCreate` are v8 API.
+
+**Open issues**
+- The frozen copy lower-cases with Dart's `String.toLowerCase`, like production. A Dart SDK Unicode update could change it; the golden test would fail.
+- Review item L5 is accepted: `strictNormaliseSql` is not SQL-aware. It collapses whitespace and removes `"` inside string literals.
+  - The frozen record also keeps the raw `sql`, which covers literals. The helper comment and `README_3b3.md` record it.
+- Production characteristic, reproduced on purpose: a quarantined exercise's `original_json` holds the rebuilt v6 row, not the v5 row.
+  - Nothing is lost: `is_custom` is NOT `supplied`, and the free text survives, because the UPDATE runs after the quarantine insert.
+  - Flagged for 3b-4: the quarantine design decides whether v8 keeps this form.

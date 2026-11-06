@@ -2,3 +2,6 @@
 app/test/migration_v8/fixtures/** -text
 app/drift_schemas/** -text
 app/test/data/generated_migrations/** -text
+# WP 8 stage 3b-3: frozen migration code pinned by MANIFEST_3b3.sha256.
+app/lib/data/db/migration/schema_versions.g.dart -text
+app/lib/data/db/migration/legacy_training_rows_v6.dart -text

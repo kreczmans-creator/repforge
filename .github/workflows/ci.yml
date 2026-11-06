@@ -44,9 +44,18 @@ jobs:
       - name: Resolve dependencies (pinned)
         run: flutter pub get --enforce-lockfile
 
+      # Runs in app/ (defaults.run.working-directory). The historical
+      # step-by-step shapes (WP 8 stage 3b-3) are not a build_runner output,
+      # so they are regenerated here too, from the frozen v1..v7 snapshots
+      # only: `schema steps` reads every JSON in its folder, and a later
+      # drift_schema_v8.json must not change this pinned file.
       - name: Verify generated code is current
         run: |
           dart run build_runner build --delete-conflicting-outputs
+          historical="$(mktemp -d)"
+          cp drift_schemas/drift_schema_v[1-7].json "$historical"/
+          dart run drift_dev schema steps "$historical" lib/data/db/migration/schema_versions.g.dart
+          rm -rf "$historical"
           git diff --exit-code -- lib
 
       - name: Format check
