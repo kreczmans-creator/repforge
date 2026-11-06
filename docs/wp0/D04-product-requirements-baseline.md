@@ -460,3 +460,22 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
   - restore that keeps the reference tables;
   - device timing and independent review.
 - **Migration:** stays unimplemented until the project resolves the remaining evidence and the disposition of all 303 records.
+
+### 2026-11-06 — WP 8 stage 3b implementation authorised; disposition of exercises with no primary target (owner)
+- **Implementation authorised:** build the v8 migration and its evidence on the branch. Schema version 8 appears only in isolated tests and migration fixtures.
+  - The production schema version stays 7 until the owner explicitly accepts stage 3b.
+  - This authorises implementation and testing, not release or production migration.
+  - The migration stays behind the version 7 production gate. It does not ship active.
+  - A passing test suite is not stage 3b acceptance.
+- **Exercises with no primary target:** block each affected exercise individually. Never fail the whole migration or lock the user out.
+  - Keep its stable id, original data and all historical references.
+  - Mark it blocked: unavailable for normal selection and new workout planning.
+  - Keep historical workout and session records readable and intact.
+  - The migration report gives its id, original target state and reason.
+  - Create no placeholder target and infer no anatomical target.
+  - Provide a route to correct the record later without rewriting historical sessions.
+  - This is a disposition for invalid legacy records, not a relaxed rule. New or imported system exercises still need a primary target.
+  - Stage 3b acceptance verifies that blocked records cannot enter new workouts, while their history stays accessible and consistent.
+- **CI:** CI on 77b1d4c does not substitute for CI on 52cbdef.
+- **X1:** not signed off. The owner asked for the exact table, ordered checks and boundary inclusivity in the conversation.
+

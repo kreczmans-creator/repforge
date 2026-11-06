@@ -590,3 +590,10 @@ The owner accepted the comparison trial as evidence for the approach. It is not 
 The migration stays unimplemented until the project resolves the remaining evidence and the disposition of all 303 records.
 
 **Review and gate for this record and the letter folds.** An independent review (opus) ran twice. It raised D1–D15, C1–C3, then R1–R9; all are fixed. Local gate: `dart format` 0 changed; analyzer no issues; 1,819 tests passed, 1 skipped; coverage 93.0 %.
+
+### Stage 3b implementation authorisation and no-primary disposition (owner, 2026-11-06)
+- The owner authorised implementation and testing of the v8 migration on the branch. Schema version 8 appears only in isolated tests and fixtures.
+- Production stays at schema version 7 until the owner accepts stage 3b. The migration does not ship active.
+- Each exercise with no primary target is blocked individually, never the whole migration (decision 4 refined). D04 lists the conditions.
+- Stage 3b acceptance verifies that blocked exercises cannot enter new workouts. Their history stays readable and consistent.
+
