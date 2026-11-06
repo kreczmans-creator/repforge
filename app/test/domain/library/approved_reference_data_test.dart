@@ -339,6 +339,28 @@ void main() {
         );
       }
     });
+
+    // X1 closed 2026-11-06 (owner): the approved boundary texts in
+    // coverage.json equal the code texts word for word.
+    test('boundary texts equal the code texts (X1)', () {
+      final json = readJson('reference/coverage.json')! as Map<String, Object?>;
+      final attributes =
+          (json['exerciseAttributesProposed']!
+                  as Map<String, Object?>)['attributes']!
+              as Map<String, Object?>;
+      for (final attribute in ExerciseAttribute.values) {
+        final texts =
+            (attributes[attribute.name]! as Map<String, Object?>)['values']!
+                as Map<String, Object?>;
+        for (final v in AttributeVocabulary.values[attribute]!) {
+          expect(
+            texts[v.value],
+            v.boundary,
+            reason: '${attribute.name}.${v.value}',
+          );
+        }
+      }
+    });
   });
 
   group('reference model', referenceModelTests);

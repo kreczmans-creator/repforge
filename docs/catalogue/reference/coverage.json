@@ -27,26 +27,26 @@
     }
   },
   "exerciseAttributesProposed": {
-    "status": "Approved 2026-11-05. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate checks. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format.",
+    "status": "Approved 2026-11-05. Optional controlled attributes of an exercise, used only as slot discriminators and by the duplicate checks. ADR-0008 implication: ADR-0008 has no attribute store (generic attribute stores were rejected as option 3 for classifications); each attribute would be an optional single-valued column or one small child table with a controlled value list, i.e. an amendment or clarification of ADR-0008 and a change to the release format. Amended 2026-11-06: the owner signed off X1. The angle, armPosition and kneePosition texts now equal the code.",
     "ifDeclined": "NOT USED. The owner approved the seven attributes with their vocabulary and boundary rules on 2026-11-05. The pattern-level fallback in attributeFallback is retained only as a record of the measurable alternative.",
     "attributes": {
       "angle": {
         "definition": "Angle of the bench or the body to the horizontal in a press or fly.",
         "values": {
-          "flat": "Bench or body within about 10 degrees of horizontal.",
-          "incline": "Bench raised about 15 to 45 degrees (steeper is a vertical push, rule R2).",
-          "decline": "Bench lowered with the head below the hips."
+          "flat": "Bench or body from 10 degrees head-down to 10 degrees head-up inclusive.",
+          "incline": "Bench raised more than 10 and up to 45 degrees (steeper is a vertical push, rule R2).",
+          "decline": "Bench lowered with the head more than 10 and up to 90 degrees below the hips."
         }
       },
       "armPosition": {
         "definition": "Position of the working upper arm relative to the trunk at the start of the movement.",
         "values": {
-          "besideBody": "Upper arm hangs by the side, within about 20 degrees of the trunk line.",
-          "behindBody": "Elbow behind the trunk line by more than about 20 degrees (for example an incline curl).",
-          "supportedInFront": "Upper arm rests on a pad, bench or thigh in front of the trunk.",
-          "overhead": "Upper arm above the head, elbow at or above ear height.",
-          "flexed90": "Upper arm raised forward to about 90 degrees (level with the floor).",
-          "abducted90": "Upper arm out to the side at about 90 degrees with the elbow bent (90/90)."
+          "besideBody": "Upper arm hangs by the side, from 0 to 20 degrees inclusive from the trunk line, in any direction.",
+          "behindBody": "Elbow behind the trunk line by more than 20 and up to 180 degrees (for example an incline curl). Takes precedence over overhead.",
+          "supportedInFront": "Upper arm rests on a pad, bench or thigh in front of the trunk, at any angle from 0 to 180 degrees from the trunk line. Takes precedence over every other arm value.",
+          "overhead": "Upper arm raised forward or to the side more than 135 and up to 180 degrees from the trunk line (typically with the elbow at or above ear height). Not used for an arm behind the trunk.",
+          "flexed90": "Upper arm raised forward more than 20 and up to 135 degrees from the trunk line (typically about 90 degrees).",
+          "abducted90": "Upper arm raised to the side more than 20 and up to 135 degrees from the trunk line (typically 90/90 with the elbow bent)."
         }
       },
       "bodyPosition": {
@@ -82,8 +82,8 @@
       "kneePosition": {
         "definition": "Knee angle during a calf or lower-leg movement.",
         "values": {
-          "straight": "Knee within about 10 degrees of straight.",
-          "bent": "Knee bent to about 90 degrees."
+          "straight": "Knee from fully straight (0 degrees) to 10 degrees of flexion inclusive.",
+          "bent": "Knee bent more than 10 and up to 180 degrees of flexion (typically about 90)."
         }
       },
       "stance": {

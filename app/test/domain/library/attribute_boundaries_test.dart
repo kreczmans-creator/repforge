@@ -4,7 +4,7 @@ import 'package:repforge/domain/library/exercise_attributes.dart';
 /// One band of a boundary table: an interval with inclusive or exclusive ends.
 typedef Band = ({String name, double lo, bool loIncl, double hi, bool hiIncl});
 
-/// X1 (deferred review item): the attribute boundary rules are contiguous, so
+/// X1 (closed 2026-11-06): the attribute boundary rules are contiguous, so
 /// every measurement maps to exactly one value and no gap is left between the
 /// values (angle 10 to 15 degrees, arm 20 to 90 degrees, knee 10 to 90).
 void main() {

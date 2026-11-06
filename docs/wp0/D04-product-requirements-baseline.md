@@ -479,3 +479,13 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **CI:** CI on 77b1d4c does not substitute for CI on 52cbdef.
 - **X1:** not signed off. The owner asked for the exact table, ordered checks and boundary inclusivity in the conversation.
 
+### 2026-11-06 — X1 closed (owner)
+- The owner signed off the X1 classification table and boundary cases in `delivery-record/WP8.md`.
+- Bench −10° and +10° are flat; incline starts above +10°. A bench 5° head-down is flat.
+- Knee 10° is straight; bent starts above 10°.
+- An arm at exactly 20° is `besideBody`, behind the trunk included; `behindBody` starts above 20°.
+- `supportedInFront` wins over every other valid arm value; invalid angles stay invalid. `behindBody` is checked before `overhead`.
+- Values outside the valid ranges get no classification. The classifiers never clamp them.
+- Authorised follow-up: align `coverage.json` and `coverage-matrix.md` with the approved wording and remove the superseded elbow conditions. Thresholds and classifier stay unchanged.
+- The owner closes X1 against the current decision and implementation evidence. This is not stage 3b acceptance.
+

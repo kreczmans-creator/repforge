@@ -30,14 +30,14 @@ enum ArmDirection { forward, lateral, behind }
 /// Vocabulary and boundary rules of the seven attributes.
 ///
 /// The value names equal the approved `coverage.json` vocabulary (a test
-/// compares them). **X1 (open until the owner confirms this wording):** the
-/// approved boundary texts left gaps (angle 10 to 15 degrees, arm 20 to 90
-/// degrees, knee 10 to 90 degrees). The texts below match the classifiers in
-/// [AttributeBoundaries] exactly: every measurement maps to exactly one value,
-/// and where two arm texts could both fit, a precedence sentence says which
-/// value wins (`supportedInFront` over all other arm values, `behindBody`
+/// compares them), and so do the boundary texts. **X1 (closed 2026-11-06,
+/// owner sign-off):** the earlier texts left gaps (angle 10 to 15 degrees,
+/// arm 20 to 90 degrees, knee 10 to 90 degrees). The texts below match the
+/// classifiers in [AttributeBoundaries] exactly: every measurement maps to
+/// exactly one value, and where two arm texts could both fit, a precedence
+/// sentence says which value wins (`supportedInFront` over all other arm values, `behindBody`
 /// over `overhead`). The cut points (bench 10 degrees, arm 20 and 135 degrees,
-/// knee 10 degrees) are approved in principle by the owner (2026-11-06). A
+/// knee 10 degrees) are approved by the owner (2026-11-06). A
 /// measurement outside an attribute's range has no value; that is derived,
 /// not a text.
 abstract final class AttributeVocabulary {

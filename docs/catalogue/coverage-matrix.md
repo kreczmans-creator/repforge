@@ -1,6 +1,6 @@
 # Coverage matrix and minimum targets (OQ-23) — approved
 
-- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** WP 8 stage 4 (documentation only). Stage 5 is authorised in principle; bulk population starts only after WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified, and after the 5.1 pilot gate.
+- Status: **Approved by the owner 2026-11-05 (OQ-22 / OQ-23).** *Amended 2026-11-06: the owner signed off X1. The section 3 rules for `angle`, `armPosition` and `kneePosition` now equal the code.* WP 8 stage 4 (documentation only). Stage 5 is authorised in principle; bulk population starts only after WP 8 stage 3 reference-data, integrity and migration tooling is implemented and verified, and after the 5.1 pilot gate.
 - **Owner statement (2026-11-05):** the coverage framework is an **acceptance mechanism, not a demand to populate exercises to satisfy numbers**. Quality and meaningful variation take precedence over any minimum; superficial variations are optional and never required.
 - Requirements: owner decision 6 (structured coverage matrix is the formal acceptance mechanism for population; minimums per region before population; explicit gap report; raw count is not enough), LIB-001..LIB-005.
 - Inputs: `reference/anatomy.json`, `reference/movement-patterns.json`, `reference/equipment.json`; baseline from `app/assets/seed/exercise_library.json` through `mapping-existing.json` (89 exercises, read only).
@@ -35,15 +35,15 @@ Some slots need a fact that the existing fields do not record (the angle of a pr
 
 | Attribute | Value | Boundary rule | Used by slots |
 |---|---|---|---|
-| `angle` — Angle of the bench or the body to the horizontal in a press or fly. | `flat` | Bench or body within about 10 degrees of horizontal. | `chest.declinePress`, `chest.flatPress`, `chest.inclinePress` |
-|  | `incline` | Bench raised about 15 to 45 degrees (steeper is a vertical push, rule R2). |  |
-|  | `decline` | Bench lowered with the head below the hips. |  |
-| `armPosition` — Position of the working upper arm relative to the trunk at the start of the movement. | `besideBody` | Upper arm hangs by the side, within about 20 degrees of the trunk line. | `biceps.armBehindBody`, `biceps.armBesideBody`, `biceps.armSupported`, `rotatorCuff.externalRotationArmAbducted`, `rotatorCuff.externalRotationArmAtSide`, `triceps.overhead`, `triceps.pushdown` |
-|  | `behindBody` | Elbow behind the trunk line by more than about 20 degrees (for example an incline curl). |  |
-|  | `supportedInFront` | Upper arm rests on a pad, bench or thigh in front of the trunk. |  |
-|  | `overhead` | Upper arm above the head, elbow at or above ear height. |  |
-|  | `flexed90` | Upper arm raised forward to about 90 degrees (level with the floor). |  |
-|  | `abducted90` | Upper arm out to the side at about 90 degrees with the elbow bent (90/90). |  |
+| `angle` — Angle of the bench or the body to the horizontal in a press or fly. | `flat` | Bench or body from 10 degrees head-down to 10 degrees head-up inclusive. | `chest.declinePress`, `chest.flatPress`, `chest.inclinePress` |
+|  | `incline` | Bench raised more than 10 and up to 45 degrees (steeper is a vertical push, rule R2). |  |
+|  | `decline` | Bench lowered with the head more than 10 and up to 90 degrees below the hips. |  |
+| `armPosition` — Position of the working upper arm relative to the trunk at the start of the movement. | `besideBody` | Upper arm hangs by the side, from 0 to 20 degrees inclusive from the trunk line, in any direction. | `biceps.armBehindBody`, `biceps.armBesideBody`, `biceps.armSupported`, `rotatorCuff.externalRotationArmAbducted`, `rotatorCuff.externalRotationArmAtSide`, `triceps.overhead`, `triceps.pushdown` |
+|  | `behindBody` | Elbow behind the trunk line by more than 20 and up to 180 degrees (for example an incline curl). Takes precedence over overhead. |  |
+|  | `supportedInFront` | Upper arm rests on a pad, bench or thigh in front of the trunk, at any angle from 0 to 180 degrees from the trunk line. Takes precedence over every other arm value. |  |
+|  | `overhead` | Upper arm raised forward or to the side more than 135 and up to 180 degrees from the trunk line (typically with the elbow at or above ear height). Not used for an arm behind the trunk. |  |
+|  | `flexed90` | Upper arm raised forward more than 20 and up to 135 degrees from the trunk line (typically about 90 degrees). |  |
+|  | `abducted90` | Upper arm raised to the side more than 20 and up to 135 degrees from the trunk line (typically 90/90 with the elbow bent). |  |
 | `bodyPosition` — Position of the trunk and the support while the exercise is performed. | `standing` | Upright on the feet. | `glutes.bridgeBodyweight`, `glutes.kickback`, `glutes.reverseHyper`, `glutes.thrustLoaded`, `triceps.kickback`, `triceps.lying` |
 |  | `seated` | Sitting, back supported or not. |  |
 |  | `lying` | On the back or side, supported along the length of the trunk. |  |
@@ -59,8 +59,8 @@ Some slots need a fact that the existing fields do not record (the angle of a pr
 | `gripWidth` — Distance between the hands relative to the shoulders. | `close` | Hands inside shoulder width. | duplicate check only |
 |  | `standard` | Hands about shoulder width. |  |
 |  | `wide` | Hands outside shoulder width by more than a hand width. |  |
-| `kneePosition` — Knee angle during a calf or lower-leg movement. | `straight` | Knee within about 10 degrees of straight. | `calves.bentKnee`, `calves.straightKnee` |
-|  | `bent` | Knee bent to about 90 degrees. |  |
+| `kneePosition` — Knee angle during a calf or lower-leg movement. | `straight` | Knee from fully straight (0 degrees) to 10 degrees of flexion inclusive. | `calves.bentKnee`, `calves.straightKnee` |
+|  | `bent` | Knee bent more than 10 and up to 180 degrees of flexion (typically about 90). |  |
 | `stance` — Foot placement relative to the hips. | `narrow` | Feet inside hip width. | duplicate check only |
 |  | `standard` | Feet hip to shoulder width. |  |
 |  | `wide` | Feet outside shoulder width. |  |
