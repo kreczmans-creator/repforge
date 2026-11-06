@@ -10,6 +10,7 @@ import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/library/migration_report.dart';
 
 import '../../migration_v8/migration_digest.dart' as digest;
+import '../../migration_v8/v8_migration_support.dart' as mig;
 import 'backup_v8_support.dart';
 
 /// WP 8 sub-stage 3b-7: backup format 3 and the restore contract
@@ -593,6 +594,57 @@ void main() {
           expect(app.schemaVersion, 7);
         } finally {
           await app.close();
+          await v8.close();
+        }
+      });
+    });
+  });
+
+  group('a device migrated from v7 (3b-4)', () {
+    test('restores the v7 backup of its own v7 data: the system exercises '
+        'equal the device rows (no difference to report), user data is '
+        'replaced, the migration report stays', () async {
+      await inBackupTempDir((dir) async {
+        final file = mig.copyFixture(digest.fixturePath(7), dir);
+        expect(await mig.openV8(file), isNull);
+        final v8 = await V8File.open(file);
+        try {
+          final migrationEntries = await v8.rows(
+            "SELECT * FROM migration_report_entries WHERE run_id = 'run-1'",
+          );
+          expect(migrationEntries, isNotEmpty);
+          final refBefore = v8.digests();
+          final result = await v8.repo().importJson(
+            readGolden(digest.goldenFormat2Path()),
+          );
+          expect(result, isA<Ok<Object?>>(), reason: '$result');
+          final system = await v8.rows(
+            "SELECT id FROM exercises WHERE source = 'system'",
+          );
+          expect(system, hasLength(12));
+          // The device's lib-* rows equal the backup's mapped rows.
+          expect(
+            await v8.rows(
+              'SELECT * FROM migration_report_entries WHERE run_id = '
+              "'restore-1' AND rule = '$deviceWinsRule'",
+            ),
+            isEmpty,
+          );
+          expect(
+            await v8.rows(
+              "SELECT * FROM migration_report_entries WHERE run_id = 'run-1'",
+            ),
+            migrationEntries,
+          );
+          for (final t in referenceTables) {
+            expect(
+              tableDigest(v8.digests(), t),
+              tableDigest(refBefore, t),
+              reason: t,
+            );
+          }
+          v8NoForeignKeyViolation(v8);
+        } finally {
           await v8.close();
         }
       });
