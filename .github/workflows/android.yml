@@ -74,6 +74,18 @@ jobs:
           ls -l build/app/outputs/flutter-apk/app-debug.apk
           sha256sum build/app/outputs/flutter-apk/app-debug.apk
           ls -l build/app/outputs/flutter-apk/app-release.apk
+          sha256sum build/app/outputs/flutter-apk/app-release.apk
+
+      # WP 14 release verification: signature and package metadata of both
+      # APKs, printed into the log as build evidence.
+      - name: Verify APK signatures and metadata
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          for apk in build/app/outputs/flutter-apk/app-debug.apk build/app/outputs/flutter-apk/app-release.apk; do
+            echo "== $apk"
+            "$tools/apksigner" verify --print-certs "$apk"
+            "$tools/aapt2" dump badging "$apk" | grep -E "^package:|^application-label:|sdkVersion|targetSdkVersion"
+          done
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

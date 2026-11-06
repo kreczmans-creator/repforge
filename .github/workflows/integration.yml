@@ -56,6 +56,11 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: pixel_6
+          # WP 14: the hosted emulator sometimes never reports boot within
+          # the default 600 s (run 42293964654 on main, 2026-11-06, no test
+          # ran). A longer wait costs nothing on a healthy boot and turns a
+          # slow boot from an infrastructure failure into a result.
+          emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           working-directory: app

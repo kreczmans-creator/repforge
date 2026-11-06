@@ -75,6 +75,18 @@ jobs:
           ls -l ../dist
           (cd ../dist && sha256sum *.apk | tee SHA256SUMS.txt)
 
+      # WP 14 release verification: every published APK is checked for a
+      # valid signature and its package id and version are printed, so the
+      # release evidence does not rely on the build step alone.
+      - name: Verify APK signatures and metadata
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          for apk in dist/*.apk; do
+            echo "== $apk"
+            "$tools/apksigner" verify --print-certs "$apk"
+            "$tools/aapt2" dump badging "$apk" | grep -E "^package:|^application-label:|sdkVersion|targetSdkVersion"
+          done
+
       - name: Write release notes
         run: |
           {
