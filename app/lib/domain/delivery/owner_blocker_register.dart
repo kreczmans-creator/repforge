@@ -2,7 +2,7 @@ import 'package:repforge/domain/delivery/owner_blocker.dart';
 
 // Canonical register of owner actions and genuine delivery blockers across
 // WP 8, WP 15 and WP 17, reconciled against the delivery records named in
-// each entry on 2026-11-07 (overnight integration campaign). Only items
+// each entry during the overnight integration campaign of 2026-11-06/07. Only items
 // that need the owner, a physical device, an external verifier or an
 // outside dependency are listed; work the delivery agents can finish by
 // themselves is not. The statuses below are the state recorded in the
@@ -27,29 +27,33 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'worst duration recorded.',
     category: BlockerCategory.physicalDeviceAction,
     priority: BlockerPriority.high,
-    initialStatus: BlockerStatus.awaitingOwner,
+    initialStatus: BlockerStatus.open,
     assignee: BlockerAssignee.owner,
     whyBlocked:
         'Profile-mode timing needs a physical device; emulator and host '
         'figures are not accepted as 3b-9 evidence. The agents have no '
-        'device. The device harness still runs the historical v5 to v7 '
-        'stand-in; switching it to the real v7 to v8 migration is WP 8 '
-        'session work that must land before the device run, or the run '
-        'times the wrong migration.',
+        'device. Not yet ready for the owner: the migration under test '
+        'still changes under the approved decision baseline (R-30, R-28, '
+        'R-32, R-33), which is unpushed, and the device harness still runs '
+        'the historical v5 to v7 stand-in. A run before both land would '
+        'time the wrong migration and be invalidated.',
     actionRequired:
         'Connect the Android phone, run app/tool/device_timing.sh at the '
         'release commit as described in docs/device-timing.md, and return '
         'the result files.',
     recommendation:
-        'Run it on the phone you use for RepForge testing, after backing up '
-        'its data; expect roughly ten minutes including the profile build.',
+        'Wait for the WP 8 session to report the decision baseline and the '
+        'v7to8 harness as pushed and reviewed, then run it on the phone you '
+        'use for RepForge testing, after backing up its data. The profile '
+        'is a stress profile (5,000 exercises, 100,000 sets), so allow '
+        'time for the profile build.',
     consequences:
         'Until both device runs exist, stage 3b-9 earns only its harness '
         'credit (0.10 of 0.30) and stage 3b cannot be accepted, which holds '
         'back 3c, 3d and the v8 switch-over.',
     dependencies: [
+      'Decision baseline (R-30, R-28, R-32, R-33) pushed and reviewed',
       'Device harness switched from the stand-in to v7to8 (WP 8 session)',
-      'Release commit with the v7 to v8 migration on main',
     ],
     evidence: [
       BlockerEvidence('Device procedure', reference: 'docs/device-timing.md'),
@@ -75,11 +79,13 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'iPhone, built from a Mac with Xcode and signed for the device.',
     category: BlockerCategory.physicalDeviceAction,
     priority: BlockerPriority.high,
-    initialStatus: BlockerStatus.awaitingOwner,
+    initialStatus: BlockerStatus.open,
     assignee: BlockerAssignee.owner,
     whyBlocked:
         'Needs a physical iPhone and an Apple-signed device build; CI only '
-        'produces unsigned simulator builds (docs/wp0/D07-ci-cd-strategy.md).',
+        'produces unsigned simulator builds (docs/wp0/D07-ci-cd-strategy.md). '
+        'Same readiness condition as the Android run: the migration and '
+        'the harness must be final first.',
     actionRequired:
         'On a Mac with Xcode and the iPhone connected, run '
         'app/tool/device_timing.sh per docs/device-timing.md and return the '
@@ -91,7 +97,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     consequences:
         'Without the iPhone run the platform evidence required by the '
         'owner decision is incomplete and 3b stays unaccepted.',
-    dependencies: ['OB-WP8-01 (same harness and release commit)'],
+    dependencies: ['OB-WP8-01 (same readiness conditions and harness)'],
     evidence: [
       BlockerEvidence('Device procedure', reference: 'docs/device-timing.md'),
       BlockerEvidence(
@@ -122,13 +128,20 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'Read the sub-stage sections and review tables in the WP 8 record, '
         'then record acceptance (or conditions) in D04 §7 and the record.',
     recommendation:
-        'Accept 3b-2, 3b-5, 3b-6 and 3b-8 on the recorded evidence; hold '
-        '3b-4 acceptance until the decision-baseline implementation '
-        '(R-30 option b and the rest) is on main with CI evidence.',
+        'Hold acceptance of every sub-stage the approved decision baseline '
+        'changes until that implementation is pushed and re-reviewed: 3b-2 '
+        '(C-1 adds the report action "corrected", which the v8 CHECK '
+        'constraints must admit), 3b-4 (R-30, R-28, R-31, R-33), 3b-6 '
+        '(R-32 crashed-run identity) and 3b-8 (C-1, R-C4, R-C8). Check '
+        '3b-5 against R-30 before accepting it. Accepting now would accept '
+        'work that is about to change.',
     consequences:
         'Deferral keeps 3b below 100 % and the WP 8 figure provisional; it '
         'does not block implementation work on 3c.',
-    dependencies: ['OB-WP8-04'],
+    dependencies: [
+      'Decision-baseline implementation pushed and re-reviewed (WP 8 session)',
+      'OB-WP8-04',
+    ],
     evidence: [
       BlockerEvidence(
         'WP 8 record sub-stage sections and effort table',
@@ -246,7 +259,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'custom-food servings as outside NUT-022 for WP 15.',
     recommendation:
         'Option (a): it is small, reuses EntryUnit, and removes the only '
-        'screen where a user cannot type kilograms.',
+        'food-quantity entry where a user cannot type kilograms.',
     consequences:
         'Deferral keeps 0.25 points unearned and leaves the scope '
         'discrepancy open at acceptance; option (b) closes it with no code.',
@@ -287,7 +300,9 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'and the R15-06 API-precision note is recorded.',
     consequences:
         'Until approved, the implemented behaviour is "proposed" and WP 15 '
-        'cannot be accepted (0.20 points unearned).',
+        'cannot be accepted. The 0.20-point line "specification revision '
+        '1.4 and owner decisions (including OQ-02)" is shared with '
+        'OB-WP15-03 and OB-WP15-04.',
     evidence: [
       BlockerEvidence(
         'Specification',
@@ -325,7 +340,8 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'as a roadmap extension; this closes OQ-02 for WP 15 acceptance.',
     consequences:
         'Deferral leaves OQ-02 open on three work packages and keeps the '
-        'WP 15 decision line unearned.',
+        'shared 0.20-point WP 15 decision line (with OB-WP15-02 and '
+        'OB-WP15-04) unearned.',
     evidence: [
       BlockerEvidence('Open question', reference: 'D04 OQ-02'),
       BlockerEvidence(
@@ -375,9 +391,14 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     reference: 'D06 WP 15 acceptance criteria',
     title: 'Owner acceptance of WP 15 stages 1 and 2',
     description:
-        'Stages 1 and 2 are implemented, independently reviewed (R15-01 to '
-        'R15-06 dispositioned) and CI-verified. Acceptance and closure '
-        "(0.25 points) are the owner's.",
+        'Stages 1 and 2 are implemented; a separate agent reviewed them '
+        '(R15-01 to R15-06 dispositioned) and the review-fix commit 26e9f10 '
+        'was re-checked by an independent agent during the overnight '
+        'campaign (see the WP 15 record). CI evidence: four workflows green '
+        'at 353fcd8, and the integrated campaign commit carries the review '
+        "fixes. Acceptance and closure (0.25 points) are the owner's; "
+        'whether an agent review satisfies the acceptance criteria or a '
+        'human reviewer is required is OB-PROG-01.',
     category: BlockerCategory.ownerAcceptance,
     priority: BlockerPriority.medium,
     initialStatus: BlockerStatus.awaitingOwner,
@@ -392,7 +413,13 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     consequences:
         'WP 15 stays at its earned implementation figure and open in the '
         'programme roll-up.',
-    dependencies: ['OB-WP15-01', 'OB-WP15-02', 'OB-WP15-03', 'OB-WP15-04'],
+    dependencies: [
+      'OB-WP15-01',
+      'OB-WP15-02',
+      'OB-WP15-03',
+      'OB-WP15-04',
+      'OB-PROG-01',
+    ],
     evidence: [
       BlockerEvidence(
         'Review table and CI evidence',
@@ -485,7 +512,9 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     workPackage: BlockerWorkPackage.wp17,
     stage: 'S4d',
     reference: 'TRN-021; review R17-04',
-    title: 'Rest-timer survival across process death: do now or defer to v9',
+    title:
+        'Rest-timer survival across process death: implement in S4 before '
+        'acceptance, or accept S4 without it',
     description:
         'The rest timer lives in memory only. Review R17-04 established that '
         'persisting it needs no schema change (a typed accessor on the '
@@ -496,18 +525,21 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     initialStatus: BlockerStatus.awaitingOwner,
     assignee: BlockerAssignee.owner,
     whyBlocked:
-        'The campaign brief keeps S4d deferred to v9 unless the owner '
-        'approves otherwise; agents may not pull deferred scope forward.',
+        'The WP 17 record (R17-04) keeps S4d in S4 at 0.30 points, not '
+        'started, with no reallocation to v9, and says the owner decides '
+        'whether it is done before S4 acceptance. The campaign brief adds '
+        'that agents do not implement it without that decision.',
     actionRequired:
-        'Decide: implement S4d in WP 17 S4 (about 0.30 points), or keep it '
-        'deferred and record S4 acceptance without it.',
+        'Decide: implement S4d in WP 17 S4 before S4 acceptance (about 0.30 '
+        'points), or accept S4 without it and leave the 0.30 unearned.',
     recommendation:
-        'Keep it deferred for this release; the background notification '
-        'already covers the common case of leaving the app during a rest.',
+        'Accept S4 without it for this release; the background notification '
+        'already covers the common case of leaving the app during a rest, '
+        'and the change can follow as its own small, reviewed commit.',
     consequences:
-        'Deferral: a rest in progress is lost if Android kills the process; '
-        'the notification still fires. Doing it now adds a small settings '
-        'accessor and controller change under full regression.',
+        'Without it, a rest in progress is lost if Android kills the '
+        'process; the notification still fires. Doing it now adds a small '
+        'settings accessor and controller change under full regression.',
     evidence: [
       BlockerEvidence('Review finding', reference: 'WP17.md, R17-04'),
       BlockerEvidence(
@@ -598,9 +630,11 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     reference: 'D-5 density (NUT-022(2)); see OB-WP15-03 for OQ-02',
     title: 'Whether a food may carry a density for volume to mass conversion',
     description:
-        'NUT-022(2) forbids mass to volume conversion without a stated '
-        'density, and no density exists in the model. D-5 asks whether a '
-        'food may carry one (a schema change, v9).',
+        'NUT-022(2) reads: "Volume to mass conversion is only applied where '
+        'the food has a stated density; otherwise the app asks for grams." '
+        'No density exists in the model, so no volume to mass conversion '
+        'exists. D-5 asks whether a food may carry a density (a schema '
+        'change, v9).',
     category: BlockerCategory.ownerDecision,
     priority: BlockerPriority.low,
     initialStatus: BlockerStatus.awaitingOwner,
@@ -613,8 +647,10 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'food in v9 with the conversion rule.',
     recommendation: 'No density in v1; revisit with the v9 allocation.',
     consequences:
-        'Without density, a per-100 ml food cannot be logged in grams; the '
-        'app asks for millilitres, which NUT-022(2) accepts.',
+        'Without density, a per-100 ml food cannot be logged in grams. '
+        'Today the app offers only ml and l for such a food; whether that '
+        'reading of "otherwise the app asks for grams" is acceptable is '
+        'for the owner to confirm with this decision.',
     evidence: [
       BlockerEvidence('Requirement', reference: 'D04 NUT-022(2)'),
       BlockerEvidence(
@@ -702,18 +738,78 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     whyBlocked: 'Acceptance is reserved to the owner.',
     actionRequired:
         'Try the features in the release build, read the S3/S4 review '
-        'table, and record acceptance or conditions.',
+        'table and the overnight integration review (findings D-01 to '
+        'D-08), and record acceptance or conditions. Two points need your '
+        'call: (1) whether deleting a plan should also skip its future '
+        'planned occurrences on the schedule (today they stay, labelled '
+        '"Deleted workout", with no Start); (2) whether the plan row keeps '
+        'its four trailing actions or moves Duplicate, Delete and Archive '
+        'into a menu (integration review D-06, deferred).',
     recommendation:
         'Accept S3 and S4 after OB-WP17-01; note the S4 warm-up rule in '
-        'save-as-plan (R17-02) as an accepted design choice or override it.',
+        'save-as-plan (R17-02) as an accepted design choice or override '
+        'it; keep the future occurrences of deleted plans as they are (the '
+        'user can skip them) and move the row actions into a menu as a '
+        'small follow-up.',
     consequences:
         'WP 17 stays at 3.00 earned of 9.00 and its review and acceptance '
         'lines at zero.',
-    dependencies: ['OB-WP17-01', 'OB-WP17-02', 'OB-WP17-03'],
+    dependencies: ['OB-WP17-01', 'OB-WP17-02', 'OB-WP17-03', 'OB-PROG-01'],
     evidence: [
       BlockerEvidence(
         'Review table',
         reference: 'WP17.md, "Independent review of S3 and S4"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP17.md',
+  ),
+  // ----------------------------------------------------------- Programme
+  OwnerBlocker(
+    id: 'OB-PROG-01',
+    workPackage: BlockerWorkPackage.programme,
+    stage: 'Acceptance of WP 15, WP 17 and WP 8 stage 3b',
+    reference: 'WP 15 and WP 17 records, "Independent review" sections',
+    title:
+        'Whether agent reviews satisfy acceptance, or a human reviewer is '
+        'required',
+    description:
+        'Every independent review in the active work packages was done by '
+        'a separate agent with fresh context, as the records state, and '
+        'each record adds that the owner may still require a human '
+        'reviewer before acceptance. The campaign ran further agent reviews '
+        '(cross-package integration, the blocker workspace, the WP 15 '
+        'review-fix re-check). No decision says whether that is enough.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Acceptance criteria name "independent review"; whether an agent '
+        'review counts is a governance choice only the owner can make.',
+    actionRequired:
+        'Decide, for the active work packages: agent reviews with the '
+        'recorded dispositions suffice, or a named human reviewer must '
+        'sign off before acceptance (and for which packages).',
+    recommendation:
+        'Accept agent reviews as sufficient for WP 15 and WP 17 stages '
+        'S3/S4, given the recorded probes and corrections, and require a '
+        'human reviewer only for WP 8 stage 3b (migration and user data).',
+    consequences:
+        'Requiring a human reviewer everywhere delays every acceptance '
+        'until one is available; accepting agent reviews moves the review '
+        'credit lines (WP 15 0.10, WP 17 0.50) to earned once recorded.',
+    evidence: [
+      BlockerEvidence(
+        'WP 15 review section',
+        reference: 'WP15.md, "Independent review of stages 1–2"',
+      ),
+      BlockerEvidence(
+        'WP 17 review section',
+        reference: 'WP17.md, "Independent review of S3 and S4"',
+      ),
+      BlockerEvidence(
+        'Campaign reviews',
+        reference: 'docs/verification/overnight-campaign-2026-11-06.md',
       ),
     ],
     deliveryRecord: 'docs/delivery-record/WP17.md',

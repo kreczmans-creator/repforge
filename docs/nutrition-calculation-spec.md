@@ -97,7 +97,7 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | E32 | 9.3, 9.5 | recipe total 1200 kcal, *W* 1200 g, portion 300 g; log 450 g | 4 portions; 450 g → 450 kcal (1.5 portions) |
 | E33 | 7.6 | week: day A 1000 kcal P 90; day B 2000 kcal P unknown | avg 1500 kcal; avg P 90 (1 day unknown) |
 | E34 | 7.6 | week with 2 logged days out of 7, 1800 and 2200 kcal | avg 2000 kcal (5 unlogged days excluded) |
-| E35 | 2.3 | 100 lb (display conversion) | 45.359237 kg ± 0.001 (kg/l/mg entry not implemented, see §2.3) |
+| E35 | 2.3 | 100 lb (display conversion) | 45.359237 kg ± 0.001 (kg and l entry: §2.3 and E42–E49, revision 1.4) |
 | E36 | 3.1 | display 19.5, 2.25 (1 dp), 131.25 (1 dp) | "20", "2.3", "131.3" |
 | E37 | 8.2, 9 | recipe: 100 g Oats (verified) + 250 ml Milk (crowdsourced) | recipe provenance crowdsourced |
 | E38 | 8.3 | recipe: 4 portions, 3 ingredient notes, declared 460 kcal per portion, plus one linked 100 g Oats | 460 kcal per portion, estimated (not computed from the oats alone) |

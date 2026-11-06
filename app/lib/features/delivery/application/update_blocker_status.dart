@@ -24,7 +24,8 @@ final class UpdateBlockerStatus {
     required BlockerStatus status,
     String? note,
   }) async {
-    if (!register.any((b) => b.id == blockerId)) {
+    final blocker = register.where((b) => b.id == blockerId).firstOrNull;
+    if (blocker == null) {
       return const Err(
         ValidationError(
           'This blocker is not in the register.',
@@ -41,16 +42,41 @@ final class UpdateBlockerStatus {
         ),
       );
     }
-    final state = BlockerState(
+    final cleanNote = trimmed == null || trimmed.isEmpty ? null : trimmed;
+    if (status == BlockerStatus.resolved &&
+        cleanNote == null &&
+        needsResolutionNote(blocker)) {
+      return const Err(
+        ValidationError(
+          'Record the decision in the note before resolving this item, so '
+          'the audit trail shows what was decided.',
+          field: 'note',
+        ),
+      );
+    }
+    final change = BlockerChange(
       status: status,
-      updatedAt: clock.now().toUtc(),
-      note: trimmed == null || trimmed.isEmpty ? null : trimmed,
+      at: clock.now().toUtc(),
+      note: cleanNote,
     );
+    final BlockerState saved;
     try {
-      await repository.saveBlockerState(blockerId, state);
-    } on Exception catch (e) {
+      final earlier = (await repository.readBlockerStates())[blockerId];
+      saved = BlockerState.after(earlier, change);
+      await repository.saveBlockerState(blockerId, saved);
+    } on Object catch (e) {
+      // Any failure, including a TypeError from foreign stored data, is a
+      // storage error to the caller; nothing may escape the use case.
       return Err(StorageError('Could not save the blocker status.', cause: e));
     }
-    return Ok(state);
+    return Ok(saved);
   }
+
+  /// Resolving an owner decision, a scope approval or an owner acceptance
+  /// without a note would leave no record of what was decided.
+  static bool needsResolutionNote(OwnerBlocker blocker) => const {
+    BlockerCategory.ownerDecision,
+    BlockerCategory.scopeApproval,
+    BlockerCategory.ownerAcceptance,
+  }.contains(blocker.category);
 }

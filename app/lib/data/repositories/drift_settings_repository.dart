@@ -160,20 +160,31 @@ final class DriftSettingsRepository implements SettingsRepository {
   Stream<Map<String, BlockerState>> watchBlockerStates() =>
       (_db.select(_db.settings)..where((t) => t.key.equals(_blockerStates)))
           .watchSingleOrNull()
-          .map((row) => BlockerStateCodec.decode(row?.value));
+          .map((row) => row?.value)
+          .distinct()
+          .map(BlockerStateCodec.decode);
 
   @override
   Future<Map<String, BlockerState>> readBlockerStates() async =>
       BlockerStateCodec.decode(await _readValue(_blockerStates));
 
-  /// Read-modify-write inside one transaction so two quick changes to
-  /// different blockers never lose each other.
+  /// Read-modify-write of the raw JSON inside one transaction, so two quick
+  /// changes to different blockers never lose each other and entries this
+  /// build cannot read are kept as stored. The new state carries the
+  /// earlier changes of the same blocker as its history. A stored value
+  /// that is not a JSON object makes the save fail (see
+  /// [BlockerStateCodec.merge]) instead of being overwritten.
   @override
   Future<void> saveBlockerState(String blockerId, BlockerState state) =>
       _db.transaction(() async {
-        final current = Map.of(await readBlockerStates());
-        current[blockerId] = state;
-        await _writeValue(_blockerStates, BlockerStateCodec.encode(current));
+        final raw = await _readValue(_blockerStates);
+        final earlier = BlockerStateCodec.decode(raw)[blockerId];
+        final merged = BlockerStateCodec.merge(
+          raw,
+          blockerId,
+          BlockerState.after(earlier, state.current),
+        );
+        await _writeValue(_blockerStates, merged);
       });
 
   static AppSettings _fromRows(List<SettingRow> rows) {

@@ -14,6 +14,12 @@ class _FakeRepo implements SettingsRepository {
   final saved = <String, BlockerState>{};
 
   @override
+  Future<Map<String, BlockerState>> readBlockerStates() async {
+    if (fail) throw Exception('disk full');
+    return Map.of(saved);
+  }
+
+  @override
   Future<void> saveBlockerState(String blockerId, BlockerState state) async {
     if (fail) throw Exception('disk full');
     saved[blockerId] = state;
@@ -25,7 +31,7 @@ class _FakeRepo implements SettingsRepository {
 
 void main() {
   final now = DateTime.parse('2026-11-06T10:00:00+02:00');
-  UpdateBlockerStatus useCase(_FakeRepo repo) => UpdateBlockerStatus(
+  UpdateBlockerStatus useCase(SettingsRepository repo) => UpdateBlockerStatus(
     repository: repo,
     clock: FixedClock(now),
     register: testRegister,
@@ -92,4 +98,61 @@ void main() {
     );
     expect((result as Err<BlockerState>).error, isA<StorageError>());
   });
+
+  test('a second change keeps the first as history, oldest first', () async {
+    final repo = _FakeRepo();
+    final uc = useCase(repo);
+    await uc(blockerId: 'OB-A', status: BlockerStatus.inProgress);
+    final result = await uc(
+      blockerId: 'OB-A',
+      status: BlockerStatus.awaitingOwner,
+      note: 'sent to the owner',
+    );
+    final state = (result as Ok<BlockerState>).value;
+    expect(state.status, BlockerStatus.awaitingOwner);
+    expect(state.history, hasLength(1));
+    expect(state.history.single.status, BlockerStatus.inProgress);
+    expect(state.allChanges.last.note, 'sent to the owner');
+    expect(repo.saved['OB-A'], state);
+  });
+
+  test('resolving an owner decision, scope approval or acceptance needs a '
+      'note; a device action does not', () async {
+    final repo = _FakeRepo();
+    final uc = useCase(repo);
+    for (final id in ['OB-A', 'OB-C', 'OB-E']) {
+      final blocker = testRegister.firstWhere((b) => b.id == id);
+      final r = await uc(blockerId: id, status: BlockerStatus.resolved);
+      if (UpdateBlockerStatus.needsResolutionNote(blocker)) {
+        expect(r, isA<Err<BlockerState>>(), reason: id);
+        expect(
+          ((r as Err<BlockerState>).error as ValidationError).field,
+          'note',
+        );
+      } else {
+        expect(r, isA<Ok<BlockerState>>(), reason: id);
+      }
+    }
+    final withNote = await uc(
+      blockerId: 'OB-A',
+      status: BlockerStatus.resolved,
+      note: 'Option (b) chosen.',
+    );
+    expect(withNote, isA<Ok<BlockerState>>());
+  });
+
+  test('a non-Exception error from storage is still a StorageError', () async {
+    final repo = _ThrowingRepo();
+    final r = await useCase(repo)(
+      blockerId: 'OB-A',
+      status: BlockerStatus.open,
+    );
+    expect((r as Err<BlockerState>).error, isA<StorageError>());
+  });
+}
+
+class _ThrowingRepo implements SettingsRepository {
+  @override
+  // What foreign stored data can raise.
+  dynamic noSuchMethod(Invocation invocation) => throw TypeError();
 }

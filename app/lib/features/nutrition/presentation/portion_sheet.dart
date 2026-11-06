@@ -17,7 +17,8 @@ import 'package:repforge/ui/tokens.dart';
 /// Portion sheet: choose an amount (in the food's reference unit or a larger
 /// metric unit of the same basis, g | kg or ml | l, WP 15; or a count of a
 /// named serving) and a meal, see the resulting nutrients, log. The stored
-/// amount is always canonical g or ml. Returns the entry when logged.
+/// amount is in the food's reference basis: canonical g or ml, or portions
+/// for a portions-basis food. Returns the entry when logged.
 Future<FoodLogEntry?> showPortionSheet(
   BuildContext context,
   Food food, {

@@ -15,7 +15,8 @@ import 'package:repforge/ui/tokens.dart';
 /// entered in the food's reference unit or a larger metric unit of the same
 /// basis (g | kg or ml | l, WP 15), or as a count of one of the food's
 /// defined servings, so a unit mismatch cannot be entered. The stored
-/// quantity is always canonical g or ml.
+/// quantity is in the ingredient's reference basis: canonical g or ml, or
+/// portions for a portions-basis snapshot.
 ///
 /// Pass [food] for a new ingredient, or [existing] to edit one. Returns the
 /// ingredient (with [id]) or null when cancelled.

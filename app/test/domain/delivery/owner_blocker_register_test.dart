@@ -47,6 +47,19 @@ void main() {
       }
     });
 
+    test('no owner-assigned entry starts resolved: only the owner closes an '
+        'owner item, in the app or in the record', () {
+      for (final b in ownerBlockerRegister) {
+        if (b.isOwnerAction) {
+          expect(
+            b.initialStatus,
+            isNot(BlockerStatus.resolved),
+            reason: '${b.id}: an agent may not record owner acceptance',
+          );
+        }
+      }
+    });
+
     test('no placeholder text survives', () {
       for (final b in ownerBlockerRegister) {
         for (final text in [
@@ -154,6 +167,79 @@ void main() {
       expect(mixed.keys, ['ok']);
       expect(mixed['ok']!.status, BlockerStatus.open);
       expect(mixed['ok']!.updatedAt.isUtc, isTrue);
+    });
+
+    test('non-string fields never throw: the entry is dropped, others '
+        'kept', () {
+      final mixed = BlockerStateCodec.decode(
+        '{"ok":{"status":"open","updatedAt":"2026-11-07T06:00:00.000Z"},'
+        '"numDate":{"status":"open","updatedAt":5},'
+        '"mapNote":{"status":"open","updatedAt":"2026-11-07T06:00:00.000Z",'
+        '"note":{"x":1}},'
+        '"badHistory":{"status":"open","updatedAt":"2026-11-07T06:00:00.000Z",'
+        '"history":"nope"}}',
+      );
+      expect(mixed.keys, unorderedEquals(['ok', 'mapNote', 'badHistory']));
+      expect(mixed['mapNote']!.note, isNull);
+      expect(mixed['badHistory']!.history, isEmpty);
+    });
+
+    test('history round-trips oldest first and a bad item is dropped', () {
+      final first = BlockerChange(
+        status: BlockerStatus.inProgress,
+        at: DateTime.utc(2026, 11, 7, 5),
+        note: 'started',
+      );
+      final s = BlockerState.after(
+        BlockerState.after(null, first),
+        BlockerChange(
+          status: BlockerStatus.resolved,
+          at: DateTime.utc(2026, 11, 7, 6),
+          note: 'done',
+        ),
+      );
+      expect(s.history, [first]);
+      expect(s.allChanges.map((c) => c.status), [
+        BlockerStatus.inProgress,
+        BlockerStatus.resolved,
+      ]);
+      final back = BlockerStateCodec.decode(BlockerStateCodec.encode({'x': s}));
+      expect(back['x'], s);
+      final partlyBad = BlockerStateCodec.decode(
+        '{"x":{"status":"resolved","updatedAt":"2026-11-07T06:00:00.000Z",'
+        '"history":[{"status":"inProgress",'
+        '"at":"2026-11-07T05:00:00.000Z"},'
+        '{"status":"what","at":"2026-11-07T05:30:00.000Z"}]}}',
+      );
+      expect(partlyBad['x']!.history, hasLength(1));
+    });
+
+    test('merge keeps unknown entries and refuses a non-object value', () {
+      final s = BlockerState(
+        status: BlockerStatus.open,
+        updatedAt: DateTime.utc(2026, 11, 7),
+      );
+      final merged = BlockerStateCodec.merge(
+        '{"foreign":{"status":"deferred","updatedAt":"x"},"extra":1}',
+        'OB-WP8-01',
+        s,
+      );
+      expect(
+        merged,
+        contains('"foreign":{"status":"deferred","updatedAt":"x"}'),
+      );
+      expect(merged, contains('"extra":1'));
+      expect(BlockerStateCodec.decode(merged)['OB-WP8-01'], s);
+      expect(BlockerStateCodec.merge(null, 'a', s), isNotEmpty);
+      expect(BlockerStateCodec.merge('  ', 'a', s), isNotEmpty);
+      expect(
+        () => BlockerStateCodec.merge('[1]', 'a', s),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => BlockerStateCodec.merge('{bad', 'a', s),
+        throwsA(isA<FormatException>()),
+      );
     });
 
     test('a local time is stored and read back as UTC', () {
