@@ -516,6 +516,20 @@ void main() {
         }
       });
 
+      test('with the switch on, blocks follow the BlockReason order (N1)', () {
+        final m = mapLegacyExercise(
+          const LegacyExerciseRow(
+            id: 'ex-1',
+            primaryMuscle: 'Neck',
+            secondaryMusclesJson: '["traps"]',
+            equipmentJson: '["hoverboard",1]',
+            supplied: 0,
+          ),
+          options: on,
+        );
+        expect([for (final b in m.blocks) b.reason], BlockReason.values);
+      });
+
       test('with the switch on, reasons stay independent (R-01)', () {
         final m = mapOn('["traps"]', primary: 'Neck');
         expect(

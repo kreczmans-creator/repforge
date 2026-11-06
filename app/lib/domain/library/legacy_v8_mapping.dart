@@ -707,6 +707,7 @@ LegacyExerciseMapping mapLegacyExercise(
   }
 
   events.sort(ReportEvent.compare);
+  blocks.sort((a, b) => a.reason.index.compareTo(b.reason.index));
   return LegacyExerciseMapping(
     id: ExerciseId(id),
     source: source,

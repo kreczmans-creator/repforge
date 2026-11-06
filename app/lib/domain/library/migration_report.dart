@@ -179,6 +179,11 @@ abstract final class MigrationRuleCodes {
   /// all: non-array JSON text, a non-string element (ADR-0008 B step 14).
   static const String legacyData = 'WP8-D3';
 
+  /// Block-row rule codes [unknownEquipmentBlock] (`ADR-0008-Q12`) and
+  /// [invalidEquipmentBlock] (`R-02`) cite owner decisions rather than check
+  /// codes; they **await owner confirmation** as report rule codes (review
+  /// WS4 N3).
+  ///
   /// The owner decision that blocks an exercise with unknown equipment
   /// (ADR-0008 section E, Q12). Cited by the `unknownEquipment` block entry.
   static const String unknownEquipmentBlock = 'ADR-0008-Q12';
