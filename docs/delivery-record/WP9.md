@@ -2,7 +2,7 @@
 
 Date: 2026-11-05
 Branch: `ccr-9fda2c32-wr163b`
-Status: **Delivered — awaiting owner acceptance** (not accepted). Final implementation commit **0c35ef1** (M1 / OQ-24 implemented); four workflows green incl. the Android release build. M4 allocated to WP 8 stage 6 (WP 9 limitation). WP 8 remains active with expanded scope; WP 8 stage 3 code is gated on WP 9 acceptance and a separate authorisation. WP 6 device verification and D05 V-01 stay open and owner-owned.
+Status: **ACCEPTED and CLOSED** by the owner on 2026-11-06 at commit **0c35ef1**. All commit and CI references below are preserved. Device-specific behaviour is not verified; device-campaign items, Low findings, limitations and deferred requirements remain recorded below.
 
 ## Scope (D06 WP 9)
 Plan builder, scheduling, session screen with per-set weight/reps/RPE or RIR, rest timer with local notification, previous-performance hints, personal records, volume per session, notes, history.
@@ -278,3 +278,20 @@ TRN coverage (reviewer): TRN-013..017, 019..021, 023, 024 met; TRN-018(2) partly
 
 ## Recommendation
 Accept WP 9 at **0c35ef1**. All D06 criteria are met in code, tests and CI; the manual device test of the timer, iOS background delivery and real-device exact-alarm behaviour remain for the owner's device campaign. No High or Medium findings are open. Limitations: exercise history paging allocated to WP 8 stage 6 (M4); Low items N1a, N1b, M1-F1..F4 recorded.
+
+## Owner acceptance (2026-11-06)
+- **WP 9 ACCEPTED at 0c35ef1.** Accepted: the documented implementation, requirements evidence, CI results (four workflows green on every delivery commit; Android debug and release with R8; iOS; emulator full-session test), test results (1,186 tests, 91.5 % coverage) and independent reviews with targeted re-checks; no High or Medium findings outstanding.
+- The exact-alarm flow (M1 / OQ-24) is accepted **as delivered, not as proof of identical behaviour across Android manufacturers**.
+
+| Item | Treatment |
+|---|---|
+| N1a / N1b | Recorded Low findings |
+| M1-F1 to M1-F4 | Device campaign |
+| Assisted and cardio PR definitions | Recorded requirements gap |
+| Exercise history paging (TRN-025(2)) | Allocated to WP 8 stage 6 |
+| Per-muscle and per-week volume screens (TRN-027) | Future delivery |
+| Rest alert lost on device restart | Recorded limitation |
+| Google Play exact-alarm policy | Pre-release check |
+| Real-device notification timing | Device campaign |
+
+Device-campaign findings are handled through follow-up maintenance or separately approved work; WP 9 is not reopened.
