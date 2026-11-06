@@ -35,8 +35,10 @@ import 'v8_migration_support.dart';
 /// - a repeated migration writes nothing twice;
 /// - a new foreign-key violation or unresolved reference aborts the step;
 ///   pre-existing damage (TD-44) is reported and never blocks;
-/// - release 1 hashes the exact bundled seed bytes (R-10);
-/// - the OPEN visibility switch stays off and refuses to run when on.
+/// - release 1 hashes the exact bundled seed bytes (R-10) and is recorded
+///   only on the pinned v7-era hash (R-30 option b);
+/// - unreadable secondaries, classification and aliases block individually;
+/// - pre-v8 quarantine rows count as retained (R-33).
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final v7Fixture = digest.fixturePath(7);
@@ -326,7 +328,11 @@ void main() {
             )
             .map((e) => e['block_reason'])
             .toList();
-        expect(rotator, ['noPrimaryTarget', 'unknownEquipment']);
+        expect(rotator..sort(), [
+          'invalidSecondaryTarget',
+          'noPrimaryTarget',
+          'unknownEquipment',
+        ]);
         // Resolving one reason keeps the exercise blocked (R-01 predicate).
         final raw = sqlite3.open(f.path);
         try {
@@ -875,39 +881,135 @@ void main() {
     );
   });
 
-  group('release 1 (plan section 6 step 9; R-10)', () {
+  group('release 1 (plan section 6 step 9; R-10; R-30 option b)', () {
+    List<Map<String, Object?>> settingsEntries(DbState s) => [
+      for (final e in s.rows('migration_report_entries'))
+        if (e['source_table'] == 'settings') e,
+    ];
+
+    test('the pinned v7-era hash is the hash of the v7-era seed asset', () {
+      expect(V7ToV8Migration.v7SeedSha256, v7SeedSha256Pin);
+      // The asset is unchanged since df326db (its only commit); when stage
+      // 3c ships a new seed, this line moves to the git-history copy.
+      expect(digest.sha256OfFile(seedPath), v7SeedSha256Pin);
+    });
+
     test(
-      'hashes the exact bundled seed bytes, not a re-serialised form',
+      'match: release 1 recorded from the exact bytes with counts NULL '
+      '(unknown, never 0) and the applied_at source stated; the setting is '
+      'examined and preserved',
       () => inTempDir((dir) async {
         final f = copyFixture(v7Fixture, dir);
+        final setting = DbState.read(f)
+            .rows('settings')
+            .singleWhere((r) => r['key'] == 'seedExercisesVersion');
         expect(await openV8(f), isNull);
-        final row = DbState.read(f).rows('catalogue_releases').single;
-        expect(row['content_hash'], digest.sha256OfFile(seedPath));
-        expect(row['content_hash_algorithm'], 'sha256');
-        expect(row['content_hash_encoding'], 'hex-lower');
-        final reserialised = digest.sha256OfString(
-          jsonEncode(jsonDecode(File(seedPath).readAsStringSync())),
-        );
-        expect(row['content_hash'], isNot(reserialised));
-        // The bytes given are hashed as they are.
-        final g = copyFixture(v7Fixture, dir, 'g.sqlite');
-        final changed = Uint8List.fromList([...seedBytes(), 0x0A]);
+        final s = DbState.read(f);
+        final row = s.rows('catalogue_releases').single;
+        expect(row, {
+          'provider_id': 'repforge',
+          'release': 1,
+          'applied_at': setting['updated_at'],
+          'applied_at_source': 'seedExercisesVersion.updated_at',
+          'content_hash_algorithm': 'sha256',
+          'content_hash_encoding': 'hex-lower',
+          'content_hash': v7SeedSha256Pin,
+          'inserted': null,
+          'updated': null,
+          'retired': null,
+          'app_version': null,
+        });
+        expect(settingsEntries(s), isEmpty);
+        final c = storedCounts(s, 'run-1');
+        expect(c['settings|category|examined'], 1);
+        expect(c['settings|category|preserved'], 1);
+        expect(c['settings|category|warningForReview'], 0);
+        // The setting is kept unchanged.
         expect(
-          await openV8(
-            g,
-            config: testConfig(loadSeedBytes: () async => changed),
-          ),
-          isNull,
-        );
-        expect(
-          DbState.read(g).rows('catalogue_releases').single['content_hash'],
-          digest.sha256Hex(changed),
+          s
+              .rows('settings')
+              .singleWhere((r) => r['key'] == 'seedExercisesVersion'),
+          setting,
         );
       }),
     );
 
+    for (final (label, bytes) in <(String, List<int> Function())>[
+      ('one more byte', () => Uint8List.fromList([...seedBytes(), 0x0A])),
+      (
+        'a re-serialised form of the same JSON',
+        () => utf8.encode(
+          jsonEncode(jsonDecode(File(seedPath).readAsStringSync())),
+        ),
+      ),
+    ]) {
+      test(
+        'mismatch ($label): no release record, the condition is reported '
+        '(R-30) and the run reconciles',
+        () => inTempDir((dir) async {
+          final f = copyFixture(v7Fixture, dir);
+          final given = bytes();
+          final x = V8Expectation.of(f, runId: 'run-1', seed: given);
+          expect(
+            await openV8(
+              f,
+              config: testConfig(loadSeedBytes: () async => given),
+            ),
+            isNull,
+          );
+          final s = DbState.read(f);
+          expect(s.rows('catalogue_releases'), isEmpty);
+          expect(x.release, isNull);
+          final entry = settingsEntries(s).single;
+          expect(entry['record_id'], 'seedExercisesVersion');
+          expect(entry['field'], 'value');
+          expect(entry['rule'], 'R-30');
+          expect(entry['disposition'], 'none');
+          expect(entry['category'], 'warningForReview');
+          expect(entry['original_value'], entry['resulting_value']);
+          expect(entry['reason'], contains(digest.sha256Hex(given)));
+          expect(entry['reason'], contains(v7SeedSha256Pin));
+          expect(
+            storedEntries(s)[entry['event_id']],
+            x.entries[entry['event_id']],
+          );
+          final c = storedCounts(s, 'run-1');
+          expect(c, x.counts);
+          expect(c['settings|category|warningForReview'], 1);
+          expect(c['settings|category|preserved'], 1);
+          expect(c['settings|disposition|none'], 1);
+        }),
+      );
+    }
+
     test(
-      'not recorded when the v7 seed was never applied',
+      'unknown hash (the seed cannot be read): no record, reported, the '
+      'migration still completes',
+      () => inTempDir((dir) async {
+        final f = copyFixture(v7Fixture, dir);
+        expect(
+          await openV8(
+            f,
+            config: testConfig(
+              loadSeedBytes: () async =>
+                  throw const FileSystemException('asset missing'),
+            ),
+          ),
+          isNull,
+        );
+        final s = DbState.read(f);
+        expect(s.userVersion, 8);
+        expect(s.rows('catalogue_releases'), isEmpty);
+        final entry = settingsEntries(s).single;
+        expect(entry['rule'], 'R-30');
+        expect(entry['category'], 'warningForReview');
+        expect(entry['reason'], contains('hash is unknown'));
+        expect(entry['reason'], contains('asset missing'));
+      }),
+    );
+
+    test(
+      'not recorded and never hashed when the v7 seed was never applied',
       () => inTempDir((dir) async {
         for (final value in [null, '0', 'x']) {
           final f = copyFixture(v7Fixture, dir, 'seed_$value.sqlite');
@@ -937,8 +1039,15 @@ void main() {
             ),
             isNull,
           );
-          expect(DbState.read(f).rows('catalogue_releases'), isEmpty);
+          final s = DbState.read(f);
+          expect(s.rows('catalogue_releases'), isEmpty);
           expect(loaded, isFalse);
+          expect(settingsEntries(s), isEmpty);
+          // The setting is examined exactly when it exists.
+          expect(
+            storedCounts(s, 'run-1')['settings|category|examined'],
+            value == null ? isNull : 1,
+          );
         }
       }),
     );
@@ -946,12 +1055,15 @@ void main() {
 
   group('report', () {
     test(
-      'quarantine rows from before v8 are listed (plan section 6 step 7)',
+      'R-33: quarantine rows from before v8 are listed as retained and '
+      "preserved, outside this run's quarantine total (plan section 6 "
+      'step 7)',
       () => inTempDir((dir) async {
         final f = copyFixture(v7Fixture, dir);
         expect(await openV8(f), isNull);
+        final s = DbState.read(f);
         final entries =
-            DbState.read(f)
+            s
                 .rows('migration_report_entries')
                 .where((e) => e['source_table'] == 'legacy_quarantine')
                 .toList()
@@ -971,8 +1083,8 @@ void main() {
               ].join('|'),
           ],
           [
-            '1|1|null|quarantined|WP8-D3|quarantinedOrUnresolved',
-            '2|2|ex-old|quarantined|WP8-D3|quarantinedOrUnresolved',
+            '1|1|null|retained|WP8-D3|preserved',
+            '2|2|ex-old|retained|WP8-D3|preserved',
           ],
         );
         expect(
@@ -981,37 +1093,220 @@ void main() {
         );
         expect(entries.first['reason'], contains('session_sets'));
         expect(entries.first['reason'], contains('set-old-1'));
+        expect(entries.first['reason'], contains('R-33'));
+        final c = storedCounts(s, 'run-1');
+        expect(c['legacy_quarantine|category|examined'], 2);
+        expect(c['legacy_quarantine|category|preserved'], 2);
+        expect(c['legacy_quarantine|category|quarantinedOrUnresolved'], 0);
+        expect(c['legacy_quarantine|disposition|retained'], 2);
+        expect(c['legacy_quarantine|disposition|quarantined'], 0);
+        // This run's quarantined total counts only what this run
+        // quarantined: one entry per new quarantine row's fields, never the
+        // two pre-v8 rows.
+        final quarantinedTotal = [
+          for (final MapEntry(:key, :value) in c.entries)
+            if (key.endsWith('|disposition|quarantined')) value,
+        ].fold(0, (a, b) => a + b);
+        expect(
+          quarantinedTotal,
+          s
+              .rows('migration_report_entries')
+              .where(
+                (e) =>
+                    e['run_id'] == 'run-1' && e['disposition'] == 'quarantined',
+              )
+              .length,
+        );
+        expect(
+          s
+              .rows('migration_report_entries')
+              .where(
+                (e) =>
+                    e['run_id'] == 'run-1' &&
+                    e['disposition'] == 'quarantined' &&
+                    e['source_table'] == 'legacy_quarantine',
+              ),
+          isEmpty,
+        );
       }),
     );
   });
 
-  group('the OPEN visibility switch (WS4 H1, L9)', () {
-    test('defaults to off', () {
-      expect(testConfig().mappingOptions.blockInvalidSecondaryTargets, isFalse);
-    });
+  group('unreadable data blocks individually (owner decision 2026-11-06)', () {
+    /// The v7 fixture with readable-data damage added to a copy (the frozen
+    /// file itself is never changed): malformed aliases on two exercises.
+    File damagedCopy(Directory dir) {
+      final f = copyFixture(v7Fixture, dir);
+      final raw = sqlite3.open(f.path);
+      try {
+        raw
+          ..execute('UPDATE exercises SET aliases_json = ? WHERE id = ?', [
+            'not json',
+            'ex-row',
+          ])
+          ..execute('UPDATE exercises SET aliases_json = ? WHERE id = ?', [
+            '["Bench",2]',
+            'ex-bench',
+          ]);
+      } finally {
+        raw.close();
+      }
+      return f;
+    }
 
     test(
-      'switched on, the step refuses before any write',
+      'each new reason on the frozen fixture: block rows, originals in '
+      'quarantine and in the row, entries with the decision-reference '
+      'codes; everything equals the independent expectation',
+      () => inTempDir((dir) async {
+        final f = damagedCopy(dir);
+        final x = V8Expectation.of(f, runId: 'run-1');
+        expect(await openV8(f), isNull);
+        final s = DbState.read(f);
+        final blocks = {
+          for (final r in s.rows('exercise_blocks'))
+            '${r['exercise_id']}:${r['reason']}': r['original_json'],
+        };
+        expect(
+          blocks['ex-unmapped-enums:invalidClassification'],
+          '{"type":"Aerobic","category":"Plyometrics"}',
+        );
+        expect(blocks['ex-trapsec:invalidSecondaryTarget'], isNotNull);
+        expect(blocks['ex-garbage:invalidSecondaryTarget'], isNotNull);
+        expect(blocks['ex-garbage:invalidEquipment'], isNotNull);
+        expect(blocks['ex-row:invalidAliases'], '{"aliases_json":"not json"}');
+        expect(
+          blocks['ex-bench:invalidAliases'],
+          r'{"aliases_json":"[\"Bench\",2]"}',
+        );
+        // Every block row equals the independent expectation.
+        expect(
+          [
+            for (final r in s.rows('exercise_blocks'))
+              [
+                r['exercise_id'],
+                r['reason'],
+                r['original_json'],
+                r['blocked_at'],
+                r['resolved_at'],
+              ].join('|'),
+          ]..sort(),
+          [...x.blocks]..sort(),
+        );
+        // The rows keep their original values: nothing is rewritten.
+        final ex = s.byId('exercises');
+        expect(ex['ex-unmapped-enums']!['type'], 'Aerobic');
+        expect(ex['ex-unmapped-enums']!['category'], 'Plyometrics');
+        expect(ex['ex-row']!['aliases_json'], 'not json');
+        // Originals in quarantine.
+        final q = {
+          for (final r in s.rows('legacy_quarantine'))
+            if (r['source_table'] == 'exercises')
+              '${r['row_id']}|${r['original_json']}',
+        };
+        expect(q, contains('ex-unmapped-enums|{"type":"Aerobic"}'));
+        expect(q, contains('ex-unmapped-enums|{"category":"Plyometrics"}'));
+        expect(q, contains('ex-row|{"aliases_json":"not json"}'));
+        // Report entries with the decision-reference codes.
+        String rule(String id, String reason) => s
+            .rows('migration_report_entries')
+            .where(
+              (e) =>
+                  e['record_id'] == id &&
+                  e['disposition'] == 'blocked' &&
+                  e['block_reason'] == reason,
+            )
+            .map((e) => '${e['field']}:${e['rule']}')
+            .join(',');
+        expect(
+          rule('ex-unmapped-enums', 'invalidClassification'),
+          'type:D04-UNREADABLE-CLASSIFICATION',
+        );
+        // Each unreadable classification column has its quarantined entry.
+        expect(
+          {
+            for (final e in s.rows('migration_report_entries'))
+              if (e['record_id'] == 'ex-unmapped-enums' &&
+                  e['disposition'] == 'quarantined')
+                '${e['field']}:${e['rule']}:${e['original_value']}',
+          },
+          {'type:IC-202:"Aerobic"', 'category:IC-203:"Plyometrics"'},
+        );
+        // One blocked entry per block row (R-01).
+        expect(
+          s
+              .rows('migration_report_entries')
+              .where((e) => e['run_id'] == 'run-1')
+              .where((e) => e['disposition'] == 'blocked')
+              .length,
+          s.rows('exercise_blocks').length,
+        );
+        expect(
+          rule('ex-trapsec', 'invalidSecondaryTarget'),
+          'secondary_muscles_json:D04-UNREADABLE-SECONDARY',
+        );
+        expect(
+          rule('ex-row', 'invalidAliases'),
+          'aliases_json:D04-UNREADABLE-ALIASES',
+        );
+        // R-01: several reasons on one exercise, one entry each.
+        expect(
+          s
+              .rows('migration_report_entries')
+              .where(
+                (e) =>
+                    e['record_id'] == 'ex-garbage' &&
+                    e['disposition'] == 'blocked',
+              )
+              .map((e) => e['block_reason'])
+              .toSet(),
+          {'invalidSecondaryTarget', 'invalidEquipment'},
+        );
+        // The whole report equals the independent expectation.
+        expect(storedEntries(s), x.entries);
+        expect(storedCounts(s, 'run-1'), x.counts);
+        final c = storedCounts(s, 'run-1');
+        expect(
+          c['exercises|category|rejectedOrBlocked'],
+          {for (final b in x.blocks) b.split('|').first}.length,
+        );
+        expect(c['exercises|category|quarantinedOrUnresolved'], 0);
+        expect(
+          reconcileReport(
+            x.report,
+            examinedByTable: {
+              'exercises': 26,
+              'session_sets': 35,
+              'legacy_quarantine': 2,
+              'settings': 1,
+            },
+          ).problems,
+          isEmpty,
+        );
+      }),
+    );
+
+    test(
+      'the reasons of the plain frozen fixture: classification on '
+      'ex-unmapped-enums, secondaries on ex-trapsec, ex-garbage and '
+      'ex-rotator',
       () => inTempDir((dir) async {
         final f = copyFixture(v7Fixture, dir);
-        final bytes = f.readAsBytesSync();
-        final ledger = InMemoryMigrationRunLedger();
-        final error = await openV8(
-          f,
-          config: testConfig(
-            ledger: ledger,
-            options: const LegacyMappingOptions(
-              blockInvalidSecondaryTargets: true,
-            ),
-          ),
-        );
-        expect(error, isA<V8MigrationFailure>());
-        expect(
-          (error! as V8MigrationFailure).kind,
-          V8MigrationFailureKind.unsupportedOption,
-        );
-        expect(f.readAsBytesSync(), bytes);
-        expect(await ledger.read(7, 8, ledgerKeyOf(f)), isNull);
+        expect(await openV8(f), isNull);
+        final byReason = <String, Set<String>>{};
+        for (final r in DbState.read(f).rows('exercise_blocks')) {
+          byReason
+              .putIfAbsent(r['reason']! as String, () => {})
+              .add(r['exercise_id']! as String);
+        }
+        expect(byReason['invalidClassification'], {'ex-unmapped-enums'});
+        expect(byReason['invalidSecondaryTarget'], {
+          'ex-rotator',
+          'ex-neck',
+          'ex-trapsec',
+          'ex-garbage',
+        });
+        expect(byReason['invalidAliases'], isNull);
       }),
     );
   });
@@ -1441,42 +1736,45 @@ void main() {
       'L4: mapping lists that disagree with the events fail the '
       'affectedByTable self-check',
       () => inTempDir((dir) async {
-        for (final (name, mapper) in <(String, LegacyExerciseMapper)>[
-          (
-            'quarantine list dropped',
-            (row, {options = const LegacyMappingOptions()}) {
-              final m = mapLegacyExercise(row, options: options);
-              return LegacyExerciseMapping(
-                id: m.id,
-                source: m.source,
-                providerId: m.providerId,
-                revision: m.revision,
-                targets: m.targets,
-                equipment: m.equipment,
-                blocks: m.blocks,
-                events: m.events,
-                quarantine: const [],
-              );
-            },
-          ),
-          (
-            'block list dropped',
-            (row, {options = const LegacyMappingOptions()}) {
-              final m = mapLegacyExercise(row, options: options);
-              return LegacyExerciseMapping(
-                id: m.id,
-                source: m.source,
-                providerId: m.providerId,
-                revision: m.revision,
-                targets: m.targets,
-                equipment: m.equipment,
-                blocks: const [],
-                events: m.events,
-                quarantine: m.quarantine,
-              );
-            },
-          ),
-        ]) {
+        for (final (name, mapper, detail)
+            in <(String, LegacyExerciseMapper, String)>[
+              (
+                'quarantine list dropped',
+                (row) {
+                  final m = mapLegacyExercise(row);
+                  return LegacyExerciseMapping(
+                    id: m.id,
+                    source: m.source,
+                    providerId: m.providerId,
+                    revision: m.revision,
+                    targets: m.targets,
+                    equipment: m.equipment,
+                    blocks: m.blocks,
+                    events: m.events,
+                    quarantine: const [],
+                  );
+                },
+                'without a quarantine row',
+              ),
+              (
+                'block list dropped',
+                (row) {
+                  final m = mapLegacyExercise(row);
+                  return LegacyExerciseMapping(
+                    id: m.id,
+                    source: m.source,
+                    providerId: m.providerId,
+                    revision: m.revision,
+                    targets: m.targets,
+                    equipment: m.equipment,
+                    blocks: const [],
+                    events: m.events,
+                    quarantine: m.quarantine,
+                  );
+                },
+                'independent input',
+              ),
+            ]) {
           final f = copyFixture(v7Fixture, dir, '${name.length}.sqlite');
           final bytes = f.readAsBytesSync();
           final error = await openV8(
@@ -1486,7 +1784,7 @@ void main() {
           expect(error, isA<V8MigrationFailure>(), reason: name);
           final failure = error! as V8MigrationFailure;
           expect(failure.kind, V8MigrationFailureKind.selfCheckFailed);
-          expect(failure.details.join(), contains('independent input'));
+          expect(failure.details.join(), contains(detail));
           expect(f.readAsBytesSync(), bytes, reason: name);
         }
       }),
@@ -1628,11 +1926,17 @@ void main() {
 
   test('ReportAction and BlockReason names used by the step are the stored '
       'v8 values', () {
-    expect([for (final r in BlockReason.values) r.name].take(3), [
-      'noPrimaryTarget',
-      'unknownEquipment',
-      'invalidEquipment',
-    ]);
+    expect(
+      [for (final r in BlockReason.values) r.name],
+      [
+        'noPrimaryTarget',
+        'unknownEquipment',
+        'invalidEquipment',
+        'invalidSecondaryTarget',
+        'invalidClassification',
+        'invalidAliases',
+      ],
+    );
   });
 }
 

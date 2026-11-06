@@ -181,6 +181,15 @@ class CatalogueReleases extends Table {
   IntColumn get release =>
       integer().customConstraint('NOT NULL CHECK ("release" >= 1)')();
   DateTimeColumn get appliedAt => dateTime()();
+
+  /// Where [appliedAt] comes from, stated explicitly (owner decision R-30 /
+  /// B-07 option b, "install-time provenance is explicit"). No default:
+  /// every insert states it. The v7 → v8 migration writes
+  /// `seedExercisesVersion.updated_at` (the v7 setting's time, copied
+  /// verbatim); the stage 3c release apply names its own source.
+  TextColumn get appliedAtSource => text().customConstraint(
+    'NOT NULL CHECK (length(applied_at_source) > 0)',
+  )();
   TextColumn get contentHashAlgorithm => text().customConstraint(
     "NOT NULL CHECK (content_hash_algorithm IN ('sha256'))",
   )();
@@ -191,12 +200,20 @@ class CatalogueReleases extends Table {
     'NOT NULL CHECK (length(content_hash) = 64 '
     "AND content_hash NOT GLOB '*[^0-9a-f]*')",
   )();
-  IntColumn get inserted =>
-      integer().customConstraint('NOT NULL CHECK (inserted >= 0)')();
-  IntColumn get updated =>
-      integer().customConstraint('NOT NULL CHECK (updated >= 0)')();
-  IntColumn get retired =>
-      integer().customConstraint('NOT NULL CHECK (retired >= 0)')();
+
+  /// Exercises inserted, updated and retired by the release. NULL means
+  /// **not known** (owner decision R-30 / B-07 option b: a retroactive
+  /// release 1 recorded by the v7 → v8 migration never knew the original
+  /// import's counts), never 0.
+  IntColumn get inserted => integer().nullable().customConstraint(
+    'CHECK (inserted IS NULL OR inserted >= 0)',
+  )();
+  IntColumn get updated => integer().nullable().customConstraint(
+    'CHECK (updated IS NULL OR updated >= 0)',
+  )();
+  IntColumn get retired => integer().nullable().customConstraint(
+    'CHECK (retired IS NULL OR retired >= 0)',
+  )();
   TextColumn get appVersion => text().nullable()();
 
   @override
@@ -410,24 +427,29 @@ class ExerciseUserState extends Table {
 // ---- Blocked exercises and the migration report ----------------------------
 
 /// Legacy exercises blocked individually (owner decisions of 2026-11-06: no
-/// primary target; Q12: unknown, invalid or unmappable equipment). A blocked
+/// primary target; Q12: unknown, invalid or unmappable equipment; unreadable
+/// secondary muscles, type, category or aliases). A blocked
 /// exercise keeps its id, original data and history, and cannot be selected
 /// for new work.
 ///
 /// One row per exercise and reason (owner decision R-01): each reason is
 /// recorded and resolved independently; `resolved_at` is set per row by the
 /// correction route, which never rewrites history. An exercise is blocked
-/// while any of its rows has `resolved_at` NULL. Reasons (R-02):
-/// `noPrimaryTarget`, `unknownEquipment` (an id not in the equipment list),
-/// `invalidEquipment` (a non-string element or a value that is not a JSON
-/// array).
+/// while any of its rows has `resolved_at` NULL. Reasons (R-02 and the
+/// unreadable-data decision of 2026-11-06): `noPrimaryTarget`,
+/// `unknownEquipment` (an id not in the equipment list), `invalidEquipment`
+/// (a non-string element or a value that is not a JSON array),
+/// `invalidSecondaryTarget` (unreadable secondary muscles),
+/// `invalidClassification` (unreadable `type` or `category`) and
+/// `invalidAliases` (unreadable `aliases_json`).
 @DataClassName('ExerciseBlockRow')
 class ExerciseBlocks extends Table {
   TextColumn get exerciseId =>
       text().references(ExercisesV8, #id, onDelete: KeyAction.cascade)();
   TextColumn get reason => text().customConstraint(
     'NOT NULL CHECK (reason IN '
-    "('noPrimaryTarget','unknownEquipment','invalidEquipment'))",
+    "('noPrimaryTarget','unknownEquipment','invalidEquipment',"
+    "'invalidSecondaryTarget','invalidClassification','invalidAliases'))",
   )();
   TextColumn get originalJson => text()();
   DateTimeColumn get blockedAt => dateTime()();
@@ -439,9 +461,11 @@ class ExerciseBlocks extends Table {
 
 /// One run that produced report entries (`quality-and-duplicates.md` 4.2:
 /// `reportId`, `generatedAt`, `appVersion`, `trigger` with from and to
-/// schema versions for a migration). Provenance is structured (owner
-/// decision R-08): `provenance_kind` `device` for a run produced on this
-/// device, `backup` for a run merged in from a restored backup;
+/// schema versions for a migration; trigger `userCorrection` for a user
+/// correction of a blocked exercise, owner decision C-1). Provenance is
+/// structured (owner decision R-08): `provenance_kind` `device` for a run
+/// produced on this device, `backup` for a run merged in from a restored
+/// backup;
 /// `provenance_source` names the source and is never NULL: for `device` a
 /// stable install or source label, for `backup` the backup identity (file
 /// name or content hash); `app_version` is never NULL; `merged_at` is set
@@ -453,7 +477,8 @@ class MigrationRuns extends Table {
   TextColumn get id => text()();
   TextColumn get triggerKind => text().customConstraint(
     'NOT NULL CHECK (trigger_kind IN '
-    "('migration','restore','integrityCheck','catalogueUpdate'))",
+    "('migration','restore','integrityCheck','catalogueUpdate',"
+    "'userCorrection'))",
   )();
   IntColumn get fromVersion => integer().nullable()();
   IntColumn get toVersion => integer().nullable()();
@@ -504,7 +529,7 @@ class MigrationReportCounts extends Table {
   @override
   List<String> get customConstraints => [
     // ignore: lines_longer_than_80_chars, drift needs a single literal
-    "CHECK ((dimension = 'category' AND code IN ('examined','migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')) OR (dimension = 'disposition' AND code IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none')))",
+    "CHECK ((dimension = 'category' AND code IN ('examined','migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')) OR (dimension = 'disposition' AND code IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none','corrected')))",
   ];
 }
 
@@ -516,7 +541,7 @@ class MigrationReportCounts extends Table {
 ///   table, record id, field, position and rule (owner decision R-07), so a
 ///   resumed run and a repeated restore write no duplicate.
 /// - `category`: one of the five codes (R-05); `disposition`: the section
-///   4.2 action, or `blocked` (R-03).
+///   4.2 action, `blocked` (R-03) or `corrected` (C-1).
 /// - `original_value`, `resulting_value`: JSON text (R-06): SQL NULL is
 ///   `null`, TEXT a JSON string, INTEGER and REAL a JSON number, BLOB
 ///   `{"blob":"<base64>"}`. `original_value` is always the WHOLE stored
@@ -531,8 +556,7 @@ class MigrationReportCounts extends Table {
 ///   element (WS4 report contract).
 /// - `block_reason`: the `exercise_blocks` reason of a `blocked` entry; set
 ///   exactly when `disposition` is `blocked`. Its list is the same as the
-///   block reasons and is extended together with them (a further reason
-///   such as `invalidSecondaryTarget` needs owner approval first).
+///   block reasons and is extended together with them.
 /// - `quarantine_id`: a loose link to `legacy_quarantine.id` (section 4.2).
 /// - `acknowledged_at`: set when the user acknowledges the row; nothing is
 ///   deleted by it (section 4.3).
@@ -562,11 +586,12 @@ class MigrationReportEntries extends Table {
   TextColumn get disposition => text().customConstraint(
     'NOT NULL CHECK (disposition IN '
     "('quarantined','cleared','retained','mapped','markerAdded','skipped',"
-    "'rejected','blocked','none'))",
+    "'rejected','blocked','none','corrected'))",
   )();
   TextColumn get blockReason => text().nullable().customConstraint(
     'CHECK (block_reason IS NULL OR block_reason IN '
-    "('noPrimaryTarget','unknownEquipment','invalidEquipment'))",
+    "('noPrimaryTarget','unknownEquipment','invalidEquipment',"
+    "'invalidSecondaryTarget','invalidClassification','invalidAliases'))",
   )();
   TextColumn get rule => text()();
   TextColumn get reason => text()();

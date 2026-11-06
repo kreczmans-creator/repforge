@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:repforge/domain/library/migration_report.dart';
 
 import 'v8_support.dart';
 
@@ -206,8 +207,9 @@ void main() {
       Object? hash,
     ) => v8.accepts(
       'INSERT INTO catalogue_releases (provider_id, "release", applied_at, '
-      'content_hash_algorithm, content_hash_encoding, content_hash, '
-      'inserted, updated, retired) VALUES (?, 1, ?, ?, ?, ?, 0, 0, 0)',
+      'applied_at_source, content_hash_algorithm, content_hash_encoding, '
+      'content_hash, inserted, updated, retired) VALUES '
+      "(?, 1, ?, 'test', ?, ?, ?, 0, 0, 0)",
       [provider, stamp, algorithm, encoding, hash],
     );
     expect(release('repforge', 'sha256', 'hex-lower', hex), isTrue);
@@ -227,6 +229,50 @@ void main() {
     }
   });
 
+  test('R-30 option b: counts are NULL (unknown) or at least 0; the '
+      'applied_at source is stated, never NULL or empty', () {
+    final hex = 'cd' * 32;
+    var n = 0;
+    bool release({
+      Object? inserted,
+      Object? updated,
+      Object? retired,
+      Object? source = 'seedExercisesVersion.updated_at',
+    }) => v8.accepts(
+      'INSERT INTO catalogue_releases (provider_id, "release", applied_at, '
+      'applied_at_source, content_hash_algorithm, content_hash_encoding, '
+      'content_hash, inserted, updated, retired) VALUES '
+      "('repforge', ?, ?, ?, 'sha256', 'hex-lower', ?, ?, ?, ?)",
+      [++n, stamp, source, hex, inserted, updated, retired],
+    );
+    expect(release(), isTrue, reason: 'all three NULL');
+    expect(release(inserted: 0, updated: 0, retired: 0), isTrue);
+    expect(release(inserted: 89, retired: 2), isTrue);
+    expect(release(inserted: -1), isFalse);
+    expect(release(updated: -1), isFalse);
+    expect(release(retired: -1), isFalse);
+    expect(release(source: null), isFalse);
+    expect(release(source: ''), isFalse);
+    // NULL stays NULL: never read back as 0.
+    v8.run(
+      'INSERT INTO catalogue_releases (provider_id, "release", applied_at, '
+      'applied_at_source, content_hash_algorithm, content_hash_encoding, '
+      'content_hash, inserted, updated, retired) VALUES '
+      "('repforge', 1, ?, 's', 'sha256', 'hex-lower', ?, NULL, NULL, NULL)",
+      [stamp, hex],
+    );
+    final row = v8.raw
+        .select(
+          'SELECT inserted, updated, retired FROM catalogue_releases '
+          'WHERE "release" = 1',
+        )
+        .single;
+    expect(
+      [row['inserted'], row['updated'], row['retired']],
+      [null, null, null],
+    );
+  });
+
   group('R-01, R-02: exercise_blocks', () {
     setUp(() => insertExercise(v8, 'e1'));
     bool block(String reason, {String exercise = 'e1'}) => v8.accepts(
@@ -242,16 +288,31 @@ void main() {
         ).first['b'] ==
         1;
 
-    test('reasons noPrimaryTarget, unknownEquipment, invalidEquipment', () {
+    test('reasons: noPrimaryTarget, unknownEquipment, invalidEquipment and '
+        'the three unreadable-data reasons', () {
       for (final r in [
         'noPrimaryTarget',
         'unknownEquipment',
         'invalidEquipment',
+        'invalidSecondaryTarget',
+        'invalidClassification',
+        'invalidAliases',
       ]) {
         expect(block(r), isTrue, reason: r);
       }
-      for (final r in ['', 'NoPrimaryTarget', 'equipment', 'other']) {
+      for (final r in [
+        '',
+        'NoPrimaryTarget',
+        'equipment',
+        'other',
+        'invalidType',
+      ]) {
         expect(block(r), isFalse, reason: r);
+      }
+      // The stored list covers every reason of the domain enum.
+      insertExercise(v8, 'e2');
+      for (final r in BlockReason.values) {
+        expect(block(r.name, exercise: 'e2'), isTrue, reason: r.name);
       }
       expect(block('noPrimaryTarget', exercise: 'missing'), isFalse);
     });
@@ -358,7 +419,8 @@ void main() {
       expect(entry('ev-2'), isTrue);
     });
 
-    test('R-03: dispositions are the section 4.2 actions and blocked', () {
+    test('R-03, C-1: dispositions are the section 4.2 actions, blocked and '
+        'corrected', () {
       for (final (i, d) in [
         'quarantined',
         'cleared',
@@ -369,6 +431,7 @@ void main() {
         'rejected',
         'blocked',
         'none',
+        'corrected',
       ].indexed) {
         expect(
           entry(
@@ -388,9 +451,7 @@ void main() {
     test('WS4 contract: block_reason is set exactly for blocked entries, '
         'from the block reasons', () {
       for (final (i, r) in [
-        'noPrimaryTarget',
-        'unknownEquipment',
-        'invalidEquipment',
+        for (final r in BlockReason.values) r.name,
       ].indexed) {
         expect(
           entry('b-$i', disposition: 'blocked', blockReason: r),
@@ -400,7 +461,7 @@ void main() {
       }
       expect(entry('b-x', disposition: 'blocked'), isFalse);
       expect(entry('b-y', blockReason: 'noPrimaryTarget'), isFalse);
-      for (final r in ['', 'invalidSecondaryTarget', 'NoPrimaryTarget']) {
+      for (final r in ['', 'invalidType', 'NoPrimaryTarget']) {
         expect(
           entry('b-z', disposition: 'blocked', blockReason: r),
           isFalse,
@@ -521,6 +582,8 @@ void main() {
       expect(runRow('b', 'restore', null, null), isTrue);
       expect(runRow('c', 'integrityCheck', null, null), isTrue);
       expect(runRow('d', 'catalogueUpdate', null, null), isTrue);
+      expect(runRow('d2', 'userCorrection', null, null), isTrue);
+      expect(runRow('d3', 'correction', null, null), isFalse);
       expect(runRow('e', 'migration', null, 8), isFalse);
       expect(runRow('f', 'migration', 8, 8), isFalse);
       expect(runRow('g', 'upgrade', 7, 8), isFalse);
@@ -577,6 +640,7 @@ void main() {
         'rejected',
         'blocked',
         'none',
+        'corrected',
       ]) {
         expect(count('disposition', d, 1), isTrue, reason: d);
         expect(count('category', d, 1), isFalse, reason: d);

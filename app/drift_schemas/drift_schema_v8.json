@@ -3417,6 +3417,16 @@
             "dsl_features": []
           },
           {
+            "name": "applied_at_source",
+            "getter_name": "appliedAtSource",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL CHECK (length(applied_at_source) > 0)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
             "name": "content_hash_algorithm",
             "getter_name": "contentHashAlgorithm",
             "moor_type": "string",
@@ -3450,8 +3460,8 @@
             "name": "inserted",
             "getter_name": "inserted",
             "moor_type": "int",
-            "nullable": false,
-            "customConstraints": "NOT NULL CHECK (inserted >= 0)",
+            "nullable": true,
+            "customConstraints": "CHECK (inserted IS NULL OR inserted >= 0)",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -3460,8 +3470,8 @@
             "name": "updated",
             "getter_name": "updated",
             "moor_type": "int",
-            "nullable": false,
-            "customConstraints": "NOT NULL CHECK (updated >= 0)",
+            "nullable": true,
+            "customConstraints": "CHECK (updated IS NULL OR updated >= 0)",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -3470,8 +3480,8 @@
             "name": "retired",
             "getter_name": "retired",
             "moor_type": "int",
-            "nullable": false,
-            "customConstraints": "NOT NULL CHECK (retired >= 0)",
+            "nullable": true,
+            "customConstraints": "CHECK (retired IS NULL OR retired >= 0)",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -4310,7 +4320,7 @@
             "getter_name": "reason",
             "moor_type": "string",
             "nullable": false,
-            "customConstraints": "NOT NULL CHECK (reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment'))",
+            "customConstraints": "NOT NULL CHECK (reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment','invalidSecondaryTarget','invalidClassification','invalidAliases'))",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -4378,7 +4388,7 @@
             "getter_name": "triggerKind",
             "moor_type": "string",
             "nullable": false,
-            "customConstraints": "NOT NULL CHECK (trigger_kind IN ('migration','restore','integrityCheck','catalogueUpdate'))",
+            "customConstraints": "NOT NULL CHECK (trigger_kind IN ('migration','restore','integrityCheck','catalogueUpdate','userCorrection'))",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -4545,7 +4555,7 @@
         "is_virtual": false,
         "without_rowid": false,
         "constraints": [
-          "CHECK ((dimension = 'category' AND code IN ('examined','migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')) OR (dimension = 'disposition' AND code IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none')))"
+          "CHECK ((dimension = 'category' AND code IN ('examined','migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')) OR (dimension = 'disposition' AND code IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none','corrected')))"
         ],
         "explicit_pk": [
           "run_id",
@@ -4686,7 +4696,7 @@
             "getter_name": "disposition",
             "moor_type": "string",
             "nullable": false,
-            "customConstraints": "NOT NULL CHECK (disposition IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none'))",
+            "customConstraints": "NOT NULL CHECK (disposition IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none','corrected'))",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -4696,7 +4706,7 @@
             "getter_name": "blockReason",
             "moor_type": "string",
             "nullable": true,
-            "customConstraints": "CHECK (block_reason IS NULL OR block_reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment'))",
+            "customConstraints": "CHECK (block_reason IS NULL OR block_reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment','invalidSecondaryTarget','invalidClassification','invalidAliases'))",
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
@@ -5430,7 +5440,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"catalogue_releases\" (\"provider_id\" TEXT NOT NULL REFERENCES content_providers (id), \"release\" INTEGER NOT NULL CHECK (\"release\" >= 1), \"applied_at\" TEXT NOT NULL, \"content_hash_algorithm\" TEXT NOT NULL CHECK (content_hash_algorithm IN ('sha256')), \"content_hash_encoding\" TEXT NOT NULL CHECK (content_hash_encoding IN ('hex-lower')), \"content_hash\" TEXT NOT NULL CHECK (length(content_hash) = 64 AND content_hash NOT GLOB '*[^0-9a-f]*'), \"inserted\" INTEGER NOT NULL CHECK (inserted >= 0), \"updated\" INTEGER NOT NULL CHECK (updated >= 0), \"retired\" INTEGER NOT NULL CHECK (retired >= 0), \"app_version\" TEXT NULL, PRIMARY KEY (\"provider_id\", \"release\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"catalogue_releases\" (\"provider_id\" TEXT NOT NULL REFERENCES content_providers (id), \"release\" INTEGER NOT NULL CHECK (\"release\" >= 1), \"applied_at\" TEXT NOT NULL, \"applied_at_source\" TEXT NOT NULL CHECK (length(applied_at_source) > 0), \"content_hash_algorithm\" TEXT NOT NULL CHECK (content_hash_algorithm IN ('sha256')), \"content_hash_encoding\" TEXT NOT NULL CHECK (content_hash_encoding IN ('hex-lower')), \"content_hash\" TEXT NOT NULL CHECK (length(content_hash) = 64 AND content_hash NOT GLOB '*[^0-9a-f]*'), \"inserted\" INTEGER CHECK (inserted IS NULL OR inserted >= 0), \"updated\" INTEGER CHECK (updated IS NULL OR updated >= 0), \"retired\" INTEGER CHECK (retired IS NULL OR retired >= 0), \"app_version\" TEXT NULL, PRIMARY KEY (\"provider_id\", \"release\"));"
         }
       ]
     },
@@ -5520,7 +5530,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"exercise_blocks\" (\"exercise_id\" TEXT NOT NULL REFERENCES exercises (id) ON DELETE CASCADE, \"reason\" TEXT NOT NULL CHECK (reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment')), \"original_json\" TEXT NOT NULL, \"blocked_at\" TEXT NOT NULL, \"resolved_at\" TEXT NULL, PRIMARY KEY (\"exercise_id\", \"reason\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"exercise_blocks\" (\"exercise_id\" TEXT NOT NULL REFERENCES exercises (id) ON DELETE CASCADE, \"reason\" TEXT NOT NULL CHECK (reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment','invalidSecondaryTarget','invalidClassification','invalidAliases')), \"original_json\" TEXT NOT NULL, \"blocked_at\" TEXT NOT NULL, \"resolved_at\" TEXT NULL, PRIMARY KEY (\"exercise_id\", \"reason\"));"
         }
       ]
     },
@@ -5529,7 +5539,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"migration_runs\" (\"id\" TEXT NOT NULL, \"trigger_kind\" TEXT NOT NULL CHECK (trigger_kind IN ('migration','restore','integrityCheck','catalogueUpdate')), \"from_version\" INTEGER NULL, \"to_version\" INTEGER NULL, \"generated_at\" TEXT NOT NULL, \"app_version\" TEXT NOT NULL, \"provenance_kind\" TEXT NOT NULL CHECK (provenance_kind IN ('device','backup')), \"provenance_source\" TEXT NOT NULL, \"merged_at\" TEXT NULL, PRIMARY KEY (\"id\"), CHECK (trigger_kind <> 'migration' OR (from_version IS NOT NULL AND to_version IS NOT NULL AND from_version < to_version)), CHECK ((provenance_kind = 'backup') = (merged_at IS NOT NULL)));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"migration_runs\" (\"id\" TEXT NOT NULL, \"trigger_kind\" TEXT NOT NULL CHECK (trigger_kind IN ('migration','restore','integrityCheck','catalogueUpdate','userCorrection')), \"from_version\" INTEGER NULL, \"to_version\" INTEGER NULL, \"generated_at\" TEXT NOT NULL, \"app_version\" TEXT NOT NULL, \"provenance_kind\" TEXT NOT NULL CHECK (provenance_kind IN ('device','backup')), \"provenance_source\" TEXT NOT NULL, \"merged_at\" TEXT NULL, PRIMARY KEY (\"id\"), CHECK (trigger_kind <> 'migration' OR (from_version IS NOT NULL AND to_version IS NOT NULL AND from_version < to_version)), CHECK ((provenance_kind = 'backup') = (merged_at IS NOT NULL)));"
         }
       ]
     },
@@ -5538,7 +5548,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"migration_report_counts\" (\"run_id\" TEXT NOT NULL REFERENCES migration_runs (id), \"source_table\" TEXT NOT NULL, \"dimension\" TEXT NOT NULL CHECK (dimension IN ('category','disposition')), \"code\" TEXT NOT NULL, \"record_count\" INTEGER NOT NULL CHECK (record_count >= 0), PRIMARY KEY (\"run_id\", \"source_table\", \"dimension\", \"code\"), CHECK ((dimension = 'category' AND code IN ('examined','migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')) OR (dimension = 'disposition' AND code IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none'))));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"migration_report_counts\" (\"run_id\" TEXT NOT NULL REFERENCES migration_runs (id), \"source_table\" TEXT NOT NULL, \"dimension\" TEXT NOT NULL CHECK (dimension IN ('category','disposition')), \"code\" TEXT NOT NULL, \"record_count\" INTEGER NOT NULL CHECK (record_count >= 0), PRIMARY KEY (\"run_id\", \"source_table\", \"dimension\", \"code\"), CHECK ((dimension = 'category' AND code IN ('examined','migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')) OR (dimension = 'disposition' AND code IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none','corrected'))));"
         }
       ]
     },
@@ -5547,7 +5557,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"migration_report_entries\" (\"event_id\" TEXT NOT NULL, \"run_id\" TEXT NOT NULL REFERENCES migration_runs (id), \"source_table\" TEXT NOT NULL, \"record_id\" TEXT NOT NULL, \"exercise_id\" TEXT NULL, \"field\" TEXT NOT NULL, \"position\" INTEGER CHECK (position IS NULL OR position >= 0), \"original_value\" TEXT NOT NULL CHECK (json_valid(original_value)), \"resulting_value\" TEXT NOT NULL CHECK (json_valid(resulting_value)), \"element\" TEXT CHECK (element IS NULL OR json_valid(element)), \"disposition\" TEXT NOT NULL CHECK (disposition IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none')), \"block_reason\" TEXT CHECK (block_reason IS NULL OR block_reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment')), \"rule\" TEXT NOT NULL, \"reason\" TEXT NOT NULL, \"category\" TEXT NOT NULL CHECK (category IN ('migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')), \"quarantine_id\" INTEGER NULL, \"acknowledged_at\" TEXT NULL, PRIMARY KEY (\"event_id\"), CHECK ((disposition = 'blocked') = (block_reason IS NOT NULL)));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"migration_report_entries\" (\"event_id\" TEXT NOT NULL, \"run_id\" TEXT NOT NULL REFERENCES migration_runs (id), \"source_table\" TEXT NOT NULL, \"record_id\" TEXT NOT NULL, \"exercise_id\" TEXT NULL, \"field\" TEXT NOT NULL, \"position\" INTEGER CHECK (position IS NULL OR position >= 0), \"original_value\" TEXT NOT NULL CHECK (json_valid(original_value)), \"resulting_value\" TEXT NOT NULL CHECK (json_valid(resulting_value)), \"element\" TEXT CHECK (element IS NULL OR json_valid(element)), \"disposition\" TEXT NOT NULL CHECK (disposition IN ('quarantined','cleared','retained','mapped','markerAdded','skipped','rejected','blocked','none','corrected')), \"block_reason\" TEXT CHECK (block_reason IS NULL OR block_reason IN ('noPrimaryTarget','unknownEquipment','invalidEquipment','invalidSecondaryTarget','invalidClassification','invalidAliases')), \"rule\" TEXT NOT NULL, \"reason\" TEXT NOT NULL, \"category\" TEXT NOT NULL CHECK (category IN ('migrated','preserved','quarantinedOrUnresolved','rejectedOrBlocked','warningForReview')), \"quarantine_id\" INTEGER NULL, \"acknowledged_at\" TEXT NULL, PRIMARY KEY (\"event_id\"), CHECK ((disposition = 'blocked') = (block_reason IS NOT NULL)));"
         }
       ]
     },

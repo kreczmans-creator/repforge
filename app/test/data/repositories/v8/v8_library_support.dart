@@ -19,11 +19,19 @@ import '../../../migration_v8/v8_migration_support.dart'
 /// the real 3b-4 step (`AppDatabaseV8` with a `V8MigrationConfig`).
 ///
 /// The v7 fixture already holds the blocked exercises of the 3b-4 scenarios:
-/// `ex-rotator` (noPrimaryTarget and unknownEquipment: two reasons, R-01),
-/// `ex-empty` and `ex-neck` (noPrimaryTarget), `ex-garbage`
-/// (invalidEquipment), `ex-dup` (unknownEquipment). Added here, in v7:
+/// `ex-rotator` (noPrimaryTarget, unknownEquipment and
+/// invalidSecondaryTarget: three reasons, R-01), `ex-empty`
+/// (noPrimaryTarget), `ex-neck` (noPrimaryTarget, invalidSecondaryTarget),
+/// `ex-garbage` (invalidSecondaryTarget, invalidEquipment), `ex-dup`
+/// (unknownEquipment), `ex-trapsec` (invalidSecondaryTarget) and
+/// `ex-unmapped-enums` (invalidClassification). Added here, in v7:
 /// - `ex-sec-only`: an unmappable primary with mappable secondaries
 ///   (blocked noPrimaryTarget, secondaries kept);
+/// - `ex-bad-aliases`: a readable exercise whose `aliases_json` holds a
+///   number (blocked invalidAliases);
+/// - session `sess-unreadable` with one entry and one set each of
+///   `ex-unmapped-enums`, `ex-trapsec` and `ex-bad-aliases` (history of the
+///   unreadable-data reasons);
 /// - legacy history of blocked exercises: session `sess-legacy` with entries
 ///   and sets of `ex-rotator` and `ex-empty`, and plan entries listing them;
 /// - plan `plan-wp9` mixing usable and blocked exercises, and a planned
@@ -47,15 +55,30 @@ abstract final class V8LibraryFixture {
   ];
   static const String scheduledId = 'sw-wp9';
   static const String legacySession = 'sess-legacy';
+  static const String unreadableSession = 'sess-unreadable';
+
+  /// The exercises of [unreadableSession], in entry order.
+  static const List<String> unreadableHistory = [
+    'ex-unmapped-enums',
+    'ex-trapsec',
+    'ex-bad-aliases',
+  ];
 
   /// Exercises blocked by the migration of the fixture, with their reasons.
   static const Map<String, Set<String>> blocked = {
     'ex-sec-only': {'noPrimaryTarget'},
-    'ex-rotator': {'noPrimaryTarget', 'unknownEquipment'},
+    'ex-rotator': {
+      'noPrimaryTarget',
+      'unknownEquipment',
+      'invalidSecondaryTarget',
+    },
     'ex-empty': {'noPrimaryTarget'},
-    'ex-neck': {'noPrimaryTarget'},
-    'ex-garbage': {'invalidEquipment'},
+    'ex-neck': {'noPrimaryTarget', 'invalidSecondaryTarget'},
+    'ex-garbage': {'invalidEquipment', 'invalidSecondaryTarget'},
     'ex-dup': {'unknownEquipment'},
+    'ex-trapsec': {'invalidSecondaryTarget'},
+    'ex-unmapped-enums': {'invalidClassification'},
+    'ex-bad-aliases': {'invalidAliases'},
   };
 
   /// Adds the legacy work to a v7 database file.
@@ -76,6 +99,27 @@ abstract final class V8LibraryFixture {
           '\'["rearDelts","upperBack"]\', \'["resistanceBand"]\', '
           "'[]', 'band pull-apart', 0, NULL, 0)",
           ['ex-sec-only', t, t],
+        )
+        // A readable exercise with an unreadable alias list.
+        ..execute(
+          'INSERT INTO exercises (id, created_at, updated_at, deleted_at, '
+          'name, type, category, primary_muscle, secondary_muscles_json, '
+          'equipment_json, aliases_json, search_key, supplied, '
+          'copied_from_id, archived) VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, '
+          '?, ?, ?, 0, NULL, 0)',
+          [
+            'ex-bad-aliases',
+            t,
+            t,
+            'Floor press',
+            'weighted',
+            'push',
+            'chest',
+            '["triceps"]',
+            '["barbell"]',
+            '["Press",7]',
+            'floor press',
+          ],
         )
         ..execute(
           'INSERT INTO workout_plans (id, created_at, updated_at, deleted_at, '
@@ -148,6 +192,34 @@ abstract final class V8LibraryFixture {
             entry,
           ],
         );
+      }
+      db.execute(
+        'INSERT INTO workout_sessions (id, created_at, updated_at, '
+        'deleted_at, name, plan_id, started_at, ended_at, notes) VALUES '
+        "(?, ?, ?, NULL, 'Unreadable data', NULL, ?, ?, '')",
+        [unreadableSession, t, t, t, '2026-01-10T08:30:00.000Z'],
+      );
+      for (var i = 0; i < unreadableHistory.length; i++) {
+        db
+          ..execute(
+            'INSERT INTO session_exercises (id, session_id, position, '
+            'exercise_id, note) VALUES (?, ?, ?, ?, NULL)',
+            ['se-unr-$i', unreadableSession, i, unreadableHistory[i]],
+          )
+          ..execute(
+            'INSERT INTO session_sets (id, session_id, exercise_id, '
+            'exercise_order, set_order, type, load_kg, reps, completed, '
+            'exertion_scale, exertion_value, set_kind, session_exercise_id) '
+            "VALUES (?, ?, ?, ?, 0, 'weighted', 20.0, 8, 1, NULL, NULL, "
+            "'working', ?)",
+            [
+              'set-unr-$i',
+              unreadableSession,
+              unreadableHistory[i],
+              i,
+              'se-unr-$i',
+            ],
+          );
       }
     } finally {
       db.close();

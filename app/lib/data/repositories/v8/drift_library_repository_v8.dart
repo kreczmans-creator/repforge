@@ -24,7 +24,11 @@ import 'package:repforge/domain/training/training.dart'
         SessionExercise,
         exerciseSearchKey;
 import 'package:repforge/domain/training/training_validation.dart'
-    show normaliseExerciseSearch, validatePlanExercise;
+    show
+        maxExerciseAliases,
+        maxTrainingNameLength,
+        normaliseExerciseSearch,
+        validatePlanExercise;
 
 /// The exercise library over schema v8 (WP 8 sub-stage 3b-8): selection,
 /// reads, the new-work guards, the correction route of blocked exercises,
@@ -46,10 +50,10 @@ import 'package:repforge/domain/training/training_validation.dart'
 ///   WP 9 write paths that add an exercise to new work) refuse a blocked,
 ///   archived or deleted exercise and write nothing; a retired one is not
 ///   refused (register R-C8);
-/// - [correctBlockedReason] sets the field behind a block (targets or
-///   equipment) in one transaction, validated by the 3a exercise rules,
-///   resolves every active reason of that field (R-C4), and never touches
-///   plans, sessions, entries or sets.
+/// - [correctBlockedReason] sets the field behind a block (targets,
+///   equipment, classification or aliases) in one transaction, validated
+///   by the 3a exercise rules, resolves every active reason of that field
+///   (R-C4), and never touches plans, sessions, entries or sets.
 final class DriftLibraryRepositoryV8 {
   DriftLibraryRepositoryV8(
     this._db, {
@@ -201,7 +205,8 @@ final class DriftLibraryRepositoryV8 {
   /// (`blocked`, `archived` or `unreadable`) and, when blocked,
   /// `blockReasons` (the active reasons, comma-separated, R-01). A retired
   /// exercise is **not** refused: retirement hides it from discovery only
-  /// (ADR-0009 decision 4; owner question R-C8).
+  /// (ADR-0009 decision 4; owner decision R-C8, 2026-11-06: retired
+  /// exercises stay usable in new work and are excluded from discovery).
   Future<Result<LibraryExerciseV8>> requireNewWork(String exerciseId) async {
     final stored = await byId(exerciseId);
     return _newWork(stored);
@@ -387,31 +392,47 @@ final class DriftLibraryRepositoryV8 {
   ///   read-only for users and only a catalogue release writes it (ADR-0009
   ///   decision 4 and rationale); how a release clears a block is a stage 3c
   ///   requirement (register R-C9).
-  /// - [reason] must be active. Its field takes the matching fix:
-  ///   `noPrimaryTarget` → [SetTargetsCorrection]; `unknownEquipment` and
-  ///   `invalidEquipment` → [SetEquipmentCorrection]. `invalidSecondaryTarget`
-  ///   has no route (register R-C3).
-  /// - The fix **sets the whole field**: the given list replaces the stored
+  /// - [reason] must be active. Its field ([BlockedField]) takes the
+  ///   matching fix: `noPrimaryTarget` and `invalidSecondaryTarget` →
+  ///   [SetTargetsCorrection]; `unknownEquipment` and `invalidEquipment` →
+  ///   [SetEquipmentCorrection]; `invalidClassification` →
+  ///   [SetClassificationCorrection]; `invalidAliases` →
+  ///   [SetAliasesCorrection].
+  /// - The fix **sets the whole field**: the given value replaces the stored
   ///   one (rows deleted and inserted in this transaction, as register R-29
   ///   prescribes for reordering). Targets are stored primaries first, then
   ///   secondaries, each group in the given order, ordinals contiguous from 0
   ///   (IC-309), so a kept secondary can become the primary. The equipment
   ///   list may be **empty**: an exercise that needs no item has no rows
   ///   (`equipment.md` section 1 rule 2), which corrects a legacy
-  ///   `"bodyweight"` or `"None"` faithfully. Nothing is inferred.
-  /// - The corrected exercise is checked with the 3a rules
-  ///   (`validateExercise`): no error-severity finding may remain on the
-  ///   corrected field (`targets`: IC-204 at least one primary, IC-301 to
-  ///   IC-305, IC-309; `equipment`: IC-307, IC-315 including Q6). Findings on
-  ///   untouched fields are not this correction's concern (register C-5).
+  ///   `"bodyweight"` or `"None"` faithfully. The classification sets `type`
+  ///   and `category` to domain identifiers (the Dart enums, so nothing else
+  ///   can be given) under the WP 9 type rules (`_typeProblem`: a readable
+  ///   type never changes once sets are recorded or while a plan uses the
+  ///   exercise; an unreadable type may be set only to the type of the
+  ///   recorded sets, and not while a plan uses the exercise, register
+  ///   C-10). The alias list is stored as every WP 9 save stores it
+  ///   ([normaliseAliases]: trimmed, empty and duplicate aliases dropped;
+  ///   too long or too many refused) and replaces `aliases_json` and the
+  ///   derived `search_key`; the correction entry records the list given and
+  ///   the list stored (register C-9). Nothing is inferred.
+  /// - Targets and equipment are checked with the 3a rules
+  ///   (`validateExercise`), which need a readable exercise: while its
+  ///   classification or alias list is unreadable they are refused until
+  ///   that field is corrected first. Classification and aliases are checked
+  ///   against the domain values (and with the 3a rules on their field when
+  ///   the corrected exercise is readable). No error-severity finding may
+  ///   remain on the corrected field; findings on untouched fields are not
+  ///   this correction's concern (register C-5).
   /// - Every active reason tied to the corrected field is resolved
-  ///   ([BlockedField]; register R-C4); a reason of another field keeps the
-  ///   exercise blocked (R-01).
-  /// - Writes: the field's rows, `resolved_at` of the resolved block rows,
-  ///   `updated_at` of the exercise, and one report run with one entry per
-  ///   resolved reason, recording the field's value before and after (R-06),
-  ///   and its counts ([CorrectionReportContract], **provisional, owner
-  ///   decision C-1**). Plans, sessions, entries and sets are never touched.
+  ///   ([BlockedField]; register R-C4, decided); a reason of another field
+  ///   keeps the exercise blocked (R-01).
+  /// - Writes: the field's rows or columns, `resolved_at` of the resolved
+  ///   block rows, `updated_at` of the exercise, and one report run (trigger
+  ///   `userCorrection`) with one entry per resolved reason (action
+  ///   `corrected`), recording the field's value before and after (R-06),
+  ///   and its counts ([CorrectionReportContract], owner decision C-1).
+  ///   Plans, sessions, entries and sets are never touched.
   /// - Any refusal or failure writes nothing.
   Future<Result<BlockCorrectionOutcome>> correctBlockedReason(
     String exerciseId,
@@ -426,17 +447,7 @@ final class DriftLibraryRepositoryV8 {
             NotFoundError('That exercise no longer exists.'),
           );
         }
-        final current = stored.exercise;
-        if (current == null) {
-          return const Err<BlockCorrectionOutcome>(
-            ValidationError(
-              'The stored type, category or alias list of this exercise '
-              'cannot be read; it cannot be corrected here.',
-              field: 'exerciseId',
-            ),
-          );
-        }
-        if (current.isSystem) {
+        if (stored.source == ExerciseSource.system) {
           return const Err<BlockCorrectionOutcome>(
             ValidationError(
               'A system exercise is corrected by a catalogue release, not by '
@@ -467,16 +478,41 @@ final class DriftLibraryRepositoryV8 {
             ),
           );
         }
-        final CatalogueExercise corrected;
-        switch ((field, fix)) {
-          case (BlockedField.targets, SetTargetsCorrection(:final targets)):
+        final fits = switch ((field, fix)) {
+          (BlockedField.targets, SetTargetsCorrection()) ||
+          (BlockedField.equipment, SetEquipmentCorrection()) ||
+          (BlockedField.classification, SetClassificationCorrection()) ||
+          (BlockedField.aliases, SetAliasesCorrection()) => true,
+          _ => false,
+        };
+        if (!fits) {
+          return Err<BlockCorrectionOutcome>(
+            ValidationError(
+              'A ${fix.runtimeType} does not correct the block '
+              '${reason.name}.',
+              field: 'fix',
+            ),
+          );
+        }
+        final row = await (_db.select(
+          _db.exercisesV8,
+        )..where((t) => t.id.equals(exerciseId))).getSingle();
+        final ctx = await _ruleContext();
+        final now = _clock.now().toUtc();
+        final String before;
+        final String after;
+        String? detail;
+        switch (fix) {
+          case SetTargetsCorrection(:final targets):
+            final current = stored.exercise;
+            if (current == null) return Err(_unreadableFirst(field));
             final ordered = [
               for (final t in targets)
                 if (t.role == TargetRole.primary) t,
               for (final t in targets)
                 if (t.role != TargetRole.primary) t,
             ];
-            corrected = current.copyWith(
+            final corrected = current.copyWith(
               targets: [
                 for (var i = 0; i < ordered.length; i++)
                   ExerciseTarget(
@@ -486,40 +522,98 @@ final class DriftLibraryRepositoryV8 {
                   ),
               ],
             );
-          case (BlockedField.equipment, SetEquipmentCorrection(:final items)):
-            corrected = current.copyWith(equipment: items);
-          default:
-            return Err<BlockCorrectionOutcome>(
-              ValidationError(
-                'A ${fix.runtimeType} does not correct the block '
-                '${reason.name}.',
-                field: 'fix',
+            final problems = _errorsOn(validateExercise(corrected, ctx), {
+              field.name,
+            });
+            if (problems != null) return Err(problems);
+            await (_db.delete(
+              _db.exerciseTargets,
+            )..where((t) => t.exerciseId.equals(exerciseId))).go();
+            await _insertTargets(exerciseId, corrected.targets);
+            before = _targetsJson(current.targets);
+            after = _targetsJson(corrected.targets);
+          case SetEquipmentCorrection(:final items):
+            final current = stored.exercise;
+            if (current == null) return Err(_unreadableFirst(field));
+            final corrected = current.copyWith(equipment: items);
+            final problems = _errorsOn(validateExercise(corrected, ctx), {
+              field.name,
+            });
+            if (problems != null) return Err(problems);
+            await (_db.delete(
+              _db.exerciseEquipmentLinks,
+            )..where((t) => t.exerciseId.equals(exerciseId))).go();
+            await _insertEquipment(
+              exerciseId,
+              corrected.equipment,
+              firstOrdinal: 0,
+            );
+            before = _equipmentJson(current.equipment);
+            after = _equipmentJson(corrected.equipment);
+          case SetClassificationCorrection(:final type, :final category):
+            final typeProblem = await _typeProblem(exerciseId, row.type, type);
+            if (typeProblem != null) return Err(typeProblem);
+            final preview = (await _load(
+              [exerciseId],
+              override: (r) =>
+                  r.copyWith(type: type.name, category: category.name),
+            )).single;
+            if (preview.exercise case final e?) {
+              final problems = _errorsOn(validateExercise(e, ctx), {
+                'type',
+                'category',
+              });
+              if (problems != null) return Err(problems);
+            }
+            await (_db.update(
+              _db.exercisesV8,
+            )..where((t) => t.id.equals(exerciseId))).write(
+              ExercisesV8Companion(
+                type: Value(type.name),
+                category: Value(category.name),
               ),
             );
+            before = encodeStoredRow({
+              'type': row.type,
+              'category': row.category,
+            });
+            after = encodeStoredRow({
+              'type': type.name,
+              'category': category.name,
+            });
+          case SetAliasesCorrection(aliases: final given):
+            final List<String> aliases;
+            switch (normaliseAliases(given)) {
+              case Err(:final error):
+                return Err(error);
+              case Ok(:final value):
+                aliases = value;
+            }
+            final json = jsonEncode(aliases);
+            final preview = (await _load([
+              exerciseId,
+            ], override: (r) => r.copyWith(aliasesJson: json))).single;
+            if (preview.exercise case final e?) {
+              final problems = _errorsOn(validateExercise(e, ctx), {'aliases'});
+              if (problems != null) return Err(problems);
+            }
+            await (_db.update(
+              _db.exercisesV8,
+            )..where((t) => t.id.equals(exerciseId))).write(
+              ExercisesV8Companion(
+                aliasesJson: Value(json),
+                searchKey: Value(exerciseSearchKey(row.name, aliases)),
+              ),
+            );
+            before = row.aliasesJson;
+            after = json;
+            detail =
+                ' The list given was ${jsonEncode(given)}; stored after the '
+                'WP 9 save rules (trimmed, empty and duplicate aliases '
+                'removed): $json.';
         }
-        final ctx = await _ruleContext();
-        final problems = _errorsOn(validateExercise(corrected, ctx), {
-          field.name,
-        });
-        if (problems != null) return Err<BlockCorrectionOutcome>(problems);
 
-        final now = _clock.now().toUtc();
         final resolution = resolveField(stored.availability.blocks, field, now);
-        if (field == BlockedField.targets) {
-          await (_db.delete(
-            _db.exerciseTargets,
-          )..where((t) => t.exerciseId.equals(exerciseId))).go();
-          await _insertTargets(exerciseId, corrected.targets);
-        } else {
-          await (_db.delete(
-            _db.exerciseEquipmentLinks,
-          )..where((t) => t.exerciseId.equals(exerciseId))).go();
-          await _insertEquipment(
-            exerciseId,
-            corrected.equipment,
-            firstOrdinal: 0,
-          );
-        }
         for (final r in resolution.resolved) {
           final changed =
               await (_db.update(_db.exerciseBlocks)..where(
@@ -537,12 +631,6 @@ final class DriftLibraryRepositoryV8 {
               ..where((t) => t.id.equals(exerciseId)))
             .write(ExercisesV8Companion(updatedAt: Value(now)));
 
-        final before = field == BlockedField.targets
-            ? _targetsJson(current.targets)
-            : _equipmentJson(current.equipment);
-        final after = field == BlockedField.targets
-            ? _targetsJson(corrected.targets)
-            : _equipmentJson(corrected.equipment);
         final events = [
           for (final r in BlockReason.values)
             if (resolution.resolved.contains(r))
@@ -553,11 +641,12 @@ final class DriftLibraryRepositoryV8 {
                 originalValue: encodeStoredValue(before),
                 resultingValue: encodeStoredValue(after),
                 action: CorrectionReportContract.action,
-                rule: CorrectionReportContract.ruleFor(r)!,
+                rule: CorrectionReportContract.ruleFor(r),
                 category: CorrectionReportContract.category,
                 reason:
                     'The block ${r.name} was resolved by a user correction '
-                    'of ${field.name}; historical sessions are unchanged.',
+                    'of ${field.name}; historical sessions are '
+                    'unchanged.${detail ?? ''}',
               ),
         ];
         final runId = CorrectionReportContract.runIdFor(_newId());
@@ -580,6 +669,120 @@ final class DriftLibraryRepositoryV8 {
     } on Object catch (e) {
       return Err(StorageError('Could not correct the exercise.', cause: e));
     }
+  }
+
+  /// The refusal of a targets or equipment correction while the exercise's
+  /// classification or alias list cannot be read: the 3a rules need a
+  /// readable exercise, so that field is corrected first.
+  static ValidationError _unreadableFirst(BlockedField field) =>
+      ValidationError(
+        'The stored type, category or alias list of this exercise cannot be '
+        'read; correct the classification and the aliases before the '
+        '${field.name}.',
+        field: 'exerciseId',
+      );
+
+  /// The alias list as every WP 9 save stores it (`validateExercise`,
+  /// TRN-012(1)): each alias trimmed, empty aliases and duplicates after
+  /// search normalisation dropped (first kept, order kept); refused when an
+  /// alias is longer than `maxTrainingNameLength` or more than
+  /// `maxExerciseAliases` remain. The correction entry records the list
+  /// given and the list stored (register C-9).
+  static Result<List<String>> normaliseAliases(List<String> given) {
+    final seen = <String>{};
+    final out = <String>[];
+    for (final a in given) {
+      final t = a.trim();
+      if (t.isEmpty) continue;
+      if (t.length > maxTrainingNameLength) {
+        return const Err(
+          ValidationError(
+            'An alias is too long.',
+            field: 'aliases',
+            fieldErrors: {'aliases': 'An alias is too long.'},
+          ),
+        );
+      }
+      if (seen.add(normaliseExerciseSearch(t))) out.add(t);
+    }
+    if (out.length > maxExerciseAliases) {
+      const why = 'At most $maxExerciseAliases aliases are allowed.';
+      return const Err(
+        ValidationError(why, field: 'aliases', fieldErrors: {'aliases': why}),
+      );
+    }
+    return Ok(out);
+  }
+
+  /// The WP 9 type rules applied to a classification correction (WP 9
+  /// `SaveCustomExercise`; `validateSetForExercise`: a set's type equals its
+  /// exercise's type). History and plans count as WP 9 counts them: sets in
+  /// sessions that are not deleted, entries of plans that are not deleted.
+  /// - A readable stored type: changing it is refused once sets are
+  ///   recorded or while a plan uses the exercise, with the WP 9 messages;
+  ///   the same type always passes.
+  /// - An unreadable stored type may be set only to the type of every set
+  ///   recorded for the exercise (none recorded: any type), and is refused
+  ///   while a plan uses the exercise (register C-10, owner question; the
+  ///   most conservative option until the owner decides).
+  /// Null when the type may be set.
+  Future<ValidationError?> _typeProblem(
+    String exerciseId,
+    String storedType,
+    ExerciseType type,
+  ) async {
+    ValidationError refuse(String why) =>
+        ValidationError(why, field: 'type', fieldErrors: {'type': why});
+    final setTypes = {
+      for (final r
+          in await _db
+              .customSelect(
+                'SELECT DISTINCT s.type AS t FROM session_sets s '
+                'JOIN workout_sessions w ON w.id = s.session_id '
+                'WHERE s.exercise_id = ? AND w.deleted_at IS NULL',
+                variables: [Variable<String>(exerciseId)],
+              )
+              .get())
+        '${r.data['t']}',
+    };
+    final inPlan =
+        (await _db
+                .customSelect(
+                  'SELECT 1 FROM plan_exercises e JOIN workout_plans p '
+                  'ON p.id = e.plan_id WHERE e.exercise_id = ? '
+                  'AND p.deleted_at IS NULL LIMIT 1',
+                  variables: [Variable<String>(exerciseId)],
+                )
+                .get())
+            .isNotEmpty;
+    final readable = ExerciseType.values.asNameMap()[storedType];
+    if (readable != null) {
+      if (readable == type) return null;
+      if (setTypes.isNotEmpty) {
+        return refuse('The type cannot change once sets have been recorded.');
+      }
+      if (inPlan) {
+        return refuse(
+          'The type cannot change while a plan uses this exercise.',
+        );
+      }
+      return null;
+    }
+    final others = setTypes.difference({type.name});
+    if (others.isNotEmpty) {
+      return refuse(
+        setTypes.length > 1
+            ? 'Sets of several types (${(setTypes.toList()..sort()).join(', ')}'
+                  ') have been recorded for this exercise; no type matches '
+                  'all of them.'
+            : 'Sets of type ${setTypes.single} have been recorded for this '
+                  'exercise; its type must be ${setTypes.single}.',
+      );
+    }
+    if (inPlan) {
+      return refuse('The type cannot be set while a plan uses this exercise.');
+    }
+    return null;
   }
 
   Future<List<String>> _writeCorrectionRun(
@@ -1075,7 +1278,12 @@ final class DriftLibraryRepositoryV8 {
     );
   }
 
-  Future<List<LibraryExerciseV8>> _load(List<String> ids) async {
+  /// [override] replaces each loaded `exercises` row before it is read
+  /// (used to preview a correction before it is written).
+  Future<List<LibraryExerciseV8>> _load(
+    List<String> ids, {
+    ExerciseV8Row Function(ExerciseV8Row row)? override,
+  }) async {
     if (ids.isEmpty) return const [];
     // Large selections read the child tables whole instead of binding
     // thousands of parameters.
@@ -1128,7 +1336,7 @@ final class DriftLibraryRepositoryV8 {
       for (final r in rows)
         if (wanted.contains(r.id))
           r.id: _toStored(
-            r,
+            override == null ? r : override(r),
             targetsBy[r.id] ?? const [],
             patternsBy[r.id] ?? const [],
             equipmentBy[r.id] ?? const [],
@@ -1291,9 +1499,12 @@ final class LibraryExerciseV8 {
 
   /// The domain exercise; null when the stored `type`, `category` or
   /// `aliases_json` is not a known identifier or a JSON list of strings.
-  /// v7 hides such an exercise; whether v8 blocks it is open (WS4 review L9,
-  /// owner). It is never selectable and is refused by the guards, but it
-  /// is still read by id and its history stays readable.
+  /// v7 hides such an exercise; the v7 → v8 migration blocks it
+  /// (`invalidClassification`, `invalidAliases`; owner decision of
+  /// 2026-11-06), and the corresponding correction makes it readable again.
+  /// It is never selectable and is refused by the guards (also without a
+  /// block row, as a second line of defence), but it is still read by id
+  /// and its history stays readable.
   final CatalogueExercise? exercise;
 }
 
@@ -1377,9 +1588,11 @@ sealed class BlockCorrection {
   const BlockCorrection();
 }
 
-/// Sets the full target list (for `noPrimaryTarget`). Stored primaries
-/// first, then secondaries, each group in the given order, ordinals
-/// contiguous from 0 (IC-309); a kept secondary can become the primary.
+/// Sets the full target list (for `noPrimaryTarget` and
+/// `invalidSecondaryTarget`; both are resolved together, R-C4). Stored
+/// primaries first, then secondaries, each group in the given order,
+/// ordinals contiguous from 0 (IC-309); a kept secondary can become the
+/// primary.
 final class SetTargetsCorrection extends BlockCorrection {
   const SetTargetsCorrection(this.targets);
 
@@ -1394,6 +1607,29 @@ final class SetEquipmentCorrection extends BlockCorrection {
   const SetEquipmentCorrection(this.items);
 
   final List<ExerciseEquipment> items;
+}
+
+/// Sets `type` and `category` (for `invalidClassification`). Both are
+/// domain identifiers by construction ([ExerciseType], [ExerciseCategory]);
+/// the type follows the WP 9 type rules (see
+/// [DriftLibraryRepositoryV8.correctBlockedReason]).
+final class SetClassificationCorrection extends BlockCorrection {
+  const SetClassificationCorrection({
+    required this.type,
+    required this.category,
+  });
+
+  final ExerciseType type;
+  final ExerciseCategory category;
+}
+
+/// Sets the full en-GB alias list (for `invalidAliases`), stored as every
+/// WP 9 save stores it ([DriftLibraryRepositoryV8.normaliseAliases]). The
+/// list may be empty.
+final class SetAliasesCorrection extends BlockCorrection {
+  const SetAliasesCorrection(this.aliases);
+
+  final List<String> aliases;
 }
 
 /// The result of a correction: the exercise after it, the reasons resolved
@@ -1426,43 +1662,33 @@ final class EquipmentRoleChange {
   final String? note;
 }
 
-/// How a correction is recorded in the migration report.
-///
-/// **PROVISIONAL — owner decision required (register C-1 in
-/// `docs/v8-library-use-cases.md`). Not a decided contract.** The approved
-/// report vocabulary (`quality-and-duplicates.md` section 4.2, R-03, R-05;
-/// the `migration_runs` and `migration_report_entries` CHECKs) has no
-/// trigger and no action for a user correction. Until the owner decides, a
-/// correction is written inside the existing vocabulary, so nothing in the
-/// schema changes:
+/// How a correction is recorded in the migration report (owner decision
+/// C-1, D04 section 7, 2026-11-06 "stage 3b decision baseline": the report
+/// gains the action `corrected` and the trigger kind `userCorrection`):
 /// - its own run per correction (`correction:<id>`), trigger
-///   `integrityCheck`, provenance `device`, so the migration run that
+///   `userCorrection`, provenance `device`, so the migration run that
 ///   blocked the exercise is never changed;
 /// - one entry per resolved reason: table `exercises`, record and exercise
-///   = the exercise, field `targets` or `equipment`, action `mapped`,
-///   category `migrated` (an allowed pair, `ReportEvent.allowedCategories`),
-///   rule = the rule of that reason's block entry (IC-204, ADR-0008-Q12 or
-///   R-02, so the event ids differ), `original_value` and `resulting_value`
-///   = the whole field before and after, as JSON text (R-06);
+///   = the exercise, field `targets`, `equipment`, `classification` or
+///   `aliases` ([BlockedField]), action `corrected`, category `migrated`
+///   (the field was converted to valid values; `ReportEvent.
+///   allowedCategories` also admits `preserved`), rule = the rule of that
+///   reason's block entry ([MigrationRuleCodes.blockRule]: IC-204,
+///   ADR-0008-Q12, R-02 or a `D04-UNREADABLE-*` code, so the event ids of
+///   two resolved reasons differ), `original_value` and `resulting_value` =
+///   the whole field before and after, as JSON text (R-06);
 /// - counts for that table in both dimensions, as the migration writes
-///   them, so the run reconciles (R-04).
-/// A different decision (for example a new trigger `correction` or action
-/// `corrected`) is a schema and report-contract change; only this class and
-/// its tests change with it.
+///   them (the `disposition` dimension includes `corrected`), so the run
+///   reconciles (R-04).
 abstract final class CorrectionReportContract {
-  static const ReportTrigger trigger = ReportTrigger.integrityCheck;
-  static const ReportAction action = ReportAction.mapped;
+  static const ReportTrigger trigger = ReportTrigger.userCorrection;
+  static const ReportAction action = ReportAction.corrected;
   static const ReportCategory category = ReportCategory.migrated;
   static const String table = 'exercises';
 
   static String runIdFor(String id) => 'correction:$id';
 
-  /// The rule cited by the block entry of [reason]; null for a reason v8
-  /// does not store.
-  static String? ruleFor(BlockReason reason) => switch (reason) {
-    BlockReason.noPrimaryTarget => MigrationRuleCodes.noPrimaryTarget,
-    BlockReason.unknownEquipment => MigrationRuleCodes.unknownEquipmentBlock,
-    BlockReason.invalidEquipment => MigrationRuleCodes.invalidEquipmentBlock,
-    BlockReason.invalidSecondaryTarget => null,
-  };
+  /// The rule cited by the block entry of [reason].
+  static String ruleFor(BlockReason reason) =>
+      MigrationRuleCodes.blockRule(reason);
 }

@@ -35,7 +35,11 @@ const timingHarnessVersion = 'ws5-timing/1';
 /// deterministic registry configuration (fixed clock and run id).
 const hostReferenceDigests = <String, ({String start, String end})>{
   'historical': (start: 'v5 e18285a1cb9d27d2', end: 'v7 cb68ca68ae2be071'),
-  'v7to8': (start: 'v7 602dbcd0601b46b7', end: 'v8 2f23e80e81fd7057'),
+  // End digest updated for the stage 3b decision baseline (2026-11-06):
+  // nullable release counts and `applied_at_source`, the three unreadable-
+  // data block reasons (the D04 profile's unmapped "traps" secondaries now
+  // block), R-33 retained entries. Previously `v8 2f23e80e81fd7057`.
+  'v7to8': (start: 'v7 602dbcd0601b46b7', end: 'v8 7fc53371acfa16d7'),
 };
 
 /// Host digest of the D04 profile built at v7 (the v7 → v8 input).

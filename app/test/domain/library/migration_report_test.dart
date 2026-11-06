@@ -88,7 +88,8 @@ void main() {
       expect(ReportCategory.fromCode('warnings'), isNull);
     });
 
-    test('actions are the section 4.2 list plus blocked (R-03)', () {
+    test('actions are the section 4.2 list plus blocked (R-03) and '
+        'corrected (C-1)', () {
       expect(
         [for (final a in ReportAction.values) a.name],
         [
@@ -101,20 +102,55 @@ void main() {
           'rejected',
           'blocked',
           'none',
+          'corrected',
         ],
       );
       expect(ReportAction.fromName('blocked'), ReportAction.blocked);
+      expect(ReportAction.fromName('corrected'), ReportAction.corrected);
       expect(ReportAction.fromName('Blocked'), isNull);
     });
 
-    test('block reasons (R-02)', () {
+    test('block reasons (R-02; unreadable data, 2026-11-06)', () {
       expect(
         [for (final r in BlockReason.values) r.name],
         [
           'noPrimaryTarget',
           'unknownEquipment',
           'invalidEquipment',
-          'invalidSecondaryTarget', // OPEN (H1): only behind the switch
+          'invalidSecondaryTarget',
+          'invalidClassification',
+          'invalidAliases',
+        ],
+      );
+    });
+
+    test('block-row rule codes: approved IC-204, ADR-0008-Q12, R-02 and the '
+        'three decision-reference codes', () {
+      expect(
+        {
+          for (final r in BlockReason.values)
+            r: MigrationRuleCodes.blockRule(r),
+        },
+        {
+          BlockReason.noPrimaryTarget: 'IC-204',
+          BlockReason.unknownEquipment: 'ADR-0008-Q12',
+          BlockReason.invalidEquipment: 'R-02',
+          BlockReason.invalidSecondaryTarget: 'D04-UNREADABLE-SECONDARY',
+          BlockReason.invalidClassification: 'D04-UNREADABLE-CLASSIFICATION',
+          BlockReason.invalidAliases: 'D04-UNREADABLE-ALIASES',
+        },
+      );
+    });
+
+    test('triggers: section 4.2 plus userCorrection (C-1)', () {
+      expect(
+        [for (final t in ReportTrigger.values) t.name],
+        [
+          'migration',
+          'restore',
+          'integrityCheck',
+          'catalogueUpdate',
+          'userCorrection',
         ],
       );
     });
@@ -445,6 +481,9 @@ void main() {
       final rows = [
         const LegacyExerciseRow(
           id: 'ex-a',
+          type: 'weighted',
+          category: 'push',
+          aliasesJson: '[]',
           primaryMuscle: 'Neck',
           secondaryMusclesJson: '["chest","chest","fullBody"]',
           equipmentJson: '["barbell","barbell","hoverboard",1]',
@@ -452,6 +491,9 @@ void main() {
         ),
         const LegacyExerciseRow(
           id: 'ex-b',
+          type: 'Aerobic',
+          category: 'push',
+          aliasesJson: 'oops',
           primaryMuscle: 'chest',
           secondaryMusclesJson: 'oops',
           equipmentJson: 'oops',
@@ -681,20 +723,33 @@ void main() {
             ),
           ],
         )
-        // quarantined
+        // quarantined (since the unreadable-data decision an unmapped
+        // secondary also blocks, so the quarantine-only record is built by
+        // hand here)
         ..examine(
           table: 'exercises',
           recordId: 'ex-q',
           cleanOutcome: ReportCategory.migrated,
-          events: mapLegacyExercise(
-            const LegacyExerciseRow(
-              id: 'ex-q',
-              primaryMuscle: 'chest',
-              secondaryMusclesJson: '["traps","fullBody"]',
-              equipmentJson: '[]',
-              supplied: 0,
+          events: [
+            ev(
+              recordId: 'ex-q',
+              field: 'secondary_muscles_json',
+              position: 0,
+              action: ReportAction.quarantined,
+              rule: 'IC-301',
+              category: ReportCategory.quarantinedOrUnresolved,
+              original: '["traps","fullBody"]',
             ),
-          ).events,
+            ev(
+              recordId: 'ex-q',
+              field: 'secondary_muscles_json',
+              position: 1,
+              action: ReportAction.retained,
+              rule: 'ADR-0010',
+              category: ReportCategory.warningForReview,
+              original: '["traps","fullBody"]',
+            ),
+          ],
         )
         // blocked twice over, with a warning
         ..examine(
@@ -704,6 +759,9 @@ void main() {
           events: mapLegacyExercise(
             const LegacyExerciseRow(
               id: 'ex-b',
+              type: 'weighted',
+              category: 'push',
+              aliasesJson: '[]',
               primaryMuscle: '',
               secondaryMusclesJson: '["fullBody"]',
               equipmentJson: '["hoverboard"]',
@@ -1083,6 +1141,12 @@ void main() {
           ReportCategory.warningForReview,
           ReportCategory.quarantinedOrUnresolved,
         },
+        // C-1: a user correction converts the field; never a warning, a
+        // quarantine or a block.
+        ReportAction.corrected: {
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
       };
       expect(allowed.keys.toSet(), ReportAction.values.toSet());
       for (final action in ReportAction.values) {
@@ -1107,22 +1171,22 @@ void main() {
 
   group('reconciliation structure (review WS4 M1, L1, L2)', () {
     MigrationReport sample() {
-      final b = MigrationReportBuilder(run());
-      final m = mapLegacyExercise(
-        const LegacyExerciseRow(
-          id: 'e1',
-          primaryMuscle: 'chest',
-          secondaryMusclesJson: '["traps"]',
-          equipmentJson: '[]',
-          supplied: 0,
-        ),
-      );
-      b
+      final b = MigrationReportBuilder(run())
         ..examine(
           table: 'exercises',
           recordId: 'e1',
           cleanOutcome: ReportCategory.migrated,
-          events: m.events,
+          events: [
+            ev(
+              recordId: 'e1',
+              field: 'secondary_muscles_json',
+              position: 0,
+              action: ReportAction.quarantined,
+              rule: 'IC-301',
+              category: ReportCategory.quarantinedOrUnresolved,
+              original: '["traps"]',
+            ),
+          ],
         )
         ..examine(
           table: 'exercises',

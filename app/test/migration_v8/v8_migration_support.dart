@@ -42,6 +42,12 @@ const installLabel = 'install-3b4-test';
 /// The bundled seed, as the app ships it.
 const seedPath = 'assets/seed/exercise_library.json';
 
+/// The v7-era seed hash, pinned independently of the migration code (the
+/// SHA-256 of `app/assets/seed/exercise_library.json` at commit df326db,
+/// the only seed any v7 install applied; R-30 option b).
+const v7SeedSha256Pin =
+    '839d9ca28f043e61ed502b4bf765ca1ff8110fc21b54e84d98014c3b8d5e0b22';
+
 List<int> seedBytes() => File(seedPath).readAsBytesSync();
 
 /// A run id generator that counts: `run-1`, `run-2`, ...
@@ -53,7 +59,6 @@ String Function() countingRunIds([String prefix = 'run']) {
 V8MigrationConfig testConfig({
   MigrationRunLedger? ledger,
   String Function()? newRunId,
-  LegacyMappingOptions options = const LegacyMappingOptions(),
   Future<QuickCheckResult> Function(DatabaseConnectionUser db)? quickCheck,
   LegacyExerciseMapper? mapExercise,
   String Function(File file)? fingerprint,
@@ -67,7 +72,6 @@ V8MigrationConfig testConfig({
   loadSeedBytes: loadSeedBytes ?? () async => seedBytes(),
   runLedger: ledger ?? InMemoryMigrationRunLedger(),
   newRunId: newRunId ?? () => 'run-1',
-  mappingOptions: options,
   quickCheck: quickCheck,
   mapExercise: mapExercise ?? mapLegacyExercise,
   fingerprint: fingerprint ?? V7ToV8Migration.fileFingerprint,
@@ -395,12 +399,12 @@ final class V8Expectation {
   factory V8Expectation.of(
     File v7File, {
     required String runId,
-    LegacyMappingOptions options = const LegacyMappingOptions(),
+    List<int>? seed,
   }) {
     final x = V8Expectation._()..runId = runId;
     final db = sqlite3.open(v7File.path, mode: OpenMode.readOnly);
     try {
-      x._build(db, options);
+      x._build(db, seed ?? seedBytes());
     } finally {
       db.close();
     }
@@ -431,7 +435,7 @@ final class V8Expectation {
   late final Map<String, Finding> findings;
   Map<String, Object?>? release;
 
-  void _build(Database db, LegacyMappingOptions options) {
+  void _build(Database db, List<int> seed) {
     v7 = DbState.of(db);
     findings = findingsOf(db);
     var nextQuarantineId =
@@ -474,12 +478,14 @@ final class V8Expectation {
       final m = mapLegacyExercise(
         LegacyExerciseRow(
           id: id,
+          type: r['type'],
+          category: r['category'],
+          aliasesJson: r['aliases_json'],
           primaryMuscle: r['primary_muscle'],
           secondaryMusclesJson: r['secondary_muscles_json'],
           equipmentJson: r['equipment_json'],
           supplied: r['supplied'],
         ),
-        options: options,
       );
       mappings[id] = m;
       m.quarantine.forEach(quarantine);
@@ -490,12 +496,20 @@ final class V8Expectation {
         equipment.add('$id|${e.item.value}|${e.ordinal}|null|null');
       }
       for (final b in m.blocks) {
-        final original = b.reason == BlockReason.noPrimaryTarget
-            ? {
-                'primary_muscle': r['primary_muscle'],
-                'secondary_muscles_json': r['secondary_muscles_json'],
-              }
-            : {'equipment_json': r['equipment_json']};
+        final original = switch (b.reason) {
+          BlockReason.noPrimaryTarget || BlockReason.invalidSecondaryTarget => {
+            'primary_muscle': r['primary_muscle'],
+            'secondary_muscles_json': r['secondary_muscles_json'],
+          },
+          BlockReason.unknownEquipment || BlockReason.invalidEquipment => {
+            'equipment_json': r['equipment_json'],
+          },
+          BlockReason.invalidClassification => {
+            'type': r['type'],
+            'category': r['category'],
+          },
+          BlockReason.invalidAliases => {'aliases_json': r['aliases_json']},
+        };
         blocks.add(
           '$id|${b.reason.name}|${encodeStoredRow(original)}|$v8Stamp|null',
         );
@@ -536,21 +550,72 @@ final class V8Expectation {
         recordId: id,
         cleanOutcome: ReportCategory.preserved,
         events: [
+          // R-33: retained, preserved, never this run's quarantine.
           ReportEvent(
             table: 'legacy_quarantine',
             recordId: id,
             field: 'original_json',
             originalValue: encodeStoredValue(r['original_json']),
             resultingValue: 'null',
-            action: ReportAction.quarantined,
+            action: ReportAction.retained,
             rule: 'WP8-D3',
-            category: ReportCategory.quarantinedOrUnresolved,
+            category: ReportCategory.preserved,
             reason:
                 'Quarantined before schema v8 from ${r['source_table']} '
-                'record ${r['row_id']} (${r['reason']}); kept unchanged in '
-                'legacy_quarantine.',
+                'record ${r['row_id']} (${r['reason']}); retained unchanged '
+                'in legacy_quarantine and not counted as quarantined by this '
+                'run (R-33).',
           ),
         ],
+      );
+    }
+    // Release 1 (plan section 6 step 9; R-10; R-30 option b): the seed
+    // setting is examined whenever it exists; release 1 only when the seed
+    // applied and the bytes hash to the pinned v7-era value.
+    final seedSetting = v7
+        .rows('settings')
+        .where((r) => r['key'] == 'seedExercisesVersion');
+    if (seedSetting.isNotEmpty) {
+      final setting = seedSetting.single;
+      final applied = (int.tryParse('${setting['value']}') ?? 0) >= 1;
+      final hash = digest.sha256Hex(seed);
+      ReportEvent? warning;
+      if (applied && hash == v7SeedSha256Pin) {
+        release = {
+          'provider_id': 'repforge',
+          'release': 1,
+          'applied_at': setting['updated_at'],
+          'applied_at_source': 'seedExercisesVersion.updated_at',
+          'content_hash_algorithm': 'sha256',
+          'content_hash_encoding': 'hex-lower',
+          'content_hash': hash,
+          'inserted': null,
+          'updated': null,
+          'retired': null,
+          'app_version': null,
+        };
+      } else if (applied) {
+        warning = ReportEvent(
+          table: 'settings',
+          recordId: 'seedExercisesVersion',
+          field: 'value',
+          originalValue: encodeStoredValue(setting['value']),
+          resultingValue: encodeStoredValue(setting['value']),
+          action: ReportAction.none,
+          rule: 'R-30',
+          category: ReportCategory.warningForReview,
+          reason:
+              'The v7 seed was applied, but the bundled seed hashes to '
+              '$hash, not the v7-era release 1 hash $v7SeedSha256Pin. No '
+              'release 1 record is created (R-30); the setting is kept '
+              'unchanged.',
+        );
+      }
+      builder.examine(
+        table: 'settings',
+        recordId: 'seedExercisesVersion',
+        cleanOutcome: ReportCategory.preserved,
+        events: [?warning],
       );
     }
     report = builder.build();
@@ -640,26 +705,6 @@ final class V8Expectation {
       entries[row['event_id']! as String] = row;
     }
     integrityCounts = countRows(integrityReport);
-
-    // Release 1 (plan section 6 step 9; R-10): only when the seed applied.
-    final seed = v7
-        .rows('settings')
-        .where((r) => r['key'] == 'seedExercisesVersion');
-    if (seed.isNotEmpty &&
-        (int.tryParse('${seed.single['value']}') ?? 0) >= 1) {
-      release = {
-        'provider_id': 'repforge',
-        'release': 1,
-        'applied_at': seed.single['updated_at'],
-        'content_hash_algorithm': 'sha256',
-        'content_hash_encoding': 'hex-lower',
-        'content_hash': digest.sha256OfFile(seedPath),
-        'inserted': 0,
-        'updated': 0,
-        'retired': 0,
-        'app_version': null,
-      };
-    }
   }
 }
 

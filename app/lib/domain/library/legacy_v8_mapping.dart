@@ -7,7 +7,7 @@ import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/migration_report.dart';
 import 'package:repforge/domain/library/preserved_ids.dart';
 import 'package:repforge/domain/training/training.dart'
-    show Exertion, ExertionScale;
+    show ExerciseCategory, ExerciseType, Exertion, ExertionScale;
 
 /// Deterministic, side-effect-free mapping of one v7 row to its v8 values
 /// and report events (plan section 6 steps 3, 5 and 6; ADR-0008 sections B
@@ -26,6 +26,9 @@ import 'package:repforge/domain/training/training.dart'
 /// Table and column names of the v7 rows this file reads.
 abstract final class LegacyV7Columns {
   static const String exercisesTable = 'exercises';
+  static const String type = 'type';
+  static const String category = 'category';
+  static const String aliases = 'aliases_json';
   static const String primaryMuscle = 'primary_muscle';
   static const String secondaryMuscles = 'secondary_muscles_json';
   static const String equipment = 'equipment_json';
@@ -41,6 +44,9 @@ abstract final class LegacyV7Columns {
 final class LegacyExerciseRow {
   const LegacyExerciseRow({
     required this.id,
+    required this.type,
+    required this.category,
+    required this.aliasesJson,
     required this.primaryMuscle,
     required this.secondaryMusclesJson,
     required this.equipmentJson,
@@ -48,6 +54,15 @@ final class LegacyExerciseRow {
   });
 
   final String id;
+
+  /// v7 `type`: an `ExerciseType` identifier when readable.
+  final Object? type;
+
+  /// v7 `category`: an `ExerciseCategory` identifier when readable.
+  final Object? category;
+
+  /// v7 `aliases_json`: a JSON array of strings when readable.
+  final Object? aliasesJson;
   final Object? primaryMuscle;
   final Object? secondaryMusclesJson;
   final Object? equipmentJson;
@@ -200,6 +215,10 @@ final Set<String> _muscleIds = {
 final Set<String> _equipmentIds = {
   for (final e in existingEquipmentIds) e.value,
 };
+final Set<String> _typeIds = {for (final t in ExerciseType.values) t.name};
+final Set<String> _categoryIds = {
+  for (final c in ExerciseCategory.values) c.name,
+};
 
 /// Result of reading a stored JSON array column.
 sealed class _JsonList {
@@ -243,34 +262,30 @@ String _kind(Object? v) => switch (v) {
   _ => 'a value',
 };
 
-/// Switches for mapping choices that wait for an owner decision. The default
-/// is the behaviour delivered for review; nothing else may depend on a
-/// switch being on until the owner approves it.
-@immutable
-final class LegacyMappingOptions {
-  const LegacyMappingOptions({this.blockInvalidSecondaryTargets = false});
-
-  /// **OPEN (review WS4 H1, owner decision pending).** v7 hides an exercise
-  /// whose `secondary_muscles_json` is not a JSON array, holds a non-string
-  /// element or names an unknown muscle (`TrainingMappers.exerciseToEntity`
-  /// returns null). With this switch off (the default) the v8 mapping
-  /// quarantines those values and the exercise stays available: a visibility
-  /// change against v7. With it on, each such exercise is also blocked with
-  /// [BlockReason.invalidSecondaryTarget], like `unknownEquipment` (ADR-0008
-  /// Q12). Repeated secondaries and a secondary equal to the primary are
-  /// accepted by v7 and never block.
-  final bool blockInvalidSecondaryTargets;
-}
-
-/// **OPEN (review WS4 L9, for the owner alongside H1).** v7 also hides an
-/// exercise whose `type` or `category` is not a known identifier, or whose
-/// `aliases_json` is not a JSON array of strings. This mapping does not read
-/// those columns; whether v8 blocks such exercises is not decided here, and
-/// no behaviour is implemented for it.
-///
 /// Maps one v7 exercise row to v8 (plan section 6 step 3; ADR-0008 section
 /// B; ADR-0010 rule 5; D04 2026-11-06 no-primary disposition; R-01, R-02,
-/// R-11).
+/// R-11; D04 2026-11-06 "stage 3b decision baseline": unreadable data is
+/// blocked individually).
+///
+/// Unreadable data blocks the exercise individually, one block per reason
+/// (R-01); nothing is inferred and every original is quarantined:
+/// - `type` that is not exactly an `ExerciseType` identifier, or `category`
+///   that is not exactly an `ExerciseCategory` identifier: a `quarantined`
+///   entry per field (IC-202 or IC-203 for text, WP8-D3 for a value that is
+///   not text) and one `blocked` entry, block `invalidClassification` (rule
+///   `D04-UNREADABLE-CLASSIFICATION`), on the first unreadable column (type
+///   before category; its reason names both), so every block has exactly
+///   one `blocked` entry. The column keeps its original (`resulting_value`
+///   states it unchanged); it is never rewritten;
+/// - `aliases_json` that is not a JSON array of strings: `quarantined`
+///   entries (WP8-D3; whole column or per non-string element) and one
+///   `blocked` entry, block `invalidAliases` (rule
+///   `D04-UNREADABLE-ALIASES`); the column keeps its original;
+/// - unreadable secondary muscles (below): block `invalidSecondaryTarget`
+///   (rule `D04-UNREADABLE-SECONDARY`).
+/// These three exercises were hidden by v7 (`TrainingMappers.
+/// exerciseToEntity` returns null); blocking keeps them hidden and never
+/// makes hidden information newly visible.
 ///
 /// Targets:
 /// - `primary_muscle` that is exactly one of the 19 preserved ids becomes
@@ -288,11 +303,12 @@ final class LegacyMappingOptions {
 ///   - otherwise → kept, with no event.
 /// - Text that is not a JSON array → quarantined whole (WP8-D3); no
 ///   secondary is kept.
-/// - None of these blocks the exercise unless
-///   [LegacyMappingOptions.blockInvalidSecondaryTargets] is on (OPEN, H1):
-///   then any quarantined secondary value adds a block
-///   `invalidSecondaryTarget` with its own entry (rule
-///   [MigrationRuleCodes.invalidSecondaryTargetBlock]).
+/// - Any quarantined secondary value (a non-string element, an unknown id,
+///   text that is not an array) blocks the exercise with
+///   `invalidSecondaryTarget`, with its own `blocked` entry (rule
+///   [MigrationRuleCodes.invalidSecondaryTargetBlock]). Repeated
+///   secondaries, a secondary equal to the primary and a `fullBody`
+///   secondary are read by v7 and never block.
 /// - Ordinals are contiguous: the primary 0, the kept secondaries 1..n; with
 ///   no mapped primary the kept secondaries take 0..n-1 (IC-309).
 /// - A secondary that the OQ-19 roll-up would suppress is an ordinary kept
@@ -319,10 +335,7 @@ final class LegacyMappingOptions {
 /// `supplied` → `source` `system` with provider `repforge` and revision 1,
 /// or `user` with neither. A `supplied` value other than 0, 1 or a bool is
 /// outside the v7 CHECK and throws [ArgumentError].
-LegacyExerciseMapping mapLegacyExercise(
-  LegacyExerciseRow row, {
-  LegacyMappingOptions options = const LegacyMappingOptions(),
-}) {
+LegacyExerciseMapping mapLegacyExercise(LegacyExerciseRow row) {
   const table = LegacyV7Columns.exercisesTable;
   final id = row.id;
   if (id.isEmpty) throw ArgumentError.value(id, 'row.id', 'empty');
@@ -544,7 +557,7 @@ LegacyExerciseMapping mapLegacyExercise(
         }
       }
   }
-  if (secondaryQuarantined && options.blockInvalidSecondaryTargets) {
+  if (secondaryQuarantined) {
     blocks.add(
       const BlockDecision(
         BlockReason.invalidSecondaryTarget,
@@ -573,7 +586,8 @@ LegacyExerciseMapping mapLegacyExercise(
         recordId: id,
         reason:
             'Secondary muscle list not fully mappable (IC-301 or '
-            'WP8-D3); mapped entries migrated.',
+            'WP8-D3); mapped entries migrated; exercise blocked: '
+            'invalidSecondaryTarget.',
         original: {LegacyV7Columns.secondaryMuscles: secondaryStored},
       ),
     );
@@ -702,6 +716,153 @@ LegacyExerciseMapping mapLegacyExercise(
         recordId: id,
         reason: '${causes.join('; ')}; exercise blocked.',
         original: {LegacyV7Columns.equipment: equipmentStored},
+      ),
+    );
+  }
+
+  // Classification: type and category (WS4 L9).
+  final unreadableClassification = <String, Object?>{};
+  for (final (field, stored, known, rule, what) in [
+    (
+      LegacyV7Columns.type,
+      row.type,
+      _typeIds,
+      MigrationRuleCodes.loggingType,
+      'exercise type',
+    ),
+    (
+      LegacyV7Columns.category,
+      row.category,
+      _categoryIds,
+      MigrationRuleCodes.category,
+      'exercise category',
+    ),
+  ]) {
+    if (stored is String && known.contains(stored)) continue;
+    unreadableClassification[field] = stored;
+    final cited = stored is String ? rule : MigrationRuleCodes.legacyData;
+    final shown = stored is String ? '"$stored"' : _kind(stored);
+    events.add(
+      event(
+        field: field,
+        original: stored,
+        resulting: encodeStoredValue(stored),
+        action: ReportAction.quarantined,
+        rule: cited,
+        category: ReportCategory.quarantinedOrUnresolved,
+        reason:
+            'The $what $shown is not one of the domain identifiers; the '
+            'original is quarantined and kept unchanged in the row, never '
+            'rewritten.',
+      ),
+    );
+    quarantine.add(
+      QuarantineRequest(
+        table: table,
+        recordId: id,
+        reason:
+            'Unreadable $what ($cited); exercise blocked: '
+            'invalidClassification.',
+        original: {field: stored},
+      ),
+    );
+  }
+  if (unreadableClassification.isNotEmpty) {
+    final detail = [
+      for (final MapEntry(:key, :value) in unreadableClassification.entries)
+        '$key ${value is String ? '"$value"' : _kind(value)}',
+    ].join('; ');
+    blocks.add(BlockDecision(BlockReason.invalidClassification, detail));
+    // One blocked entry per reason, as for every block: on the first
+    // unreadable column in column order; each column has its own
+    // quarantined entry with its original.
+    final MapEntry(key: field, value: stored) =
+        unreadableClassification.entries.first;
+    events.add(
+      event(
+        field: field,
+        original: stored,
+        resulting: encodeStoredValue(stored),
+        action: ReportAction.blocked,
+        rule: MigrationRuleCodes.invalidClassificationBlock,
+        category: ReportCategory.rejectedOrBlocked,
+        blockReason: BlockReason.invalidClassification,
+        reason:
+            'The exercise classification cannot be read ($detail), so the '
+            'exercise is blocked from new use; its id, history and original '
+            'data are kept.',
+      ),
+    );
+  }
+
+  // Aliases (WS4 L9).
+  final aliasesStored = row.aliasesJson;
+  final aliasesUnchanged = encodeStoredValue(aliasesStored);
+  final aliasProblems = <String>[];
+  switch (_readArray(aliasesStored)) {
+    case _NotArray(:final why):
+      aliasProblems.add('aliases_json: $why');
+      events.add(
+        event(
+          field: LegacyV7Columns.aliases,
+          original: aliasesStored,
+          resulting: aliasesUnchanged,
+          action: ReportAction.quarantined,
+          rule: MigrationRuleCodes.legacyData,
+          category: ReportCategory.quarantinedOrUnresolved,
+          reason:
+              'The alias list cannot be read because $why; the original is '
+              'quarantined and kept unchanged in the row.',
+        ),
+      );
+    case _Array(:final elements):
+      for (var i = 0; i < elements.length; i++) {
+        final a = elements[i];
+        if (a is String) continue;
+        aliasProblems.add('position $i: ${_kind(a)}');
+        events.add(
+          event(
+            field: LegacyV7Columns.aliases,
+            position: i,
+            element: a,
+            original: aliasesStored,
+            resulting: aliasesUnchanged,
+            action: ReportAction.quarantined,
+            rule: MigrationRuleCodes.legacyData,
+            category: ReportCategory.quarantinedOrUnresolved,
+            reason:
+                'Alias at position $i is ${_kind(a)}, not text; the original '
+                'list is quarantined and kept unchanged in the row.',
+          ),
+        );
+      }
+  }
+  if (aliasProblems.isNotEmpty) {
+    final detail = aliasProblems.join('; ');
+    blocks.add(BlockDecision(BlockReason.invalidAliases, detail));
+    events.add(
+      event(
+        field: LegacyV7Columns.aliases,
+        original: aliasesStored,
+        resulting: aliasesUnchanged,
+        action: ReportAction.blocked,
+        rule: MigrationRuleCodes.invalidAliasesBlock,
+        category: ReportCategory.rejectedOrBlocked,
+        blockReason: BlockReason.invalidAliases,
+        reason:
+            'The alias list cannot be read ($detail), so the exercise is '
+            'blocked from new use; its id, history and original data are '
+            'kept.',
+      ),
+    );
+    quarantine.add(
+      QuarantineRequest(
+        table: table,
+        recordId: id,
+        reason:
+            'Unreadable alias list (WP8-D3); exercise blocked: '
+            'invalidAliases.',
+        original: {LegacyV7Columns.aliases: aliasesStored},
       ),
     );
   }

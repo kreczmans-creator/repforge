@@ -47,8 +47,11 @@ import 'package:repforge/domain/library/sha256_hex.dart';
 ///    of an offending set is quarantined, both columns cleared (R-28), and
 ///    `session_sets` rebuilt with the TRN-020 CHECK;
 /// 9. release 1 of provider `repforge` when the v7 seed was applied
-///    (`seedExercisesVersion`, plan section 6 step 9), hashed from the exact
-///    bundled seed bytes (R-10);
+///    (`seedExercisesVersion`, plan section 6 step 9) **and** the exact
+///    bundled seed bytes hash to the pinned v7-era value (R-10; owner
+///    decision R-30 / B-07 option b): counts NULL (unknown), `applied_at`
+///    from the setting with its source stated; otherwise no record and an
+///    R-30 warning in the report;
 /// 10. the broader integrity review: damage that existed before the step is
 ///    reported in the integrity run, never blocks;
 /// 11. the report of both runs (entries and counts by category and
@@ -96,9 +99,6 @@ enum V8MigrationFailureKind {
   /// The database is in a state the step does not recognise (for example
   /// `exercises` already in the v8 shape without a recorded v8 run).
   unexpectedState,
-
-  /// An option that needs an owner decision first was switched on.
-  unsupportedOption,
 }
 
 /// The v8 step failed; [details] lists every finding, in full.
@@ -222,7 +222,9 @@ final class PendingMigrationRun {
 
 /// Keeps the run id of a started migration **outside** the database (owner
 /// decision R-07: a resumed migration reuses its run id; a genuinely new
-/// attempt gets a new one). Register R-32 (owner confirmation requested).
+/// attempt gets a new one). Register R-32 (decided by the owner 2026-11-06:
+/// a crashed run keeps its run id, bound to the database file and app
+/// version).
 ///
 /// The migration is atomic, so a failed attempt leaves nothing in the
 /// database, its run row included; the id must therefore live elsewhere to
@@ -403,9 +405,8 @@ final class FileMigrationRunLedger implements MigrationRunLedger {
 /// Maps one v7 exercise row; the production value is the WS4
 /// [mapLegacyExercise].
 typedef LegacyExerciseMapper = LegacyExerciseMapping Function(
-  LegacyExerciseRow row, {
-  LegacyMappingOptions options,
-});
+  LegacyExerciseRow row,
+);
 
 /// Inputs of the v8 step. Nothing here has a production default: the app
 /// does not use v8 yet.
@@ -418,7 +419,6 @@ final class V8MigrationConfig {
     required this.loadSeedBytes,
     required this.runLedger,
     required this.newRunId,
-    this.mappingOptions = const LegacyMappingOptions(),
   }) : quickCheck = null,
        mapExercise = mapLegacyExercise,
        fingerprint = V7ToV8Migration.fileFingerprint;
@@ -432,7 +432,6 @@ final class V8MigrationConfig {
     required this.loadSeedBytes,
     required this.runLedger,
     required this.newRunId,
-    this.mappingOptions = const LegacyMappingOptions(),
     this.quickCheck,
     this.mapExercise = mapLegacyExercise,
     this.fingerprint = V7ToV8Migration.fileFingerprint,
@@ -457,13 +456,6 @@ final class V8MigrationConfig {
 
   /// A new, unique run id (for example a UUID).
   final String Function() newRunId;
-
-  /// **OPEN (WS4 review H1 and L9, owner decision pending).** The single
-  /// visibility switch of the mapping, [LegacyMappingOptions.
-  /// blockInvalidSecondaryTargets]; default false. v8 has no block reason
-  /// for it (`exercise_blocks` allows three reasons), so the step refuses to
-  /// run with it on until the owner decides and the schema follows.
-  final LegacyMappingOptions mappingOptions;
 
   /// Test seam ([V8MigrationConfig.forTesting] only): replaces
   /// `PRAGMA quick_check` with an injected result.
@@ -529,19 +521,36 @@ final class V7ToV8Migration {
   /// Suffix of the integrity run that accompanies a migration run.
   static const String integrityRunSuffix = ':integrity';
 
+  /// Report table of the v7 setting that records the applied seed.
+  static const String settingsTable = 'settings';
+
+  /// Key of the v7 setting that records the applied seed release.
+  static const String seedExercisesVersionKey = 'seedExercisesVersion';
+
+  /// Field of the seed setting cited by the R-30 warning.
+  static const String settingValueField = 'value';
+
+  /// SHA-256 (lowercase hex) of the exact bytes of the v7-era bundled seed
+  /// `assets/seed/exercise_library.json` (commit df326db, the only version
+  /// any v7 install applied as release 1). Owner decision R-30 / B-07
+  /// option b: release 1 is recorded only when the bundled seed hashes to
+  /// exactly this value; anything else is reported and creates no record.
+  static const String v7SeedSha256 =
+      '839d9ca28f043e61ed502b4bf765ca1ff8110fc21b54e84d98014c3b8d5e0b22';
+
+  /// `catalogue_releases.applied_at_source` of the release 1 record the
+  /// migration writes: `applied_at` is the v7 setting's `updated_at`, copied
+  /// verbatim (explicit install-time provenance, R-30 option b).
+  static const String release1AppliedAtSource =
+      'seedExercisesVersion.updated_at';
+
   /// The v8 step for drift's dispatcher (`schema_v8_shapes.g.dart`).
   MigrationStep get steps => migrationSteps(from7To8: from7To8);
 
   /// The integrity preflight (D04 section 7, 2026-11-06): `quick_check`
   /// through the WS4 decision. Throws [IntegrityPreflightFailure] when it
-  /// fails; runs before any transaction and writes nothing. Also refuses an
-  /// option that waits for an owner decision.
+  /// fails; runs before any transaction and writes nothing.
   Future<void> preflight(DatabaseConnectionUser db, int from, int to) async {
-    if (config.mappingOptions.blockInvalidSecondaryTargets) {
-      throw V8MigrationFailure(V8MigrationFailureKind.unsupportedOption, [
-        _unsupportedSecondaryBlock,
-      ]);
-    }
     final result = await (config.quickCheck ?? runQuickCheck)(db);
     final outcome = evaluateIntegrityPreflight(
       schemaVersion: from,
@@ -823,8 +832,9 @@ final class V7ToV8Migration {
     // 6. Exercises.
     final exerciseRows = await db
         .customSelect(
-          'SELECT id, primary_muscle, secondary_muscles_json, equipment_json, '
-          'supplied FROM exercises ORDER BY id',
+          'SELECT id, type, category, aliases_json, primary_muscle, '
+          'secondary_muscles_json, equipment_json, supplied FROM exercises '
+          'ORDER BY id',
         )
         .get();
     final mappings = <LegacyExerciseMapping>[];
@@ -835,12 +845,14 @@ final class V7ToV8Migration {
       final mapping = config.mapExercise(
         LegacyExerciseRow(
           id: d['id']! as String,
+          type: d['type'],
+          category: d['category'],
+          aliasesJson: d['aliases_json'],
           primaryMuscle: d['primary_muscle'],
           secondaryMusclesJson: d['secondary_muscles_json'],
           equipmentJson: d['equipment_json'],
           supplied: d['supplied'],
         ),
-        options: config.mappingOptions,
       );
       mappings.add(mapping);
       exerciseOf['${LegacyV7Columns.exercisesTable}|${mapping.id.value}'] =
@@ -994,8 +1006,17 @@ final class V7ToV8Migration {
     await m.alterTable(TableMigration(s.sessionSets));
     await _phase(V8MigrationPhase.setsRebuilt);
 
-    // 9. Release 1 (plan section 6 step 9; R-10).
-    await _recordRelease1(db, io);
+    // 9. Release 1 (plan section 6 step 9; R-10; R-30 option b).
+    final seedSetting = await _recordRelease1(db, io, builder);
+    if (seedSetting != null) {
+      affected[settingsTable] = {
+        ReportCategory.quarantinedOrUnresolved: const {},
+        ReportCategory.rejectedOrBlocked: const {},
+        ReportCategory.warningForReview: {
+          if (seedSetting.warned) seedExercisesVersionKey,
+        },
+      };
+    }
     await _phase(V8MigrationPhase.releaseRecorded);
 
     // v6-era quarantine rows into the report (plan section 6 step 7).
@@ -1019,8 +1040,10 @@ final class V7ToV8Migration {
       );
     }
     if (legacyIds.isNotEmpty) {
+      // R-33: retained and preserved, never part of this run's quarantine.
       affected[legacyQuarantineTable] = {
-        ReportCategory.quarantinedOrUnresolved: legacyIds,
+        ReportCategory.preserved: legacyIds,
+        ReportCategory.quarantinedOrUnresolved: const {},
       };
     }
 
@@ -1087,6 +1110,7 @@ final class V7ToV8Migration {
       ])
         if (countsBefore[t]! > 0) t: countsBefore[t]!,
       if (legacyIds.isNotEmpty) legacyQuarantineTable: legacyIds.length,
+      if (seedSetting != null) settingsTable: 1,
     };
     final rec = reconcileReport(
       report,
@@ -1094,6 +1118,18 @@ final class V7ToV8Migration {
       affectedByTable: affected,
     );
     problems.addAll(rec.problems.map((p) => 'migration run: $p'));
+    // Every value this run quarantined is in `legacy_quarantine`: a
+    // `quarantined` entry without a quarantine row of this run would be a
+    // dropped original.
+    for (final entry in report.entries) {
+      final e = entry.event;
+      if (e.action == ReportAction.quarantined &&
+          !quarantineIds.containsKey('${e.table}|${e.recordId}|${e.field}')) {
+        problems.add(
+          'migration run: $e is quarantined without a quarantine row',
+        );
+      }
+    }
     final recIntegrity = reconcileReport(
       integrity.report,
       examinedByTable: integrity.examined,
@@ -1182,8 +1218,11 @@ final class V7ToV8Migration {
   ];
 
   /// `exercise_blocks.original_json` of [reason] (R-06 encoding): the
-  /// original target state for `noPrimaryTarget` (`primary_muscle` and
-  /// `secondary_muscles_json`), the original `equipment_json` otherwise.
+  /// original target state for `noPrimaryTarget` and
+  /// `invalidSecondaryTarget` (`primary_muscle` and
+  /// `secondary_muscles_json`), the original `equipment_json` for the
+  /// equipment reasons, `type` and `category` for `invalidClassification`,
+  /// `aliases_json` for `invalidAliases`.
   static String blockOriginalJson(
     BlockReason reason,
     Map<String, Object?> exercise,
@@ -1196,6 +1235,13 @@ final class V7ToV8Migration {
     BlockReason.unknownEquipment || BlockReason.invalidEquipment => {
       LegacyV7Columns.equipment: exercise[LegacyV7Columns.equipment],
     },
+    BlockReason.invalidClassification => {
+      LegacyV7Columns.type: exercise[LegacyV7Columns.type],
+      LegacyV7Columns.category: exercise[LegacyV7Columns.category],
+    },
+    BlockReason.invalidAliases => {
+      LegacyV7Columns.aliases: exercise[LegacyV7Columns.aliases],
+    },
   });
 
   /// The report event of one quarantine row that existed before the step
@@ -1203,6 +1249,13 @@ final class V7ToV8Migration {
   /// moved to `legacy_quarantine` by the v6 migration). The row stays as it
   /// is; the entry lists it under rule WP8-D3, the legacy-data rule that
   /// quarantined it.
+  ///
+  /// Owner decision R-33 (2026-11-06): the row counts as **retained** and is
+  /// excluded from this run's quarantine total. Action `retained`, category
+  /// `preserved` (the record is kept unchanged; a retained entry may carry
+  /// `preserved`, `ReportEvent.allowedCategories`), so the record outcome is
+  /// `preserved` and neither the `quarantined` disposition nor the
+  /// `quarantinedOrUnresolved` category of this run counts it.
   static ReportEvent legacyQuarantineEvent(Map<String, Object?> row) =>
       ReportEvent(
         table: legacyQuarantineTable,
@@ -1210,38 +1263,97 @@ final class V7ToV8Migration {
         field: legacyQuarantineField,
         originalValue: encodeStoredValue(row['original_json']),
         resultingValue: encodeStoredValue(null),
-        action: ReportAction.quarantined,
+        action: ReportAction.retained,
         rule: MigrationRuleCodes.legacyData,
-        category: ReportCategory.quarantinedOrUnresolved,
+        category: ReportCategory.preserved,
         reason:
             'Quarantined before schema v8 from ${row['source_table']} '
-            'record ${row['row_id']} (${row['reason']}); kept unchanged in '
-            'legacy_quarantine.',
+            'record ${row['row_id']} (${row['reason']}); retained unchanged '
+            'in legacy_quarantine and not counted as quarantined by this '
+            'run (R-33).',
       );
 
-  Future<void> _recordRelease1(GeneratedDatabase db, _Sql io) async {
+  /// Release 1 of provider `repforge` (plan section 6 step 9; R-10; owner
+  /// decision R-30 / B-07 option b, 2026-11-06).
+  ///
+  /// Only when the v7 setting `seedExercisesVersion` exists is anything
+  /// examined (one `settings` record, clean outcome `preserved`; the setting
+  /// is kept and never changed). When it parses to 1 or more (the v7
+  /// reader's rule) the seed was applied, and:
+  /// - the exact bundled seed bytes hash (SHA-256, lowercase hex) to
+  ///   [v7SeedSha256] → one `catalogue_releases` row: `applied_at` = the
+  ///   setting's `updated_at` verbatim, `applied_at_source` =
+  ///   [release1AppliedAtSource], `inserted`, `updated`, `retired` NULL (not
+  ///   known, never 0), `app_version` NULL (not known);
+  /// - any other hash, or seed bytes that cannot be loaded (hash unknown) →
+  ///   **no record**, and one entry on the setting: action `none`, rule
+  ///   `R-30`, category `warningForReview` (nothing is lost or changed; the
+  ///   release log needs review).
+  /// Returns null when the setting does not exist (nothing examined).
+  Future<({bool warned})?> _recordRelease1(
+    GeneratedDatabase db,
+    _Sql io,
+    MigrationReportBuilder builder,
+  ) async {
     final rows = await db
         .customSelect(
-          'SELECT value, updated_at FROM settings '
-          "WHERE key = 'seedExercisesVersion'",
+          'SELECT value, updated_at FROM settings WHERE key = ?',
+          variables: [Variable.withString(seedExercisesVersionKey)],
         )
         .get();
-    if (rows.isEmpty) return;
+    if (rows.isEmpty) return null;
     final value = rows.single.data['value'];
     final applied = value is String ? (int.tryParse(value) ?? 0) : 0;
-    if (applied < 1) return;
-    final bytes = await config.loadSeedBytes();
-    await io.run(
-      'INSERT INTO catalogue_releases (provider_id, "release", applied_at, '
-      'content_hash_algorithm, content_hash_encoding, content_hash, '
-      'inserted, updated, retired, app_version) VALUES '
-      "(?, 1, ?, 'sha256', 'hex-lower', ?, 0, 0, 0, NULL)",
-      [
-        BootstrapReferenceV8.providerId,
-        rows.single.data['updated_at'],
-        sha256Hex(bytes),
-      ],
+    ReportEvent? warning;
+    if (applied >= 1) {
+      String? hash;
+      String? loadError;
+      try {
+        hash = sha256Hex(await config.loadSeedBytes());
+      } on Object catch (e) {
+        loadError = '$e';
+      }
+      if (hash == v7SeedSha256) {
+        await io.run(
+          'INSERT INTO catalogue_releases (provider_id, "release", applied_at, '
+          'applied_at_source, content_hash_algorithm, content_hash_encoding, '
+          'content_hash, inserted, updated, retired, app_version) VALUES '
+          "(?, 1, ?, ?, 'sha256', 'hex-lower', ?, NULL, NULL, NULL, NULL)",
+          [
+            BootstrapReferenceV8.providerId,
+            rows.single.data['updated_at'],
+            release1AppliedAtSource,
+            hash,
+          ],
+        );
+      } else {
+        final why = hash == null
+            ? 'the bundled seed could not be read ($loadError), so its hash '
+                  'is unknown'
+            : 'the bundled seed hashes to $hash, not the v7-era release 1 '
+                  'hash $v7SeedSha256';
+        warning = ReportEvent(
+          table: settingsTable,
+          recordId: seedExercisesVersionKey,
+          field: settingValueField,
+          originalValue: encodeStoredValue(value),
+          resultingValue: encodeStoredValue(value),
+          action: ReportAction.none,
+          rule: MigrationRuleCodes.release1,
+          category: ReportCategory.warningForReview,
+          reason:
+              'The v7 seed was applied, but $why. No release 1 record is '
+              'created (R-30); the setting is kept unchanged.',
+        );
+      }
+    }
+    builder.examine(
+      table: settingsTable,
+      recordId: seedExercisesVersionKey,
+      cleanOutcome: ReportCategory.preserved,
+      events: [?warning],
     );
+    return (warned: warning != null);
   }
 
   Future<_WrittenReport> _writeReport(
@@ -1458,10 +1570,6 @@ final class V7ToV8Migration {
     (table: 'exercises', column: 'copied_from_id', rule: 'IC-903'),
   ];
 }
-
-const String _unsupportedSecondaryBlock =
-    'blockInvalidSecondaryTargets is OPEN (WS4 H1 and L9): v8 has no '
-    'invalidSecondaryTarget block reason until the owner decides';
 
 const String _unexpectedV8Shape =
     'exercises has no primary_muscle column, but no v7 → v8 run is recorded';

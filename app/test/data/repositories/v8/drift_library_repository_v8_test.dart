@@ -12,6 +12,7 @@ import 'package:repforge/domain/library/library_enums.dart';
 import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/migration_report.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/training/training_validation.dart' as wp9;
 import 'package:sqlite3/sqlite3.dart';
 
 import 'v8_library_support.dart';
@@ -375,6 +376,12 @@ void main() {
         V8LibraryFixture.now.toIso8601String(),
         'lib-hack-squat',
       ]);
+      // ex-unmapped-enums is blocked by the migration (invalidClassification);
+      // with its block row removed, the unreadable guard still refuses it (a
+      // second line of defence for rows no migration examined).
+      await sql(
+        "DELETE FROM exercise_blocks WHERE exercise_id = 'ex-unmapped-enums'",
+      );
       final cases = {
         'lib-leg-press': 'archived',
         'ex-unmapped-enums': 'unreadable',
@@ -508,7 +515,8 @@ void main() {
     ];
 
     test('ex-rotator: "Dumbbells","None","Pulley" corrected faithfully, '
-        'then its primary; one of two reasons keeps it blocked; history '
+        'then its targets (primary and unreadable secondary together, '
+        'R-C4); the reasons of the other field keep it blocked; history '
         'digests never change', () async {
       final history = await h.historyDigests();
       final first = ok(
@@ -525,6 +533,7 @@ void main() {
       expect(first.stillBlocked, isTrue);
       expect(first.exercise.availability.blockReasons, {
         BlockReason.noPrimaryTarget,
+        BlockReason.invalidSecondaryTarget,
       });
       expect(await equipmentRows('ex-rotator'), ['dumbbell@0', 'cable@1']);
       expect(await selectableIds(), isNot(contains('ex-rotator')));
@@ -548,12 +557,16 @@ void main() {
           ]),
         ),
       );
+      expect(second.resolved, {
+        BlockReason.noPrimaryTarget,
+        BlockReason.invalidSecondaryTarget,
+      });
       expect(second.stillBlocked, isFalse);
       expect(second.exercise.availability.canEnterNewWork, isTrue);
       expect(await selectableIds(), contains('ex-rotator'));
       expect(await targetRows('ex-rotator'), ['shoulders:primary@0']);
       final blocks = second.exercise.availability.blocks;
-      expect(blocks, hasLength(2));
+      expect(blocks, hasLength(3));
       expect(blocks.every((b) => b.resolvedAt == V8LibraryFixture.now), isTrue);
       expect(await h.historyDigests(), history);
       expect(
@@ -644,6 +657,7 @@ void main() {
       });
       expect(r.exercise.availability.blockReasons, {
         BlockReason.noPrimaryTarget,
+        BlockReason.invalidSecondaryTarget,
       });
       // One report entry per resolved reason, each with its rule.
       final page = await h.report.entries(runId: r.runId);
@@ -661,8 +675,9 @@ void main() {
       );
     });
 
-    test('the report entry records the field before and after (R-06) in its '
-        'own run; the run reconciles', () async {
+    test('C-1: the report entry (action corrected, trigger userCorrection) '
+        'records the field before and after (R-06) in its own run; the run '
+        'reconciles', () async {
       final runsBefore = (await h.report.runs()).length;
       final outcome = ok(
         await h.library.correctBlockedReason(
@@ -673,9 +688,14 @@ void main() {
           ]),
         ),
       );
-      expect(outcome.stillBlocked, isFalse);
+      // The unreadable secondaries keep it blocked (R-01).
+      expect(outcome.stillBlocked, isTrue);
+      expect(outcome.exercise.availability.blockReasons, {
+        BlockReason.invalidSecondaryTarget,
+      });
       expect(await h.report.runs(), hasLength(runsBefore + 1));
       final run = (await h.report.run(outcome.runId))!;
+      expect(run.trigger, 'userCorrection');
       expect(run.trigger, CorrectionReportContract.trigger.name);
       expect(run.provenanceKind, 'device');
       final entry = (await h.report.entries(runId: outcome.runId))
@@ -685,7 +705,7 @@ void main() {
       expect(entry.recordId, 'ex-garbage');
       expect(entry.exerciseId, 'ex-garbage');
       expect(entry.field, 'equipment');
-      expect(entry.disposition, 'mapped');
+      expect(entry.disposition, 'corrected');
       expect(entry.category, 'migrated');
       expect(entry.rule, MigrationRuleCodes.invalidEquipmentBlock);
       expect(decodeStoredValue(entry.originalValue), '[]');
@@ -695,7 +715,8 @@ void main() {
       final t = (await h.report.totals(outcome.runId)).tables['exercises']!;
       expect(t.category('examined'), 1);
       expect(t.category('migrated'), 1);
-      expect(t.disposition('mapped'), 1);
+      expect(t.disposition('corrected'), 1);
+      expect(t.disposition('mapped'), 0);
       expect(
         reconcileReport(await h.report.storedReport(outcome.runId)).reconciles,
         isTrue,
@@ -703,8 +724,10 @@ void main() {
       // The migration run that blocked it is unchanged.
       expect(
         (await h.report.entries(exerciseId: 'ex-garbage')).entries
-            .where((e) => e.disposition == 'blocked'),
-        hasLength(1),
+            .where((e) => e.disposition == 'blocked')
+            .map((e) => e.blockReason)
+            .toSet(),
+        {'invalidEquipment', 'invalidSecondaryTarget'},
       );
     });
 
@@ -861,14 +884,34 @@ void main() {
         await fieldOf('ex-empty', BlockReason.unknownEquipment, toDumbbell),
         'reason',
       );
-      // R-C3: invalidSecondaryTarget has no route (and v8 never stores it).
+      // invalidSecondaryTarget is corrected through the targets only.
       expect(
         await fieldOf(
           'ex-rotator',
           BlockReason.invalidSecondaryTarget,
           toDumbbell,
         ),
-        'reason',
+        'fix',
+      );
+      // Classification and aliases take only their own fix.
+      expect(
+        await fieldOf(
+          'ex-unmapped-enums',
+          BlockReason.invalidClassification,
+          const SetAliasesCorrection([]),
+        ),
+        'fix',
+      );
+      expect(
+        await fieldOf(
+          'ex-bad-aliases',
+          BlockReason.invalidAliases,
+          const SetClassificationCorrection(
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.push,
+          ),
+        ),
+        'fix',
       );
       expect(
         await refused('ex-deleted', BlockReason.noPrimaryTarget, toDumbbell),
@@ -884,8 +927,25 @@ void main() {
           BlockReason.noPrimaryTarget,
           toDumbbell,
         ),
-        'exerciseId',
+        'reason',
       );
+      // Targets and equipment need a readable exercise: while the
+      // classification is unreadable they are refused until it is corrected.
+      await sql(
+        'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
+        "blocked_at, resolved_at) VALUES ('ex-unmapped-enums', "
+        "'noPrimaryTarget', '{}', ?, NULL)",
+        [V8LibraryFixture.now.toIso8601String()],
+      );
+      final unreadable = await refused(
+        'ex-unmapped-enums',
+        BlockReason.noPrimaryTarget,
+        const SetTargetsCorrection([
+          (node: AnatomyNodeId('chest'), role: TargetRole.primary),
+        ]),
+      ) as ValidationError;
+      expect(unreadable.field, 'exerciseId');
+      expect(unreadable.message, contains('classification'));
       // A blocked system exercise has no route in 3b (ADR-0009; R-C9).
       await sql(
         'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
@@ -918,6 +978,539 @@ void main() {
         contains('already resolved'),
       );
     });
+  });
+
+  group('unreadable data: blocked, history readable, corrected field by '
+      'field (owner decisions 2026-11-06: unreadable data, C-1, R-C4)', () {
+    Future<Map<String, Object?>> row(String id) async =>
+        (await h.db
+                .customSelect(
+                  'SELECT * FROM exercises WHERE id = ?',
+                  variables: [Variable<String>(id)],
+                )
+                .getSingle())
+            .data;
+
+    Future<void> expectCorrectionEntries(
+      BlockCorrectionOutcome o, {
+      required String field,
+      required Map<BlockReason, String> rules,
+    }) async {
+      final run = (await h.report.run(o.runId))!;
+      expect(run.trigger, 'userCorrection');
+      final entries = (await h.report.entries(runId: o.runId)).entries;
+      expect({for (final e in entries) e.rule}, rules.values.toSet());
+      for (final e in entries) {
+        expect(e.disposition, 'corrected');
+        expect(e.category, 'migrated');
+        expect(e.field, field);
+        expect(e.blockReason, isNull);
+        expect(e.recordId, o.exercise.id);
+      }
+      final t = (await h.report.totals(o.runId)).tables['exercises']!;
+      expect(t.category('examined'), 1);
+      expect(t.disposition('corrected'), rules.length);
+      expect(
+        reconcileReport(await h.report.storedReport(o.runId)).problems,
+        isEmpty,
+      );
+    }
+
+    test('each unreadable exercise is blocked for its reason, never '
+        'selectable, refused for new work, and its history stays '
+        'readable', () async {
+      final selectable = await selectableIds();
+      for (final (i, id) in V8LibraryFixture.unreadableHistory.indexed) {
+        final stored = (await h.library.byId(id))!;
+        expect(
+          {for (final r in stored.availability.blockReasons) r.name},
+          V8LibraryFixture.blocked[id],
+          reason: id,
+        );
+        expect(selectable, isNot(contains(id)));
+        final refused = err(await h.library.requireNewWork(id));
+        expect(
+          (refused as ValidationError).fieldErrors['availability'],
+          'blocked',
+        );
+        final history = await h.library.history(id);
+        expect(history.single.session.id, V8LibraryFixture.unreadableSession);
+        expect(history.single.entries.single.id, 'se-unr-$i');
+        expect(history.single.sets.single.id, 'set-unr-$i');
+        expect(history.single.sets.single.loadKg, 20.0);
+      }
+      // The classification and alias originals stay readable by id.
+      final enums = (await h.library.byId('ex-unmapped-enums'))!;
+      expect(
+        (enums.storedType, enums.storedCategory),
+        ('Aerobic', 'Plyometrics'),
+      );
+      expect(enums.exercise, isNull);
+      expect((await h.library.byId('ex-bad-aliases'))!.exercise, isNull);
+      expect((await h.library.byId('ex-trapsec'))!.exercise, isNotNull);
+    });
+
+    test('SetClassificationCorrection resolves invalidClassification only, '
+        'sets type and category to domain values (the type of its recorded '
+        'set, WP 9), reports corrected', () async {
+      final history = await h.historyDigests();
+      final before = await row('ex-unmapped-enums');
+      final o = ok(
+        await h.library.correctBlockedReason(
+          'ex-unmapped-enums',
+          BlockReason.invalidClassification,
+          const SetClassificationCorrection(
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.legs,
+          ),
+        ),
+      );
+      expect(o.resolved, {BlockReason.invalidClassification});
+      expect(o.stillBlocked, isFalse);
+      final after = await row('ex-unmapped-enums');
+      expect((after['type'], after['category']), ('weighted', 'legs'));
+      expect(after['aliases_json'], before['aliases_json']);
+      expect(after['search_key'], before['search_key']);
+      expect(o.exercise.exercise!.type, ExerciseType.weighted);
+      expect(await selectableIds(), contains('ex-unmapped-enums'));
+      ok(await h.library.requireNewWork('ex-unmapped-enums'));
+      await expectCorrectionEntries(
+        o,
+        field: 'classification',
+        rules: {
+          BlockReason.invalidClassification: 'D04-UNREADABLE-CLASSIFICATION',
+        },
+      );
+      final entry = (await h.report.entries(runId: o.runId)).entries.single;
+      expect(
+        decodeStoredValue(entry.originalValue),
+        '{"type":"Aerobic","category":"Plyometrics"}',
+      );
+      expect(
+        decodeStoredValue(entry.resultingValue),
+        '{"type":"weighted","category":"legs"}',
+      );
+      expect(await h.historyDigests(), history);
+      expect(
+        (await h.library.history('ex-unmapped-enums')).single.sets.single.id,
+        'set-unr-0',
+      );
+    });
+
+    test('SetAliasesCorrection refuses what a WP 9 save refuses (an alias '
+        'too long, more than 20 aliases) and writes nothing', () async {
+      for (final (aliases, why) in <(List<String>, String)>[
+        (['Press', 'x' * 101], 'too long'),
+        ([for (var i = 0; i < 21; i++) 'a$i'], 'At most 20'),
+        ([for (var i = 0; i < 21; i++) ' a$i '], 'At most 20'),
+      ]) {
+        final e = err(
+          await writesNothing(
+            () => h.library.correctBlockedReason(
+              'ex-bad-aliases',
+              BlockReason.invalidAliases,
+              SetAliasesCorrection(aliases),
+            ),
+          ),
+        );
+        expect((e as ValidationError).field, 'aliases', reason: '$aliases');
+        expect(e.message, contains(why), reason: '$aliases');
+      }
+    });
+
+    test('normaliseAliases stores exactly what a WP 9 save stores '
+        '(validateExercise of TRN-012(1)), refusals included', () {
+      final cases = <List<String>>[
+        [],
+        ['Press'],
+        ['Press', ''],
+        ['Press', '  ', '\t'],
+        [' Press ', 'press', 'PRESS'],
+        ['Pressé', 'Presse', 'Bodenpresse'],
+        ['Floor  press', 'floor press'],
+        ['x' * 100, 'y'],
+        ['x' * 101],
+        [' ${'x' * 100} '],
+        [for (var i = 0; i < 20; i++) 'a$i'],
+        [for (var i = 0; i < 21; i++) 'a$i'],
+        [
+          ...[for (var i = 0; i < 20; i++) 'a$i'],
+          'A0',
+          ' a1',
+          '',
+        ],
+      ];
+      for (final given in cases) {
+        final ours = DriftLibraryRepositoryV8.normaliseAliases(given);
+        final theirs = wp9.validateExercise(
+          Exercise(
+            id: 'x',
+            name: 'Probe',
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.push,
+            primaryMuscle: MuscleGroup.chest,
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+            aliases: given,
+          ),
+        );
+        switch ((ours, theirs)) {
+          case (Ok(value: final a), Ok(value: final b)):
+            expect(a, b.aliases, reason: '$given');
+          case (Err(error: final a), Err(error: final b)):
+            expect(a.message, b.message, reason: '$given');
+            expect((a as ValidationError).field, 'aliases');
+          default:
+            fail('$given: $ours vs $theirs');
+        }
+      }
+    });
+
+    test('SetAliasesCorrection stores the list as a WP 9 save does (trimmed, '
+        'empty and duplicate aliases dropped) and records the list given '
+        'and the list stored', () async {
+      const given = [' Press ', '', 'press', 'Pressé', 'Presse', 'Bodenpresse'];
+      final o = ok(
+        await h.library.correctBlockedReason(
+          'ex-bad-aliases',
+          BlockReason.invalidAliases,
+          const SetAliasesCorrection(given),
+        ),
+      );
+      final after = await row('ex-bad-aliases');
+      expect(after['aliases_json'], '["Press","Pressé","Bodenpresse"]');
+      expect(
+        after['search_key'],
+        exerciseSearchKey('Floor press', ['Press', 'Pressé', 'Bodenpresse']),
+      );
+      final entry = (await h.report.entries(runId: o.runId)).entries.single;
+      expect(decodeStoredValue(entry.originalValue), '["Press",7]');
+      expect(
+        decodeStoredValue(entry.resultingValue),
+        '["Press","Pressé","Bodenpresse"]',
+      );
+      expect(entry.reason, contains(jsonEncode(given)));
+      expect(entry.reason, contains('["Press","Pressé","Bodenpresse"]'));
+    });
+
+    test(
+      'SetAliasesCorrection stores a clean list unchanged, recomputes the '
+      'search key, resolves invalidAliases only, reports corrected',
+      () async {
+        final history = await h.historyDigests();
+        final o = ok(
+          await h.library.correctBlockedReason(
+            'ex-bad-aliases',
+            BlockReason.invalidAliases,
+            const SetAliasesCorrection(['Press', 'Bodenpresse']),
+          ),
+        );
+        expect(o.resolved, {BlockReason.invalidAliases});
+        expect(o.stillBlocked, isFalse);
+        final after = await row('ex-bad-aliases');
+        expect(after['aliases_json'], '["Press","Bodenpresse"]');
+        expect(
+          after['search_key'],
+          exerciseSearchKey('Floor press', ['Press', 'Bodenpresse']),
+        );
+        expect(o.exercise.exercise!.aliases, ['Press', 'Bodenpresse']);
+        expect(
+          await selectableIds(const LibrarySelectionQuery(text: 'bodenpresse')),
+          {'ex-bad-aliases'},
+        );
+        await expectCorrectionEntries(
+          o,
+          field: 'aliases',
+          rules: {BlockReason.invalidAliases: 'D04-UNREADABLE-ALIASES'},
+        );
+        final entry = (await h.report.entries(runId: o.runId)).entries.single;
+        expect(decodeStoredValue(entry.originalValue), '["Press",7]');
+        expect(
+          decodeStoredValue(entry.resultingValue),
+          '["Press","Bodenpresse"]',
+        );
+        expect(await h.historyDigests(), history);
+        // An empty list is a valid correction too.
+        await sql(
+          "UPDATE exercises SET aliases_json = 'oops' WHERE id = 'ex-row'",
+        );
+        await sql(
+          'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
+          "blocked_at, resolved_at) VALUES ('ex-row', 'invalidAliases', '{}', "
+          '?, NULL)',
+          [V8LibraryFixture.now.toIso8601String()],
+        );
+        ok(
+          await h.library.correctBlockedReason(
+            'ex-row',
+            BlockReason.invalidAliases,
+            const SetAliasesCorrection([]),
+          ),
+        );
+        expect((await row('ex-row'))['aliases_json'], '[]');
+      },
+    );
+
+    test('SetTargetsCorrection resolves invalidSecondaryTarget alone '
+        '(ex-trapsec) and with noPrimaryTarget (ex-neck)', () async {
+      final history = await h.historyDigests();
+      final trap = ok(
+        await h.library.correctBlockedReason(
+          'ex-trapsec',
+          BlockReason.invalidSecondaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('rearDelts'), role: TargetRole.primary),
+            (node: AnatomyNodeId('upperBack'), role: TargetRole.secondary),
+          ]),
+        ),
+      );
+      expect(trap.resolved, {BlockReason.invalidSecondaryTarget});
+      expect(trap.stillBlocked, isFalse);
+      await expectCorrectionEntries(
+        trap,
+        field: 'targets',
+        rules: {BlockReason.invalidSecondaryTarget: 'D04-UNREADABLE-SECONDARY'},
+      );
+      final neck = ok(
+        await h.library.correctBlockedReason(
+          'ex-neck',
+          BlockReason.invalidSecondaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('upperBack'), role: TargetRole.primary),
+          ]),
+        ),
+      );
+      expect(neck.resolved, {
+        BlockReason.noPrimaryTarget,
+        BlockReason.invalidSecondaryTarget,
+      });
+      expect(neck.stillBlocked, isFalse);
+      await expectCorrectionEntries(
+        neck,
+        field: 'targets',
+        rules: {
+          BlockReason.noPrimaryTarget: 'IC-204',
+          BlockReason.invalidSecondaryTarget: 'D04-UNREADABLE-SECONDARY',
+        },
+      );
+      expect(await h.historyDigests(), history);
+    });
+
+    test('corrections resolve only their own field: classification and '
+        'aliases on one exercise, in either order (R-01)', () async {
+      // ex-unmapped-enums also gets an unreadable alias list and its block.
+      await sql(
+        "UPDATE exercises SET aliases_json = '[1]' "
+        "WHERE id = 'ex-unmapped-enums'",
+      );
+      await sql(
+        'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
+        "blocked_at, resolved_at) VALUES ('ex-unmapped-enums', "
+        "'invalidAliases', '{}', ?, NULL)",
+        [V8LibraryFixture.now.toIso8601String()],
+      );
+      // Aliases first, while the classification is still unreadable.
+      final a = ok(
+        await h.library.correctBlockedReason(
+          'ex-unmapped-enums',
+          BlockReason.invalidAliases,
+          const SetAliasesCorrection(['Hops']),
+        ),
+      );
+      expect(a.resolved, {BlockReason.invalidAliases});
+      expect(a.exercise.availability.blockReasons, {
+        BlockReason.invalidClassification,
+      });
+      expect(a.exercise.exercise, isNull, reason: 'type still unreadable');
+      expect(await selectableIds(), isNot(contains('ex-unmapped-enums')));
+      final c = ok(
+        await h.library.correctBlockedReason(
+          'ex-unmapped-enums',
+          BlockReason.invalidClassification,
+          const SetClassificationCorrection(
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.legs,
+          ),
+        ),
+      );
+      expect(c.resolved, {BlockReason.invalidClassification});
+      expect(c.stillBlocked, isFalse);
+      expect(c.exercise.exercise!.aliases, ['Hops']);
+      // Two correction runs, each reconciled; the migration run unchanged.
+      expect(a.runId, isNot(c.runId));
+      expect(
+        reconcileReport(await h.report.storedReport('run-1')).problems,
+        isEmpty,
+      );
+    });
+  });
+
+  group('classification correction keeps the WP 9 type rules '
+      '(validateSetForExercise; SaveCustomExercise)', () {
+    Future<void> refusedType(
+      String id,
+      ExerciseType type,
+      String message,
+    ) async {
+      final e = err(
+        await writesNothing(
+          () => h.library.correctBlockedReason(
+            id,
+            BlockReason.invalidClassification,
+            SetClassificationCorrection(
+              type: type,
+              category: ExerciseCategory.legs,
+            ),
+          ),
+        ),
+      );
+      expect((e as ValidationError).field, 'type', reason: '$id $type');
+      expect(e.message, contains(message), reason: '$id $type');
+    }
+
+    Future<void> block(String id) => sql(
+      'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
+      "blocked_at, resolved_at) VALUES (?, 'invalidClassification', '{}', "
+      '?, NULL)',
+      [id, V8LibraryFixture.now.toIso8601String()],
+    );
+
+    test('an unreadable type is refused unless it equals the type of the '
+        'recorded sets (bodyweight, timed or any other over a weighted '
+        'set)', () async {
+      for (final t in ExerciseType.values) {
+        if (t == ExerciseType.weighted) continue;
+        await refusedType(
+          'ex-unmapped-enums',
+          t,
+          'Sets of type weighted have been recorded',
+        );
+      }
+      ok(
+        await h.library.correctBlockedReason(
+          'ex-unmapped-enums',
+          BlockReason.invalidClassification,
+          const SetClassificationCorrection(
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.legs,
+          ),
+        ),
+      );
+    });
+
+    test('sets of a deleted session do not count (as WP 9 hasHistory); '
+        'sets of several types match no type', () async {
+      await sql('UPDATE workout_sessions SET deleted_at = ? WHERE id = ?', [
+        V8LibraryFixture.now.toIso8601String(),
+        V8LibraryFixture.unreadableSession,
+      ]);
+      ok(
+        await h.library.correctBlockedReason(
+          'ex-unmapped-enums',
+          BlockReason.invalidClassification,
+          const SetClassificationCorrection(
+            type: ExerciseType.timed,
+            category: ExerciseCategory.legs,
+          ),
+        ),
+      );
+      // ex-long has distance and cardio sets (v7 legacy data).
+      await sql("UPDATE exercises SET type = 'Aerobic' WHERE id = 'ex-long'");
+      await block('ex-long');
+      for (final t in ExerciseType.values) {
+        await refusedType('ex-long', t, 'Sets of several types');
+      }
+    });
+
+    test('an unreadable type is refused while a plan uses the exercise '
+        '(register C-10, most conservative until the owner decides), also '
+        'when the entry has no type-specific target; a deleted plan does not '
+        'count', () async {
+      // ex-squat: weighted, in plan entries; no recorded sets.
+      await sql("UPDATE exercises SET type = 'Aerobic' WHERE id = 'ex-squat'");
+      await block('ex-squat');
+      for (final t in ExerciseType.values) {
+        await refusedType(
+          'ex-squat',
+          t,
+          'The type cannot be set while a plan uses this exercise.',
+        );
+      }
+      await sql(
+        'UPDATE workout_plans SET deleted_at = ? WHERE id IN (SELECT plan_id '
+        "FROM plan_exercises WHERE exercise_id = 'ex-squat')",
+        [V8LibraryFixture.now.toIso8601String()],
+      );
+      ok(
+        await h.library.correctBlockedReason(
+          'ex-squat',
+          BlockReason.invalidClassification,
+          const SetClassificationCorrection(
+            type: ExerciseType.distance,
+            category: ExerciseCategory.legs,
+          ),
+        ),
+      );
+    });
+
+    test('a readable type: changing it is refused once sets are recorded or '
+        'while a plan uses the exercise (WP 9 messages); the same type and '
+        'a category change pass', () async {
+      // ex-bad-aliases (weighted) has one recorded set.
+      await block('ex-bad-aliases');
+      await sql(
+        "UPDATE exercises SET aliases_json = '[]' WHERE id = 'ex-bad-aliases'",
+      );
+      await refusedType(
+        'ex-bad-aliases',
+        ExerciseType.bodyweight,
+        'The type cannot change once sets have been recorded.',
+      );
+      // ex-squat (weighted): in a plan, no sets.
+      await sql(
+        "UPDATE exercises SET category = 'Lifts' WHERE id = 'ex-squat'",
+      );
+      await block('ex-squat');
+      await refusedType(
+        'ex-squat',
+        ExerciseType.timed,
+        'The type cannot change while a plan uses this exercise.',
+      );
+      final same = ok(
+        await h.library.correctBlockedReason(
+          'ex-squat',
+          BlockReason.invalidClassification,
+          const SetClassificationCorrection(
+            type: ExerciseType.weighted,
+            category: ExerciseCategory.legs,
+          ),
+        ),
+      );
+      expect(same.exercise.exercise!.type, ExerciseType.weighted);
+      expect(same.exercise.exercise!.category, ExerciseCategory.legs);
+    });
+
+    test(
+      'a readable type with no sets and no plan may change, as in WP 9',
+      () async {
+        // ex-dup (bodyweight): no sets, no plan.
+        await sql(
+          "UPDATE exercises SET category = 'Lifts' WHERE id = 'ex-dup'",
+        );
+        await block('ex-dup');
+        final o = ok(
+          await h.library.correctBlockedReason(
+            'ex-dup',
+            BlockReason.invalidClassification,
+            const SetClassificationCorrection(
+              type: ExerciseType.timed,
+              category: ExerciseCategory.core,
+            ),
+          ),
+        );
+        expect(o.exercise.exercise!.type, ExerciseType.timed);
+      },
+    );
   });
 
   group('user attributes and overrides (ADR-0008 E Q14)', () {

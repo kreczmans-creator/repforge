@@ -22,7 +22,9 @@ import 'package:repforge/domain/training/training_repository.dart';
 ///   before: start skips them as missing, add, replace, record and copy
 ///   refuse them with "no longer exists". A `blocked` signal in WP 9 would
 ///   change accepted behaviour (owner decision C-2).
-/// - **deleted**, **unreadable** (WS4 L9) or **not representable** in the
+/// - **deleted**, **unreadable** (blocked by the migration since the
+///   unreadable-data decision; null also without a block row) or **not
+///   representable** in the
 ///   WP 9 taxonomy (not exactly one primary target, a target outside the
 ///   19 muscle ids or an item outside the 21 equipment ids) → null, as the
 ///   v7 mapper does for what it cannot read.
@@ -33,7 +35,8 @@ import 'package:repforge/domain/training/training_repository.dart';
 ///   `DriftLibraryRepositoryV8.selectable`, which excludes it) but does not
 ///   refuse it in existing plans or when starting sessions (ADR-0009
 ///   decision 4: "hidden from discovery, readable in history"; retirement
-///   protects plans). Whether new work may use it is owner question R-C8.
+///   protects plans). Owner decision R-C8 (2026-11-06): retired exercises
+///   stay usable in new work and are excluded from discovery.
 ///
 /// The write side ([upsert], [archive], [delete]) is not part of 3b and
 /// throws [UnsupportedError]; the streams emit one snapshot (live watching

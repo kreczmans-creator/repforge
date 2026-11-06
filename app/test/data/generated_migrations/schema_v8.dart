@@ -13426,6 +13426,14 @@ class CatalogueReleases extends Table
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+  late final GeneratedColumn<String> appliedAtSource = GeneratedColumn<String>(
+    'applied_at_source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL CHECK (length(applied_at_source) > 0)',
+  );
   late final GeneratedColumn<String> contentHashAlgorithm =
       GeneratedColumn<String>(
         'content_hash_algorithm',
@@ -13457,26 +13465,26 @@ class CatalogueReleases extends Table
   late final GeneratedColumn<int> inserted = GeneratedColumn<int>(
     'inserted',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (inserted >= 0)',
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (inserted IS NULL OR inserted >= 0)',
   );
   late final GeneratedColumn<int> updated = GeneratedColumn<int>(
     'updated',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (updated >= 0)',
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (updated IS NULL OR updated >= 0)',
   );
   late final GeneratedColumn<int> retired = GeneratedColumn<int>(
     'retired',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (retired >= 0)',
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (retired IS NULL OR retired >= 0)',
   );
   late final GeneratedColumn<String> appVersion = GeneratedColumn<String>(
     'app_version',
@@ -13491,6 +13499,7 @@ class CatalogueReleases extends Table
     providerId,
     release,
     appliedAt,
+    appliedAtSource,
     contentHashAlgorithm,
     contentHashEncoding,
     contentHash,
@@ -13522,6 +13531,10 @@ class CatalogueReleases extends Table
         DriftSqlType.string,
         data['${effectivePrefix}applied_at'],
       )!,
+      appliedAtSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}applied_at_source'],
+      )!,
       contentHashAlgorithm: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}content_hash_algorithm'],
@@ -13537,15 +13550,15 @@ class CatalogueReleases extends Table
       inserted: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}inserted'],
-      )!,
+      ),
       updated: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated'],
-      )!,
+      ),
       retired: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}retired'],
-      )!,
+      ),
       appVersion: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}app_version'],
@@ -13571,23 +13584,25 @@ class CatalogueReleasesData extends DataClass
   final String providerId;
   final int release;
   final String appliedAt;
+  final String appliedAtSource;
   final String contentHashAlgorithm;
   final String contentHashEncoding;
   final String contentHash;
-  final int inserted;
-  final int updated;
-  final int retired;
+  final int? inserted;
+  final int? updated;
+  final int? retired;
   final String? appVersion;
   const CatalogueReleasesData({
     required this.providerId,
     required this.release,
     required this.appliedAt,
+    required this.appliedAtSource,
     required this.contentHashAlgorithm,
     required this.contentHashEncoding,
     required this.contentHash,
-    required this.inserted,
-    required this.updated,
-    required this.retired,
+    this.inserted,
+    this.updated,
+    this.retired,
     this.appVersion,
   });
   @override
@@ -13596,12 +13611,19 @@ class CatalogueReleasesData extends DataClass
     map['provider_id'] = Variable<String>(providerId);
     map['release'] = Variable<int>(release);
     map['applied_at'] = Variable<String>(appliedAt);
+    map['applied_at_source'] = Variable<String>(appliedAtSource);
     map['content_hash_algorithm'] = Variable<String>(contentHashAlgorithm);
     map['content_hash_encoding'] = Variable<String>(contentHashEncoding);
     map['content_hash'] = Variable<String>(contentHash);
-    map['inserted'] = Variable<int>(inserted);
-    map['updated'] = Variable<int>(updated);
-    map['retired'] = Variable<int>(retired);
+    if (!nullToAbsent || inserted != null) {
+      map['inserted'] = Variable<int>(inserted);
+    }
+    if (!nullToAbsent || updated != null) {
+      map['updated'] = Variable<int>(updated);
+    }
+    if (!nullToAbsent || retired != null) {
+      map['retired'] = Variable<int>(retired);
+    }
     if (!nullToAbsent || appVersion != null) {
       map['app_version'] = Variable<String>(appVersion);
     }
@@ -13613,12 +13635,19 @@ class CatalogueReleasesData extends DataClass
       providerId: Value(providerId),
       release: Value(release),
       appliedAt: Value(appliedAt),
+      appliedAtSource: Value(appliedAtSource),
       contentHashAlgorithm: Value(contentHashAlgorithm),
       contentHashEncoding: Value(contentHashEncoding),
       contentHash: Value(contentHash),
-      inserted: Value(inserted),
-      updated: Value(updated),
-      retired: Value(retired),
+      inserted: inserted == null && nullToAbsent
+          ? const Value.absent()
+          : Value(inserted),
+      updated: updated == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updated),
+      retired: retired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retired),
       appVersion: appVersion == null && nullToAbsent
           ? const Value.absent()
           : Value(appVersion),
@@ -13634,6 +13663,7 @@ class CatalogueReleasesData extends DataClass
       providerId: serializer.fromJson<String>(json['providerId']),
       release: serializer.fromJson<int>(json['release']),
       appliedAt: serializer.fromJson<String>(json['appliedAt']),
+      appliedAtSource: serializer.fromJson<String>(json['appliedAtSource']),
       contentHashAlgorithm: serializer.fromJson<String>(
         json['contentHashAlgorithm'],
       ),
@@ -13641,9 +13671,9 @@ class CatalogueReleasesData extends DataClass
         json['contentHashEncoding'],
       ),
       contentHash: serializer.fromJson<String>(json['contentHash']),
-      inserted: serializer.fromJson<int>(json['inserted']),
-      updated: serializer.fromJson<int>(json['updated']),
-      retired: serializer.fromJson<int>(json['retired']),
+      inserted: serializer.fromJson<int?>(json['inserted']),
+      updated: serializer.fromJson<int?>(json['updated']),
+      retired: serializer.fromJson<int?>(json['retired']),
       appVersion: serializer.fromJson<String?>(json['appVersion']),
     );
   }
@@ -13654,12 +13684,13 @@ class CatalogueReleasesData extends DataClass
       'providerId': serializer.toJson<String>(providerId),
       'release': serializer.toJson<int>(release),
       'appliedAt': serializer.toJson<String>(appliedAt),
+      'appliedAtSource': serializer.toJson<String>(appliedAtSource),
       'contentHashAlgorithm': serializer.toJson<String>(contentHashAlgorithm),
       'contentHashEncoding': serializer.toJson<String>(contentHashEncoding),
       'contentHash': serializer.toJson<String>(contentHash),
-      'inserted': serializer.toJson<int>(inserted),
-      'updated': serializer.toJson<int>(updated),
-      'retired': serializer.toJson<int>(retired),
+      'inserted': serializer.toJson<int?>(inserted),
+      'updated': serializer.toJson<int?>(updated),
+      'retired': serializer.toJson<int?>(retired),
       'appVersion': serializer.toJson<String?>(appVersion),
     };
   }
@@ -13668,23 +13699,25 @@ class CatalogueReleasesData extends DataClass
     String? providerId,
     int? release,
     String? appliedAt,
+    String? appliedAtSource,
     String? contentHashAlgorithm,
     String? contentHashEncoding,
     String? contentHash,
-    int? inserted,
-    int? updated,
-    int? retired,
+    Value<int?> inserted = const Value.absent(),
+    Value<int?> updated = const Value.absent(),
+    Value<int?> retired = const Value.absent(),
     Value<String?> appVersion = const Value.absent(),
   }) => CatalogueReleasesData(
     providerId: providerId ?? this.providerId,
     release: release ?? this.release,
     appliedAt: appliedAt ?? this.appliedAt,
+    appliedAtSource: appliedAtSource ?? this.appliedAtSource,
     contentHashAlgorithm: contentHashAlgorithm ?? this.contentHashAlgorithm,
     contentHashEncoding: contentHashEncoding ?? this.contentHashEncoding,
     contentHash: contentHash ?? this.contentHash,
-    inserted: inserted ?? this.inserted,
-    updated: updated ?? this.updated,
-    retired: retired ?? this.retired,
+    inserted: inserted.present ? inserted.value : this.inserted,
+    updated: updated.present ? updated.value : this.updated,
+    retired: retired.present ? retired.value : this.retired,
     appVersion: appVersion.present ? appVersion.value : this.appVersion,
   );
   CatalogueReleasesData copyWithCompanion(CatalogueReleasesCompanion data) {
@@ -13694,6 +13727,9 @@ class CatalogueReleasesData extends DataClass
           : this.providerId,
       release: data.release.present ? data.release.value : this.release,
       appliedAt: data.appliedAt.present ? data.appliedAt.value : this.appliedAt,
+      appliedAtSource: data.appliedAtSource.present
+          ? data.appliedAtSource.value
+          : this.appliedAtSource,
       contentHashAlgorithm: data.contentHashAlgorithm.present
           ? data.contentHashAlgorithm.value
           : this.contentHashAlgorithm,
@@ -13718,6 +13754,7 @@ class CatalogueReleasesData extends DataClass
           ..write('providerId: $providerId, ')
           ..write('release: $release, ')
           ..write('appliedAt: $appliedAt, ')
+          ..write('appliedAtSource: $appliedAtSource, ')
           ..write('contentHashAlgorithm: $contentHashAlgorithm, ')
           ..write('contentHashEncoding: $contentHashEncoding, ')
           ..write('contentHash: $contentHash, ')
@@ -13734,6 +13771,7 @@ class CatalogueReleasesData extends DataClass
     providerId,
     release,
     appliedAt,
+    appliedAtSource,
     contentHashAlgorithm,
     contentHashEncoding,
     contentHash,
@@ -13749,6 +13787,7 @@ class CatalogueReleasesData extends DataClass
           other.providerId == this.providerId &&
           other.release == this.release &&
           other.appliedAt == this.appliedAt &&
+          other.appliedAtSource == this.appliedAtSource &&
           other.contentHashAlgorithm == this.contentHashAlgorithm &&
           other.contentHashEncoding == this.contentHashEncoding &&
           other.contentHash == this.contentHash &&
@@ -13763,18 +13802,20 @@ class CatalogueReleasesCompanion
   final Value<String> providerId;
   final Value<int> release;
   final Value<String> appliedAt;
+  final Value<String> appliedAtSource;
   final Value<String> contentHashAlgorithm;
   final Value<String> contentHashEncoding;
   final Value<String> contentHash;
-  final Value<int> inserted;
-  final Value<int> updated;
-  final Value<int> retired;
+  final Value<int?> inserted;
+  final Value<int?> updated;
+  final Value<int?> retired;
   final Value<String?> appVersion;
   final Value<int> rowid;
   const CatalogueReleasesCompanion({
     this.providerId = const Value.absent(),
     this.release = const Value.absent(),
     this.appliedAt = const Value.absent(),
+    this.appliedAtSource = const Value.absent(),
     this.contentHashAlgorithm = const Value.absent(),
     this.contentHashEncoding = const Value.absent(),
     this.contentHash = const Value.absent(),
@@ -13788,27 +13829,27 @@ class CatalogueReleasesCompanion
     required String providerId,
     required int release,
     required String appliedAt,
+    required String appliedAtSource,
     required String contentHashAlgorithm,
     required String contentHashEncoding,
     required String contentHash,
-    required int inserted,
-    required int updated,
-    required int retired,
+    this.inserted = const Value.absent(),
+    this.updated = const Value.absent(),
+    this.retired = const Value.absent(),
     this.appVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : providerId = Value(providerId),
        release = Value(release),
        appliedAt = Value(appliedAt),
+       appliedAtSource = Value(appliedAtSource),
        contentHashAlgorithm = Value(contentHashAlgorithm),
        contentHashEncoding = Value(contentHashEncoding),
-       contentHash = Value(contentHash),
-       inserted = Value(inserted),
-       updated = Value(updated),
-       retired = Value(retired);
+       contentHash = Value(contentHash);
   static Insertable<CatalogueReleasesData> custom({
     Expression<String>? providerId,
     Expression<int>? release,
     Expression<String>? appliedAt,
+    Expression<String>? appliedAtSource,
     Expression<String>? contentHashAlgorithm,
     Expression<String>? contentHashEncoding,
     Expression<String>? contentHash,
@@ -13822,6 +13863,7 @@ class CatalogueReleasesCompanion
       if (providerId != null) 'provider_id': providerId,
       if (release != null) 'release': release,
       if (appliedAt != null) 'applied_at': appliedAt,
+      if (appliedAtSource != null) 'applied_at_source': appliedAtSource,
       if (contentHashAlgorithm != null)
         'content_hash_algorithm': contentHashAlgorithm,
       if (contentHashEncoding != null)
@@ -13839,12 +13881,13 @@ class CatalogueReleasesCompanion
     Value<String>? providerId,
     Value<int>? release,
     Value<String>? appliedAt,
+    Value<String>? appliedAtSource,
     Value<String>? contentHashAlgorithm,
     Value<String>? contentHashEncoding,
     Value<String>? contentHash,
-    Value<int>? inserted,
-    Value<int>? updated,
-    Value<int>? retired,
+    Value<int?>? inserted,
+    Value<int?>? updated,
+    Value<int?>? retired,
     Value<String?>? appVersion,
     Value<int>? rowid,
   }) {
@@ -13852,6 +13895,7 @@ class CatalogueReleasesCompanion
       providerId: providerId ?? this.providerId,
       release: release ?? this.release,
       appliedAt: appliedAt ?? this.appliedAt,
+      appliedAtSource: appliedAtSource ?? this.appliedAtSource,
       contentHashAlgorithm: contentHashAlgorithm ?? this.contentHashAlgorithm,
       contentHashEncoding: contentHashEncoding ?? this.contentHashEncoding,
       contentHash: contentHash ?? this.contentHash,
@@ -13874,6 +13918,9 @@ class CatalogueReleasesCompanion
     }
     if (appliedAt.present) {
       map['applied_at'] = Variable<String>(appliedAt.value);
+    }
+    if (appliedAtSource.present) {
+      map['applied_at_source'] = Variable<String>(appliedAtSource.value);
     }
     if (contentHashAlgorithm.present) {
       map['content_hash_algorithm'] = Variable<String>(
@@ -13912,6 +13959,7 @@ class CatalogueReleasesCompanion
           ..write('providerId: $providerId, ')
           ..write('release: $release, ')
           ..write('appliedAt: $appliedAt, ')
+          ..write('appliedAtSource: $appliedAtSource, ')
           ..write('contentHashAlgorithm: $contentHashAlgorithm, ')
           ..write('contentHashEncoding: $contentHashEncoding, ')
           ..write('contentHash: $contentHash, ')
@@ -16522,7 +16570,7 @@ class ExerciseBlocks extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\'))',
+    $customConstraints: 'NOT NULL CHECK (reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\', \'invalidSecondaryTarget\', \'invalidClassification\', \'invalidAliases\'))',
   );
   late final GeneratedColumn<String> originalJson = GeneratedColumn<String>(
     'original_json',
@@ -16842,7 +16890,7 @@ class MigrationRuns extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (trigger_kind IN (\'migration\', \'restore\', \'integrityCheck\', \'catalogueUpdate\'))',
+    $customConstraints: 'NOT NULL CHECK (trigger_kind IN (\'migration\', \'restore\', \'integrityCheck\', \'catalogueUpdate\', \'userCorrection\'))',
   );
   late final GeneratedColumn<int> fromVersion = GeneratedColumn<int>(
     'from_version',
@@ -17410,7 +17458,7 @@ class MigrationReportCounts extends Table
   @override
   List<String> get customConstraints => const [
     'PRIMARY KEY(run_id, source_table, dimension, code)',
-    'CHECK((dimension = \'category\' AND code IN (\'examined\', \'migrated\', \'preserved\', \'quarantinedOrUnresolved\', \'rejectedOrBlocked\', \'warningForReview\'))OR(dimension = \'disposition\' AND code IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\')))',
+    'CHECK((dimension = \'category\' AND code IN (\'examined\', \'migrated\', \'preserved\', \'quarantinedOrUnresolved\', \'rejectedOrBlocked\', \'warningForReview\'))OR(dimension = \'disposition\' AND code IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\', \'corrected\')))',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -17725,7 +17773,7 @@ class MigrationReportEntries extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (disposition IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\'))',
+    $customConstraints: 'NOT NULL CHECK (disposition IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\', \'corrected\'))',
   );
   late final GeneratedColumn<String> blockReason = GeneratedColumn<String>(
     'block_reason',
@@ -17733,7 +17781,7 @@ class MigrationReportEntries extends Table
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    $customConstraints: 'CHECK (block_reason IS NULL OR block_reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\'))',
+    $customConstraints: 'CHECK (block_reason IS NULL OR block_reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\', \'invalidSecondaryTarget\', \'invalidClassification\', \'invalidAliases\'))',
   );
   late final GeneratedColumn<String> rule = GeneratedColumn<String>(
     'rule',

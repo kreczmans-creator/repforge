@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/repositories/v8/drift_library_repository_v8.dart';
@@ -228,7 +230,7 @@ void main() {
           for (final e in rotator.entries)
             if (e.disposition == 'blocked') e.blockReason,
         ]..sort(),
-        ['noPrimaryTarget', 'unknownEquipment'],
+        ['invalidSecondaryTarget', 'noPrimaryTarget', 'unknownEquipment'],
       );
       final run = await h.report.entries(runId: integrityRun, limit: 1000);
       expect(run.entries.every((e) => e.runId == integrityRun), isTrue);
@@ -249,11 +251,19 @@ void main() {
         }, V8LibraryFixture.blocked[b.exerciseId]);
         for (final x in b.blocks) {
           expect(x.originalJson, isNotEmpty);
-          if (x.block.reason == BlockReason.noPrimaryTarget) {
-            expect(x.originalJson, contains('primary_muscle'));
-          } else {
-            expect(x.originalJson, contains('equipment_json'));
-          }
+          final columns = switch (x.block.reason) {
+            BlockReason.noPrimaryTarget || BlockReason.invalidSecondaryTarget =>
+              ['primary_muscle', 'secondary_muscles_json'],
+            BlockReason.unknownEquipment ||
+            BlockReason.invalidEquipment => ['equipment_json'],
+            BlockReason.invalidClassification => ['type', 'category'],
+            BlockReason.invalidAliases => ['aliases_json'],
+          };
+          expect(
+            (jsonDecode(x.originalJson) as Map).keys,
+            columns,
+            reason: '${b.exerciseId} ${x.block.reason}',
+          );
         }
       }
       final rotator = list.firstWhere((b) => b.exerciseId == 'ex-rotator');
@@ -277,8 +287,11 @@ void main() {
       );
       var list = await h.report.blockedExercises();
       final rotator = list.firstWhere((b) => b.exerciseId == 'ex-rotator');
-      expect(rotator.activeReasons, {BlockReason.noPrimaryTarget});
-      expect(rotator.blocks, hasLength(2));
+      expect(rotator.activeReasons, {
+        BlockReason.noPrimaryTarget,
+        BlockReason.invalidSecondaryTarget,
+      });
+      expect(rotator.blocks, hasLength(3));
       await h.library.correctBlockedReason(
         'ex-rotator',
         BlockReason.noPrimaryTarget,

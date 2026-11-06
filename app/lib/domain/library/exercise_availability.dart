@@ -22,9 +22,8 @@
 /// - **retired**: a catalogue release retired it; it is "kept, hidden from
 ///   discovery, readable in history" and retirement "protects history"
 ///   and plans (ADR-0009 decision 4 and rationale; R-24). Not discoverable;
-///   **not** refused for new work: the sources state no such refusal, so
-///   whether new work may use a retired exercise is an owner question
-///   (register R-C8, `docs/v8-library-use-cases.md`).
+///   **not** refused for new work (owner decision R-C8, 2026-11-06: retired
+///   exercises stay usable in new work and are excluded from discovery).
 /// - **archived**: the user archived it; pickers hide it and a use case
 ///   refuses it for new work, exactly as WP 9 does (TRN-012(2); TD-42 lets a
 ///   saved plan keep it). Not discoverable; refused for new work.
@@ -126,22 +125,27 @@ enum BlockResolutionProblem {
 }
 
 /// The exercise field a block reason is about. A correction sets a whole
-/// field, so it resolves every active reason tied to that field: setting
-/// the equipment list resolves `unknownEquipment` and `invalidEquipment`
-/// together (register R-C4, owner confirmation requested). The no-primary
-/// disposition ties `noPrimaryTarget` to the targets.
-/// `invalidSecondaryTarget` (OPEN, WS4 H1) has no field and no correction
-/// route (register R-C3).
+/// field, so it resolves every active reason tied to that field (register
+/// R-C4, decided by the owner 2026-11-06: one equipment correction clears
+/// both equipment reasons): setting the equipment list resolves
+/// `unknownEquipment` and `invalidEquipment` together; setting the target
+/// list resolves `noPrimaryTarget` and `invalidSecondaryTarget` together;
+/// setting the classification (type and category) resolves
+/// `invalidClassification`; setting the alias list resolves
+/// `invalidAliases`. A reason of another field is never resolved (R-01).
 enum BlockedField {
-  targets({BlockReason.noPrimaryTarget}),
-  equipment({BlockReason.unknownEquipment, BlockReason.invalidEquipment});
+  targets({BlockReason.noPrimaryTarget, BlockReason.invalidSecondaryTarget}),
+  equipment({BlockReason.unknownEquipment, BlockReason.invalidEquipment}),
+  classification({BlockReason.invalidClassification}),
+  aliases({BlockReason.invalidAliases});
 
   BlockedField(this.reasons);
 
   /// The block reasons this field resolves.
   final Set<BlockReason> reasons;
 
-  /// The field of [reason]; null when it has no correction route.
+  /// The field of [reason]; null when it has no correction route (none
+  /// today: every reason has one).
   static BlockedField? of(BlockReason reason) {
     for (final f in values) {
       if (f.reasons.contains(reason)) return f;
@@ -252,7 +256,7 @@ final class ExerciseAvailability {
 
   /// True when a use case may add the exercise to new work: not deleted, no
   /// active block (R-01), not archived (WP 9). A retired exercise is not
-  /// refused here (ADR-0009 hides it from discovery only; owner question
+  /// refused here (ADR-0009 hides it from discovery only; owner decision
   /// R-C8).
   bool get canEnterNewWork => !isDeleted && !isBlocked && !archived;
 

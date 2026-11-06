@@ -46,8 +46,9 @@ import 'kill_harness.dart';
 /// profile through v5 → v7).
 ///
 /// Migrations: the historical chain (v1, v2, v5, v6 and orphan fixtures) and,
-/// since 3b-4, the v7 → v8 migration (`v7to8`: fixtures v7, v7 orphans and a
-/// v5 start through the historical steps; its completed reference is the
+/// since 3b-4, the v7 → v8 migration (`v7to8`: fixtures v7, v7 orphans, a
+/// v5 start through the historical steps and a derived v7 copy with
+/// unreadable aliases and classification; its completed reference is the
 /// in-process run of the same deterministic migration). Random kills run for
 /// both, each on its own large-profile input.
 ///
@@ -62,8 +63,10 @@ void main() {
       ['v1', 'v2', 'v5', 'v6', 'v2_orphans', 'v5_orphans', 'v6_orphans'],
     ),
     // 3b-4: the v7 → v8 migration from v7, v7 orphans and a v5 start that
-    // runs the historical steps first.
-    ('v7to8', ['v7', 'v7_orphans', 'v5']),
+    // runs the historical steps first; since the decision baseline also a
+    // derived v7 input with unreadable aliases and classification
+    // ([damagedV7Input]).
+    ('v7to8', ['v7', 'v7_orphans', 'v5', damagedV7Key]),
   ];
 
   late KillChildBinary binary;
@@ -180,7 +183,10 @@ void main() {
       final migration = migrationUnderTest(name);
       final target = migration.targetVersion;
       final from = fixtureVersionOf(key);
-      final path = fixturePath(from, orphans: key.endsWith('_orphans'));
+      // Lazy: the derived input is built only when its group runs.
+      late final path = key == damagedV7Key
+          ? damagedV7Input()
+          : fixturePath(from, orphans: key.endsWith('_orphans'));
 
       group('${name == 'historical' ? '' : '$name '}fixture_$key', () {
         late Map<int, String> refs;
@@ -204,6 +210,30 @@ void main() {
               expect(done['userVersion'], target);
               expect(done['integrityCheck'], 'ok');
               refs[target] = stateKeyOf(done);
+              if (key == damagedV7Key) {
+                // The derived input exercises the unreadable-data blocks.
+                final raw = sqlite3.open(copy.path, mode: OpenMode.readOnly);
+                try {
+                  expect(
+                    {
+                      for (final r in raw.select(
+                        "SELECT exercise_id || ':' || reason AS k "
+                        'FROM exercise_blocks',
+                      ))
+                        r['k'],
+                    },
+                    containsAll([
+                      'ex-row:invalidAliases',
+                      'ex-bench:invalidAliases',
+                      'ex-squat:invalidClassification',
+                      'ex-dup:invalidClassification',
+                      'ex-unmapped-enums:invalidClassification',
+                    ]),
+                  );
+                } finally {
+                  raw.close();
+                }
+              }
             }
           });
         });
@@ -626,4 +656,37 @@ void main() {
       });
     });
   }
+}
+
+/// Key of the derived v7 input of the `v7to8` kills.
+const damagedV7Key = 'v7_damaged';
+
+/// The frozen v7 fixture with unreadable data added to a **derived copy**
+/// (the frozen file is never changed; review DB L3, decision baseline
+/// 2026-11-06): unreadable `aliases_json` (not JSON; a non-string element)
+/// and unreadable classification (a `type` in another case, an unknown
+/// `category`), besides the fixture's own `ex-unmapped-enums`. Rebuilt
+/// deterministically on every run under [ws5ReportDir].
+String damagedV7Input() {
+  final f = File('${ws5ReportDir().path}/inputs/fixture_$damagedV7Key.sqlite');
+  f.parent.createSync(recursive: true);
+  for (final x in [f, File('${f.path}-journal')]) {
+    if (x.existsSync()) x.deleteSync();
+  }
+  File(fixturePath(7)).copySync(f.path);
+  final db = sqlite3.open(f.path);
+  try {
+    for (final (column, value, id) in const [
+      ('aliases_json', 'not json', 'ex-row'),
+      ('aliases_json', '["Bench",2]', 'ex-bench'),
+      ('type', 'Weighted', 'ex-squat'),
+      ('category', 'Stretching', 'ex-dup'),
+    ]) {
+      db.execute('UPDATE exercises SET $column = ? WHERE id = ?', [value, id]);
+      if (db.updatedRows != 1) throw StateError('no exercise $id');
+    }
+  } finally {
+    db.close();
+  }
+  return f.path;
 }

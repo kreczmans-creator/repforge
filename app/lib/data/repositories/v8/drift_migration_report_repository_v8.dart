@@ -344,7 +344,8 @@ final class StoredReportRun {
 
   final String id;
 
-  /// `migration`, `restore`, `integrityCheck` or `catalogueUpdate`.
+  /// `migration`, `restore`, `integrityCheck`, `catalogueUpdate` or
+  /// `userCorrection` (C-1).
   final String trigger;
   final int? fromVersion;
   final int? toVersion;

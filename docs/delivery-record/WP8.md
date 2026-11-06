@@ -929,3 +929,50 @@ The owner's reconciliation asks for 3b to be refined against its sub-stages with
 
 ### Stage 3b decision baseline (owner, 2026-11-06)
 The owner approved the 13 open decisions and the 3b effort allocation (D04 §7, "stage 3b decision baseline"). The proposed 3b sub-allocation in the effort update above is now approved without change. Earned credit stays at 3.16 of 4.50 for 3b: approving decisions earns nothing. Implementation of the approved decisions is in progress.
+
+### Decision baseline implementation (2026-11-06, uncommitted on `ccr-9fda2c32-wr163b` over 5f1192e)
+Implements the owner's stage 3b decision baseline (D04 §7, 2026-11-06, "13 decisions approved") in the shared v8 code. Details: `docs/schema-v8.md` section 7 and register; `docs/v8-library-use-cases.md`. Production stays at schema 7 and unconnected; frozen fixtures and manifests are unchanged; the WS3 backup files are not touched (WS3 rebases onto this work).
+- **Unreadable data:** blocked individually, no switch (`LegacyMappingOptions` and `unsupportedOption` removed). New reasons `invalidSecondaryTarget`, `invalidClassification`, `invalidAliases` in both CHECK lists, `BlockReason` and the report contract. Originals quarantined and kept in the row; one `blocked` entry per block row (R-01). Rule codes: IC-204, ADR-0008-Q12, R-02 (approved) and the decision-reference codes `D04-UNREADABLE-SECONDARY`, `-CLASSIFICATION`, `-ALIASES` (register N-13). Blocked exercises are not selectable and are refused for new work; history stays readable.
+- **Correction routes:** `SetTargetsCorrection` also resolves `invalidSecondaryTarget`; new `SetClassificationCorrection` and `SetAliasesCorrection`. Each resolves only its field's reasons. Targets and equipment are refused until an unreadable classification or alias list is corrected (C-8). Alias lists are stored as a WP 9 save stores them, with the list given and the list stored recorded (C-9, after review DB L2); the type follows the WP 9 type rules (C-10, after review DB H1).
+- **C-1:** action `corrected`, trigger `userCorrection` (schema CHECKs, enums, action↔category matrix: `corrected` → `migrated` or `preserved`); `CorrectionReportContract` is no longer provisional.
+- **R-30 / B-07 (b):** release 1 only when the bundled seed bytes hash to the pinned v7-era SHA-256 (`839d9ca2…0b22`, df326db). A mismatch or unknown hash creates no record and adds an R-30 `warningForReview` entry on the `seedExercisesVersion` setting. Counts `inserted`/`updated`/`retired` are nullable (NULL = unknown, never 0). `applied_at_source` is NOT NULL (install-time provenance). The v8 dump, `Schema8` shapes and test snapshot were regenerated with the CI sequence; v1–v7 output is byte-identical. Restored v7 backups follow the same rule in WS3's restore path, which is outstanding there.
+- **R-33:** pre-v8 `legacy_quarantine` rows → action `retained`, category `preserved`, excluded from this run's quarantine total. **R-28, R-31, R-32:** recorded as decided as implemented. **R-C4, R-C8:** recorded as decided; the behaviour is unchanged.
+- **WS5:** the v7to8 host reference end digest moves from `v8 2f23e80e81fd7057` to `v8 7fc53371acfa16d7` (`timing_harness.dart`). The D04 profile's unmapped "traps" secondaries now block.
+- **Local evidence (not CI):**
+  - generated code is current (CI sequence, `cmp` of the dump equal, no diff);
+  - `dart format` exit 0; `flutter analyze --fatal-infos` exit 0;
+  - targeted v8/library suites: 848 passed;
+  - v7to8 kill suite: 51 passed (30 deterministic, 20 random kills);
+  - heavy large profile and host timing: 9 passed;
+  - full suite with coverage at concurrency 2: 2,621 passed, 5 skipped;
+  - coverage gate 92.8 % (minimum 80 %).
+  - After the review DB fixes:
+    - format and analyze exit 0; generated code unchanged;
+    - `test/migration_v8/`, `test/data/schema_v8/`, `test/data/repositories/v8/`, `test/domain/library/` and `test/architecture/` at concurrency 1: 1,176 passed, 5 skipped;
+    - v7to8 kill suite: 57 passed (36 deterministic kills, 6 of them on the damaged input; 20 random kills);
+    - parity test including the heavy D04 profile: 17 passed;
+    - full suite with coverage at concurrency 2: 2,644 passed, 6 skipped;
+    - coverage gate 92.8 %.
+- **Effort and progress (governance standard):**
+  - Allocated 18.00. Earned **9.66 (unchanged)**: uncommitted and unreviewed implementation earns nothing, and approving decisions earns nothing (70/20/10 rule). Progress 53.7 %. Remaining 8.34.
+  - Stage 3b: 3.16 of 4.50 (unchanged).
+  - Confidence: low–medium. Evidence baseline: 5f1192e plus this working tree, 2026-11-06.
+  - Programme roll-up (unchanged): full 77.11 / 105 = 73.4 %; core 77.11 / 97 = 79.5 %; snapshot 2026-11-06.
+  - Blockers and dependencies: commit, then re-check of this change after review DB (below); WS3 rebase (nullable release counts, `applied_at_source`, new reasons and vocabulary in format 3); B-15 re-check; physical-device timing; Review C; four green CI workflows.
+  - **3b acceptance blocker (review DB L1):** "restored v7 backups follow the same rule" (R-30 option b) is **not implemented**. It belongs to WS3's restore path (3b-7), which is outside this change. Stage 3b cannot be accepted until WS3 implements and tests it: release 1 from a restored v7 backup only on the pinned hash, NULL counts, explicit provenance, and an R-30 entry otherwise.
+  - **Owner question C-10** (`docs/v8-library-use-cases.md`): whether an unreadable type may be set while a plan uses the exercise. Until the owner decides, the correction refuses it (the most conservative option).
+  - Scope changes: none.
+  - Acceptance: not accepted; stage 3b unaccepted.
+
+#### Review DB fixes (2026-11-06, working tree, uncommitted)
+The independent review (DB) found the change not ready: one High and four Low findings. Fixes:
+- **H1 (fixed):** `SetClassificationCorrection` now keeps the accepted WP 9 type rules.
+  - A set's type must equal its exercise's type (`validateSetForExercise`). A readable type cannot change once sets are recorded or while a plan uses the exercise (`SaveCustomExercise`, with the same messages). History and plans count as in WP 9 (sessions and plans that are not deleted).
+  - An unreadable type may be set only to the type of every recorded set. An exercise whose sets have several types cannot have its classification corrected here.
+  - Plan entries constrain type (`validatePlanExercise`). The remaining policy choice is registered as owner question **C-10**; the correction refuses, the most conservative option, until the owner decides.
+  - The two tests that set bodyweight or timed over a weighted set now use the set's type. New tests refuse every mismatch and assert that nothing is written.
+- **L2 (fixed):** the alias correction stores what a WP 9 save stores: trimmed, empty and duplicate aliases dropped, too long or too many refused. A test compares it with WP 9 `validateExercise`. The entry records the list given (in `reason`) and the list stored (`resulting_value`). C-9 is updated.
+- **L3 (fixed):** the v7to8 deterministic kills also run on a derived v7 copy with unreadable aliases and classification (`kill_test.dart`, `damagedV7Input`). The frozen fixture is unchanged.
+- **L4 (fixed):** `v8_visibility_parity_test.dart` runs the real v7 `TrainingMappers.exerciseToEntity` over the 13 frozen fixtures, the trial profile (plain and damaged), 32 edge cases and the D04 profile (heavy). On each, the v7 hidden set equals the v8 blocked set: nothing newly visible, nothing newly hidden.
+- **L1 (recorded):** R-30 on restored v7 backups is an explicit 3b acceptance blocker (above).
+- Earned points unchanged (9.66 / 18; 3b 3.16 / 4.50): the fixes are uncommitted and not re-checked.

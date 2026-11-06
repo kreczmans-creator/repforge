@@ -665,6 +665,7 @@ final class Schema8 extends i0.VersionedSchema {
         _column_147,
         _column_148,
         _column_149,
+        _column_150,
       ],
       attachedDatabase: database,
     ),
@@ -683,9 +684,9 @@ final class Schema8 extends i0.VersionedSchema {
       ],
       columns: [
         _column_0,
-        _column_150,
         _column_151,
         _column_152,
+        _column_153,
         _column_24,
         _column_140,
       ],
@@ -702,7 +703,7 @@ final class Schema8 extends i0.VersionedSchema {
         'PRIMARY KEY(id)',
         'CHECK(parent_id IS NULL OR parent_id <> id)',
       ],
-      columns: [_column_0, _column_153, _column_24, _column_140],
+      columns: [_column_0, _column_154, _column_24, _column_140],
       attachedDatabase: database,
     ),
     alias: null,
@@ -713,7 +714,7 @@ final class Schema8 extends i0.VersionedSchema {
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(id)'],
-      columns: [_column_0, _column_24, _column_154, _column_140],
+      columns: [_column_0, _column_24, _column_155, _column_140],
       attachedDatabase: database,
     ),
     alias: null,
@@ -724,7 +725,7 @@ final class Schema8 extends i0.VersionedSchema {
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(kind, id, locale)'],
-      columns: [_column_58, _column_0, _column_155, _column_21],
+      columns: [_column_58, _column_0, _column_156, _column_21],
       attachedDatabase: database,
     ),
     alias: null,
@@ -738,7 +739,7 @@ final class Schema8 extends i0.VersionedSchema {
         'PRIMARY KEY(exercise_id, node_id)',
         'UNIQUE(exercise_id, ordinal)',
       ],
-      columns: [_column_156, _column_157, _column_158, _column_159],
+      columns: [_column_157, _column_158, _column_159, _column_160],
       attachedDatabase: database,
     ),
     alias: null,
@@ -752,7 +753,7 @@ final class Schema8 extends i0.VersionedSchema {
         'PRIMARY KEY(exercise_id, pattern_id)',
         'UNIQUE(exercise_id, ordinal)',
       ],
-      columns: [_column_156, _column_160, _column_159],
+      columns: [_column_157, _column_161, _column_160],
       attachedDatabase: database,
     ),
     alias: null,
@@ -768,11 +769,11 @@ final class Schema8 extends i0.VersionedSchema {
         'CHECK(role_override IS NULL OR(override_note IS NOT NULL AND length(trim(override_note, \' \' || char(9, 10, 13))) > 0))',
       ],
       columns: [
-        _column_156,
-        _column_161,
-        _column_159,
+        _column_157,
         _column_162,
+        _column_160,
         _column_163,
+        _column_164,
       ],
       attachedDatabase: database,
     ),
@@ -784,7 +785,7 @@ final class Schema8 extends i0.VersionedSchema {
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(exercise_id, locale)'],
-      columns: [_column_156, _column_164, _column_8, _column_68],
+      columns: [_column_157, _column_165, _column_8, _column_68],
       attachedDatabase: database,
     ),
     alias: null,
@@ -795,7 +796,7 @@ final class Schema8 extends i0.VersionedSchema {
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(exercise_id)'],
-      columns: [_column_89, _column_40, _column_165, _column_166],
+      columns: [_column_89, _column_40, _column_166, _column_167],
       attachedDatabase: database,
     ),
     alias: null,
@@ -807,11 +808,11 @@ final class Schema8 extends i0.VersionedSchema {
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(exercise_id, reason)'],
       columns: [
-        _column_156,
-        _column_167,
-        _column_131,
+        _column_157,
         _column_168,
+        _column_131,
         _column_169,
+        _column_170,
       ],
       attachedDatabase: database,
     ),
@@ -829,7 +830,6 @@ final class Schema8 extends i0.VersionedSchema {
       ],
       columns: [
         _column_0,
-        _column_170,
         _column_171,
         _column_172,
         _column_173,
@@ -837,6 +837,7 @@ final class Schema8 extends i0.VersionedSchema {
         _column_175,
         _column_176,
         _column_177,
+        _column_178,
       ],
       attachedDatabase: database,
     ),
@@ -849,14 +850,14 @@ final class Schema8 extends i0.VersionedSchema {
       isStrict: false,
       tableConstraints: [
         'PRIMARY KEY(run_id, source_table, dimension, code)',
-        'CHECK((dimension = \'category\' AND code IN (\'examined\', \'migrated\', \'preserved\', \'quarantinedOrUnresolved\', \'rejectedOrBlocked\', \'warningForReview\'))OR(dimension = \'disposition\' AND code IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\')))',
+        'CHECK((dimension = \'category\' AND code IN (\'examined\', \'migrated\', \'preserved\', \'quarantinedOrUnresolved\', \'rejectedOrBlocked\', \'warningForReview\'))OR(dimension = \'disposition\' AND code IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\', \'corrected\')))',
       ],
       columns: [
-        _column_178,
-        _column_128,
         _column_179,
+        _column_128,
         _column_180,
         _column_181,
+        _column_182,
       ],
       attachedDatabase: database,
     ),
@@ -872,10 +873,9 @@ final class Schema8 extends i0.VersionedSchema {
         'CHECK((disposition = \'blocked\')=(block_reason IS NOT NULL))',
       ],
       columns: [
-        _column_182,
-        _column_178,
-        _column_128,
         _column_183,
+        _column_179,
+        _column_128,
         _column_184,
         _column_185,
         _column_186,
@@ -885,10 +885,11 @@ final class Schema8 extends i0.VersionedSchema {
         _column_190,
         _column_191,
         _column_192,
-        _column_130,
         _column_193,
+        _column_130,
         _column_194,
         _column_195,
+        _column_196,
       ],
       attachedDatabase: database,
     ),
@@ -2796,6 +2797,8 @@ class Shape24 extends i0.VersionedTable {
       columnsByName['release']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<String> get appliedAt =>
       columnsByName['applied_at']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get appliedAtSource =>
+      columnsByName['applied_at_source']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get contentHashAlgorithm =>
       columnsByName['content_hash_algorithm']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get contentHashEncoding =>
@@ -2838,6 +2841,14 @@ i1.GeneratedColumn<String> _column_142(String aliasedName) =>
     );
 i1.GeneratedColumn<String> _column_143(String aliasedName) =>
     i1.GeneratedColumn<String>(
+      'applied_at_source',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL CHECK (length(applied_at_source) > 0)',
+    );
+i1.GeneratedColumn<String> _column_144(String aliasedName) =>
+    i1.GeneratedColumn<String>(
       'content_hash_algorithm',
       aliasedName,
       false,
@@ -2845,7 +2856,7 @@ i1.GeneratedColumn<String> _column_143(String aliasedName) =>
       $customConstraints:
           'NOT NULL CHECK (content_hash_algorithm IN (\'sha256\'))',
     );
-i1.GeneratedColumn<String> _column_144(String aliasedName) =>
+i1.GeneratedColumn<String> _column_145(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'content_hash_encoding',
       aliasedName,
@@ -2854,7 +2865,7 @@ i1.GeneratedColumn<String> _column_144(String aliasedName) =>
       $customConstraints:
           'NOT NULL CHECK (content_hash_encoding IN (\'hex-lower\'))',
     );
-i1.GeneratedColumn<String> _column_145(String aliasedName) =>
+i1.GeneratedColumn<String> _column_146(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'content_hash',
       aliasedName,
@@ -2862,31 +2873,31 @@ i1.GeneratedColumn<String> _column_145(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL CHECK (length(content_hash) = 64 AND content_hash NOT GLOB \'*[^0-9a-f]*\')',
     );
-i1.GeneratedColumn<int> _column_146(String aliasedName) =>
+i1.GeneratedColumn<int> _column_147(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'inserted',
       aliasedName,
-      false,
+      true,
       type: i1.DriftSqlType.int,
-      $customConstraints: 'NOT NULL CHECK (inserted >= 0)',
-    );
-i1.GeneratedColumn<int> _column_147(String aliasedName) =>
-    i1.GeneratedColumn<int>(
-      'updated',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.int,
-      $customConstraints: 'NOT NULL CHECK (updated >= 0)',
+      $customConstraints: 'CHECK (inserted IS NULL OR inserted >= 0)',
     );
 i1.GeneratedColumn<int> _column_148(String aliasedName) =>
     i1.GeneratedColumn<int>(
+      'updated',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'CHECK (updated IS NULL OR updated >= 0)',
+    );
+i1.GeneratedColumn<int> _column_149(String aliasedName) =>
+    i1.GeneratedColumn<int>(
       'retired',
       aliasedName,
-      false,
+      true,
       type: i1.DriftSqlType.int,
-      $customConstraints: 'NOT NULL CHECK (retired >= 0)',
+      $customConstraints: 'CHECK (retired IS NULL OR retired >= 0)',
     );
-i1.GeneratedColumn<String> _column_149(String aliasedName) =>
+i1.GeneratedColumn<String> _column_150(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'app_version',
       aliasedName,
@@ -2911,7 +2922,7 @@ class Shape25 extends i0.VersionedTable {
       columnsByName['provider_id']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_150(String aliasedName) =>
+i1.GeneratedColumn<String> _column_151(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'parent_id',
       aliasedName,
@@ -2919,7 +2930,7 @@ i1.GeneratedColumn<String> _column_150(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NULL REFERENCES anatomy_nodes(id)',
     );
-i1.GeneratedColumn<int> _column_151(String aliasedName) =>
+i1.GeneratedColumn<int> _column_152(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'level',
       aliasedName,
@@ -2927,7 +2938,7 @@ i1.GeneratedColumn<int> _column_151(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL CHECK (level BETWEEN 1 AND 4)',
     );
-i1.GeneratedColumn<int> _column_152(String aliasedName) =>
+i1.GeneratedColumn<int> _column_153(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'non_anatomical',
       aliasedName,
@@ -2948,7 +2959,7 @@ class Shape26 extends i0.VersionedTable {
       columnsByName['provider_id']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_153(String aliasedName) =>
+i1.GeneratedColumn<String> _column_154(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'parent_id',
       aliasedName,
@@ -2969,7 +2980,7 @@ class Shape27 extends i0.VersionedTable {
       columnsByName['provider_id']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_154(String aliasedName) =>
+i1.GeneratedColumn<String> _column_155(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'default_role',
       aliasedName,
@@ -2990,7 +3001,7 @@ class Shape28 extends i0.VersionedTable {
       columnsByName['label']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_155(String aliasedName) =>
+i1.GeneratedColumn<String> _column_156(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'locale',
       aliasedName,
@@ -3011,7 +3022,7 @@ class Shape29 extends i0.VersionedTable {
       columnsByName['ordinal']! as i1.GeneratedColumn<int>;
 }
 
-i1.GeneratedColumn<String> _column_156(String aliasedName) =>
+i1.GeneratedColumn<String> _column_157(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'exercise_id',
       aliasedName,
@@ -3019,7 +3030,7 @@ i1.GeneratedColumn<String> _column_156(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL REFERENCES exercises(id)ON DELETE CASCADE',
     );
-i1.GeneratedColumn<String> _column_157(String aliasedName) =>
+i1.GeneratedColumn<String> _column_158(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'node_id',
       aliasedName,
@@ -3027,7 +3038,7 @@ i1.GeneratedColumn<String> _column_157(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL REFERENCES anatomy_nodes(id)',
     );
-i1.GeneratedColumn<String> _column_158(String aliasedName) =>
+i1.GeneratedColumn<String> _column_159(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'role',
       aliasedName,
@@ -3036,7 +3047,7 @@ i1.GeneratedColumn<String> _column_158(String aliasedName) =>
       $customConstraints:
           'NOT NULL CHECK (role IN (\'primary\', \'secondary\'))',
     );
-i1.GeneratedColumn<int> _column_159(String aliasedName) =>
+i1.GeneratedColumn<int> _column_160(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'ordinal',
       aliasedName,
@@ -3055,7 +3066,7 @@ class Shape30 extends i0.VersionedTable {
       columnsByName['ordinal']! as i1.GeneratedColumn<int>;
 }
 
-i1.GeneratedColumn<String> _column_160(String aliasedName) =>
+i1.GeneratedColumn<String> _column_161(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'pattern_id',
       aliasedName,
@@ -3078,7 +3089,7 @@ class Shape31 extends i0.VersionedTable {
       columnsByName['override_note']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_161(String aliasedName) =>
+i1.GeneratedColumn<String> _column_162(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'equipment_id',
       aliasedName,
@@ -3086,7 +3097,7 @@ i1.GeneratedColumn<String> _column_161(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL REFERENCES equipment_items(id)',
     );
-i1.GeneratedColumn<String> _column_162(String aliasedName) =>
+i1.GeneratedColumn<String> _column_163(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'role_override',
       aliasedName,
@@ -3094,7 +3105,7 @@ i1.GeneratedColumn<String> _column_162(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'CHECK (role_override IS NULL OR role_override IN (\'load\', \'support\'))',
     );
-i1.GeneratedColumn<String> _column_163(String aliasedName) =>
+i1.GeneratedColumn<String> _column_164(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'override_note',
       aliasedName,
@@ -3115,7 +3126,7 @@ class Shape32 extends i0.VersionedTable {
       columnsByName['aliases_json']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_164(String aliasedName) =>
+i1.GeneratedColumn<String> _column_165(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'locale',
       aliasedName,
@@ -3136,7 +3147,7 @@ class Shape33 extends i0.VersionedTable {
       columnsByName['last_used_at']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<int> _column_165(String aliasedName) =>
+i1.GeneratedColumn<int> _column_166(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'hidden',
       aliasedName,
@@ -3145,7 +3156,7 @@ i1.GeneratedColumn<int> _column_165(String aliasedName) =>
       $customConstraints: 'NOT NULL DEFAULT 0 CHECK (hidden IN (0, 1))',
       defaultValue: const i1.CustomExpression('0'),
     );
-i1.GeneratedColumn<String> _column_166(String aliasedName) =>
+i1.GeneratedColumn<String> _column_167(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'last_used_at',
       aliasedName,
@@ -3168,15 +3179,15 @@ class Shape34 extends i0.VersionedTable {
       columnsByName['resolved_at']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_167(String aliasedName) =>
+i1.GeneratedColumn<String> _column_168(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'reason',
       aliasedName,
       false,
       type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL CHECK (reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\'))',
+      $customConstraints: 'NOT NULL CHECK (reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\', \'invalidSecondaryTarget\', \'invalidClassification\', \'invalidAliases\'))',
     );
-i1.GeneratedColumn<String> _column_168(String aliasedName) =>
+i1.GeneratedColumn<String> _column_169(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'blocked_at',
       aliasedName,
@@ -3184,7 +3195,7 @@ i1.GeneratedColumn<String> _column_168(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_169(String aliasedName) =>
+i1.GeneratedColumn<String> _column_170(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'resolved_at',
       aliasedName,
@@ -3215,15 +3226,15 @@ class Shape35 extends i0.VersionedTable {
       columnsByName['merged_at']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_170(String aliasedName) =>
+i1.GeneratedColumn<String> _column_171(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'trigger_kind',
       aliasedName,
       false,
       type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL CHECK (trigger_kind IN (\'migration\', \'restore\', \'integrityCheck\', \'catalogueUpdate\'))',
+      $customConstraints: 'NOT NULL CHECK (trigger_kind IN (\'migration\', \'restore\', \'integrityCheck\', \'catalogueUpdate\', \'userCorrection\'))',
     );
-i1.GeneratedColumn<int> _column_171(String aliasedName) =>
+i1.GeneratedColumn<int> _column_172(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'from_version',
       aliasedName,
@@ -3231,7 +3242,7 @@ i1.GeneratedColumn<int> _column_171(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<int> _column_172(String aliasedName) =>
+i1.GeneratedColumn<int> _column_173(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'to_version',
       aliasedName,
@@ -3239,7 +3250,7 @@ i1.GeneratedColumn<int> _column_172(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<String> _column_173(String aliasedName) =>
+i1.GeneratedColumn<String> _column_174(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'generated_at',
       aliasedName,
@@ -3247,7 +3258,7 @@ i1.GeneratedColumn<String> _column_173(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_174(String aliasedName) =>
+i1.GeneratedColumn<String> _column_175(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'app_version',
       aliasedName,
@@ -3255,7 +3266,7 @@ i1.GeneratedColumn<String> _column_174(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_175(String aliasedName) =>
+i1.GeneratedColumn<String> _column_176(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'provenance_kind',
       aliasedName,
@@ -3264,7 +3275,7 @@ i1.GeneratedColumn<String> _column_175(String aliasedName) =>
       $customConstraints:
           'NOT NULL CHECK (provenance_kind IN (\'device\', \'backup\'))',
     );
-i1.GeneratedColumn<String> _column_176(String aliasedName) =>
+i1.GeneratedColumn<String> _column_177(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'provenance_source',
       aliasedName,
@@ -3272,7 +3283,7 @@ i1.GeneratedColumn<String> _column_176(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_177(String aliasedName) =>
+i1.GeneratedColumn<String> _column_178(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'merged_at',
       aliasedName,
@@ -3295,7 +3306,7 @@ class Shape36 extends i0.VersionedTable {
       columnsByName['record_count']! as i1.GeneratedColumn<int>;
 }
 
-i1.GeneratedColumn<String> _column_178(String aliasedName) =>
+i1.GeneratedColumn<String> _column_179(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'run_id',
       aliasedName,
@@ -3303,7 +3314,7 @@ i1.GeneratedColumn<String> _column_178(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL REFERENCES migration_runs(id)',
     );
-i1.GeneratedColumn<String> _column_179(String aliasedName) =>
+i1.GeneratedColumn<String> _column_180(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'dimension',
       aliasedName,
@@ -3312,7 +3323,7 @@ i1.GeneratedColumn<String> _column_179(String aliasedName) =>
       $customConstraints:
           'NOT NULL CHECK (dimension IN (\'category\', \'disposition\'))',
     );
-i1.GeneratedColumn<String> _column_180(String aliasedName) =>
+i1.GeneratedColumn<String> _column_181(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'code',
       aliasedName,
@@ -3320,7 +3331,7 @@ i1.GeneratedColumn<String> _column_180(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_181(String aliasedName) =>
+i1.GeneratedColumn<int> _column_182(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'record_count',
       aliasedName,
@@ -3367,7 +3378,7 @@ class Shape37 extends i0.VersionedTable {
       columnsByName['acknowledged_at']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<String> _column_182(String aliasedName) =>
+i1.GeneratedColumn<String> _column_183(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'event_id',
       aliasedName,
@@ -3375,7 +3386,7 @@ i1.GeneratedColumn<String> _column_182(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_183(String aliasedName) =>
+i1.GeneratedColumn<String> _column_184(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'record_id',
       aliasedName,
@@ -3383,7 +3394,7 @@ i1.GeneratedColumn<String> _column_183(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_184(String aliasedName) =>
+i1.GeneratedColumn<String> _column_185(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'exercise_id',
       aliasedName,
@@ -3391,7 +3402,7 @@ i1.GeneratedColumn<String> _column_184(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<String> _column_185(String aliasedName) =>
+i1.GeneratedColumn<String> _column_186(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'field',
       aliasedName,
@@ -3399,7 +3410,7 @@ i1.GeneratedColumn<String> _column_185(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_186(String aliasedName) =>
+i1.GeneratedColumn<int> _column_187(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'position',
       aliasedName,
@@ -3407,7 +3418,7 @@ i1.GeneratedColumn<int> _column_186(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'CHECK (position IS NULL OR position >= 0)',
     );
-i1.GeneratedColumn<String> _column_187(String aliasedName) =>
+i1.GeneratedColumn<String> _column_188(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'original_value',
       aliasedName,
@@ -3415,7 +3426,7 @@ i1.GeneratedColumn<String> _column_187(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL CHECK (json_valid(original_value))',
     );
-i1.GeneratedColumn<String> _column_188(String aliasedName) =>
+i1.GeneratedColumn<String> _column_189(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'resulting_value',
       aliasedName,
@@ -3423,7 +3434,7 @@ i1.GeneratedColumn<String> _column_188(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL CHECK (json_valid(resulting_value))',
     );
-i1.GeneratedColumn<String> _column_189(String aliasedName) =>
+i1.GeneratedColumn<String> _column_190(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'element',
       aliasedName,
@@ -3431,23 +3442,23 @@ i1.GeneratedColumn<String> _column_189(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'CHECK (element IS NULL OR json_valid(element))',
     );
-i1.GeneratedColumn<String> _column_190(String aliasedName) =>
+i1.GeneratedColumn<String> _column_191(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'disposition',
       aliasedName,
       false,
       type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL CHECK (disposition IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\'))',
+      $customConstraints: 'NOT NULL CHECK (disposition IN (\'quarantined\', \'cleared\', \'retained\', \'mapped\', \'markerAdded\', \'skipped\', \'rejected\', \'blocked\', \'none\', \'corrected\'))',
     );
-i1.GeneratedColumn<String> _column_191(String aliasedName) =>
+i1.GeneratedColumn<String> _column_192(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'block_reason',
       aliasedName,
       true,
       type: i1.DriftSqlType.string,
-      $customConstraints: 'CHECK (block_reason IS NULL OR block_reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\'))',
+      $customConstraints: 'CHECK (block_reason IS NULL OR block_reason IN (\'noPrimaryTarget\', \'unknownEquipment\', \'invalidEquipment\', \'invalidSecondaryTarget\', \'invalidClassification\', \'invalidAliases\'))',
     );
-i1.GeneratedColumn<String> _column_192(String aliasedName) =>
+i1.GeneratedColumn<String> _column_193(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'rule',
       aliasedName,
@@ -3455,7 +3466,7 @@ i1.GeneratedColumn<String> _column_192(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_193(String aliasedName) =>
+i1.GeneratedColumn<String> _column_194(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'category',
       aliasedName,
@@ -3463,7 +3474,7 @@ i1.GeneratedColumn<String> _column_193(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL CHECK (category IN (\'migrated\', \'preserved\', \'quarantinedOrUnresolved\', \'rejectedOrBlocked\', \'warningForReview\'))',
     );
-i1.GeneratedColumn<int> _column_194(String aliasedName) =>
+i1.GeneratedColumn<int> _column_195(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'quarantine_id',
       aliasedName,
@@ -3471,7 +3482,7 @@ i1.GeneratedColumn<int> _column_194(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<String> _column_195(String aliasedName) =>
+i1.GeneratedColumn<String> _column_196(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'acknowledged_at',
       aliasedName,

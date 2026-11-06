@@ -26,7 +26,7 @@ void main() {
 
     test('blocked, retired, archived and deleted are never discoverable; '
         'blocked, archived and deleted refuse new work, retired does not '
-        '(ADR-0009: hidden from discovery only; R-C8 open)', () {
+        '(ADR-0009: hidden from discovery only; R-C8 decided)', () {
       final cases = {
         ExerciseAvailabilityState.blocked: ExerciseAvailability(
           exerciseId: 'e',
@@ -91,20 +91,41 @@ void main() {
   });
 
   group('R-C4: a field correction resolves every reason of that field', () {
-    test('reasons map to fields; invalidSecondaryTarget has no route', () {
+    test('every reason maps to exactly one field', () {
       expect(
-        BlockedField.of(BlockReason.noPrimaryTarget),
-        BlockedField.targets,
+        {for (final r in BlockReason.values) r: BlockedField.of(r)},
+        {
+          BlockReason.noPrimaryTarget: BlockedField.targets,
+          BlockReason.invalidSecondaryTarget: BlockedField.targets,
+          BlockReason.unknownEquipment: BlockedField.equipment,
+          BlockReason.invalidEquipment: BlockedField.equipment,
+          BlockReason.invalidClassification: BlockedField.classification,
+          BlockReason.invalidAliases: BlockedField.aliases,
+        },
       );
-      expect(
-        BlockedField.of(BlockReason.unknownEquipment),
-        BlockedField.equipment,
-      );
-      expect(
-        BlockedField.of(BlockReason.invalidEquipment),
-        BlockedField.equipment,
-      );
-      expect(BlockedField.of(BlockReason.invalidSecondaryTarget), isNull);
+      final all = [for (final f in BlockedField.values) ...f.reasons];
+      expect(all.toSet(), BlockReason.values.toSet());
+      expect(all, hasLength(BlockReason.values.length), reason: 'disjoint');
+    });
+
+    test('targets resolve noPrimaryTarget and invalidSecondaryTarget; '
+        'classification and aliases resolve only their own reason', () {
+      final blocks = [for (final r in BlockReason.values) active(r)];
+      final t = resolveField(blocks, BlockedField.targets, t1);
+      expect(t.resolved, {
+        BlockReason.noPrimaryTarget,
+        BlockReason.invalidSecondaryTarget,
+      });
+      final c = resolveField(t.blocks!, BlockedField.classification, t1);
+      expect(c.resolved, {BlockReason.invalidClassification});
+      final a = resolveField(c.blocks!, BlockedField.aliases, t1);
+      expect(a.resolved, {BlockReason.invalidAliases});
+      expect(activeBlockReasons(a.blocks!), {
+        BlockReason.unknownEquipment,
+        BlockReason.invalidEquipment,
+      });
+      final e = resolveField(a.blocks!, BlockedField.equipment, t1);
+      expect(isBlocked(e.blocks!), isFalse);
     });
 
     test('equipment resolves both equipment reasons and leaves the target '

@@ -37,12 +37,16 @@ void main() {
 
   List<LegacyExerciseMapping> mapAll() => [
     for (final r in db.select(
-      'SELECT id, primary_muscle, secondary_muscles_json, equipment_json, '
-      'supplied FROM exercises ORDER BY id',
+      'SELECT id, type, category, aliases_json, primary_muscle, '
+      'secondary_muscles_json, equipment_json, supplied FROM exercises '
+      'ORDER BY id',
     ))
       mapLegacyExercise(
         LegacyExerciseRow(
           id: r['id'] as String,
+          type: r['type'],
+          category: r['category'],
+          aliasesJson: r['aliases_json'],
           primaryMuscle: r['primary_muscle'],
           secondaryMusclesJson: r['secondary_muscles_json'],
           equipmentJson: r['equipment_json'],
@@ -175,12 +179,40 @@ ORDER BY 1, 4''')) {
       0,
       reason: 'no repeated, non-string or non-array equipment in the fixture',
     );
+    // Unreadable secondaries (owner decision 2026-11-06): every exercise
+    // with a secondary outside the anatomy list is blocked individually.
+    final trialUnreadableSecondary = {
+      for (final r in db.select(
+        'SELECT DISTINCT e.id FROM exercises e, '
+        'json_each(e.secondary_muscles_json) j '
+        'WHERE j.value NOT IN (SELECT id FROM anatomy_nodes)',
+      ))
+        r['id'] as String,
+    };
+    expect(trialUnreadableSecondary, isNotEmpty);
+    expect({
+      for (final m in mappings)
+        if (m.blocks.any((b) => b.reason == BlockReason.invalidSecondaryTarget))
+          m.id.value,
+    }, trialUnreadableSecondary);
+    // The trial fixture has readable classifications and aliases only.
+    expect([
+      for (final m in mappings)
+        for (final b in m.blocks)
+          if (b.reason == BlockReason.invalidClassification ||
+              b.reason == BlockReason.invalidAliases)
+            b,
+    ], isEmpty);
     expect(
       {
         for (final m in mappings)
           if (m.isBlocked) m.id.value,
       },
-      {...trialNoPrimary, ...trialUnknownEquipment},
+      {
+        ...trialNoPrimary,
+        ...trialUnknownEquipment,
+        ...trialUnreadableSecondary,
+      },
     );
   });
 

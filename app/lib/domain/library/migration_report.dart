@@ -100,7 +100,8 @@ enum ReportCategory {
 }
 
 /// The action taken on one value (`quality-and-duplicates.md` section 4.2,
-/// with `blocked` added by R-03). The stored identifier is [name].
+/// with `blocked` added by R-03 and `corrected` by C-1). The stored
+/// identifier is [name].
 enum ReportAction {
   quarantined,
   cleared,
@@ -110,7 +111,12 @@ enum ReportAction {
   skipped,
   rejected,
   blocked,
-  none;
+  none,
+
+  /// A user correction set the field behind a block and resolved the block
+  /// (owner decision C-1, D04 section 7, 2026-11-06 "stage 3b decision
+  /// baseline"). Written only by a [ReportTrigger.userCorrection] run.
+  corrected;
 
   /// The action with stored [name]; null for an unknown name.
   static ReportAction? fromName(String name) {
@@ -121,7 +127,9 @@ enum ReportAction {
   }
 }
 
-/// Why an exercise is blocked (R-01, R-02). Stored identifier: [name].
+/// Why an exercise is blocked (R-01, R-02; the unreadable-data decision of
+/// D04 section 7, 2026-11-06 "stage 3b decision baseline"). Stored
+/// identifier: [name].
 ///
 /// An exercise may have several active reasons; each is recorded and
 /// resolved on its own, and resolving one never unblocks the exercise while
@@ -138,21 +146,39 @@ enum BlockReason {
   /// (R-02).
   invalidEquipment,
 
-  /// **OPEN (review WS4 H1, not approved).** `secondary_muscles_json` holds a
-  /// value v7 could not read (not an array, a non-string element, an unknown
-  /// muscle). Produced only when `LegacyMappingOptions.
-  /// blockInvalidSecondaryTargets` is on; the default mapping never uses it.
-  /// A stored schema value list must not include it until the owner
-  /// approves it.
+  /// `secondary_muscles_json` holds a value v7 could not read: text that is
+  /// not a JSON array, a non-string element or an unknown muscle id (owner
+  /// decision "unreadable data", 2026-11-06; replaces the WS4 H1 switch).
   invalidSecondaryTarget,
+
+  /// `type` or `category` is not one of the domain identifiers
+  /// (`ExerciseType`, `ExerciseCategory`) or not text (owner decision
+  /// "unreadable data", 2026-11-06; WS4 L9).
+  invalidClassification,
+
+  /// `aliases_json` is not a JSON array of strings (owner decision
+  /// "unreadable data", 2026-11-06; WS4 L9).
+  invalidAliases,
 }
 
-/// What started the report run (`quality-and-duplicates.md` section 4.2).
-enum ReportTrigger { migration, restore, integrityCheck, catalogueUpdate }
+/// What started the report run (`quality-and-duplicates.md` section 4.2,
+/// with `userCorrection` added by C-1).
+enum ReportTrigger {
+  migration,
+  restore,
+  integrityCheck,
+  catalogueUpdate,
+
+  /// A user correction of a blocked exercise (owner decision C-1).
+  userCorrection,
+}
 
 /// Rule codes the v8 migration cites. Every code comes from an approved
-/// source (a check code or an owner decision), except
-/// [invalidSecondaryTargetBlock], which is OPEN.
+/// source: a check code or an owner decision. The block-row codes are
+/// approved (D04 section 7, 2026-11-06 "stage 3b decision baseline"): IC-204,
+/// ADR-0008-Q12 and R-02 by name; the three `D04-UNREADABLE-*` codes are
+/// derived from the approved unreadable-data decision in the same style
+/// (non-material naming, register in `docs/schema-v8.md`).
 abstract final class MigrationRuleCodes {
   /// At least one primary target (`quality-and-duplicates.md` IC-204); cited
   /// by the `noPrimaryTarget` block.
@@ -181,8 +207,8 @@ abstract final class MigrationRuleCodes {
 
   /// Block-row rule codes [unknownEquipmentBlock] (`ADR-0008-Q12`) and
   /// [invalidEquipmentBlock] (`R-02`) cite owner decisions rather than check
-  /// codes; they **await owner confirmation** as report rule codes (review
-  /// WS4 N3).
+  /// codes; the owner approved them as report rule codes (2026-11-06,
+  /// "stage 3b decision baseline"; review WS4 N3 closed).
   ///
   /// The owner decision that blocks an exercise with unknown equipment
   /// (ADR-0008 section E, Q12). Cited by the `unknownEquipment` block entry.
@@ -193,9 +219,42 @@ abstract final class MigrationRuleCodes {
   /// differs from the WP8-D3 quarantine entry of the same column.
   static const String invalidEquipmentBlock = 'R-02';
 
-  /// **OPEN (H1):** placeholder code of the `invalidSecondaryTarget` block,
-  /// used only behind the switch. The owner names the code on approval.
-  static const String invalidSecondaryTargetBlock = 'OPEN-H1';
+  /// The `invalidSecondaryTarget` block entry: the owner decision that an
+  /// exercise with unreadable secondary muscles is blocked individually.
+  static const String invalidSecondaryTargetBlock = 'D04-UNREADABLE-SECONDARY';
+
+  /// The `invalidClassification` block entry (unreadable `type` or
+  /// `category`).
+  static const String invalidClassificationBlock =
+      'D04-UNREADABLE-CLASSIFICATION';
+
+  /// The `invalidAliases` block entry (unreadable `aliases_json`).
+  static const String invalidAliasesBlock = 'D04-UNREADABLE-ALIASES';
+
+  /// Logging type is one of the six logging types (IC-202); cited by a
+  /// `type` text that is not an `ExerciseType` identifier.
+  static const String loggingType = 'IC-202';
+
+  /// Category is one of the seven categories (IC-203); cited by a
+  /// `category` text that is not an `ExerciseCategory` identifier.
+  static const String category = 'IC-203';
+
+  /// Release 1 is recorded only when the bundled seed matches the exact
+  /// v7-era hash (owner decision R-30 / B-07, option b). Cited by the
+  /// warning that no release record was created.
+  static const String release1 = 'R-30';
+
+  /// The rule of the block entry of [reason], also cited by the entry of a
+  /// user correction that resolves it (C-1), so the two never share an event
+  /// id with another reason's entry.
+  static String blockRule(BlockReason reason) => switch (reason) {
+    BlockReason.noPrimaryTarget => noPrimaryTarget,
+    BlockReason.unknownEquipment => unknownEquipmentBlock,
+    BlockReason.invalidEquipment => invalidEquipmentBlock,
+    BlockReason.invalidSecondaryTarget => invalidSecondaryTargetBlock,
+    BlockReason.invalidClassification => invalidClassificationBlock,
+    BlockReason.invalidAliases => invalidAliasesBlock,
+  };
 
   /// `fullBody` as a secondary target, kept historically (ADR-0010 rule 5;
   /// section 4.1 F08).
@@ -399,17 +458,19 @@ final class ReportEvent {
   /// - `markerAdded` → warningForReview, migrated or preserved (a "source
   ///   updated" marker changes no value);
   /// - `none` → warningForReview or quarantinedOrUnresolved (a finding with
-  ///   no action, for example an unresolved reference, IC-901 to IC-905).
+  ///   no action, for example an unresolved reference, IC-901 to IC-905);
+  /// - `corrected` → migrated or preserved (C-1: a user correction converts
+  ///   the field to a valid value and loses nothing; the correction route
+  ///   writes `migrated`, because the field changed; `preserved` stays
+  ///   allowed for a correction that confirms a stored value unchanged).
   static Set<ReportCategory> allowedCategories(ReportAction action) =>
       switch (action) {
         ReportAction.quarantined ||
         ReportAction.cleared => const {ReportCategory.quarantinedOrUnresolved},
         ReportAction.rejected ||
         ReportAction.blocked => const {ReportCategory.rejectedOrBlocked},
-        ReportAction.skipped || ReportAction.mapped => const {
-          ReportCategory.migrated,
-          ReportCategory.preserved,
-        },
+        ReportAction.skipped || ReportAction.mapped || ReportAction.corrected =>
+          const {ReportCategory.migrated, ReportCategory.preserved},
         ReportAction.retained || ReportAction.markerAdded => const {
           ReportCategory.warningForReview,
           ReportCategory.migrated,

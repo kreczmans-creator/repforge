@@ -18,6 +18,9 @@ import 'support/catalogue_fixtures.dart';
 void main() {
   LegacyExerciseMapping map({
     String id = 'ex-1',
+    Object? type = 'weighted',
+    Object? category = 'push',
+    Object? aliases = '[]',
     Object? primary = 'chest',
     Object? secondary = '[]',
     Object? equipment = '[]',
@@ -25,6 +28,9 @@ void main() {
   }) => mapLegacyExercise(
     LegacyExerciseRow(
       id: id,
+      type: type,
+      category: category,
+      aliasesJson: aliases,
       primaryMuscle: primary,
       secondaryMusclesJson: secondary,
       equipmentJson: equipment,
@@ -246,8 +252,9 @@ void main() {
       ]);
     });
 
-    test('an unmapped secondary is quarantined (IC-301); the rest migrate '
-        'with contiguous ordinals (R-11)', () {
+    test('an unmapped secondary is quarantined (IC-301) and blocks as '
+        'invalidSecondaryTarget; the rest migrate with contiguous ordinals '
+        '(R-11)', () {
       final m = map(secondary: '["traps","triceps","Neck","lats"]');
       expect(targetsOf(m), [
         'primary:chest@0',
@@ -255,25 +262,33 @@ void main() {
         'secondary:lats@2',
       ]);
       expect(eventsOf(m), [
+        ('secondary_muscles_json', null, 'blocked', 'D04-UNREADABLE-SECONDARY'),
         ('secondary_muscles_json', 0, 'quarantined', 'IC-301'),
         ('secondary_muscles_json', 2, 'quarantined', 'IC-301'),
       ]);
       expect(m.quarantine.single.original, {
         'secondary_muscles_json': '["traps","triceps","Neck","lats"]',
       });
-      expect(m.blocks, isEmpty, reason: 'a secondary never blocks');
-      expect(m.outcome, ReportCategory.quarantinedOrUnresolved);
+      expect(
+        [for (final b in m.blocks) b.reason],
+        [BlockReason.invalidSecondaryTarget],
+      );
+      expect(m.outcome, ReportCategory.rejectedOrBlocked);
     });
 
     test('a non-string secondary element is quarantined (WP8-D3)', () {
       final m = map(secondary: '["triceps",null,3,{"a":1}]');
       expect(targetsOf(m), ['primary:chest@0', 'secondary:triceps@1']);
       expect(eventsOf(m), [
+        ('secondary_muscles_json', null, 'blocked', 'D04-UNREADABLE-SECONDARY'),
         ('secondary_muscles_json', 1, 'quarantined', 'WP8-D3'),
         ('secondary_muscles_json', 2, 'quarantined', 'WP8-D3'),
         ('secondary_muscles_json', 3, 'quarantined', 'WP8-D3'),
       ]);
-      expect([for (final e in m.events) e.element], ['null', '3', '{"a":1}']);
+      expect(
+        [for (final e in m.events) e.element],
+        [null, 'null', '3', '{"a":1}'],
+      );
     });
 
     for (final (text, label) in <(Object?, String)>[
@@ -284,15 +299,26 @@ void main() {
       (null, 'NULL'),
       (5, 'an integer'),
     ]) {
-      test('secondary text that is $label is quarantined whole (WP8-D3), '
-          'not blocked', () {
+      test('secondary text that is $label is quarantined whole (WP8-D3) and '
+          'blocks as invalidSecondaryTarget', () {
         final m = map(secondary: text);
         expect(targetsOf(m), ['primary:chest@0']);
         expect(eventsOf(m), [
+          (
+            'secondary_muscles_json',
+            null,
+            'blocked',
+            'D04-UNREADABLE-SECONDARY',
+          ),
           ('secondary_muscles_json', null, 'quarantined', 'WP8-D3'),
         ]);
-        expect(m.events.single.originalValue, encodeStoredValue(text));
-        expect(m.blocks, isEmpty);
+        for (final e in m.events) {
+          expect(e.originalValue, encodeStoredValue(text));
+        }
+        expect(
+          [for (final b in m.blocks) b.reason],
+          [BlockReason.invalidSecondaryTarget],
+        );
         expect(m.quarantine.single.original, {'secondary_muscles_json': text});
       });
     }
@@ -303,6 +329,7 @@ void main() {
       expect(eventsOf(m), [
         ('primary_muscle', null, 'blocked', 'IC-204'),
         ('primary_muscle', null, 'quarantined', 'IC-301'),
+        ('secondary_muscles_json', null, 'blocked', 'D04-UNREADABLE-SECONDARY'),
         ('secondary_muscles_json', 0, 'quarantined', 'IC-301'),
       ]);
       expect(m.targets, isEmpty);
@@ -439,106 +466,195 @@ void main() {
     });
   });
 
-  group(
-    'OPEN H1: blocking unreadable secondaries (switch, off by default)',
-    () {
-      const on = LegacyMappingOptions(blockInvalidSecondaryTargets: true);
-      LegacyExerciseMapping mapOn(
-        Object? secondary, {
-        Object? primary = 'chest',
-      }) => mapLegacyExercise(
-        LegacyExerciseRow(
-          id: 'ex-1',
-          primaryMuscle: primary,
-          secondaryMusclesJson: secondary,
-          equipmentJson: '[]',
-          supplied: 0,
-        ),
-        options: on,
-      );
-
-      test('the default never blocks for a secondary', () {
-        expect(
-          const LegacyMappingOptions().blockInvalidSecondaryTargets,
-          false,
-        );
-        for (final text in <Object?>['["traps"]', '[1]', 'oops', null]) {
-          expect(map(secondary: text).blocks, isEmpty, reason: '$text');
-        }
-      });
-
-      for (final (text, label) in <(Object?, String)>[
-        ('["triceps","traps"]', 'an unknown muscle'),
-        ('["triceps",null]', 'a non-string element'),
-        ('oops', 'non-array text'),
-        (null, 'NULL'),
-      ]) {
-        test('with the switch on, $label blocks as invalidSecondaryTarget, '
-            'still quarantined, valid secondaries kept', () {
-          final m = mapOn(text);
-          expect(m.blocks, [
-            const BlockDecision(
-              BlockReason.invalidSecondaryTarget,
-              'secondary_muscles_json is not fully mappable',
-            ),
-          ]);
-          final block = m.events.singleWhere(
-            (e) => e.action == ReportAction.blocked,
-          );
-          expect(block.field, 'secondary_muscles_json');
-          expect(block.position, isNull);
-          expect(block.rule, MigrationRuleCodes.invalidSecondaryTargetBlock);
-          expect(block.blockReason, BlockReason.invalidSecondaryTarget);
-          expect(block.originalValue, encodeStoredValue(text));
-          expect(
-            m.events.where((e) => e.action == ReportAction.quarantined),
-            isNotEmpty,
-          );
-          expect(m.quarantine.single.original, {
-            'secondary_muscles_json': text,
-          });
-          expect(m.outcome, ReportCategory.rejectedOrBlocked);
-          expect({
-            for (final e in m.events) ReportEntry('r', e).eventId,
-          }, hasLength(m.events.length));
-        });
-      }
-
-      test('with the switch on, what v7 accepts never blocks: repeats, the '
-          'primary repeated, fullBody', () {
-        for (final text in [
-          '["triceps","triceps"]',
-          '["chest"]',
-          '["fullBody"]',
-          '[]',
-        ]) {
-          expect(mapOn(text).blocks, isEmpty, reason: text);
-        }
-      });
-
-      test('with the switch on, blocks follow the BlockReason order (N1)', () {
-        final m = mapLegacyExercise(
-          const LegacyExerciseRow(
-            id: 'ex-1',
-            primaryMuscle: 'Neck',
-            secondaryMusclesJson: '["traps"]',
-            equipmentJson: '["hoverboard",1]',
-            supplied: 0,
+  group('unreadable data blocks individually (owner decision 2026-11-06; '
+      'the H1 switch is removed)', () {
+    for (final (text, label) in <(Object?, String)>[
+      ('["triceps","traps"]', 'an unknown muscle'),
+      ('["triceps",null]', 'a non-string element'),
+      ('oops', 'non-array text'),
+      (null, 'NULL'),
+    ]) {
+      test('secondaries with $label block as invalidSecondaryTarget, still '
+          'quarantined, valid secondaries kept', () {
+        final m = map(secondary: text);
+        expect(m.blocks, [
+          const BlockDecision(
+            BlockReason.invalidSecondaryTarget,
+            'secondary_muscles_json is not fully mappable',
           ),
-          options: on,
+        ]);
+        final block = m.events.singleWhere(
+          (e) => e.action == ReportAction.blocked,
         );
-        expect([for (final b in m.blocks) b.reason], BlockReason.values);
+        expect(block.field, 'secondary_muscles_json');
+        expect(block.position, isNull);
+        expect(block.rule, 'D04-UNREADABLE-SECONDARY');
+        expect(block.rule, MigrationRuleCodes.invalidSecondaryTargetBlock);
+        expect(block.blockReason, BlockReason.invalidSecondaryTarget);
+        expect(block.originalValue, encodeStoredValue(text));
+        expect(
+          m.events.where((e) => e.action == ReportAction.quarantined),
+          isNotEmpty,
+        );
+        expect(m.quarantine.single.original, {'secondary_muscles_json': text});
+        expect(m.outcome, ReportCategory.rejectedOrBlocked);
+        expect({
+          for (final e in m.events) ReportEntry('r', e).eventId,
+        }, hasLength(m.events.length));
       });
+    }
 
-      test('with the switch on, reasons stay independent (R-01)', () {
-        final m = mapOn('["traps"]', primary: 'Neck');
+    test('what v7 accepts never blocks: repeats, the primary repeated, '
+        'fullBody, an empty list', () {
+      for (final text in [
+        '["triceps","triceps"]',
+        '["chest"]',
+        '["fullBody"]',
+        '[]',
+      ]) {
+        expect(map(secondary: text).blocks, isEmpty, reason: text);
+      }
+    });
+
+    for (final (type, category, label) in <(Object?, Object?, String)>[
+      ('Aerobic', 'push', 'an unknown type'),
+      ('weighted', 'Plyometrics', 'an unknown category'),
+      ('Weighted', 'push', 'a type in another case'),
+      ('weighted', '', 'an empty category'),
+      (7, 'push', 'a type that is not text'),
+      ('Aerobic', 'Plyometrics', 'both unknown'),
+    ]) {
+      test('$label blocks as invalidClassification once; each unreadable '
+          'field is quarantined and reported with its original', () {
+        final m = map(type: type, category: category);
         expect(
           [for (final b in m.blocks) b.reason],
-          [BlockReason.noPrimaryTarget, BlockReason.invalidSecondaryTarget],
+          [BlockReason.invalidClassification],
         );
+        final bad = {
+          if (type is! String ||
+              !ExerciseType.values.any((t) => t.name == type))
+            'type': type,
+          if (category is! String ||
+              !ExerciseCategory.values.any((c) => c.name == category))
+            'category': category,
+        };
+        expect(m.quarantine.map((q) => q.original).toList(), [
+          for (final MapEntry(:key, :value) in bad.entries) {key: value},
+        ]);
+        for (final MapEntry(key: field, value: original) in bad.entries) {
+          final quarantined = m.events.singleWhere(
+            (e) => e.field == field && e.action == ReportAction.quarantined,
+          );
+          expect(
+            quarantined.rule,
+            original is String
+                ? (field == 'type' ? 'IC-202' : 'IC-203')
+                : 'WP8-D3',
+          );
+          expect(quarantined.category, ReportCategory.quarantinedOrUnresolved);
+          expect(quarantined.originalValue, encodeStoredValue(original));
+          // The column keeps its original: nothing is rewritten.
+          expect(quarantined.resultingValue, encodeStoredValue(original));
+        }
+        // One blocked entry for the one block, on the first unreadable
+        // column (type before category).
+        final blocked = m.events.singleWhere(
+          (e) => e.action == ReportAction.blocked,
+        );
+        final first = bad.entries.first;
+        expect(blocked.field, first.key);
+        expect(blocked.originalValue, encodeStoredValue(first.value));
+        expect(blocked.rule, 'D04-UNREADABLE-CLASSIFICATION');
+        expect(blocked.blockReason, BlockReason.invalidClassification);
+        for (final f in bad.keys) {
+          expect(blocked.reason, contains(f));
+        }
+        expect(m.events.length, bad.length + 1);
+        expect(m.outcome, ReportCategory.rejectedOrBlocked);
+        expect(targetsOf(m), ['primary:chest@0'], reason: 'targets migrate');
       });
-    },
-  );
+    }
+
+    test('every domain type and category is readable', () {
+      for (final t in ExerciseType.values) {
+        for (final c in ExerciseCategory.values) {
+          expect(map(type: t.name, category: c.name).blocks, isEmpty);
+        }
+      }
+    });
+
+    for (final (text, label, positions) in <(Object?, String, List<int?>)>[
+      ('oops', 'invalid JSON', [null]),
+      ('{"a":1}', 'an object', [null]),
+      ('"alias"', 'a JSON string', [null]),
+      ('', 'empty text', [null]),
+      (null, 'NULL', [null]),
+      ('["ok",null,3]', 'non-string elements', [1, 2]),
+    ]) {
+      test('aliases that are $label block as invalidAliases, quarantined '
+          '(WP8-D3) and kept unchanged', () {
+        final m = map(aliases: text);
+        expect(
+          [for (final b in m.blocks) b.reason],
+          [BlockReason.invalidAliases],
+        );
+        expect(eventsOf(m), [
+          ('aliases_json', null, 'blocked', 'D04-UNREADABLE-ALIASES'),
+          for (final p in positions)
+            ('aliases_json', p, 'quarantined', 'WP8-D3'),
+        ]);
+        for (final e in m.events) {
+          expect(e.originalValue, encodeStoredValue(text));
+          expect(e.resultingValue, encodeStoredValue(text));
+        }
+        expect(m.quarantine.single.original, {'aliases_json': text});
+        expect(m.outcome, ReportCategory.rejectedOrBlocked);
+      });
+    }
+
+    test('readable aliases never block: empty, strings, non-ASCII', () {
+      for (final text in ['[]', '["a"]', '["Rudern ✓","Äpfel",""]']) {
+        expect(map(aliases: text).blocks, isEmpty, reason: text);
+      }
+    });
+
+    test('blocks follow the BlockReason order with every reason active '
+        '(R-01)', () {
+      final m = map(
+        type: 'Aerobic',
+        aliases: 'oops',
+        primary: 'Neck',
+        secondary: '["traps"]',
+        equipment: '["hoverboard",1]',
+      );
+      expect([for (final b in m.blocks) b.reason], BlockReason.values);
+      expect(m.quarantine.map((q) => q.original.keys.single).toList(), [
+        'primary_muscle',
+        'secondary_muscles_json',
+        'equipment_json',
+        'type',
+        'aliases_json',
+      ]);
+      expect(
+        m.events
+            .where((e) => e.action == ReportAction.blocked)
+            .map((e) => e.blockReason),
+        unorderedEquals(BlockReason.values),
+      );
+      expect({
+        for (final e in m.events) ReportEntry('r', e).eventId,
+      }, hasLength(m.events.length));
+    });
+
+    test('reasons stay independent (R-01)', () {
+      final m = map(secondary: '["traps"]', primary: 'Neck');
+      expect(
+        [for (final b in m.blocks) b.reason],
+        [BlockReason.noPrimaryTarget, BlockReason.invalidSecondaryTarget],
+      );
+    });
+  });
 
   group('consistency with the 3a domain rules', () {
     test('mapped targets of every non-blocked row pass the target rules '
@@ -615,6 +731,9 @@ void main() {
           var repeatedEquipment = 0;
           var unknownEquipment = 0;
           var nonArrayEquipment = 0;
+          var unknownType = 0;
+          var unknownCategory = 0;
+          var unreadableAliases = 0;
           for (var i = 0; i < 2000; i++) {
             final roll = r.nextInt(100);
             final primary = roll < 94
@@ -658,9 +777,29 @@ void main() {
               equipmentText = 'barbell, bench';
               nonArrayEquipment++;
             }
+            final k = r.nextInt(100);
+            var type = 'weighted';
+            var category = 'push';
+            var aliases = '["a"]';
+            if (k == 0) {
+              type = 'Aerobic';
+              unknownType++;
+            } else if (k == 1) {
+              category = 'Stretching';
+              unknownCategory++;
+            } else if (k == 2) {
+              aliases = 'a, b';
+              unreadableAliases++;
+            } else if (k == 3) {
+              aliases = '["a",1]';
+              unreadableAliases++;
+            }
             rows.add(
               LegacyExerciseRow(
                 id: 'ex-${i.toString().padLeft(4, '0')}',
+                type: type,
+                category: category,
+                aliasesJson: aliases,
                 primaryMuscle: primary,
                 secondaryMusclesJson: jsonEncode(secondary),
                 equipmentJson: equipmentText,
@@ -715,6 +854,31 @@ void main() {
           );
           expect(entries('R-02', ReportAction.blocked), nonArrayEquipment);
           expect(
+            entries('D04-UNREADABLE-SECONDARY', ReportAction.blocked),
+            unmappedSecondary,
+          );
+          expect(entries('IC-202', ReportAction.quarantined), unknownType);
+          expect(entries('IC-203', ReportAction.quarantined), unknownCategory);
+          expect(
+            entries('D04-UNREADABLE-CLASSIFICATION', ReportAction.blocked),
+            {
+              for (final m in mappings)
+                if (m.blocks.any(
+                  (b) => b.reason == BlockReason.invalidClassification,
+                ))
+                  m.id.value,
+            }.length,
+          );
+          expect(
+            entries('D04-UNREADABLE-CLASSIFICATION', ReportAction.blocked),
+            unknownType + unknownCategory,
+            reason: 'one roll per row: never both',
+          );
+          expect(
+            entries('D04-UNREADABLE-ALIASES', ReportAction.blocked),
+            unreadableAliases,
+          );
+          expect(
             report.entries
                 .where(
                   (e) =>
@@ -734,6 +898,9 @@ void main() {
             repeatedEquipment,
             unknownEquipment,
             nonArrayEquipment,
+            unknownType,
+            unknownCategory,
+            unreadableAliases,
           ]) {
             expect(
               c,
