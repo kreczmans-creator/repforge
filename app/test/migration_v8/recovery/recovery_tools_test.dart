@@ -20,12 +20,21 @@ import 'v7_expectations.dart';
 /// timing harness on the smoke profile.
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
+  // Only the directories this file creates are checked at the end, so a
+  // kill or heavy run in parallel (same prefix) cannot fail this suite.
+  final created = <String>[];
+  Future<T> tracked<T>(Future<T> Function(Directory dir) body) =>
+      withWs5TempDir((dir) {
+        created.add(dir.path);
+        return body(dir);
+      });
   final migration = historicalChain;
 
   group('repeated migration writes nothing twice', () {
     for (final (key, path) in allFixtures()) {
       test('fixture_$key: a second and third run change no byte', () async {
-        await withWs5TempDir((dir) async {
+        await tracked((dir) async {
           final db = copyDatabase(path, dir);
           expect(await runMigration(db, migration), isNull);
           expectV7ProductionResult(describeFile(db), key);
@@ -39,7 +48,7 @@ void main() {
     }
 
     test('repeatMigration gives one digest for every run', () async {
-      await withWs5TempDir((dir) async {
+      await tracked((dir) async {
         final db = copyDatabase(fixturePath(2), dir);
         final digests = await repeatMigration(db, migration);
         expect(digests, hasLength(3));
@@ -63,7 +72,7 @@ void main() {
           'v${versionAfterInterruption(from, stage)}; retry completes',
           () async {
             final refs = await referenceStates(fixturePath(2), from: 2);
-            await withWs5TempDir((dir) async {
+            await tracked((dir) async {
               final db = copyDatabase(fixturePath(2), dir);
               final error = await runMigration(
                 db,
@@ -84,7 +93,7 @@ void main() {
     }
 
     test('failAtIndex and failWhere hit the requested checkpoint', () async {
-      await withWs5TempDir((dir) async {
+      await tracked((dir) async {
         final db = copyDatabase(fixturePath(5), dir);
         final recorder = CheckpointRecorder();
         final error = await runMigration(
@@ -113,7 +122,7 @@ void main() {
 
     test('crash window: work committed, version reset; a re-run '
         'completes to the same state', () async {
-      await withWs5TempDir((dir) async {
+      await tracked((dir) async {
         final db = copyDatabase(fixturePath(6), dir);
         expect(await runMigration(db, migration), isNull);
         final done = stateDigest(db);
@@ -144,7 +153,7 @@ void main() {
     });
 
     test('inspectJournal: absent, zero header, valid header', () async {
-      await withWs5TempDir((dir) async {
+      await tracked((dir) async {
         final db = File('${dir.path}/x.sqlite')..writeAsBytesSync([0]);
         expect(inspectJournal(db).exists, isFalse);
         final j = File('${db.path}-journal')
@@ -159,7 +168,7 @@ void main() {
 
     test('the state digest sees one changed cell, a value type change and '
         'a schema change', () async {
-      await withWs5TempDir((dir) async {
+      await tracked((dir) async {
         final db = copyDatabase(fixturePath(7), dir);
         final base = stateDigest(db);
         expect(stateDigest(copyDatabase(db.path, dir, name: 'b.sqlite')), base);
@@ -202,7 +211,7 @@ void main() {
         '3 runs + recovery/retry, ${background ? 'background' : 'calling '
                   'isolate'}: pass, stand-in stated',
         () async {
-          await withWs5TempDir((dir) async {
+          await tracked((dir) async {
             final result = await runTimingCampaign(
               workDir: dir,
               migration: migration,
@@ -234,13 +243,11 @@ void main() {
     });
   });
 
-  test('no WS5 temporary directory is left behind', () {
-    expect(
-      Directory.systemTemp.listSync().where(
-        (e) =>
-            e.path.split(Platform.pathSeparator).last.startsWith(ws5TempPrefix),
-      ),
-      isEmpty,
-    );
+  test('every temporary directory of this file is gone', () {
+    expect(created, isNotEmpty);
+    expect([
+      for (final p in created)
+        if (Directory(p).existsSync()) p,
+    ], isEmpty);
   });
 }
