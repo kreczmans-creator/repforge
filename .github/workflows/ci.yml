@@ -99,6 +99,9 @@ jobs:
   # unchanged. Linux only: the kill suite builds a separate child process
   # with `dart build cli` and ends it with SIGKILL. Concurrency 1: the
   # timing figures and the kill moments must not compete with other tests.
+  # Same triggers as the quality job (every push touching app/), by owner
+  # request: the kill and timing evidence comes from CI, not only locally.
+  # Takes about 10 minutes.
   recovery:
     name: Recovery (process kill, large profile)
     runs-on: ubuntu-latest
