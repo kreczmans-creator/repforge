@@ -57,8 +57,9 @@ typedef MigrationProbe = Future<void> Function(MigrationCheckpoint checkpoint);
 ///   after a failure it restores them too and rethrows the original error.
 ///
 /// `clock` stamps quarantine rows. [steps] defaults to
-/// [HistoricalSteps.steps]; v8 will pass the historical steps plus its own,
-/// so it is API, not a test seam. [onCreate] is API for the same reason.
+/// [HistoricalSteps.steps]; schema v8 (`AppDatabaseV8`, sub-stage 3b-4)
+/// passes the historical steps plus its own v7 → v8 step, so it is API, not
+/// a test seam. [onCreate] and [preflight] are API for the same reason.
 /// [probe] is a test seam only (failure and kill tests).
 final class RepforgeMigration {
   RepforgeMigration({
@@ -67,6 +68,7 @@ final class RepforgeMigration {
     this.probe,
     MigrationStep? steps,
     this.onCreate,
+    this.preflight,
   }) : steps = steps ?? HistoricalSteps(clock: clock).steps;
 
   final GeneratedDatabase database;
@@ -80,6 +82,13 @@ final class RepforgeMigration {
 
   /// Creates a new database; null means `createAll`.
   final Future<void> Function(Migrator m)? onCreate;
+
+  /// Runs before any upgrade work, before the foreign keys are switched off
+  /// and before the first step's transaction, with the version the database
+  /// starts from. A preflight that throws stops the upgrade with nothing
+  /// written (schema v8: the `quick_check` integrity preflight, D04 section
+  /// 7, 2026-11-06, "Damaged database at upgrade"). Null runs none.
+  final Future<void> Function(int from, int to)? preflight;
 
   /// The strategy to return from `GeneratedDatabase.migration`. `onCreate`
   /// defaults to `createAll`; `beforeOpen` switches foreign keys on.
@@ -95,6 +104,8 @@ final class RepforgeMigration {
       throw StateError('Cannot migrate down from v$from to v$to.');
     }
     await database.exclusively(() async {
+      final check = preflight;
+      if (check != null) await check(from, to);
       await _setForeignKeys(on: false);
       try {
         for (var version = from; version < to;) {

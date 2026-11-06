@@ -30,6 +30,9 @@ Future<void> main(List<String> args) async {
     exit(usageExitCode);
   }
   final migration = migrationUnderTest(opts['migration'] ?? 'historical');
+  // A new v7 → v8 run is named after this process, so the parent can tell
+  // whether a re-run reused the killed process's run id (R-07).
+  registryRunId = 'run-$pid';
   final file = File(opts['db'] ?? (throw ArgumentError('--db is required')));
   final stopAt = opts['stop-at'];
   final target = opts['target'] == null ? null : int.parse(opts['target']!);

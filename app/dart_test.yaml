@@ -6,6 +6,7 @@ tags:
   # `recovery`, every push) runs kill and heavy.
   kill:
     skip: "Process-kill suite; run with --run-skipped --tags \"kill || heavy\" --concurrency=1"
-  # WS5: the large profile (5,000 exercises, 100,000 sets) and host timing.
+  # WS5 and 3b-4: the large profile (5,000 exercises, 100,000 sets), host
+  # timing and the large v8 migration.
   heavy:
     skip: "Large-profile suite; run with --run-skipped --tags \"kill || heavy\" --concurrency=1"

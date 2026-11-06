@@ -98,14 +98,18 @@ void main() {
     expect(offenders(files), isEmpty);
   });
 
-  test('the unconnected schema v8 imports only the bootstrap and the v8 '
-      'shapes from the chain', () {
+  test('the unconnected schema v8 imports only the bootstrap, the v8 '
+      'shapes and the step chain', () {
     // WP 8 stage 3b-2: `lib/data/db/v8/` is itself unconnected
-    // (`schema_v8_isolation_test.dart`); it may use these two chain files
-    // and nothing else of the chain.
+    // (`schema_v8_isolation_test.dart`); it may use the bootstrap and the v8
+    // shapes. Sub-stage 3b-4 adds the chain that upgrades it: the strategy
+    // builder, the historical steps and the v7 → v8 step.
     const allowed = {
       'package:repforge/data/db/migration/bootstrap_reference_v8.dart',
       'package:repforge/data/db/migration/schema_v8_shapes.g.dart',
+      'package:repforge/data/db/migration/repforge_migration.dart',
+      'package:repforge/data/db/migration/historical_steps.dart',
+      'package:repforge/data/db/migration/v7_to_v8.dart',
     };
     final reaching = [
       for (final f in dartFiles('lib/data/db/v8'))

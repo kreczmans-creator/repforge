@@ -103,16 +103,16 @@ void main() {
   });
 
   test('no existing code imports lib/domain/library (3a changes nothing '
-      'else)', () {
+      'else); only the unconnected v7 → v8 step uses it (3b-4)', () {
     final importers = [
       for (final f in Directory('lib').listSync(recursive: true))
         if (f is File &&
             f.path.endsWith('.dart') &&
             !f.path.replaceAll(r'\', '/').startsWith('lib/domain/library/') &&
             f.readAsStringSync().contains('domain/library/'))
-          f.path,
+          f.path.replaceAll(r'\', '/'),
     ];
-    expect(importers, isEmpty);
+    expect(importers, ['lib/data/db/migration/v7_to_v8.dart']);
   });
 
   test('the existing exercise model and enums are still in place', () {
