@@ -32,7 +32,10 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     whyBlocked:
         'Profile-mode timing needs a physical device; emulator and host '
         'figures are not accepted as 3b-9 evidence. The agents have no '
-        'device.',
+        'device. The device harness still runs the historical v5 to v7 '
+        'stand-in; switching it to the real v7 to v8 migration is WP 8 '
+        'session work that must land before the device run, or the run '
+        'times the wrong migration.',
     actionRequired:
         'Connect the Android phone, run app/tool/device_timing.sh at the '
         'release commit as described in docs/device-timing.md, and return '
@@ -44,7 +47,10 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'Until both device runs exist, stage 3b-9 earns only its harness '
         'credit (0.10 of 0.30) and stage 3b cannot be accepted, which holds '
         'back 3c, 3d and the v8 switch-over.',
-    dependencies: ['Release commit with the v7 to v8 migration on main'],
+    dependencies: [
+      'Device harness switched from the stand-in to v7to8 (WP 8 session)',
+      'Release commit with the v7 to v8 migration on main',
+    ],
     evidence: [
       BlockerEvidence('Device procedure', reference: 'docs/device-timing.md'),
       BlockerEvidence(
@@ -137,45 +143,58 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     workPackage: BlockerWorkPackage.wp8,
     stage: '3b-7 / WS3',
     reference: 'B-15 (conditional acceptance, D04 §7 2026-11-06)',
-    title: 'B-15 migration IC-101 re-check and WS3 closure evidence',
+    title:
+        'B-15: the migration itself creates IC-101 system exercises; '
+        'choose how to proceed',
     description:
-        'B-15 is accepted on condition that an independent re-check confirms '
-        'the v7 to v8 migration itself does not create system exercises '
-        'without a valid primary target (IC-101). WS3 (backup format 3) '
-        'closes only when that re-check, the conditional validation '
-        'boundary, B-16, the final independent review and the full '
-        'regression suite are all recorded.',
-    category: BlockerCategory.independentVerification,
+        'B-15 was accepted on condition that an independent re-check '
+        'confirmed the v7 to v8 migration does not create system exercises '
+        'without a valid primary target (IC-101). The re-check verdict, '
+        'reported by the WP 8 session on 2026-11-06 at 22:01, is that it '
+        'does: the frozen fixtures v2 to v5 produce a selectable system row '
+        '(ex-bench) with no migration-report entry. Per the owner '
+        'instruction the WP 8 work stopped at that point and three options '
+        '(a), (b) and (c) were put to the owner in the WP 8 session.',
+    category: BlockerCategory.ownerDecision,
     priority: BlockerPriority.high,
-    initialStatus: BlockerStatus.awaitingExternalVerification,
-    assignee: BlockerAssignee.agent,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
     whyBlocked:
-        'The WS3 corrections and the decision-baseline implementation were '
-        'still in the WP 8 implementation session, unpushed, when the '
-        'integration campaign froze the release candidate; the re-check '
-        'verdict cannot be recorded before that work is on a branch and '
-        'reviewed. This entry is agent-owned: nothing is needed from the '
-        'owner unless the re-check finds that the migration does produce '
-        'IC-101 exercises, in which case work stops and the owner decides.',
+        'The owner decision B-15 says that if the migration introduces the '
+        'IC-101 problem, work stops and the inconsistency is resolved '
+        'before B-15 is accepted. Resolving it changes either the '
+        'migration (3b-4, already reviewed) or the validation boundary, '
+        "which is the owner's call.",
     actionRequired:
-        'Agents: push the WS3 and decision-baseline work, run the IC-101 '
-        'migration re-check, record the verdict and the WS3 closure table. '
-        'Owner: nothing yet; read the verdict when it lands.',
+        'Read the re-check evidence and the options (a), (b) and (c) in '
+        'the WP 8 session and the WP 8 record, then choose one and record '
+        'it in D04 §7.',
     recommendation:
-        'Keep B-15 conditional; do not accept WS3 or 3b-7 until the '
-        'verdict is recorded with test evidence.',
+        'The WP 8 session holds the detailed options, evidence and its '
+        'recommendation; the integration lead takes no position beyond '
+        'this: prefer the option that reports and blocks the affected '
+        'system rows in the migration report over leaving them selectable.',
     consequences:
-        'If the re-check fails, 3b-7 and the v8 switch-over stop until the '
-        'inconsistency is resolved; if it passes, WS3 can close and 3b-7 '
-        'moves to review credit.',
-    dependencies: ['WP 8 session push of WS3 (32739ac..79b01b8 lineage)'],
+        'Until decided, WS3 (backup format 3) cannot close, 3b-7 earns '
+        'nothing, stage 3b stays unaccepted and the v8 switch-over waits. '
+        'The released app is unaffected: it runs schema v7 and the v8 '
+        'migration is not connected.',
+    dependencies: [
+      'WP 8 session push of the WS3 branch (87a3221..d3913a3)',
+      'WP 8 session push of the decision-baseline implementation',
+    ],
     evidence: [
       BlockerEvidence(
         'Owner decision B-15 / B-16',
         reference: 'D04 §7, 2026-11-06 "3b-7 B-15 (conditional) and B-16"',
       ),
       BlockerEvidence(
-        'WS3 review findings H1, M1 to M4',
+        'Re-check verdict (WP 8 session status, 2026-11-06 22:01)',
+        reference:
+            'docs/verification/overnight-campaign-2026-11-06.md, Workstream A',
+      ),
+      BlockerEvidence(
+        'WS3 review findings H1, M1 to M4; O1, O2 open',
         reference: 'WP8.md, "3b-7 review and owner decisions"',
       ),
     ],
