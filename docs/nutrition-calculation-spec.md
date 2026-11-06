@@ -107,7 +107,7 @@ Foods used: **Oats** 380 kcal, P 13, C 60, F 7, fibre 10 per 100 g, verified. **
 | E42 | 2.3 | 0.25 kg entered | stored 250 g, shown "250 g"; back in kg 0.25 |
 | E43 | 2.3 | 1 kg; 1 l | exactly 1000 g; exactly 1000 ml |
 | E44 | 2.3, 2.1 | 1.2345 kg; 0.0001 l | 1234.5 g; 0.1 ml (fourth decimal of kg or l is the stored step) |
-| E45 | 2.3, 2.1 | 1.23456 kg | cannot be typed (kg fields take 4 decimals); through the API 1234.6 g |
+| E45 | 2.3, 2.1 | 1.23456 kg | cannot be typed (kg fields take 4 decimals); through the API 1234.6 g. Note: an API amount finer than the field precision is converted as a binary product and then rounded by rule 2.1, which can differ from typing the equivalent grams directly (0.00245 kg → 2.4 g, whereas 2.45 g typed → 2.5 g); entry fields never reach this case (review R15-06) |
 | E46 | 2.3, 2.1 | 250 mg; 500 mg; 1000 mg | 0.3 g (tie away from zero); 0.5 g; 1 g |
 | E47 | 2.3, 1.3 | 0.5 l Milk | 500 ml → 320 kcal, P 17, C 24, F 18, fibre unknown |
 | E48 | 2.3 | units offered for Milk (per 100 ml) | ml and l only; no g or kg (no density, NUT-022(2)) |

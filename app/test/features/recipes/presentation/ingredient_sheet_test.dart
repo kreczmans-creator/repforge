@@ -26,7 +26,11 @@ Food _food(ReferenceUnit basis) => Food(
 void main() {
   RecipeIngredient? result;
 
-  Future<void> open(WidgetTester tester, Food food) async {
+  Future<void> open(
+    WidgetTester tester,
+    Food? food, {
+    RecipeIngredient? existing,
+  }) async {
     result = null;
     tester.view.physicalSize = const Size(600, 2400);
     tester.view.devicePixelRatio = 1;
@@ -43,6 +47,7 @@ void main() {
                   id: 'i1',
                   sortOrder: 0,
                   food: food,
+                  existing: existing,
                 );
               },
               child: const Text('open'),
@@ -86,6 +91,73 @@ void main() {
       result?.quantity,
       Quantity.fromStored(500, ReferenceUnit.millilitres),
     );
+    await unmount(tester);
+  });
+
+  String fieldText(WidgetTester tester) => tester
+      .widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('ingredient-amount')),
+          matching: find.byType(TextField),
+        ),
+      )
+      .controller!
+      .text;
+
+  testWidgets('switching g to kg converts the text and back', (tester) async {
+    await open(tester, _food(ReferenceUnit.grams));
+    await tester.enterText(find.byKey(const Key('ingredient-amount')), '250');
+    await tester.tap(segmentLabel('kg'));
+    await tester.pump();
+    expect(fieldText(tester), '0.25');
+    expect(
+      tester.widget<Text>(find.byKey(const Key('ingredient-canonical'))).data,
+      '= 250 g',
+    );
+    await tester.tap(segmentLabel('g'));
+    await tester.pump();
+    expect(fieldText(tester), '250');
+    expect(find.byKey(const Key('ingredient-canonical')), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('editing an existing ingredient pre-fills canonical g and '
+      'converts on switch', (tester) async {
+    final food = _food(ReferenceUnit.grams);
+    final existing = RecipeIngredient(
+      id: 'i1',
+      name: food.name,
+      foodId: food.id,
+      quantity: Quantity.fromStored(500, ReferenceUnit.grams),
+      sortOrder: 0,
+      per100: food.profile,
+    );
+    await open(tester, null, existing: existing);
+    expect(fieldText(tester), '500');
+    await tester.tap(segmentLabel('kg'));
+    await tester.pump();
+    expect(fieldText(tester), '0.5');
+    await tester.tap(find.byKey(const Key('ingredient-save')));
+    await tester.pumpAndSettle();
+    expect(result?.quantity, Quantity.fromStored(500, ReferenceUnit.grams));
+    await unmount(tester);
+  });
+
+  testWidgets('an over-range kg amount shows its validation message and '
+      'switching clears it (R15-01, R15-02)', (tester) async {
+    await open(tester, _food(ReferenceUnit.grams));
+    await tester.tap(segmentLabel('kg'));
+    await tester.pump();
+    await tester.enterText(find.byKey(const Key('ingredient-amount')), '150');
+    await tester.tap(find.byKey(const Key('ingredient-save')));
+    await tester.pump();
+    expect(find.text('Quantity is unrealistically large.'), findsOneWidget);
+    expect(result, isNull);
+    await tester.tap(segmentLabel('g'));
+    await tester.pump();
+    expect(fieldText(tester), isEmpty);
+    expect(find.text('Quantity is unrealistically large.'), findsOneWidget);
+    expect(find.byTooltip('kilograms'), findsOneWidget);
     await unmount(tester);
   });
 }

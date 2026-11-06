@@ -152,4 +152,78 @@ void main() {
     expect(text(), '250');
     await unmount(tester);
   });
+
+  testWidgets('an over-range kg amount keeps its validation message (R15-01)', (
+    tester,
+  ) async {
+    await open(tester, _food(per100));
+    await tester.tap(segmentLabel('kg'));
+    await tester.pump();
+    await tester.enterText(find.byKey(const Key('portion-amount')), '150');
+    await tester.pump();
+    expect(find.byKey(const Key('portion-canonical')), findsNothing);
+    await tester.tap(find.byKey(const Key('portion-log')));
+    await tester.pump();
+    expect(find.text('Quantity is unrealistically large.'), findsOneWidget);
+    expect(find.text('Enter a number.'), findsNothing);
+    expect(logged, isNull);
+    await unmount(tester);
+  });
+
+  testWidgets('switching unit with an invalid amount clears it and says why '
+      '(R15-02)', (tester) async {
+    await open(tester, _food(per100));
+    final field = find.byKey(const Key('portion-amount'));
+    await tester.tap(segmentLabel('kg'));
+    await tester.pump();
+    await tester.enterText(field, '150.1234');
+    await tester.tap(segmentLabel('g'));
+    await tester.pump();
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(of: field, matching: find.byType(TextField)),
+          )
+          .controller!
+          .text,
+      isEmpty,
+    );
+    expect(find.text('Quantity is unrealistically large.'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('0.5 l of a per-100 ml food previews 500 ml; the helper hides '
+      'in ml', (tester) async {
+    await open(tester, _food(per100, basis: ReferenceUnit.millilitres));
+    final field = find.byKey(const Key('portion-amount'));
+    await tester.tap(segmentLabel('l'));
+    await tester.pump();
+    await tester.enterText(field, '0.5');
+    await tester.pump();
+    expect(
+      tester.widget<Text>(find.byKey(const Key('portion-canonical'))).data,
+      '= 500 ml',
+    );
+    // 500 ml of 200 kcal/100 ml.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('portion-preview')),
+        matching: find.text('1000'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(segmentLabel('ml'));
+    await tester.pump();
+    expect(find.byKey(const Key('portion-canonical')), findsNothing);
+    expect(find.text('ml'), findsWidgets);
+    await unmount(tester);
+  });
+
+  testWidgets('entry units carry a full-word tooltip for assistive tech '
+      '(R15-03)', (tester) async {
+    await open(tester, _food(per100));
+    expect(find.byTooltip('kilograms'), findsOneWidget);
+    expect(find.byTooltip('grams'), findsOneWidget);
+    await unmount(tester);
+  });
 }

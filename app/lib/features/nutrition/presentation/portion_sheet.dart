@@ -14,8 +14,10 @@ import 'package:repforge/ui/components/rf_text_field.dart';
 import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
 
-/// Portion sheet: choose amount (grams/millilitres or a named serving) and
-/// meal, see the resulting nutrients, log. Returns the entry when logged.
+/// Portion sheet: choose an amount (in the food's reference unit or a larger
+/// metric unit of the same basis, g | kg or ml | l, WP 15; or a count of a
+/// named serving) and a meal, see the resulting nutrients, log. The stored
+/// amount is always canonical g or ml. Returns the entry when logged.
 Future<FoodLogEntry?> showPortionSheet(
   BuildContext context,
   Food food, {
@@ -92,17 +94,35 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     };
   }
 
+  /// Validation error for the typed amount in the current unit, or null when
+  /// it converts to a stored quantity.
+  String? get _amountError {
+    final text = _amount.text.trim();
+    if (text.isEmpty) return null;
+    final v = double.tryParse(text.replaceAll(',', '.'));
+    if (v == null) return 'Enter a number.';
+    return switch (_entryUnit.toCanonical(v)) {
+      Ok() => null,
+      Err(:final error) => userMessageFor(error),
+    };
+  }
+
   void _selectUnit(EntryUnit next) {
     final current = _entered;
+    final invalid = current == null ? _amountError : null;
     setState(() {
       if (current != null) {
         _amount.text = formatNumber(
           next.fromCanonical(current),
           maxDecimals: next.decimals,
         );
+      } else if (invalid != null) {
+        // Text that is not a valid amount in the old unit would be silently
+        // reinterpreted in the new one (review R15-02): clear it and say why.
+        _amount.clear();
       }
       _entryUnit = next;
-      _error = null;
+      _error = invalid;
     });
   }
 
@@ -122,7 +142,10 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     if (_busy) return;
     final a = _amountValue;
     if (a == null) {
-      setState(() => _error = 'Enter a number.');
+      // Out-of-range custom amounts keep their validation message
+      // (review R15-01); only unparseable text is "Enter a number.".
+      final message = _serving == null ? _amountError : null;
+      setState(() => _error = message ?? 'Enter a number.');
       return;
     }
     setState(() {
@@ -211,7 +234,11 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
                 showSelectedIcon: false,
                 segments: [
                   for (final u in EntryUnit.forBase(food.profile.per100))
-                    ButtonSegment(value: u, label: Text(u.symbol)),
+                    ButtonSegment(
+                      value: u,
+                      label: Text(u.symbol),
+                      tooltip: u.name,
+                    ),
                 ],
                 selected: {_entryUnit},
                 onSelectionChanged: (s) => _selectUnit(s.first),

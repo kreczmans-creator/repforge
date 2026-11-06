@@ -12,8 +12,10 @@ import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
 
 /// Sheet to set the quantity of a recipe ingredient (RCP-002). The amount is
-/// always in the food's reference unit (g or ml), or a count of one of the
-/// food's defined servings, so a unit mismatch cannot be entered.
+/// entered in the food's reference unit or a larger metric unit of the same
+/// basis (g | kg or ml | l, WP 15), or as a count of one of the food's
+/// defined servings, so a unit mismatch cannot be entered. The stored
+/// quantity is always canonical g or ml.
 ///
 /// Pass [food] for a new ingredient, or [existing] to edit one. Returns the
 /// ingredient (with [id]) or null when cancelled.
@@ -124,17 +126,34 @@ class _IngredientSheetState extends State<_IngredientSheet> {
     };
   }
 
+  /// Validation error for the typed amount in the current unit, or null when
+  /// it converts to a stored quantity.
+  String? get _amountError {
+    if (_amount.text.trim().isEmpty) return null;
+    final v = _num(_amount);
+    if (v == null) return 'Enter a number.';
+    return switch (_entryUnit.toCanonical(v)) {
+      Ok() => null,
+      Err(:final error) => userMessageFor(error),
+    };
+  }
+
   void _selectUnit(EntryUnit next) {
     final current = _entered;
+    final invalid = current == null ? _amountError : null;
     setState(() {
       if (current != null) {
         _amount.text = formatNumber(
           next.fromCanonical(current),
           maxDecimals: next.decimals,
         );
+      } else if (invalid != null) {
+        // Not a valid amount in the old unit: clear rather than reinterpret
+        // it in the new unit (review R15-02).
+        _amount.clear();
       }
       _entryUnit = next;
-      _error = null;
+      _error = invalid;
     });
   }
 
@@ -224,7 +243,11 @@ class _IngredientSheetState extends State<_IngredientSheet> {
                 showSelectedIcon: false,
                 segments: [
                   for (final u in EntryUnit.forBase(_profile.per100))
-                    ButtonSegment(value: u, label: Text(u.symbol)),
+                    ButtonSegment(
+                      value: u,
+                      label: Text(u.symbol),
+                      tooltip: u.name,
+                    ),
                 ],
                 selected: {_entryUnit},
                 onSelectionChanged: (s) => _selectUnit(s.first),
