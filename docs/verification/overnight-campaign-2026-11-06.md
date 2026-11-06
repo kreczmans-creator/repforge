@@ -41,3 +41,12 @@ Verified sound by the reviewer: exercise selection and the v8 bridge, schema unc
 
 ### Re-check of the corrections (same reviewer, commit `5956ad9`)
 D-01, D-03, D-04, D-05, D-07, D-08 and D-T1 **closed**; D-02 closed in code with the v8 contract-test extension tracked to WP 8 stage 3d; D-06 deferred as recorded. No High or Medium defect introduced. Three Low follow-ups raised and corrected in the next commit: duplicate reports the number of removed exercises left out; the schedule treats a missing plan as unknown (not "Deleted workout", no hidden Start) until the plans have loaded; the isolation test also catches relative `../data/` imports. Still open, Low: no test that a second reorder during a pending write is ignored; no optimistic local order (snap-back flicker). The register ids OB-WP17-03 and OB-WP17-09 the reviewer could not find live in `app/lib/domain/delivery/owner_blocker_register.dart`, the canonical register, not under `docs/`.
+
+## Local quality gates (replica of the CI quality job: codegen check, v8 dump equality, format, analysis, full suite with coverage, 80 % gate)
+| Run | Tree | Result |
+|---|---|---|
+| merged1 | `cee71dd` (main + owner docs + ded976b) | codegen clean (the only diff was the lead's in-progress edits), format ok, analysis ok, **2,662 passed, 5 skipped**, coverage 92.6 % |
+| workspace1 | `54a88f3` with concurrent agent edits in the tree | 3 failures, all in test files being rewritten by the corrections agent while the run compiled them; not evidence either way |
+| rc0 | `91ea266` clean tree, no concurrent edits | codegen clean, v8 dump equal, format ok, analysis ok, **2,712 passed, 5 skipped**, coverage 92.9 % (20,008 of 21,528 hand-written lines) |
+
+**The five skipped tests, explained.** They are the tag-skipped suites declared in `app/dart_test.yaml`, skipped by default on every run and executed by the CI `recovery` job (`kill || heavy`) or explicitly: `test/migration_v8/kill/kill_test.dart` (tag `kill`: real SIGKILL of a child process), `test/migration_v8/timing/host_timing_test.dart`, `test/migration_v8/large/large_profile_test.dart` and `test/migration_v8/v8_large_profile_test.dart` (tag `heavy`: 5,000-exercise profile), and `test/migration_trial/table_rebuild_trial_test.dart` (tag `trial`: the stage 3b table-rebuild comparison trial, run on request only). The baseline at `ded976b` had four skipped; the fifth is `v8_large_profile_test.dart`, which came to main with WP 8 3b-4. No test was skipped, disabled or weakened by the campaign.
