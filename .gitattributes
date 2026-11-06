@@ -1,0 +1,4 @@
+# Frozen evidence is hashed byte for byte: never normalise line endings.
+app/test/migration_v8/fixtures/** -text
+app/drift_schemas/** -text
+app/test/data/generated_migrations/** -text

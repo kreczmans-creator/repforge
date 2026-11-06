@@ -1,0 +1,10 @@
+# Frozen-evidence tooling (stage 3b-1). Fixture data is dense SQL-shaped
+# literals; only the three style rules that fight that are relaxed. The
+# trial's wider list is deliberately not reused.
+include: ../../analysis_options.yaml
+
+linter:
+  rules:
+    avoid_redundant_argument_values: false
+    cascade_invocations: false
+    prefer_int_literals: false

@@ -614,7 +614,7 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 
 | Sub-stage | Content | Status |
 |---|---|---|
-| 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | in progress (review found H1, M1–M4; fixing before first commit) |
+| 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | committed (see below) |
 | 3b-2 | Version 8 schema, not connected; attributes and equipment roles | waits for the ADR-0008 clarification |
 | 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | authorised |
 | 3b-4 | v7→v8 migration: safeguard A, report, quarantine, blocks | authorised |
@@ -633,4 +633,16 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 
 ### Technical debt found in 3b-1 (production v7, unchanged)
 - The v6→v7 step `backfillSessionExercises` creates a `session_exercises` row for a set whose session is missing. Each damaged database gains one foreign-key violation. Severity is low: it mirrors existing damage and loses no data. The v8 foreign-key report must tolerate it.
+
+### 3b-1 — frozen historical evidence
+- Location: `app/test/migration_v8/` (fixtures, goldens, expected v7 digests, generator, test, README). No production code changed.
+- Fixtures: clean `fixture_v1..v7.sqlite` (zero foreign-key violations) and `fixture_v2..v7_orphans.sqlite` with orphans and loose references. Total 2.9 MB.
+- Goldens: format 1 from the v2 to v7 eras, format 2 from v7 (production `exportJson`), and settings-only goldens for formats 1 and 2.
+- `expected_v7_digests.json` holds today's production v1..v7 → v7 result per fixture: schema, row digests, foreign-key counts and restore outcomes.
+- Restore with production `importJson`: every clean and settings-only golden restores. Every orphan golden is rejected as a whole; the database stays unchanged.
+- Frozen-evidence rule: nobody regenerates or rewrites these files. A new case means a new file. The generator refuses to overwrite.
+- **MANIFEST.sha256 SHA-256:** `70ecff92a46dece32493f526482915b56fdd3bf1797f696a4b750d4100805a10`. The test pins it.
+- Accepted approximations (README): `recipeFavouritesOnly` sits in v6 settings, though it first appears at schema v5. `ex-quote` copies a custom exercise, which the app cannot produce; it stays as a robustness hazard.
+- Review: an independent review (opus) found H1 (orphans in every fixture blocked any clean restore), M1–M4 and L1–L11. All are fixed. The re-review ran 11 mutation probes; all were detected, except a quoting-only CHECK change, which is ignored by design. Verdict: ready for the first commit.
+- Test: 64 tests in the normal suite, about 4 s.
 
