@@ -529,3 +529,18 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **Sub-stage authorisation:** 3b-1, 3b-3 and 3b-4 proceed. 3b-2 proceeds once ADR-0008 makes the attributes and equipment roles explicit. 3b-5 to 3b-9 are mandatory acceptance evidence. 3b-10 needs independent review, four green CI workflows, a complete record and owner acceptance.
 - **Production schema** stays version 7 throughout.
 
+### 2026-11-06 — ADR-0008 clarification approved; 3b-1 accepted as foundation (owner)
+- **ADR-0008 clarification approved** with decisions on Q1 to Q16 (ADR-0008, section E). Key points:
+  - The seven attribute value lists are schema contracts; a change needs a new schema version.
+  - NULL means no recorded or applicable value; nothing infers a value or reads NULL as "not applicable".
+  - Overrides only to `load` or `support`, never on `cardio` or `implement` items; the note is internal and required.
+  - Default equipment roles are immutable. A changed meaning needs a new equipment id.
+  - An exercise with unknown equipment is blocked individually and never becomes newly visible.
+  - `equipment_json` is dropped after a successful copy. Quarantine keeps the original only where conversion is incomplete.
+  - Equipment class and lifecycle wait for stage 3c.
+  - Version 3 restore: device wins; an invalid value rejects the whole restore.
+  - Custom copies copy equipment links, attributes and overrides as values.
+- **3b-1 accepted** as the required historical test foundation. The fixtures stay immutable and the manifest hash check stays.
+- **3b-3** continues independently. **3b-2** starts after the ADR-0008 commit, with a version 8 schema that reflects these decisions.
+- Production stays at schema version 7, with no connection to the version 8 database. Stage 3b acceptance keeps all agreed gates.
+
