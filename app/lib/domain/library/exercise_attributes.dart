@@ -36,10 +36,10 @@ enum ArmDirection { forward, lateral, behind }
 /// classifiers in [AttributeBoundaries] exactly: every measurement maps to
 /// exactly one value, and where two arm texts could both fit, a precedence
 /// sentence says which value wins (`supportedInFront` over all other arm
-/// values, `behindBody` over `overhead`). The cut points (bench 10 degrees, arm 20 and 135 degrees,
-/// knee 10 degrees) are approved by the owner (2026-11-06). A
-/// measurement outside an attribute's range has no value; that is derived,
-/// not a text.
+/// values, `behindBody` over `overhead`). The owner approved the cut points
+/// (bench 10 degrees, arm 20 and 135 degrees, knee 10 degrees) on
+/// 2026-11-06. A measurement outside an attribute's range has no value; that
+/// is derived, not a text.
 abstract final class AttributeVocabulary {
   static const Map<ExerciseAttribute, List<AttributeValue>> values = {
     ExerciseAttribute.angle: [
