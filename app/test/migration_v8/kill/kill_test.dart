@@ -148,6 +148,11 @@ void main() {
                 ].sublist(0, child.checkpoints.length),
               );
               expect(child.checkpoints.last, id);
+              expect(
+                child.checkpointVersionViolations(),
+                isEmpty,
+                reason: 'user_version at each checkpoint',
+              );
 
               final kill = await child.sigkill();
               expect(kill.killed, isTrue);
@@ -200,6 +205,14 @@ void main() {
               );
               expect(await rerun.process.exitCode, doneExitCode);
               expect(done, startsWith('$donePrefix uv=7 '));
+              // The new process resumes at the recovered version (nothing to
+              // do after a kill at the last commit).
+              if (want < 7) {
+                expect(rerun.checkpoints.first, '$want:stepStarted');
+              } else {
+                expect(rerun.checkpoints, isEmpty);
+              }
+              expect(rerun.checkpointVersionViolations(), isEmpty);
               expectV7ProductionResult(describeFile(db), key);
 
               final again = await rerunMigration(db, migration);
@@ -278,6 +291,11 @@ void main() {
       );
       expect(await child.process.exitCode, doneExitCode);
       calibrationMs = int.parse(done.split('ms=').last);
+      expect(
+        child.checkpoints,
+        hasLength(4 * (migration.targetVersion - migration.inputVersion)),
+      );
+      expect(child.checkpointVersionViolations(), isEmpty);
       expect(stateDigest(copy), refs[migration.targetVersion]);
       copy.deleteSync();
 
@@ -319,6 +337,11 @@ void main() {
             final kill = await child.sigkill();
             final journal = inspectJournal(db);
             final seen = child.checkpoints;
+            expect(
+              child.checkpointVersionViolations(),
+              isEmpty,
+              reason: 'user_version at each checkpoint before the kill',
+            );
             final committed = [
               for (final cp in seen)
                 if (parseCheckpointId(cp) case (
@@ -358,8 +381,23 @@ void main() {
             );
             expect(await rerun.process.exitCode, doneExitCode);
             expect(stateDigest(db), refs[migration.targetVersion]);
+            expect(rerun.checkpointVersionViolations(), isEmpty);
+            if (version < migration.targetVersion) {
+              expect(rerun.checkpoints.first, '$version:stepStarted');
+            } else {
+              expect(rerun.checkpoints, isEmpty);
+            }
+
+            // Inside a step's transaction: the child was killed, it had not
+            // reported the step's commit, and a journal was left behind.
+            final midTransaction =
+                kill.killed &&
+                journal.exists &&
+                seen.isNotEmpty &&
+                !seen.last.endsWith(':committed');
 
             randomRecords.add({
+              'midTransaction': midTransaction,
               'kill': i + 1,
               'delayMs': delaysMs[i],
               'killed': kill.killed,
@@ -379,9 +417,11 @@ void main() {
       );
     }
 
-    test('enough of the random moments were real kills', () {
+    test('enough of the random moments were real kills inside a step', () {
       final real = randomRecords.where((r) => r['killed'] == true).length;
       expect(real, greaterThanOrEqualTo(kills - 2));
+      final mid = randomRecords.where((r) => r['midTransaction'] == true);
+      expect(mid.length, greaterThanOrEqualTo(kills ~/ 2));
       // ignore: avoid_print, the kill suite reports through the test log
       print('RANDOM_KILLS ${jsonEncode(randomRecords)}');
     });

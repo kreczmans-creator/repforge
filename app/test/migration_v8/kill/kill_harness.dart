@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import '../recovery/recovery_tools.dart' show ws5TempPrefix;
+import 'package:repforge/data/db/migration/repforge_migration.dart';
+
+import '../recovery/recovery_tools.dart' show parseCheckpointId, ws5TempPrefix;
 import 'child_protocol.dart';
 
 /// Parent side of the real process-kill tests (WP 8 3b-6, WS5): builds the
@@ -163,6 +165,31 @@ final class KillChild {
       if (l.startsWith('$checkpointPrefix ')) l.split(' ')[1],
   ];
 
+  /// The `user_version` the child read at each checkpoint (`CP <id> uv=N`),
+  /// as `(checkpoint id, uv)`; uv is null when the child could not read it.
+  List<(String, int?)> get checkpointVersions => [
+    for (final l in lines)
+      if (l.startsWith('$checkpointPrefix ')) _parseCp(l),
+  ];
+
+  static (String, int?) _parseCp(String line) {
+    final parts = line.split(' ');
+    final uv = parts.length > 2 && parts[2].startsWith('uv=')
+        ? int.tryParse(parts[2].substring(3))
+        : null;
+    return (parts[1], uv);
+  }
+
+  /// Every checkpoint whose `user_version` breaks the chain's contract: the
+  /// step's own version at `stepStarted` and `workDone`, the next version
+  /// at `versionWritten` (written inside the transaction) and `committed`.
+  /// Empty when the contract holds. Detects, for example, a version written
+  /// after the commit instead of inside the transaction.
+  List<String> checkpointVersionViolations() => [
+    for (final (id, uv) in checkpointVersions)
+      if (uv != expectedUserVersionAt(id)) '$id uv=$uv',
+  ];
+
   /// Sends SIGKILL to this child (only this pid) and returns its exit code.
   /// `killed` comes from the exit code, not from the send: a child that had
   /// just exited by itself (not yet reaped) may still accept the signal.
@@ -183,3 +210,13 @@ final class KillChild {
 
 /// The exit code `Process.exitCode` reports for a child ended by SIGKILL.
 final int sigkillExitCode = -ProcessSignal.sigkill.signalNumber;
+
+/// The `user_version` a run must show at checkpoint [id] (`<from>:<stage>`):
+/// `from` before the version write, `from + 1` from the version write on.
+int expectedUserVersionAt(String id) {
+  final (from, stage) = parseCheckpointId(id);
+  return switch (stage) {
+    MigrationStage.stepStarted || MigrationStage.workDone => from,
+    MigrationStage.versionWritten || MigrationStage.committed => from + 1,
+  };
+}
