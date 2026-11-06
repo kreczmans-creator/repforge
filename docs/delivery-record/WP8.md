@@ -132,7 +132,7 @@ Accept WP 8 at b1ab45a, subject to decisions 1–5. All D06 criteria are met wit
 
 Current position: WP 8 is not ready for acceptance; it completes after stages 3–6 against the final criteria in `docs/wp8-delivery-plan.md` §15.
 
-## Stage 3a — domain model (committed; see commit below)
+## Stage 3a — domain model (f2f9e9e)
 Status: **implemented, not committed, awaiting independent review** (plan section 12, sub-stage 3a). Pure Dart under `app/lib/domain/library/`. No schema, migration, repository, screen or existing model changed; `Exercise`, `MuscleGroup`, `Equipment` and all WP 8, WP 9 and WP 10 code are untouched. Based on HEAD 42fe1a3.
 
 ### What was built (23 files, about 8 500 lines; 280 new tests)
@@ -233,4 +233,7 @@ The failing-before-fix run was recorded: 10 of the new tests failed (M1, M2a, M2
 
 ### Stage 3a re-check (2026-11-06)
 Independent re-check of the fixes: M1, M2, M3, L2–L4, L6–L8 resolved; reproduction unchanged under all three token-gate rules (`always` 16, `whenAttributesDifferAndLoadsEqual` 19, `whenAnyAttributeDiffers` 30 IC-412 pairs; 0 errors; IC-601/602/603 0/4/7; coverage 67/325 and 20/70). New Low findings: **N1** relationship `source` defaulted to `user`, so a forgotten argument would weaken system checks (IC-402, IC-105/106) — **resolved: `source` is now a required parameter** on both constructors; test call sites state it explicitly; **N2** stale option name in this record — corrected; **N3** IC-414 reported alongside IC-407 on a long cycle — harmless, recorded.
+
+### Stage 3a commit and CI
+Implementation commit **f2f9e9e**. CI on f2f9e9e, all success, first attempt: CI 42195609690; Android 42195609701 (debug and release with R8); iOS 42195609780; integration (API 34 emulator) 42195609716. Local: 1750 tests, analyzer clean, 93.0 %. Stage 3a is returned to the owner for review; it is not accepted by this record. Owner decisions pending: X2 token-gate rule, X1 cut points, X3 wording, IC-809 label, ED-501 severity, name normalisation (L1), OQ-19 roll-up (L5), reference-data release/version fields (L9, planned for 3c).
 
