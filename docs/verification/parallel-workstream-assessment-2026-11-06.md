@@ -145,13 +145,13 @@ Each stage has its own tests, a delivery-record section and an independent revie
 | S0 | This assessment; branch and baseline reported | none | owner reads |
 | S1 | **WP 15 stage 1** — `EntryUnit` (g, kg, mg, ml, l) with exact conversion to canonical `Quantity`; spec §2.3 examples as executed tests; `docs/delivery-record/WP15.md` opened | none | unit tests; review |
 | S2 | **WP 15 stage 2** — unit selector in `portion_sheet.dart`, `ingredient_sheet.dart`, `custom_food_screen.dart`; display stays canonical; widget tests | none | widget tests; review |
-| S3 ⏸ | G3 + G4: Fuel add flow gains "Pick from library" (recipes, saved meals) and recent items; recipe duplicate and category filter | none (features/recipes, features/nutrition) | owner allocation (D-1) |
-| S4 ⏸ | G5 + G6: plan duplicate/delete, save session as plan, elapsed timer, drag reorder, rest-timer persistence | low (features/training only; re-base after 3d) | owner allocation (D-1) |
+| S3 ✅ released | G3 + G4: Fuel add flow gains "Pick from library" (recipes, saved meals) and recent items; recipe duplicate and category filter | none (features/recipes, features/nutrition) | owner allocation (D-1) |
+| S4 ✅ released | G5 + G6: plan duplicate/delete, save session as plan, elapsed timer, drag reorder, rest-timer persistence | low (features/training only; re-base after 3d) | owner allocation (D-1) |
 | S5 ⏸ | G8 content: 30-workout catalogue drafted as a seed asset validated against the 89 exercise ids (pure test, no import) | none | owner content review (D-4) |
 | S6 ⏸ | G7 + G8 + G9 schema: plan metadata, prebuilt marker, recipe tags/image, importer and library UI | **high** — waits for v8 switch; coordinated version number | owner (D-2, D-5) |
 | S7 | Integration gate: re-base on primary, full regression, register entries (§14), independent review | — | owner acceptance |
 
-S1 starts now. S2 follows S1 review. S3–S6 wait for the decisions in §14.
+S1 and S2 done (WP 15 record). S3 and S4 released by D-1 (2026-11-06) as WP 17. S5 and S6 wait for D-4 and the v8 acceptance.
 
 ## 13. Estimated effort
 
@@ -159,7 +159,12 @@ Given in stages of the established cycle, not days: S1 small (1 stage), S2 small
 
 ## 14. Risks and owner decisions required
 
-Decisions:
+### Owner decisions recorded 2026-11-06
+- **D-1 APPROVED — WP 17 "Fuel and Train workflow completion" is created.** WP 7 and WP 9 stay closed. WP 17 owns the outstanding workflow items: G3–G4 (Fuel workstream) and G5–G6 (Train workstream). The formal D04 §7 and D06 entries are applied at the integration gate (S7); until then the record is `docs/delivery-record/WP17.md` and the staged register text is `docs/verification/pending-register-entries.md`.
+- **D-2 APPROVED — schema changes deferred to v9, after WP 8 v8 is connected, migrated and accepted.** WP 8 keeps exclusive ownership of v8, its frozen dumps, migration tests and CI gates. WP 17 owns v9: plan metadata, prebuilt-plan provenance, recipe tags and recipe image, subject to D-3 to D-6. No schema work starts before v8 acceptance.
+- Direction: WP 15 S1–S2 continue to independent review and acceptance (not accepted; the custom-food serving entry is an explicit open scope discrepancy, see WP 15 record). WP 17 S3 released. WP 17 S4 released with the stage 3d rebase constraint. S5 catalogue held for D-4. S6 schema held for v8 acceptance and v9 allocation.
+
+Decisions (as raised):
 
 - **D-1 Host work package for non-schema additions to closed WP 7 and WP 9** (G3–G6). Options: (a) a new WP 17 "Fuel and Train workflow completion" with a D04 §7 allocation and D06 entry; (b) fold into WP 15 (recipes side) and WP 11 (training side) by allocation. Recommendation: (a), one package with two stages, because WP 11 is analytics and WP 15 is units.
 - **D-2 Schema sequencing** for plan metadata, prebuilt marker, recipe tags and image (G7, G9). Options: add to v8 before 3b acceptance (touches the primary session's schema and frozen dumps — not recommended), or a v9 after v8 is connected and accepted. Recommendation: v9, owned by the package from D-1.
