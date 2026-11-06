@@ -35,8 +35,8 @@ enum ArmDirection { forward, lateral, behind }
 /// arm 20 to 90 degrees, knee 10 to 90 degrees). The texts below match the
 /// classifiers in [AttributeBoundaries] exactly: every measurement maps to
 /// exactly one value, and where two arm texts could both fit, a precedence
-/// sentence says which value wins (`supportedInFront` over all other arm values, `behindBody`
-/// over `overhead`). The cut points (bench 10 degrees, arm 20 and 135 degrees,
+/// sentence says which value wins (`supportedInFront` over all other arm
+/// values, `behindBody` over `overhead`). The cut points (bench 10 degrees, arm 20 and 135 degrees,
 /// knee 10 degrees) are approved by the owner (2026-11-06). A
 /// measurement outside an attribute's range has no value; that is derived,
 /// not a text.
