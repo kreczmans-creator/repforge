@@ -5,6 +5,7 @@ import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/delivery/owner_blocker.dart';
 import 'package:repforge/features/delivery/application/blocker_providers.dart';
 import 'package:repforge/features/delivery/presentation/blocker_chips.dart';
+import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
 import 'package:repforge/ui/components/rf_states.dart';
@@ -41,6 +42,28 @@ class _OwnerBlockersScreenState extends ConsumerState<OwnerBlockersScreen> {
     };
   }
 
+  void _clearFilters() => setState(() {
+    _wp = null;
+    _priority = null;
+    _category = null;
+    _status = null;
+    _scope = _Scope.open;
+  });
+
+  /// Keeps scope and status consistent so they never contradict.
+  void _setStatus(BlockerStatus? v) => setState(() {
+    _status = v;
+    if (v == null) return;
+    _scope = v.isOpen ? _Scope.open : _Scope.resolved;
+  });
+
+  void _setScope(_Scope v) => setState(() {
+    _scope = v;
+    final status = _status;
+    if (status == null || v == _Scope.all) return;
+    if (status.isOpen != (v == _Scope.open)) _status = null;
+  });
+
   @override
   Widget build(BuildContext context) {
     final views = ref.watch(blockerViewsProvider);
@@ -55,8 +78,11 @@ class _OwnerBlockersScreenState extends ConsumerState<OwnerBlockersScreen> {
           ),
           ...views.when(
             loading: () => const [RfLoading()],
-            error: (_, _) => const [
-              RfErrorState(message: 'Could not load the blockers.'),
+            error: (_, _) => [
+              RfErrorState(
+                message: 'Could not load the blockers.',
+                onRetry: () => ref.invalidate(blockerStatesProvider),
+              ),
             ],
             data: _content,
           ),
@@ -82,6 +108,14 @@ class _OwnerBlockersScreenState extends ConsumerState<OwnerBlockersScreen> {
     final shown = all.where(_matches).toList();
     return [
       Text(
+        'Status changes are stored with your other settings and travel with '
+        'backups; restoring an older backup also restores the older '
+        'statuses.',
+        key: const Key('blockers-restore-note'),
+        style: theme.textTheme.bodySmall,
+      ),
+      const SizedBox(height: RfSpace.s3),
+      Text(
         '$open open · $awaiting awaiting you · $resolved resolved',
         key: const Key('blockers-summary'),
         style: theme.textTheme.titleMedium,
@@ -98,7 +132,7 @@ class _OwnerBlockersScreenState extends ConsumerState<OwnerBlockersScreen> {
             ButtonSegment(value: _Scope.all, label: Text('All')),
           ],
           selected: {_scope},
-          onSelectionChanged: (s) => setState(() => _scope = s.first),
+          onSelectionChanged: (s) => _setScope(s.first),
         ),
       ),
       const SizedBox(height: RfSpace.s3),
@@ -136,16 +170,29 @@ class _OwnerBlockersScreenState extends ConsumerState<OwnerBlockersScreen> {
             value: _status,
             options: BlockerStatus.values,
             labelOf: (v) => v.label,
-            onChanged: (v) => setState(() => _status = v),
+            onChanged: _setStatus,
           ),
         ],
       ),
       const SizedBox(height: RfSpace.s4),
       if (shown.isEmpty)
-        const RfEmptyState(
-          key: Key('blockers-empty-filtered'),
-          message: 'Nothing matches these filters.',
-          icon: Icons.filter_alt_off_outlined,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const RfEmptyState(
+              key: Key('blockers-empty-filtered'),
+              message: 'Nothing matches these filters.',
+              icon: Icons.filter_alt_off_outlined,
+            ),
+            const SizedBox(height: RfSpace.s2),
+            RfButton(
+              key: const Key('blockers-clear-filters'),
+              label: 'Clear filters',
+              variant: RfButtonVariant.tertiary,
+              expand: false,
+              onPressed: _clearFilters,
+            ),
+          ],
         )
       else
         for (final wp in BlockerWorkPackage.values)
@@ -169,7 +216,12 @@ class _OwnerBlockersScreenState extends ConsumerState<OwnerBlockersScreen> {
               ),
             ),
             const SizedBox(width: RfSpace.s2),
-            Text('${rows.length}', style: theme.textTheme.bodySmall),
+            Text(
+              '${rows.length}',
+              style: context.rfText.caption.copyWith(
+                color: context.rf.textMuted,
+              ),
+            ),
           ],
         ),
       ),
@@ -239,6 +291,35 @@ class _FilterMenu<T> extends StatelessWidget {
   final String Function(T) labelOf;
   final ValueChanged<T?> onChanged;
 
+  PopupMenuItem<_Choice<T>> _item(
+    BuildContext context,
+    T? option,
+    String text,
+  ) {
+    final selected = option == value;
+    return PopupMenuItem(
+      value: _Choice<T>(option),
+      child: Row(
+        children: [
+          SizedBox(
+            width: RfIcon.md,
+            child: selected ? const Icon(Icons.check, size: RfIcon.sm) : null,
+          ),
+          const SizedBox(width: RfSpace.s2),
+          Flexible(
+            child: Text(
+              text,
+              style: selected
+                  ? Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700)
+                  : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -249,9 +330,8 @@ class _FilterMenu<T> extends StatelessWidget {
         tooltip: label,
         onSelected: (c) => onChanged(c.value),
         itemBuilder: (_) => [
-          PopupMenuItem(value: _Choice<T>(null), child: const Text('All')),
-          for (final o in options)
-            PopupMenuItem(value: _Choice<T>(o), child: Text(labelOf(o))),
+          _item(context, null, 'All'),
+          for (final o in options) _item(context, o, labelOf(o)),
         ],
         child: InputDecorator(
           decoration: InputDecoration(labelText: label),

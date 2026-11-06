@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:repforge/domain/delivery/owner_blocker.dart';
 import 'package:repforge/ui/tokens.dart';
 
+/// Fill behind pill text: a faint tint of the pill's own colour. The light
+/// theme uses a fainter tint so Amber Ink and muted text keep 4.5:1.
+Color blockerPillFill(Color color, Brightness brightness) =>
+    color.withValues(alpha: brightness == Brightness.dark ? 0.12 : 0.06);
+
 /// Small outlined label used for priority, status, category and assignee.
 class BlockerPill extends StatelessWidget {
   const BlockerPill({
@@ -23,7 +28,7 @@ class BlockerPill extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(RfRadius.pill),
         border: Border.all(color: color.withValues(alpha: 0.6)),
-        color: color.withValues(alpha: 0.12),
+        color: blockerPillFill(color, Theme.of(context).brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(

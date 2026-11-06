@@ -157,6 +157,121 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('Clear filters restores the full list', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db));
+    await tester.pumpAndSettle();
+    await _choose(tester, 'blockers-filter-wp', 'Programme');
+    expect(find.byKey(const Key('blockers-empty-filtered')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('blockers-clear-filters')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('blockers-empty-filtered')), findsNothing);
+    expect(_row('OB-A'), findsOneWidget);
+    expect(_row('OB-D'), findsOneWidget);
+    expect(_row('OB-B'), findsNothing); // default Open scope again
+    await unmount(tester);
+  });
+
+  testWidgets('Status = Resolved switches the scope so it is never empty', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db));
+    await tester.pumpAndSettle();
+    await _choose(tester, 'blockers-filter-status', 'Resolved');
+    expect(_row('OB-B'), findsOneWidget);
+    expect(_row('OB-A'), findsNothing);
+    expect(find.byKey(const Key('blockers-empty-filtered')), findsNothing);
+
+    // Going back to Open drops the contradicting status filter.
+    await _scope(tester, 'Open');
+    expect(_row('OB-A'), findsOneWidget);
+    expect(_row('OB-B'), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('an open Status filter switches a Resolved scope to Open', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db));
+    await tester.pumpAndSettle();
+    await _scope(tester, 'Resolved');
+    await _choose(tester, 'blockers-filter-status', 'In progress');
+    expect(_row('OB-E'), findsOneWidget);
+    expect(find.byKey(const Key('blockers-empty-filtered')), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('the popup marks the current choice', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db));
+    await tester.pumpAndSettle();
+    await _choose(tester, 'blockers-filter-priority', 'High');
+    await tester.tap(find.byKey(const Key('blockers-filter-priority')));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find
+            .ancestor(of: find.byIcon(Icons.check), matching: find.byType(Row))
+            .first,
+        matching: find.text('High'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('All').last);
+    await tester.pumpAndSettle();
+    await unmount(tester);
+  });
+
+  testWidgets('the restore note is shown', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('blockers-restore-note')), findsOneWidget);
+    expect(
+      find.text(
+        'Status changes are stored with your other settings and travel with '
+        'backups; restoring an older backup also restores the older '
+        'statuses.',
+      ),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('the error state offers retry', (tester) async {
+    tall(tester);
+    var calls = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        retry: (_, _) => null,
+        overrides: [
+          ownerBlockerRegisterProvider.overrideWithValue(testRegister),
+          blockerStatesProvider.overrideWith((ref) {
+            calls++;
+            return calls == 1
+                ? Stream<Map<String, BlockerState>>.error(Exception('boom'))
+                : Stream.value(const <String, BlockerState>{});
+          }),
+        ],
+        child: MaterialApp(
+          theme: rfTheme(Brightness.dark),
+          home: const OwnerBlockersScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Could not load the blockers.'), findsOneWidget);
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+    expect(find.text('Could not load the blockers.'), findsNothing);
+    expect(_row('OB-A'), findsOneWidget);
+    expect(calls, 2);
+    await unmount(tester);
+  });
+
   testWidgets('an empty register shows the empty state', (tester) async {
     await tester.pumpWidget(_harness(db, register: const []));
     await tester.pumpAndSettle();

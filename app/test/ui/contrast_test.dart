@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:repforge/features/delivery/presentation/blocker_chips.dart';
 import 'package:repforge/ui/theme.dart';
 import 'package:repforge/ui/tokens.dart';
 
@@ -74,6 +75,28 @@ void main() {
           });
         }
       }
+
+      // Delivery blocker pills paint their text over a faint tint of the same
+      // colour, composited over the page background or a card (surface 1).
+      test('blocker pill text on its tinted fill >= 4.5', () {
+        final pillColors = [
+          rf.alertText,
+          rf.accentText,
+          rf.textMuted,
+          rf.successText,
+          rf.infoText,
+          rf.textSecondary,
+        ];
+        for (final surface in [scheme.surface, rf.surface1]) {
+          for (final c in pillColors) {
+            final fill = Color.alphaBlend(
+              blockerPillFill(c, brightness),
+              surface,
+            );
+            expect(contrast(c, fill), greaterThanOrEqualTo(4.5));
+          }
+        }
+      });
 
       test('button label on accent >= 4.5', () {
         expect(

@@ -1,3 +1,4 @@
+import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/delivery/owner_blocker.dart';
 
 OwnerBlocker testBlocker(
@@ -66,3 +67,17 @@ final List<OwnerBlocker> testRegister = [
     status: BlockerStatus.inProgress,
   ),
 ];
+
+/// A clock that moves forward one minute on every reading, so two saves get
+/// distinct, ordered times.
+final class AdvancingClock implements Clock {
+  AdvancingClock(this._next);
+  DateTime _next;
+
+  @override
+  DateTime now() {
+    final value = _next;
+    _next = _next.add(const Duration(minutes: 1));
+    return value;
+  }
+}

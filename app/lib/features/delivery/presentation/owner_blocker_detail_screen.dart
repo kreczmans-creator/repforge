@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/domain/delivery/owner_blocker.dart';
 import 'package:repforge/features/delivery/application/blocker_providers.dart';
+import 'package:repforge/features/delivery/application/update_blocker_status.dart';
 import 'package:repforge/features/delivery/presentation/blocker_chips.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -33,6 +35,13 @@ class _OwnerBlockerDetailScreenState
   void dispose() {
     _note.dispose();
     super.dispose();
+  }
+
+  /// Whether the editor differs from the stored (or register) state.
+  bool _isDirty(BlockerView view) {
+    if (_status != view.status) return true;
+    final current = view.state?.note ?? '';
+    return _note.text.trim() != current.trim();
   }
 
   Future<void> _save() async {
@@ -67,9 +76,10 @@ class _OwnerBlockerDetailScreenState
         appBar: AppBar(title: Text(widget.blockerId)),
         body: const Padding(
           padding: EdgeInsets.all(RfSpace.gutter),
-          child: Text(
-            'This blocker is not in the register.',
+          child: RfEmptyState(
             key: Key('blocker-missing'),
+            message: 'This blocker is not in the register.',
+            icon: Icons.search_off_outlined,
           ),
         ),
       );
@@ -163,7 +173,7 @@ class _OwnerBlockerDetailScreenState
               for (final (i, e) in b.evidence.indexed)
                 Padding(
                   padding: const EdgeInsets.only(bottom: RfSpace.s1),
-                  child: Text(
+                  child: SelectableText(
                     e.reference == null
                         ? e.label
                         : '${e.label}: ${e.reference}',
@@ -176,28 +186,29 @@ class _OwnerBlockerDetailScreenState
         ),
         _section(
           'Related delivery record',
-          Text(b.deliveryRecord, style: context.rfText.meta),
+          SelectableText(b.deliveryRecord, style: context.rfText.meta),
         ),
         _section(
           'Status',
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SegmentedButton<BlockerStatus>(
-                  key: const Key('blocker-status-choice'),
-                  showSelectedIcon: false,
-                  segments: [
+              RadioGroup<BlockerStatus>(
+                key: const Key('blocker-status-choice'),
+                groupValue: _status,
+                onChanged: (s) => setState(() {
+                  _status = s;
+                  _error = null;
+                }),
+                child: Column(
+                  children: [
                     for (final s in BlockerStatus.values)
-                      ButtonSegment(
+                      RadioListTile<BlockerStatus>(
                         value: s,
-                        tooltip: s.label,
-                        label: Text(_shortLabel(s)),
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(s.label),
                       ),
                   ],
-                  selected: {?_status},
-                  onSelectionChanged: (s) => setState(() => _status = s.first),
                 ),
               ),
               const SizedBox(height: RfSpace.s2),
@@ -206,19 +217,41 @@ class _OwnerBlockerDetailScreenState
                 key: const Key('blocker-status-selected'),
                 style: theme.textTheme.bodySmall,
               ),
+              if (_status == BlockerStatus.resolved &&
+                  UpdateBlockerStatus.needsResolutionNote(b)) ...[
+                const SizedBox(height: RfSpace.s1),
+                Text(
+                  'Record the decision in the note; agents never resolve '
+                  'owner items.',
+                  key: const Key('blocker-resolution-hint'),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
               const SizedBox(height: RfSpace.s3),
-              RfTextField(
-                key: const Key('blocker-note-field'),
-                label: 'Note (optional)',
-                controller: _note,
-                maxLines: 3,
-                keyboardType: TextInputType.multiline,
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _note,
+                builder: (_, value, _) => RfTextField(
+                  key: const Key('blocker-note-field'),
+                  label: 'Note (optional)',
+                  controller: _note,
+                  maxLines: 3,
+                  keyboardType: TextInputType.multiline,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(
+                      UpdateBlockerStatus.maxNoteLength,
+                    ),
+                  ],
+                  helper:
+                      '${value.text.characters.length}/'
+                      '${UpdateBlockerStatus.maxNoteLength}',
+                  onChanged: (_) => setState(() => _error = null),
+                ),
               ),
               const SizedBox(height: RfSpace.s2),
               Text(
                 updated == null
                     ? 'Register status, not yet changed in the app'
-                    : 'Changed ${updated.toUtc().toIso8601String()} UTC',
+                    : 'Changed ${_formatUtc(updated)}',
                 key: const Key('blocker-state-updated'),
                 style: theme.textTheme.bodySmall,
               ),
@@ -244,21 +277,63 @@ class _OwnerBlockerDetailScreenState
                 key: const Key('blocker-save-status'),
                 label: 'Save status',
                 loading: _saving,
-                onPressed: _save,
+                onPressed: _isDirty(view) ? _save : null,
               ),
             ],
           ),
         ),
+        _section('History', _history(view.state)),
         const SizedBox(height: RfSpace.s8),
       ],
     );
   }
 
-  static String _shortLabel(BlockerStatus s) => switch (s) {
-    BlockerStatus.open => 'Open',
-    BlockerStatus.inProgress => 'Working',
-    BlockerStatus.awaitingOwner => 'Owner',
-    BlockerStatus.awaitingExternalVerification => 'Verify',
-    BlockerStatus.resolved => 'Done',
-  };
+  Widget _history(BlockerState? state) {
+    final theme = Theme.of(context);
+    if (state == null) {
+      return Text(
+        'No changes recorded in the app yet.',
+        key: const Key('blocker-history-empty'),
+        style: theme.textTheme.bodyMedium,
+      );
+    }
+    final changes = state.allChanges.reversed.toList();
+    return Column(
+      key: const Key('blocker-history'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (i, c) in changes.indexed)
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: i == changes.length - 1 ? 0 : RfSpace.s3,
+            ),
+            child: Column(
+              key: Key('blocker-history-$i'),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(c.status.label, style: theme.textTheme.titleSmall),
+                Text(_formatUtc(c.at), style: theme.textTheme.bodySmall),
+                if (c.note != null) ...[
+                  const SizedBox(height: RfSpace.s1),
+                  Text(c.note!, style: theme.textTheme.bodyMedium),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  /// "7 Nov 2026, 06:30 UTC".
+  static String _formatUtc(DateTime at) {
+    final t = at.toUtc();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${t.day} ${_months[t.month - 1]} ${t.year}, '
+        '${two(t.hour)}:${two(t.minute)} UTC';
+  }
 }

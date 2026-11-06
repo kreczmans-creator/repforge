@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/delivery/owner_blocker.dart';
+import 'package:repforge/domain/delivery/owner_blocker_register.dart';
 import 'package:repforge/features/delivery/application/blocker_providers.dart';
 import 'package:repforge/features/delivery/presentation/owner_blocker_detail_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blockers_screen.dart';
@@ -12,15 +14,26 @@ import 'package:repforge/ui/theme.dart';
 import '../../helpers/pump.dart';
 import 'blocker_fixtures.dart';
 
-Widget _harness(AppDatabase db, Widget home) => ProviderScope(
+Widget _harness(
+  AppDatabase db,
+  Widget home, {
+  Brightness brightness = Brightness.dark,
+  List<OwnerBlocker>? register,
+  Clock? clock,
+}) => ProviderScope(
   overrides: [
     databaseProvider.overrideWithValue(db),
     clockProvider.overrideWithValue(
-      FixedClock(DateTime.utc(2026, 11, 6, 9, 30)),
+      clock ?? FixedClock(DateTime.utc(2026, 11, 6, 9, 30)),
     ),
-    ownerBlockerRegisterProvider.overrideWithValue(testRegister),
+    ownerBlockerRegisterProvider.overrideWithValue(register ?? testRegister),
   ],
-  child: MaterialApp(theme: rfTheme(Brightness.dark), home: home),
+  child: MaterialApp(theme: rfTheme(brightness), home: home),
+);
+
+Finder _option(String label) => find.descendant(
+  of: find.byKey(const Key('blocker-status-choice')),
+  matching: find.text(label),
 );
 
 void main() {
@@ -89,6 +102,37 @@ void main() {
     await unmount(tester);
   });
 
+  Future<void> save(WidgetTester tester) async {
+    await tester.ensureVisible(find.byKey(const Key('blocker-save-status')));
+    await tester.tap(find.byKey(const Key('blocker-save-status')));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> choose(WidgetTester tester, String label) async {
+    await tester.ensureVisible(_option(label));
+    await tester.tap(_option(label));
+    await tester.pump();
+  }
+
+  bool saveEnabled(WidgetTester tester) => tester
+      .widget<FilledButton>(
+        find.descendant(
+          of: find.byKey(const Key('blocker-save-status')),
+          matching: find.byType(FilledButton),
+        ),
+      )
+      .enabled;
+
+  testWidgets('the status control lists every full label', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db, detail));
+    await tester.pumpAndSettle();
+    for (final s in BlockerStatus.values) {
+      expect(_option(s.label), findsOneWidget, reason: s.label);
+    }
+    await unmount(tester);
+  });
+
   testWidgets('a saved status and note persist and show in the list', (
     tester,
   ) async {
@@ -96,29 +140,22 @@ void main() {
     await tester.pumpWidget(_harness(db, detail));
     await tester.pumpAndSettle();
 
-    final done = find.descendant(
-      of: find.byKey(const Key('blocker-status-choice')),
-      matching: find.text('Done'),
-    );
-    await tester.ensureVisible(done);
-    await tester.tap(done);
-    await tester.pump();
+    await choose(tester, 'Resolved');
     expect(find.text('Selected: Resolved'), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('blocker-note-field')),
       '  Verified on device  ',
     );
-    await tester.tap(find.byKey(const Key('blocker-save-status')));
-    await tester.pumpAndSettle();
+    await save(tester);
     expect(find.text('Status saved'), findsOneWidget);
-    expect(find.text('Changed 2026-11-06T09:30:00.000Z UTC'), findsOneWidget);
+    expect(find.text('Changed 6 Nov 2026, 09:30 UTC'), findsOneWidget);
 
     // A fresh widget over the same database shows the stored values.
     await unmount(tester);
     await tester.pumpWidget(_harness(db, detail));
     await tester.pumpAndSettle();
-    expect(find.text('Verified on device'), findsOneWidget);
-    expect(find.text('Changed 2026-11-06T09:30:00.000Z UTC'), findsOneWidget);
+    expect(find.text('Verified on device'), findsWidgets);
+    expect(find.text('Changed 6 Nov 2026, 09:30 UTC'), findsOneWidget);
     expect(find.text('Selected: Resolved'), findsOneWidget);
     await unmount(tester);
 
@@ -143,7 +180,193 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('a note over 500 characters shows an inline error', (
+  testWidgets('history lists two changes newest first after two saves', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(
+      _harness(
+        db,
+        detail,
+        clock: AdvancingClock(DateTime.utc(2026, 11, 7, 6, 30)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('No changes recorded in the app yet.'), findsOneWidget);
+
+    await choose(tester, 'In progress');
+    await tester.enterText(
+      find.byKey(const Key('blocker-note-field')),
+      'first note',
+    );
+    await save(tester);
+    await choose(tester, 'Resolved');
+    await tester.enterText(
+      find.byKey(const Key('blocker-note-field')),
+      'second note',
+    );
+    await save(tester);
+
+    expect(find.byKey(const Key('blocker-history')), findsOneWidget);
+    expect(find.textContaining('Changed 7 Nov 2026, 06:3'), findsOneWidget);
+    final newest = find.byKey(const Key('blocker-history-0'));
+    final older = find.byKey(const Key('blocker-history-1'));
+    expect(find.byKey(const Key('blocker-history-2')), findsNothing);
+    expect(
+      find.descendant(of: newest, matching: find.text('Resolved')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: newest, matching: find.text('second note')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: newest,
+        matching: find.textContaining('7 Nov 2026, 06:3'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: older, matching: find.text('In progress')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: older, matching: find.text('first note')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: older, matching: find.text('7 Nov 2026, 06:30 UTC')),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('Save is disabled until the status or the note changes', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db, detail));
+    await tester.pumpAndSettle();
+    expect(saveEnabled(tester), isFalse);
+
+    await choose(tester, 'Open');
+    expect(saveEnabled(tester), isTrue);
+    await choose(tester, 'Awaiting external verification');
+    expect(saveEnabled(tester), isFalse);
+
+    await tester.enterText(find.byKey(const Key('blocker-note-field')), '   ');
+    await tester.pump();
+    expect(saveEnabled(tester), isFalse);
+    await tester.enterText(find.byKey(const Key('blocker-note-field')), 'x');
+    await tester.pump();
+    expect(saveEnabled(tester), isTrue);
+    await unmount(tester);
+  });
+
+  testWidgets('resolving an owner decision without a note shows an error', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(
+      _harness(db, const OwnerBlockerDetailScreen(blockerId: 'OB-A')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('blocker-resolution-hint')), findsNothing);
+    await choose(tester, 'Resolved');
+    expect(
+      find.text(
+        'Record the decision in the note; agents never resolve owner items.',
+      ),
+      findsOneWidget,
+    );
+    await save(tester);
+    expect(find.byKey(const Key('blocker-status-error')), findsOneWidget);
+    expect(find.text('Status saved'), findsNothing);
+    expect(find.text('No changes recorded in the app yet.'), findsOneWidget);
+    expect(await db.select(db.settings).get(), isEmpty);
+    await unmount(tester);
+  });
+
+  testWidgets('a device action resolves without a note and hides the hint', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(
+      _harness(db, const OwnerBlockerDetailScreen(blockerId: 'OB-C')),
+    );
+    await tester.pumpAndSettle();
+    await choose(tester, 'Resolved');
+    expect(find.byKey(const Key('blocker-resolution-hint')), findsNothing);
+    await save(tester);
+    expect(find.text('Status saved'), findsOneWidget);
+    expect(find.byKey(const Key('blocker-status-error')), findsNothing);
+    expect(find.byKey(const Key('blocker-history-0')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('a note-only edit saves', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db, detail));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('blocker-note-field')),
+      'waiting on lab',
+    );
+    await tester.pump();
+    await save(tester);
+    expect(find.text('Status saved'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('blocker-history-0')),
+        matching: find.text('waiting on lab'),
+      ),
+      findsOneWidget,
+    );
+    expect(saveEnabled(tester), isFalse);
+    await unmount(tester);
+  });
+
+  testWidgets('reopening a resolved item keeps the resolution in history', (
+    tester,
+  ) async {
+    tall(tester);
+    await tester.pumpWidget(
+      _harness(
+        db,
+        const OwnerBlockerDetailScreen(blockerId: 'OB-A'),
+        clock: AdvancingClock(DateTime.utc(2026, 11, 7, 6, 30)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await choose(tester, 'Resolved');
+    await tester.enterText(
+      find.byKey(const Key('blocker-note-field')),
+      'Approved scope',
+    );
+    await save(tester);
+    await choose(tester, 'Open');
+    await tester.enterText(find.byKey(const Key('blocker-note-field')), '');
+    await save(tester);
+
+    final newest = find.byKey(const Key('blocker-history-0'));
+    final resolution = find.byKey(const Key('blocker-history-1'));
+    expect(
+      find.descendant(of: newest, matching: find.text('Open')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: resolution, matching: find.text('Resolved')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: resolution, matching: find.text('Approved scope')),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('the note field limits input to 500 characters with a counter', (
     tester,
   ) async {
     tall(tester);
@@ -153,10 +376,48 @@ void main() {
       find.byKey(const Key('blocker-note-field')),
       'x' * 501,
     );
-    await tester.tap(find.byKey(const Key('blocker-save-status')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('blocker-status-error')), findsOneWidget);
-    expect(find.text('Status saved'), findsNothing);
+    await tester.pump();
+    expect(find.text('500/500'), findsOneWidget);
     await unmount(tester);
   });
+
+  testWidgets('evidence and the record path are selectable', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(_harness(db, detail));
+    await tester.pumpAndSettle();
+    expect(find.byType(SelectableText), findsNWidgets(3));
+    await unmount(tester);
+  });
+
+  for (final brightness in Brightness.values) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('every real register entry renders in ${brightness.name} at '
+          '${scale}x text, 360 px wide', (tester) async {
+        tester.view.physicalSize = const Size(360, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        for (final b in ownerBlockerRegister) {
+          await tester.pumpWidget(
+            MediaQuery(
+              data: MediaQueryData(
+                size: const Size(360, 900),
+                textScaler: TextScaler.linear(scale),
+              ),
+              child: _harness(
+                db,
+                OwnerBlockerDetailScreen(blockerId: b.id),
+                brightness: brightness,
+                register: ownerBlockerRegister,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: b.id);
+          expect(find.text(b.title), findsOneWidget, reason: b.id);
+        }
+        expect(ownerBlockerRegister, isNotEmpty);
+        await unmount(tester);
+      });
+    }
+  }
 }

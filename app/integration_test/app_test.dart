@@ -238,7 +238,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byKey(const Key('blocker-status-choice')),
-        matching: find.byTooltip('In progress'),
+        matching: find.text('In progress'),
       ),
     );
     await tester.pumpAndSettle();
@@ -247,6 +247,7 @@ void main() {
       'integration-test note',
     );
     await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const Key('blocker-save-status')));
     await tester.tap(find.byKey(const Key('blocker-save-status')));
     await pumpUntil(tester, find.text('Status saved'));
 
@@ -261,7 +262,7 @@ void main() {
     await tester.tap(find.byKey(const Key('blocker-row-OB-WP8-01')));
     await pumpUntil(tester, find.byKey(const Key('blocker-state-updated')));
     expect(find.text('integration-test note'), findsOneWidget);
-    expect(find.textContaining('Changed 20'), findsOneWidget);
+    expect(find.textContaining('Changed '), findsOneWidget);
   });
 
   testWidgets('export measurements CSV and a backup through the fake file '

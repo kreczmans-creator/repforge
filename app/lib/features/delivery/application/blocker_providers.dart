@@ -10,22 +10,24 @@ final ownerBlockerRegisterProvider = Provider<List<OwnerBlocker>>(
 );
 
 /// Live owner-recorded status changes, keyed by blocker id.
-final blockerStatesProvider = StreamProvider<Map<String, BlockerState>>(
-  (ref) => ref.watch(settingsRepositoryProvider).watchBlockerStates(),
-);
+final StreamProvider<Map<String, BlockerState>> blockerStatesProvider =
+    StreamProvider.autoDispose<Map<String, BlockerState>>(
+      (ref) => ref.watch(settingsRepositoryProvider).watchBlockerStates(),
+    );
 
 /// Register entries with their effective state, most urgent first.
-final blockerViewsProvider = Provider<AsyncValue<List<BlockerView>>>((ref) {
-  final register = ref.watch(ownerBlockerRegisterProvider);
-  return ref
-      .watch(blockerStatesProvider)
-      .whenData(
-        (states) => [
-          for (final b in register)
-            BlockerView(blocker: b, state: states[b.id]),
-        ]..sort(compareBlockerViews),
-      );
-});
+final Provider<AsyncValue<List<BlockerView>>> blockerViewsProvider =
+    Provider.autoDispose<AsyncValue<List<BlockerView>>>((ref) {
+      final register = ref.watch(ownerBlockerRegisterProvider);
+      return ref
+          .watch(blockerStatesProvider)
+          .whenData(
+            (states) => [
+              for (final b in register)
+                BlockerView(blocker: b, state: states[b.id]),
+            ]..sort(compareBlockerViews),
+          );
+    });
 
 final updateBlockerStatusProvider = Provider<UpdateBlockerStatus>(
   (ref) => UpdateBlockerStatus(
