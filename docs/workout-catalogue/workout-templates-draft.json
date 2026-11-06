@@ -1,0 +1,2699 @@
+{
+  "formatVersion": 1,
+  "source": "RepForge own content, draft for owner review 2026-11-06",
+  "exerciseLibraryRef": "app/assets/seed/exercise_library.json formatVersion 1 (89 exercises)",
+  "templates": [
+    {
+      "id": "tpl-chest-triceps-strength",
+      "name": "Chest and Triceps Strength",
+      "description": "Heavy barbell pressing with focused triceps work for a standard gym session.",
+      "category": "chestTriceps",
+      "difficulty": "intermediate",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "cable",
+        "dipBars",
+        "ezBar",
+        "squatRack"
+      ],
+      "targetMuscles": [
+        "chest",
+        "triceps"
+      ],
+      "estimatedMinutes": 60,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-bench-press",
+          "targetSets": 4,
+          "repsMin": 4,
+          "repsMax": 6,
+          "restSeconds": 180,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Keep shoulder blades pinched and feet planted."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-incline-bench-press",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Lower to the upper chest under control."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-dips",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 10,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Lean slightly forward to bias the chest."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-skull-crusher",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Keep upper arms still and lower toward the forehead."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-triceps-pushdown",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": "Pin elbows to your sides and fully extend."
+        }
+      ]
+    },
+    {
+      "id": "tpl-chest-triceps-dumbbell-hypertrophy",
+      "name": "Chest and Triceps Dumbbell Builder",
+      "description": "Dumbbell and bench volume session for chest and triceps size.",
+      "category": "chestTriceps",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "chest",
+        "triceps"
+      ],
+      "estimatedMinutes": 50,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-db-bench-press",
+          "targetSets": 4,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Press up and slightly together over the chest."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-incline-db-press",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-db-fly",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Open the arms wide with a soft elbow bend."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-push-up",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 20,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Stop two reps before form breaks down."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-overhead-triceps-extension",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": "Keep elbows pointing forward."
+        }
+      ]
+    },
+    {
+      "id": "tpl-chest-triceps-bodyweight-express",
+      "name": "Chest and Triceps Bodyweight Express",
+      "description": "A short no-machine session using push-ups, dips and a chest stretch.",
+      "category": "chestTriceps",
+      "difficulty": "intermediate",
+      "emphasis": "endurance",
+      "equipment": [
+        "dipBars"
+      ],
+      "targetMuscles": [
+        "chest",
+        "triceps",
+        "abs"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-push-up",
+          "targetSets": 4,
+          "repsMin": 12,
+          "repsMax": 25,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Keep a straight line from head to heels."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-dips",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Use a controlled lowering phase."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-plank",
+          "targetSets": 2,
+          "targetDurationSec": 45,
+          "restSeconds": 30,
+          "exertion": null,
+          "instructions": "Brace the abs and squeeze the glutes."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-doorway-chest-stretch",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": "Ease into the stretch without pain."
+        }
+      ]
+    },
+    {
+      "id": "tpl-back-biceps-strength",
+      "name": "Back and Biceps Strength",
+      "description": "Heavy rows and pull-ups followed by barbell curls and rear delt work.",
+      "category": "backBiceps",
+      "difficulty": "advanced",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "cable",
+        "pullUpBar"
+      ],
+      "targetMuscles": [
+        "upperBack",
+        "lats",
+        "rearDelts",
+        "biceps"
+      ],
+      "estimatedMinutes": 60,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-barbell-row",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 6,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": "Hinge to a flat back and row to the lower ribs."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-pull-up",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Start each rep from a full hang."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-seated-cable-row",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-face-pull",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Pull toward the face with elbows high."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-barbell-curl",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Do not swing the torso."
+        }
+      ]
+    },
+    {
+      "id": "tpl-back-biceps-dumbbell-hypertrophy",
+      "name": "Back and Biceps Dumbbell Builder",
+      "description": "Dumbbell-only back and arm session, with a Romanian deadlift to cover the lower back.",
+      "category": "backBiceps",
+      "difficulty": "intermediate",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "lats",
+        "hamstrings",
+        "upperBack",
+        "biceps"
+      ],
+      "estimatedMinutes": 50,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-db-row",
+          "targetSets": 4,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Drive the elbow toward the hip."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-dumbbell-rdl",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Keep the dumbbells close to the legs."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-shrug",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Pause briefly at the top."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-db-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-hammer-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": "Keep the wrists neutral."
+        }
+      ]
+    },
+    {
+      "id": "tpl-back-biceps-machine-starter",
+      "name": "Back and Biceps Machine Starter",
+      "description": "A short guided session on machines and cables for newer lifters.",
+      "category": "backBiceps",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "cable",
+        "machine"
+      ],
+      "targetMuscles": [
+        "lats",
+        "upperBack",
+        "rearDelts",
+        "biceps"
+      ],
+      "estimatedMinutes": 35,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-lat-pulldown",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Pull the bar to the upper chest."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-chest-supported-row",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-assisted-pull-up",
+          "targetSets": 2,
+          "repsMin": 6,
+          "repsMax": 10,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Choose assistance that lets you finish every rep."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-rear-delt-fly",
+          "targetSets": 2,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-cable-curl",
+          "targetSets": 2,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Keep elbows fixed at your sides."
+        }
+      ]
+    },
+    {
+      "id": "tpl-legs-strength-long",
+      "name": "Legs Strength Long Session",
+      "description": "Long squat and hinge session with posterior chain and calf finishers.",
+      "category": "legs",
+      "difficulty": "advanced",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "machine",
+        "squatRack"
+      ],
+      "targetMuscles": [
+        "quadriceps",
+        "hamstrings",
+        "glutes",
+        "calves"
+      ],
+      "estimatedMinutes": 75,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-back-squat",
+          "targetSets": 5,
+          "repsMin": 3,
+          "repsMax": 5,
+          "restSeconds": 210,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": "Brace before each descent."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-romanian-deadlift",
+          "targetSets": 4,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Push the hips back and keep a flat back."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-leg-press",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-hip-thrust",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Pause at full hip extension."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-lying-leg-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-standing-calf-raise",
+          "targetSets": 4,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": "Pause at the stretch and the top."
+        }
+      ]
+    },
+    {
+      "id": "tpl-legs-dumbbell-hypertrophy",
+      "name": "Legs Dumbbell Builder",
+      "description": "Unilateral and squat-pattern leg volume using dumbbells and a bench.",
+      "category": "legs",
+      "difficulty": "intermediate",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "quadriceps",
+        "hamstrings"
+      ],
+      "estimatedMinutes": 50,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-goblet-squat",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Keep the chest tall at the bottom."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-bulgarian-split-squat",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Do all reps on one leg before switching."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-dumbbell-rdl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-walking-lunge",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 14,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Take long controlled steps."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-step-up",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Drive through the front heel."
+        }
+      ]
+    },
+    {
+      "id": "tpl-legs-bodyweight-endurance",
+      "name": "Legs Bodyweight Endurance",
+      "description": "A 30-minute equipment-free leg circuit with a finishing stretch.",
+      "category": "legs",
+      "difficulty": "beginner",
+      "emphasis": "endurance",
+      "equipment": [],
+      "targetMuscles": [
+        "quadriceps",
+        "glutes"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-bodyweight-squat",
+          "targetSets": 3,
+          "repsMin": 15,
+          "repsMax": 25,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Sit between the hips with heels down."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-bodyweight-lunge",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 16,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-glute-bridge",
+          "targetSets": 3,
+          "repsMin": 15,
+          "repsMax": 20,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Squeeze the glutes at the top."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-wall-sit",
+          "targetSets": 3,
+          "targetDurationSec": 40,
+          "restSeconds": 45,
+          "exertion": null,
+          "instructions": "Keep thighs parallel to the floor."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-hip-flexor-stretch",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": "Tuck the pelvis under to feel the stretch."
+        }
+      ]
+    },
+    {
+      "id": "tpl-upper-body-strength",
+      "name": "Upper Body Strength",
+      "description": "Compound press and pull pairing for a standard heavy upper day.",
+      "category": "upperBody",
+      "difficulty": "intermediate",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "cable",
+        "pullUpBar",
+        "squatRack"
+      ],
+      "targetMuscles": [
+        "chest",
+        "upperBack",
+        "frontDelts",
+        "lats",
+        "biceps",
+        "triceps"
+      ],
+      "estimatedMinutes": 60,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-bench-press",
+          "targetSets": 4,
+          "repsMin": 4,
+          "repsMax": 6,
+          "restSeconds": 180,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-barbell-row",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 6,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-overhead-press",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Squeeze the glutes and keep ribs down."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-pull-up",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-barbell-curl",
+          "targetSets": 2,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-triceps-pushdown",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-upper-body-dumbbell-hypertrophy",
+      "name": "Upper Body Dumbbell Builder",
+      "description": "Dumbbell press, row and arm work with a bench.",
+      "category": "upperBody",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "chest",
+        "lats",
+        "frontDelts",
+        "sideDelts",
+        "biceps",
+        "triceps"
+      ],
+      "estimatedMinutes": 50,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-db-bench-press",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-db-row",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-db-shoulder-press",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Press without arching the lower back."
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-lateral-raise",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Lead with the elbows and stop at shoulder height."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-db-curl",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-overhead-triceps-extension",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-upper-body-bodyweight-endurance",
+      "name": "Upper Body Bodyweight Endurance",
+      "description": "Short pull-up bar and dip bar circuit for upper body stamina.",
+      "category": "upperBody",
+      "difficulty": "intermediate",
+      "emphasis": "endurance",
+      "equipment": [
+        "dipBars",
+        "pullUpBar"
+      ],
+      "targetMuscles": [
+        "chest",
+        "lats",
+        "triceps",
+        "abs",
+        "forearms"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-push-up",
+          "targetSets": 4,
+          "repsMin": 15,
+          "repsMax": 25,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-chin-up",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 10,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Pull the chest toward the bar."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-dips",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-plank",
+          "targetSets": 3,
+          "targetDurationSec": 45,
+          "restSeconds": 30,
+          "exertion": null,
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-dead-hang",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 45,
+          "exertion": null,
+          "instructions": "Keep shoulders active, not shrugged."
+        }
+      ]
+    },
+    {
+      "id": "tpl-lower-body-machine-beginner",
+      "name": "Lower Body Machine Starter",
+      "description": "Guided machine session covering quads, hamstrings, hips and calves.",
+      "category": "lowerBody",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "machine"
+      ],
+      "targetMuscles": [
+        "quadriceps",
+        "hamstrings",
+        "abductors",
+        "adductors",
+        "calves"
+      ],
+      "estimatedMinutes": 40,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-leg-press",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Do not lock the knees at the top."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-leg-extension",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-leg-curl",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-hip-abduction",
+          "targetSets": 2,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-hip-adduction",
+          "targetSets": 2,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-standing-calf-raise",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-lower-body-hinge-strength",
+      "name": "Lower Body Hinge and Squat Strength",
+      "description": "Heavy trap bar and front squat work with glute and hamstring support.",
+      "category": "lowerBody",
+      "difficulty": "advanced",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "dumbbell",
+        "machine",
+        "squatRack",
+        "trapBar"
+      ],
+      "targetMuscles": [
+        "quadriceps",
+        "glutes",
+        "hamstrings",
+        "calves"
+      ],
+      "estimatedMinutes": 75,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-trap-bar-deadlift",
+          "targetSets": 4,
+          "repsMin": 3,
+          "repsMax": 5,
+          "restSeconds": 210,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": "Push the floor away and keep the bar close."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-front-squat",
+          "targetSets": 4,
+          "repsMin": 4,
+          "repsMax": 6,
+          "restSeconds": 180,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": "Keep elbows high through the lift."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-hip-thrust",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-bulgarian-split-squat",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-lying-leg-curl",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-standing-calf-raise",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-lower-body-mobility-bodyweight",
+      "name": "Lower Body Bodyweight and Mobility",
+      "description": "A short bodyweight strength and stretching session for hips and legs.",
+      "category": "lowerBody",
+      "difficulty": "beginner",
+      "emphasis": "endurance",
+      "equipment": [],
+      "targetMuscles": [
+        "quadriceps",
+        "glutes",
+        "hamstrings"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-bodyweight-squat",
+          "targetSets": 3,
+          "repsMin": 15,
+          "repsMax": 20,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-glute-bridge",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 20,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-bodyweight-lunge",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 14,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-worlds-greatest-stretch",
+          "targetSets": 2,
+          "targetDurationSec": 40,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": "Move slowly and breathe through each position."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-hamstring-stretch",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-pigeon-pose",
+          "targetSets": 2,
+          "targetDurationSec": 45,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": "Back off if you feel knee pain."
+        }
+      ]
+    },
+    {
+      "id": "tpl-push-day-strength",
+      "name": "Push Day Strength",
+      "description": "Barbell and dip pressing session with shoulder and triceps accessories.",
+      "category": "push",
+      "difficulty": "advanced",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "cable",
+        "dipBars",
+        "dumbbell",
+        "ezBar",
+        "squatRack"
+      ],
+      "targetMuscles": [
+        "frontDelts",
+        "chest",
+        "triceps",
+        "sideDelts"
+      ],
+      "estimatedMinutes": 70,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-overhead-press",
+          "targetSets": 4,
+          "repsMin": 4,
+          "repsMax": 6,
+          "restSeconds": 180,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-incline-bench-press",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 7,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-dips",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 10,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-lateral-raise",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-skull-crusher",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-cable-fly",
+          "targetSets": 2,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": "Squeeze the hands together at the front."
+        }
+      ]
+    },
+    {
+      "id": "tpl-push-day-machine-hypertrophy",
+      "name": "Push Day Machine and Cable Builder",
+      "description": "Stable machine and cable push session for volume with low setup effort.",
+      "category": "push",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "cable",
+        "dumbbell",
+        "machine"
+      ],
+      "targetMuscles": [
+        "chest",
+        "frontDelts",
+        "sideDelts",
+        "triceps"
+      ],
+      "estimatedMinutes": 50,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-machine-chest-press",
+          "targetSets": 4,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-db-shoulder-press",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-cable-fly",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-lateral-raise",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-triceps-pushdown",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-assisted-dip",
+          "targetSets": 2,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-push-day-dumbbell-short",
+      "name": "Push Day Dumbbell Short",
+      "description": "A 30-minute dumbbell and push-up session.",
+      "category": "push",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "chest",
+        "frontDelts",
+        "sideDelts",
+        "triceps"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-push-up",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 20,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-db-shoulder-press",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-lateral-raise",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-overhead-triceps-extension",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-pull-day-strength",
+      "name": "Pull Day Strength",
+      "description": "Deadlift-led pull session with rows, pull-ups and rear delt support.",
+      "category": "pull",
+      "difficulty": "advanced",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "cable",
+        "pullUpBar"
+      ],
+      "targetMuscles": [
+        "glutes",
+        "lats",
+        "upperBack",
+        "rearDelts",
+        "biceps"
+      ],
+      "estimatedMinutes": 70,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-deadlift",
+          "targetSets": 4,
+          "repsMin": 3,
+          "repsMax": 5,
+          "restSeconds": 210,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": "Set the back flat before the bar leaves the floor."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-pull-up",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-barbell-row",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-face-pull",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-barbell-curl",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-pull-day-cable-hypertrophy",
+      "name": "Pull Day Cable and Machine Builder",
+      "description": "Cable and machine pull volume with arms and rear delts.",
+      "category": "pull",
+      "difficulty": "intermediate",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "cable",
+        "machine"
+      ],
+      "targetMuscles": [
+        "lats",
+        "upperBack",
+        "rearDelts",
+        "biceps"
+      ],
+      "estimatedMinutes": 55,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-lat-pulldown",
+          "targetSets": 4,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-seated-cable-row",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-chest-supported-row",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-rear-delt-fly",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-face-pull",
+          "targetSets": 2,
+          "repsMin": 15,
+          "repsMax": 20,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-cable-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-pull-day-bodyweight-endurance",
+      "name": "Pull Day Bodyweight Endurance",
+      "description": "Low-equipment pulling session using a bar and rack for beginners.",
+      "category": "pull",
+      "difficulty": "beginner",
+      "emphasis": "endurance",
+      "equipment": [
+        "barbell",
+        "pullUpBar",
+        "resistanceBand",
+        "squatRack"
+      ],
+      "targetMuscles": [
+        "lats",
+        "upperBack",
+        "forearms",
+        "lowerBack"
+      ],
+      "estimatedMinutes": 35,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-band-assisted-pull-up",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Pick a band that lets you finish every rep."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-inverted-row",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Keep the body in a straight line."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-dead-hang",
+          "targetSets": 3,
+          "targetDurationSec": 25,
+          "restSeconds": 45,
+          "exertion": null,
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-cat-cow",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": "Move slowly with your breath."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-thoracic-extension",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-full-body-strength",
+      "name": "Full Body Strength",
+      "description": "Classic barbell full body session built on squat, press, row and hinge.",
+      "category": "fullBody",
+      "difficulty": "intermediate",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "squatRack"
+      ],
+      "targetMuscles": [
+        "quadriceps",
+        "chest",
+        "upperBack",
+        "frontDelts",
+        "hamstrings",
+        "abs"
+      ],
+      "estimatedMinutes": 65,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-back-squat",
+          "targetSets": 4,
+          "repsMin": 4,
+          "repsMax": 6,
+          "restSeconds": 180,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-bench-press",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 6,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-barbell-row",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-overhead-press",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-romanian-deadlift",
+          "targetSets": 2,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7.5
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-plank",
+          "targetSets": 2,
+          "targetDurationSec": 45,
+          "restSeconds": 45,
+          "exertion": null,
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-full-body-conditioning-short",
+      "name": "Full Body Conditioning Short",
+      "description": "A 30-minute kettlebell and dumbbell circuit with a loaded carry.",
+      "category": "fullBody",
+      "difficulty": "intermediate",
+      "emphasis": "endurance",
+      "equipment": [
+        "bench",
+        "dumbbell",
+        "kettlebell"
+      ],
+      "targetMuscles": [
+        "glutes",
+        "quadriceps",
+        "frontDelts",
+        "lats",
+        "forearms",
+        "fullBody"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-kettlebell-swing",
+          "targetSets": 4,
+          "repsMin": 12,
+          "repsMax": 20,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7.5
+          },
+          "instructions": "Snap the hips; the arms only guide."
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-goblet-squat",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-clean-and-press",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 10,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7.5
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-db-row",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-farmers-carry",
+          "targetSets": 3,
+          "targetMetres": 30,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7
+          },
+          "instructions": "Walk tall and do not let the shoulders round."
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-burpee",
+          "targetSets": 2,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-full-body-bodyweight-starter",
+      "name": "Full Body Bodyweight Starter",
+      "description": "Equipment-free beginner session covering legs, push and core.",
+      "category": "fullBody",
+      "difficulty": "beginner",
+      "emphasis": "endurance",
+      "equipment": [],
+      "targetMuscles": [
+        "quadriceps",
+        "chest",
+        "glutes",
+        "abs",
+        "fullBody"
+      ],
+      "estimatedMinutes": 35,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-bodyweight-squat",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 20,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-push-up",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Use a raised hand position if needed."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-glute-bridge",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-bodyweight-lunge",
+          "targetSets": 2,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-plank",
+          "targetSets": 3,
+          "targetDurationSec": 30,
+          "restSeconds": 30,
+          "exertion": null,
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-burpee",
+          "targetSets": 2,
+          "repsMin": 6,
+          "repsMax": 10,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-arms-gym-hypertrophy",
+      "name": "Arms Gym Hypertrophy",
+      "description": "Dedicated biceps and triceps volume using the gym's bars and cables.",
+      "category": "arms",
+      "difficulty": "intermediate",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "cable",
+        "dumbbell",
+        "ezBar"
+      ],
+      "targetMuscles": [
+        "biceps",
+        "triceps"
+      ],
+      "estimatedMinutes": 50,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-preacher-curl",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-skull-crusher",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-cable-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-triceps-pushdown",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-hammer-curl",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-overhead-triceps-extension",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-arms-dumbbell-short",
+      "name": "Arms Dumbbell Short",
+      "description": "Quick dumbbell arm session with a loaded carry for grip.",
+      "category": "arms",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "biceps",
+        "triceps",
+        "chest",
+        "forearms"
+      ],
+      "estimatedMinutes": 30,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-db-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-overhead-triceps-extension",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-hammer-curl",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-push-up",
+          "targetSets": 2,
+          "repsMin": 8,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-farmers-carry",
+          "targetSets": 2,
+          "targetMetres": 30,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-arms-strength",
+      "name": "Arms Strength",
+      "description": "Lower-rep barbell curls and dips with chin-ups for heavy arm work.",
+      "category": "arms",
+      "difficulty": "advanced",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "bench",
+        "dipBars",
+        "dumbbell",
+        "ezBar",
+        "pullUpBar"
+      ],
+      "targetMuscles": [
+        "biceps",
+        "triceps",
+        "lats"
+      ],
+      "estimatedMinutes": 55,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-barbell-curl",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 6,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-dips",
+          "targetSets": 4,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8.5
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-chin-up",
+          "targetSets": 3,
+          "repsMin": 5,
+          "repsMax": 8,
+          "restSeconds": 120,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-skull-crusher",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-hammer-curl",
+          "targetSets": 2,
+          "repsMin": 8,
+          "repsMax": 10,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        }
+      ]
+    },
+    {
+      "id": "tpl-shoulders-core-strength",
+      "name": "Shoulders and Core Strength",
+      "description": "Overhead pressing and delt work followed by loaded core exercises.",
+      "category": "shouldersCore",
+      "difficulty": "intermediate",
+      "emphasis": "strength",
+      "equipment": [
+        "barbell",
+        "cable",
+        "dumbbell",
+        "pullUpBar"
+      ],
+      "targetMuscles": [
+        "frontDelts",
+        "sideDelts",
+        "rearDelts",
+        "abs",
+        "obliques"
+      ],
+      "estimatedMinutes": 55,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-overhead-press",
+          "targetSets": 4,
+          "repsMin": 4,
+          "repsMax": 6,
+          "restSeconds": 150,
+          "exertion": {
+            "scale": "rpe",
+            "value": 8
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-lateral-raise",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 1
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-face-pull",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-hanging-leg-raise",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Curl the pelvis up instead of swinging."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-cable-crunch",
+          "targetSets": 3,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-pallof-press",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": "Resist rotation as you press out."
+        }
+      ]
+    },
+    {
+      "id": "tpl-shoulders-core-dumbbell",
+      "name": "Shoulders and Core Dumbbell",
+      "description": "Dumbbell shoulder session with plank variations.",
+      "category": "shouldersCore",
+      "difficulty": "beginner",
+      "emphasis": "hypertrophy",
+      "equipment": [
+        "bench",
+        "dumbbell"
+      ],
+      "targetMuscles": [
+        "frontDelts",
+        "sideDelts",
+        "upperBack",
+        "abs",
+        "obliques"
+      ],
+      "estimatedMinutes": 45,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-db-shoulder-press",
+          "targetSets": 3,
+          "repsMin": 8,
+          "repsMax": 12,
+          "restSeconds": 90,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-lateral-raise",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-clean-and-press",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 8,
+          "restSeconds": 75,
+          "exertion": {
+            "scale": "rpe",
+            "value": 7
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-shrug",
+          "targetSets": 3,
+          "repsMin": 12,
+          "repsMax": 15,
+          "restSeconds": 60,
+          "exertion": {
+            "scale": "rir",
+            "value": 2
+          },
+          "instructions": null
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-plank",
+          "targetSets": 3,
+          "targetDurationSec": 40,
+          "restSeconds": 45,
+          "exertion": null,
+          "instructions": null
+        },
+        {
+          "order": 6,
+          "exerciseId": "lib-side-plank",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 30,
+          "exertion": null,
+          "instructions": "Do both sides each set."
+        }
+      ]
+    },
+    {
+      "id": "tpl-core-bodyweight-endurance",
+      "name": "Core Bodyweight Endurance",
+      "description": "Short equipment-free core circuit (no shoulder-specific exercises exist in the library).",
+      "category": "shouldersCore",
+      "difficulty": "beginner",
+      "emphasis": "endurance",
+      "equipment": [],
+      "targetMuscles": [
+        "abs",
+        "obliques",
+        "lowerBack"
+      ],
+      "estimatedMinutes": 25,
+      "exercises": [
+        {
+          "order": 1,
+          "exerciseId": "lib-plank",
+          "targetSets": 3,
+          "targetDurationSec": 40,
+          "restSeconds": 30,
+          "exertion": null,
+          "instructions": null
+        },
+        {
+          "order": 2,
+          "exerciseId": "lib-side-plank",
+          "targetSets": 2,
+          "targetDurationSec": 30,
+          "restSeconds": 30,
+          "exertion": null,
+          "instructions": "Do both sides each set."
+        },
+        {
+          "order": 3,
+          "exerciseId": "lib-crunch",
+          "targetSets": 3,
+          "repsMin": 15,
+          "repsMax": 25,
+          "restSeconds": 30,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": null
+        },
+        {
+          "order": 4,
+          "exerciseId": "lib-ab-wheel",
+          "targetSets": 3,
+          "repsMin": 6,
+          "repsMax": 12,
+          "restSeconds": 45,
+          "exertion": {
+            "scale": "rir",
+            "value": 3
+          },
+          "instructions": "Stay short of lower-back arching."
+        },
+        {
+          "order": 5,
+          "exerciseId": "lib-cat-cow",
+          "targetSets": 2,
+          "repsMin": 10,
+          "repsMax": 12,
+          "restSeconds": 15,
+          "exertion": null,
+          "instructions": null
+        }
+      ]
+    }
+  ]
+}
