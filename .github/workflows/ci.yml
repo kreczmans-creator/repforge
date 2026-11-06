@@ -92,3 +92,43 @@ jobs:
           path: app/coverage/lcov.info
           if-no-files-found: error
           retention-days: 14
+
+  # WP 8 3B-ACC-01 WS5: real process kills (3b-6) and the large profile with
+  # host timing (3b-9 host part). Both tags are skipped by default
+  # (dart_test.yaml), so the quality job and its coverage figure are
+  # unchanged. Linux only: the kill suite builds a separate child process
+  # with `dart build cli` and ends it with SIGKILL. Concurrency 1: the
+  # timing figures and the kill moments must not compete with other tests.
+  recovery:
+    name: Recovery (process kill, large profile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies (pinned)
+        run: flutter pub get --enforce-lockfile
+
+      - name: Kill and heavy suites
+        run: >-
+          flutter test --run-skipped --tags "kill || heavy"
+          --concurrency=1 --reporter expanded test/migration_v8/
+
+      - name: Upload kill, profile and timing reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-v8-ws5-reports
+          path: app/build/migration_v8_ws5/
+          if-no-files-found: warn
+          retention-days: 30
