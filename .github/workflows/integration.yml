@@ -32,6 +32,18 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # WP 14: the emulator exits at start-up when the runner's disk is nearly
+      # full ("FATAL | Not enough space to create userdata partition.
+      # Available: 7255 MB ... need 7372 MB", run 42305104781; the same
+      # symptom on main run 42293964654). Removing tool-chains this job never
+      # uses frees about 20 GB, and the explicit partition size below keeps
+      # the requirement well under what is left.
+      - name: Free disk space
+        run: |
+          df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL" || true
+          df -h / | tail -1
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -61,6 +73,7 @@ jobs:
           # ran). A longer wait costs nothing on a healthy boot and turns a
           # slow boot from an infrastructure failure into a result.
           emulator-boot-timeout: 900
+          disk-size: 4096M
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           working-directory: app
