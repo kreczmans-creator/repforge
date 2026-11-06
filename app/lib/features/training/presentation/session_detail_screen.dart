@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,6 +59,18 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     if (!mounted) return;
     ref.invalidate(sessionViewProvider(_id));
     if (result case Err(:final error)) _snack(userMessageFor(error));
+  }
+
+  Future<void> _saveAsPlan(WorkoutSession s) async {
+    final router = GoRouter.of(context);
+    final result = await ref.read(saveSessionAsPlanProvider)(s.id);
+    if (!mounted) return;
+    switch (result) {
+      case Err(:final error):
+        _snack(userMessageFor(error));
+      case Ok(:final value):
+        unawaited(router.push(RfRoutes.trainPlan(value.id)));
+    }
   }
 
   Future<void> _delete(WorkoutSession s) async {
@@ -197,6 +211,14 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                 variant: RfButtonVariant.secondary,
                 expand: false,
                 onPressed: () => ref.startFromPast(context, s.id),
+              ),
+              RfButton(
+                key: const Key('detail-save-as-plan'),
+                label: 'Save as workout plan',
+                icon: Icons.bookmark_add_outlined,
+                variant: RfButtonVariant.secondary,
+                expand: false,
+                onPressed: () => _saveAsPlan(s),
               ),
               RfButton(
                 key: const Key('detail-delete'),

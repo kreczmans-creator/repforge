@@ -5,6 +5,7 @@ import 'package:repforge/domain/training/exercise_query.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/training/application/exercise_use_cases.dart';
 import 'package:repforge/features/training/application/import_exercise_library.dart';
+import 'package:repforge/features/training/application/plan_actions.dart';
 import 'package:repforge/features/training/application/plan_use_cases.dart';
 import 'package:repforge/features/training/application/record_set.dart';
 import 'package:repforge/features/training/application/records_use_cases.dart';
@@ -57,6 +58,25 @@ final savePlanProvider = Provider<SavePlan>(
     exercises: ref.watch(exerciseRepositoryProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
+  ),
+);
+
+final duplicatePlanProvider = Provider<DuplicatePlan>(
+  (ref) => DuplicatePlan(
+    plans: ref.watch(workoutPlanRepositoryProvider),
+    clock: ref.watch(clockProvider),
+    newId: ref.watch(idGeneratorProvider),
+  ),
+);
+
+final deletePlanProvider = Provider<DeletePlan>(
+  (ref) => DeletePlan(plans: ref.watch(workoutPlanRepositoryProvider)),
+);
+
+final saveSessionAsPlanProvider = Provider<SaveSessionAsPlan>(
+  (ref) => SaveSessionAsPlan(
+    sessions: ref.watch(workoutSessionRepositoryProvider),
+    savePlan: ref.watch(savePlanProvider),
   ),
 );
 

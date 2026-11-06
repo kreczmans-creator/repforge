@@ -5,6 +5,8 @@ import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/training/application/plan_providers.dart';
+import 'package:repforge/features/training/application/training_providers.dart';
+import 'package:repforge/features/training/presentation/session_dialogs.dart';
 import 'package:repforge/features/training/presentation/session_starter.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -31,6 +33,38 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
       plan.id,
       archived: archived,
     );
+    if (!mounted) return;
+    if (result case Err(:final error)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(userMessageFor(error))));
+    }
+  }
+
+  Future<void> _duplicate(WorkoutPlan plan) async {
+    final result = await ref.read(duplicatePlanProvider)(plan.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(switch (result) {
+          Ok(:final value) => 'Created "${value.name}"',
+          Err(:final error) => userMessageFor(error),
+        }),
+      ),
+    );
+  }
+
+  Future<void> _delete(WorkoutPlan plan) async {
+    final ok = await confirmAction(
+      context,
+      title: 'Delete "${plan.name}"?',
+      message:
+          'The workout is removed. Past workouts and scheduled sessions '
+          'are not changed.',
+      confirmLabel: 'Delete',
+      confirmKey: 'plan-delete-confirm',
+    );
+    if (!ok || !mounted) return;
+    final result = await ref.read(deletePlanProvider)(plan.id);
     if (!mounted) return;
     if (result case Err(:final error)) {
       ScaffoldMessenger.of(context)
@@ -127,6 +161,18 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
                             icon: const Icon(Icons.play_arrow),
                             onPressed: () => ref.startFromPlan(context, p.id),
                           ),
+                        IconButton(
+                          key: Key('plan-duplicate-${p.id}'),
+                          tooltip: 'Duplicate ${p.name}',
+                          icon: const Icon(Icons.copy_outlined),
+                          onPressed: () => _duplicate(p),
+                        ),
+                        IconButton(
+                          key: Key('plan-delete-${p.id}'),
+                          tooltip: 'Delete ${p.name}',
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _delete(p),
+                        ),
                         if (p.archived)
                           IconButton(
                             key: Key('plan-unarchive-${p.id}'),
