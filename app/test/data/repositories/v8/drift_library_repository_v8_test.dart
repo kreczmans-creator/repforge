@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/repositories/v8/drift_library_repository_v8.dart';
@@ -58,28 +60,11 @@ void main() {
     LibrarySelectionQuery query = const LibrarySelectionQuery(),
   ]) async => {for (final e in await h.library.selectable(query)) e.id.value};
 
-  /// Ids an independent SQL query says may enter new work: not deleted,
-  /// archived, retired or blocked, with a type, category and alias list the
-  /// library can read.
-  Future<Set<String>> expectedSelectable() async {
-    final rows = await h.db
-        .customSelect(
-          'SELECT id, type, category, aliases_json FROM exercises e '
-          'WHERE deleted_at IS NULL AND archived = 0 AND retired_at IS NULL '
-          'AND NOT EXISTS (SELECT 1 FROM exercise_blocks b WHERE '
-          'b.exercise_id = e.id AND b.resolved_at IS NULL)',
-        )
-        .get();
-    final types = ExerciseType.values.map((t) => t.name).toSet();
-    final categories = ExerciseCategory.values.map((c) => c.name).toSet();
-    return {
-      for (final r in rows)
-        if (types.contains(r.read<String>('type')) &&
-            categories.contains(r.read<String>('category')) &&
-            r.read<String>('aliases_json').startsWith('['))
-          r.read<String>('id'),
-    };
-  }
+  /// Every exercise id, read plainly (no availability logic).
+  Future<Set<String>> allIds() async => {
+    for (final r in await h.db.customSelect('SELECT id FROM exercises').get())
+      r.read<String>('id'),
+  };
 
   group('selection never offers a blocked exercise', () {
     test('the migration blocked the fixture exercises, one row per '
@@ -92,26 +77,52 @@ void main() {
     });
 
     test('selection excludes blocked, archived, retired, deleted and '
-        'unreadable exercises and offers every other one', () async {
+        'unreadable exercises and offers every other one; the SQL '
+        'candidates and the domain predicate are checked separately '
+        '(non-circular expectations from the fixture)', () async {
       await sql("UPDATE exercises SET archived = 1 WHERE id = 'lib-leg-press'");
       await sql('UPDATE exercises SET retired_at = ? WHERE id = ?', [
         V8LibraryFixture.now.toIso8601String(),
         'lib-hack-squat',
       ]);
+      // Known from the fixture and the two updates above, not computed by
+      // any availability logic.
+      final blocked = V8LibraryFixture.blocked.keys.toSet();
+      const archived = {'lib-leg-press'};
+      const retired = {'lib-hack-squat'};
+      const deleted = {'ex-deleted'};
+      const unreadable = {'ex-unmapped-enums'}; // type 'Aerobic' (WS4 L9)
+      final all = await allIds();
+      expect(all, containsAll([...blocked, ...archived, ...retired]));
+      final hidden = {...blocked, ...archived, ...retired, ...deleted};
+
+      // 1. The SQL half alone.
+      expect(
+        (await h.library.selectionCandidateIds()).toSet(),
+        all.difference(hidden),
+      );
+      expect(
+        (await h.library.selectionCandidateIds(includeArchived: true)).toSet(),
+        all.difference({...blocked, ...retired, ...deleted}),
+      );
+      // 2. The domain predicate alone, on every exercise.
+      for (final id in all) {
+        final a = (await h.library.availability(id))!;
+        expect(a.isDiscoverable, !hidden.contains(id), reason: id);
+        expect(
+          a.canEnterNewWork,
+          !{...blocked, ...archived, ...deleted}.contains(id),
+          reason: id,
+        );
+      }
+      // 3. The combination, which also drops unreadable rows.
       final ids = await selectableIds();
-      for (final id in V8LibraryFixture.blocked.keys) {
-        expect(ids, isNot(contains(id)), reason: id);
-      }
-      for (final id in [
-        'lib-leg-press',
-        'lib-hack-squat',
-        'ex-deleted',
-        'ex-unmapped-enums',
-      ]) {
-        expect(ids, isNot(contains(id)), reason: id);
-      }
-      expect(ids, await expectedSelectable());
+      expect(ids, all.difference({...hidden, ...unreadable}));
       expect(ids, containsAll(['ex-bench', 'ex-row', 'lib-back-squat']));
+      final withArchived = await selectableIds(
+        const LibrarySelectionQuery(includeArchived: true),
+      );
+      expect(withArchived, {...ids, ...archived});
     });
 
     test('no query can reach a blocked exercise', () async {
@@ -356,8 +367,9 @@ void main() {
       },
     );
 
-    test('archived, retired, deleted, unreadable and missing exercises are '
-        'refused too', () async {
+    test('archived, deleted, unreadable and missing exercises are refused '
+        'too; a retired one is not (ADR-0009: hidden from discovery only; '
+        'R-C8)', () async {
       await sql("UPDATE exercises SET archived = 1 WHERE id = 'lib-leg-press'");
       await sql('UPDATE exercises SET retired_at = ? WHERE id = ?', [
         V8LibraryFixture.now.toIso8601String(),
@@ -365,7 +377,6 @@ void main() {
       ]);
       final cases = {
         'lib-leg-press': 'archived',
-        'lib-hack-squat': 'retired',
         'ex-unmapped-enums': 'unreadable',
       };
       for (final MapEntry(key: id, value: state) in cases.entries) {
@@ -377,6 +388,12 @@ void main() {
         );
         expect((err(r) as ValidationError).fieldErrors['availability'], state);
       }
+      ok(
+        await h.library.addSessionExercise(
+          sessionId: 'sess-01',
+          exerciseId: 'lib-hack-squat',
+        ),
+      );
       for (final id in ['ex-deleted', 'no-such']) {
         final r = await writesNothing(
           () => h.library.addSessionExercise(
@@ -462,28 +479,54 @@ void main() {
     });
   });
 
-  group('correction route (R-01; history unchanged)', () {
-    const addDumbbell = AddEquipmentCorrection([
-      ExerciseEquipment(EquipmentItemId('dumbbell')),
-    ]);
-    const shouldersPrimary = AddTargetsCorrection([
-      (node: AnatomyNodeId('shoulders'), role: TargetRole.primary),
-    ]);
+  group('correction route sets the field (R-01; R-C4; history unchanged)', () {
+    Future<List<String>> targetRows(String id) async => [
+      for (final r
+          in await h.db
+              .customSelect(
+                'SELECT node_id, role, ordinal FROM exercise_targets '
+                'WHERE exercise_id = ? ORDER BY ordinal',
+                variables: [Variable<String>(id)],
+              )
+              .get())
+        [
+          '${r.read<String>('node_id')}:${r.read<String>('role')}',
+          r.read<int>('ordinal'),
+        ].join('@'),
+    ];
 
-    test('resolving one of two reasons keeps the exercise blocked; the '
-        'second unblocks it; history digests never change', () async {
+    Future<List<String>> equipmentRows(String id) async => [
+      for (final r
+          in await h.db
+              .customSelect(
+                'SELECT equipment_id, ordinal FROM exercise_equipment '
+                'WHERE exercise_id = ? ORDER BY ordinal',
+                variables: [Variable<String>(id)],
+              )
+              .get())
+        '${r.read<String>('equipment_id')}@${r.read<int>('ordinal')}',
+    ];
+
+    test('ex-rotator: "Dumbbells","None","Pulley" corrected faithfully, '
+        'then its primary; one of two reasons keeps it blocked; history '
+        'digests never change', () async {
       final history = await h.historyDigests();
       final first = ok(
         await h.library.correctBlockedReason(
           'ex-rotator',
           BlockReason.unknownEquipment,
-          addDumbbell,
+          const SetEquipmentCorrection([
+            ExerciseEquipment(EquipmentItemId('dumbbell')),
+            ExerciseEquipment(EquipmentItemId('cable')),
+          ]),
         ),
       );
+      expect(first.resolved, {BlockReason.unknownEquipment});
       expect(first.stillBlocked, isTrue);
       expect(first.exercise.availability.blockReasons, {
         BlockReason.noPrimaryTarget,
       });
+      expect(await equipmentRows('ex-rotator'), ['dumbbell@0', 'cable@1']);
       expect(await selectableIds(), isNot(contains('ex-rotator')));
       expect(
         err(
@@ -500,176 +543,269 @@ void main() {
         await h.library.correctBlockedReason(
           'ex-rotator',
           BlockReason.noPrimaryTarget,
-          shouldersPrimary,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('shoulders'), role: TargetRole.primary),
+          ]),
         ),
       );
       expect(second.stillBlocked, isFalse);
       expect(second.exercise.availability.canEnterNewWork, isTrue);
       expect(await selectableIds(), contains('ex-rotator'));
-      final exercise = second.exercise.exercise!;
-      expect(
-        exercise.primaryTargets.single.node,
-        const AnatomyNodeId('shoulders'),
-      );
-      expect([for (final e in exercise.equipment) e.item.value], ['dumbbell']);
-      // Both block rows stay, resolved, as the record of the correction.
+      expect(await targetRows('ex-rotator'), ['shoulders:primary@0']);
       final blocks = second.exercise.availability.blocks;
       expect(blocks, hasLength(2));
       expect(blocks.every((b) => b.resolvedAt == V8LibraryFixture.now), isTrue);
-      // Every plan, session, entry, set and schedule row is unchanged.
       expect(await h.historyDigests(), history);
-      // The legacy history of the corrected exercise is still there.
       expect(
         [for (final s in await h.library.history('ex-rotator')) s.session.id],
         [V8LibraryFixture.legacySession],
       );
     });
 
-    test('each correction writes one report run, entry and counts', () async {
+    test('ex-dup: legacy "bodyweight" corrected faithfully with an empty '
+        'equipment list (equipment.md section 1 rule 2)', () async {
+      final history = await h.historyDigests();
+      expect(await equipmentRows('ex-dup'), isEmpty);
+      final r = ok(
+        await h.library.correctBlockedReason(
+          'ex-dup',
+          BlockReason.unknownEquipment,
+          const SetEquipmentCorrection([]),
+        ),
+      );
+      expect(r.resolved, {BlockReason.unknownEquipment});
+      expect(r.stillBlocked, isFalse);
+      expect(r.exercise.exercise!.equipment, isEmpty);
+      expect(await equipmentRows('ex-dup'), isEmpty);
+      expect(await selectableIds(), contains('ex-dup'));
+      expect(await h.historyDigests(), history);
+    });
+
+    test('a kept secondary becomes the primary: primaries first, ordinals '
+        'contiguous', () async {
+      expect(await targetRows('ex-sec-only'), [
+        'rearDelts:secondary@0',
+        'upperBack:secondary@1',
+      ]);
+      final r = ok(
+        await h.library.correctBlockedReason(
+          'ex-sec-only',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('upperBack'), role: TargetRole.secondary),
+            (node: AnatomyNodeId('rearDelts'), role: TargetRole.primary),
+          ]),
+        ),
+      );
+      expect(r.stillBlocked, isFalse);
+      expect(await targetRows('ex-sec-only'), [
+        'rearDelts:primary@0',
+        'upperBack:secondary@1',
+      ]);
+      // The full list replaces the old one: a target can also be removed.
+      await sql(
+        'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
+        "blocked_at, resolved_at) VALUES ('ex-squat', 'noPrimaryTarget', "
+        "'{}', ?, NULL)",
+        [V8LibraryFixture.now.toIso8601String()],
+      );
+      ok(
+        await h.library.correctBlockedReason(
+          'ex-squat',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('glutes'), role: TargetRole.primary),
+          ]),
+        ),
+      );
+      expect(await targetRows('ex-squat'), ['glutes:primary@0']);
+    });
+
+    test('an equipment correction resolves unknownEquipment and '
+        'invalidEquipment together (R-C4); a target reason stays', () async {
+      await sql(
+        'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
+        "blocked_at, resolved_at) VALUES ('ex-rotator', 'invalidEquipment', "
+        "'{}', ?, NULL)",
+        [V8LibraryFixture.now.toIso8601String()],
+      );
+      final r = ok(
+        await h.library.correctBlockedReason(
+          'ex-rotator',
+          BlockReason.invalidEquipment,
+          const SetEquipmentCorrection([
+            ExerciseEquipment(EquipmentItemId('dumbbell')),
+          ]),
+        ),
+      );
+      expect(r.resolved, {
+        BlockReason.unknownEquipment,
+        BlockReason.invalidEquipment,
+      });
+      expect(r.exercise.availability.blockReasons, {
+        BlockReason.noPrimaryTarget,
+      });
+      // One report entry per resolved reason, each with its rule.
+      final page = await h.report.entries(runId: r.runId);
+      expect(page.entries.map((e) => e.eventId).toSet(), r.eventIds.toSet());
+      expect(
+        {for (final e in page.entries) e.rule},
+        {
+          MigrationRuleCodes.unknownEquipmentBlock,
+          MigrationRuleCodes.invalidEquipmentBlock,
+        },
+      );
+      expect(
+        reconcileReport(await h.report.storedReport(r.runId)).reconciles,
+        isTrue,
+      );
+    });
+
+    test('the report entry records the field before and after (R-06) in its '
+        'own run; the run reconciles', () async {
       final runsBefore = (await h.report.runs()).length;
       final outcome = ok(
         await h.library.correctBlockedReason(
           'ex-garbage',
           BlockReason.invalidEquipment,
-          const AddEquipmentCorrection([
+          const SetEquipmentCorrection([
             ExerciseEquipment(EquipmentItemId('barbell')),
           ]),
         ),
       );
       expect(outcome.stillBlocked, isFalse);
-      final runs = await h.report.runs();
-      expect(runs, hasLength(runsBefore + 1));
+      expect(await h.report.runs(), hasLength(runsBefore + 1));
       final run = (await h.report.run(outcome.runId))!;
       expect(run.trigger, CorrectionReportContract.trigger.name);
       expect(run.provenanceKind, 'device');
-      expect(run.appVersion, isNotEmpty);
-      final page = await h.report.entries(runId: outcome.runId);
-      final entry = page.entries.single;
-      expect(entry.eventId, outcome.eventId);
+      final entry = (await h.report.entries(runId: outcome.runId))
+          .entries
+          .single;
+      expect(entry.eventId, outcome.eventIds.single);
       expect(entry.recordId, 'ex-garbage');
       expect(entry.exerciseId, 'ex-garbage');
       expect(entry.field, 'equipment');
       expect(entry.disposition, 'mapped');
       expect(entry.category, 'migrated');
       expect(entry.rule, MigrationRuleCodes.invalidEquipmentBlock);
-      expect(entry.originalValue, '"[]"');
-      expect(entry.resultingValue, contains('barbell'));
-      final totals = await h.report.totals(outcome.runId);
-      final t = totals.tables['exercises']!;
+      expect(decodeStoredValue(entry.originalValue), '[]');
+      expect(jsonDecode(decodeStoredValue(entry.resultingValue)! as String), [
+        {'item': 'barbell', 'roleOverride': null, 'overrideNote': null},
+      ]);
+      final t = (await h.report.totals(outcome.runId)).tables['exercises']!;
       expect(t.category('examined'), 1);
       expect(t.category('migrated'), 1);
-      expect(t.outcomeTotal, 1);
       expect(t.disposition('mapped'), 1);
       expect(
         reconcileReport(await h.report.storedReport(outcome.runId)).reconciles,
         isTrue,
       );
       // The migration run that blocked it is unchanged.
-      final blockedEntries = await h.report.entries(exerciseId: 'ex-garbage');
       expect(
-        blockedEntries.entries.where((e) => e.disposition == 'blocked'),
+        (await h.report.entries(exerciseId: 'ex-garbage')).entries
+            .where((e) => e.disposition == 'blocked'),
         hasLength(1),
       );
     });
 
     test('invalid corrections are refused by the 3a rules and write '
         'nothing', () async {
-      final cases =
-          <(String, BlockReason, BlockCorrection, String Function(AppError))>[
-            // IC-204: still no primary.
-            (
-              'ex-empty',
-              BlockReason.noPrimaryTarget,
-              const AddTargetsCorrection([
-                (node: AnatomyNodeId('abs'), role: TargetRole.secondary),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
+      final cases = <(String, BlockReason, BlockCorrection, String)>[
+        (
+          'ex-empty',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('abs'), role: TargetRole.secondary),
+          ]),
+          'IC-204:targets',
+        ),
+        (
+          'ex-empty',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([]),
+          'IC-204:targets',
+        ),
+        (
+          'ex-empty',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('rotatorCuff'), role: TargetRole.primary),
+          ]),
+          'IC-301:targets',
+        ),
+        (
+          'ex-empty',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('abs'), role: TargetRole.primary),
+            (node: AnatomyNodeId('abs'), role: TargetRole.secondary),
+          ]),
+          'IC-305:targets',
+        ),
+        (
+          'ex-empty',
+          BlockReason.noPrimaryTarget,
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('shoulders'), role: TargetRole.primary),
+            (node: AnatomyNodeId('rearDelts'), role: TargetRole.secondary),
+          ]),
+          'IC-303:targets',
+        ),
+        (
+          'ex-dup',
+          BlockReason.unknownEquipment,
+          const SetEquipmentCorrection([
+            ExerciseEquipment(
+              EquipmentItemId('bench'),
+              roleOverride: EquipmentRole.load,
             ),
-            // IC-301: unknown node; nothing is invented.
-            (
-              'ex-empty',
-              BlockReason.noPrimaryTarget,
-              const AddTargetsCorrection([
-                (node: AnatomyNodeId('rotatorCuff'), role: TargetRole.primary),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
+          ]),
+          'IC-315:equipment',
+        ),
+        (
+          'ex-dup',
+          BlockReason.unknownEquipment,
+          const SetEquipmentCorrection([
+            ExerciseEquipment(
+              EquipmentItemId('treadmill'),
+              roleOverride: EquipmentRole.load,
+              overrideNote: 'why',
             ),
-            // IC-303: a node and its descendant.
-            (
-              'ex-empty',
-              BlockReason.noPrimaryTarget,
-              const AddTargetsCorrection([
-                (node: AnatomyNodeId('shoulders'), role: TargetRole.primary),
-                (node: AnatomyNodeId('rearDelts'), role: TargetRole.secondary),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
-            ),
-            // IC-315: override without a note.
-            (
-              'ex-dup',
-              BlockReason.unknownEquipment,
-              const AddEquipmentCorrection([
-                ExerciseEquipment(
-                  EquipmentItemId('bench'),
-                  roleOverride: EquipmentRole.load,
-                ),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
-            ),
-            // IC-315 / Q6: override on a cardio item.
-            (
-              'ex-dup',
-              BlockReason.unknownEquipment,
-              const AddEquipmentCorrection([
-                ExerciseEquipment(
-                  EquipmentItemId('treadmill'),
-                  roleOverride: EquipmentRole.load,
-                  overrideNote: 'why',
-                ),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
-            ),
-            // IC-307: unknown item.
-            (
-              'ex-dup',
-              BlockReason.unknownEquipment,
-              const AddEquipmentCorrection([
-                ExerciseEquipment(EquipmentItemId('bodyweight')),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
-            ),
-            // IC-307: an item already linked.
-            (
-              'ex-rotator',
-              BlockReason.unknownEquipment,
-              const AddEquipmentCorrection([
-                ExerciseEquipment(EquipmentItemId('dumbbell')),
-                ExerciseEquipment(EquipmentItemId('dumbbell')),
-              ]),
-              (e) => (e as ValidationError).fieldErrors.keys.join(','),
-            ),
-          ];
-      final expectedCodes = [
-        'IC-204:targets',
-        'IC-301:targets',
-        'IC-303:targets',
-        'IC-315:equipment',
-        'IC-315:equipment',
-        'IC-307:equipment',
-        'IC-307:equipment',
+          ]),
+          'IC-315:equipment',
+        ),
+        (
+          'ex-dup',
+          BlockReason.unknownEquipment,
+          const SetEquipmentCorrection([
+            ExerciseEquipment(EquipmentItemId('bodyweight')),
+          ]),
+          'IC-307:equipment',
+        ),
+        (
+          'ex-rotator',
+          BlockReason.unknownEquipment,
+          const SetEquipmentCorrection([
+            ExerciseEquipment(EquipmentItemId('dumbbell')),
+            ExerciseEquipment(EquipmentItemId('dumbbell')),
+          ]),
+          'IC-307:equipment',
+        ),
       ];
-      for (var i = 0; i < cases.length; i++) {
-        final (id, reason, fix, codes) = cases[i];
+      for (final (id, reason, fix, code) in cases) {
         final r = await writesNothing(
           () => h.library.correctBlockedReason(id, reason, fix),
         );
-        expect(codes(err(r)), contains(expectedCodes[i]), reason: '$i');
+        expect(
+          (err(r) as ValidationError).fieldErrors.keys,
+          contains(code),
+          reason: '$id $code',
+        );
       }
     });
 
     test('one transaction: a failure in the last write (the report run) '
-        'undoes the targets and the block resolution', () async {
-      // The correction run id will be `correction:new-1`; occupy it.
+        'undoes the field and the block resolution', () async {
       await sql(
         'INSERT INTO migration_runs (id, trigger_kind, generated_at, '
         'app_version, provenance_kind, provenance_source) VALUES '
@@ -678,19 +814,22 @@ void main() {
       );
       final r = await writesNothing(
         () => h.library.correctBlockedReason(
-          'ex-empty',
+          'ex-sec-only',
           BlockReason.noPrimaryTarget,
-          const AddTargetsCorrection([
-            (node: AnatomyNodeId('abs'), role: TargetRole.primary),
+          const SetTargetsCorrection([
+            (node: AnatomyNodeId('rearDelts'), role: TargetRole.primary),
           ]),
         ),
       );
       expect(err(r), isA<StorageError>());
-      expect((await h.library.availability('ex-empty'))!.isBlocked, isTrue);
+      expect((await h.library.availability('ex-sec-only'))!.isBlocked, isTrue);
     });
 
-    test('mismatched, empty, inactive, system and missing corrections are '
+    test('mismatched, inactive, unrouted, system and missing corrections are '
         'refused and write nothing', () async {
+      const toDumbbell = SetEquipmentCorrection([
+        ExerciseEquipment(EquipmentItemId('dumbbell')),
+      ]);
       Future<AppError> refused(
         String id,
         BlockReason reason,
@@ -700,64 +839,54 @@ void main() {
           () => h.library.correctBlockedReason(id, reason, fix),
         ),
       );
+      Future<String?> fieldOf(
+        String id,
+        BlockReason reason,
+        BlockCorrection fix,
+      ) async => (await refused(id, reason, fix) as ValidationError).field;
+
       expect(
-        (await refused(
-          'ex-rotator',
-          BlockReason.noPrimaryTarget,
-          addDumbbell,
-        ) as ValidationError).field,
+        await fieldOf('ex-rotator', BlockReason.noPrimaryTarget, toDumbbell),
         'fix',
       );
       expect(
-        (await refused(
-          'ex-empty',
-          BlockReason.noPrimaryTarget,
-          const AddTargetsCorrection([]),
-        ) as ValidationError).field,
-        'targets',
-      );
-      expect(
-        (await refused(
+        await fieldOf(
           'ex-dup',
           BlockReason.unknownEquipment,
-          const AddEquipmentCorrection([]),
-        ) as ValidationError).field,
-        'equipment',
+          const SetTargetsCorrection([]),
+        ),
+        'fix',
       );
       expect(
-        (await refused(
-          'ex-empty',
-          BlockReason.unknownEquipment,
-          addDumbbell,
-        ) as ValidationError).field,
+        await fieldOf('ex-empty', BlockReason.unknownEquipment, toDumbbell),
         'reason',
       );
+      // R-C3: invalidSecondaryTarget has no route (and v8 never stores it).
       expect(
-        (await refused(
+        await fieldOf(
           'ex-rotator',
           BlockReason.invalidSecondaryTarget,
-          addDumbbell,
-        ) as ValidationError).field,
+          toDumbbell,
+        ),
         'reason',
       );
       expect(
-        await refused('ex-deleted', BlockReason.noPrimaryTarget, addDumbbell),
+        await refused('ex-deleted', BlockReason.noPrimaryTarget, toDumbbell),
         isA<NotFoundError>(),
       );
       expect(
-        await refused('no-such', BlockReason.noPrimaryTarget, addDumbbell),
+        await refused('no-such', BlockReason.noPrimaryTarget, toDumbbell),
         isA<NotFoundError>(),
       );
       expect(
-        (await refused(
+        await fieldOf(
           'ex-unmapped-enums',
           BlockReason.noPrimaryTarget,
-          addDumbbell,
-        ) as ValidationError).field,
+          toDumbbell,
+        ),
         'exerciseId',
       );
-      // A blocked system exercise is corrected by a catalogue release
-      // (ADR-0009), never by the user.
+      // A blocked system exercise has no route in 3b (ADR-0009; R-C9).
       await sql(
         'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
         "blocked_at, resolved_at) VALUES ('lib-leg-press', "
@@ -765,11 +894,11 @@ void main() {
         [V8LibraryFixture.now.toIso8601String()],
       );
       expect(
-        (await refused(
+        await fieldOf(
           'lib-leg-press',
           BlockReason.unknownEquipment,
-          addDumbbell,
-        ) as ValidationError).field,
+          toDumbbell,
+        ),
         'source',
       );
       // Already resolved.
@@ -777,15 +906,15 @@ void main() {
         await h.library.correctBlockedReason(
           'ex-dup',
           BlockReason.unknownEquipment,
-          addDumbbell,
+          const SetEquipmentCorrection([]),
         ),
       );
       expect(
         (await refused(
           'ex-dup',
           BlockReason.unknownEquipment,
-          addDumbbell,
-        ) as ValidationError).message,
+          toDumbbell,
+        )).message,
         contains('already resolved'),
       );
     });

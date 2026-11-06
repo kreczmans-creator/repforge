@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:meta/meta.dart';
 import 'package:repforge/data/db/v8/app_database_v8.dart' hide ExerciseNames;
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/ids.dart';
@@ -35,17 +36,20 @@ import 'package:repforge/domain/training/training_validation.dart'
 /// architecture test `schema_v8_isolation_test.dart` keeps
 /// `lib/data/repositories/v8/` inside the isolated zone.
 ///
-/// Rules (sources in `exercise_availability.dart` and the methods):
-/// - [selectable] offers only exercises that may enter new work: never a
-///   blocked, retired, archived or deleted one;
+/// Rules (sources in `exercise_availability.dart`, the methods and the
+/// register `docs/v8-library-use-cases.md`):
+/// - [selectable] offers only discoverable exercises: never a blocked,
+///   retired, archived or deleted one;
 /// - [byId], [history] and [planEntries] read every exercise, whatever its
 ///   availability, so history stays readable;
 /// - [addPlanExercise] and [addSessionExercise] (the v8 equivalents of the
-///   WP 9 write paths that add an exercise to new work) refuse an exercise
-///   that cannot enter new work and write nothing;
-/// - [correctBlockedReason] resolves one block reason in one transaction,
-///   validated by the 3a exercise rules, and never touches plans, sessions,
-///   entries or sets.
+///   WP 9 write paths that add an exercise to new work) refuse a blocked,
+///   archived or deleted exercise and write nothing; a retired one is not
+///   refused (register R-C8);
+/// - [correctBlockedReason] sets the field behind a block (targets or
+///   equipment) in one transaction, validated by the 3a exercise rules,
+///   resolves every active reason of that field (R-C4), and never touches
+///   plans, sessions, entries or sets.
 final class DriftLibraryRepositoryV8 {
   DriftLibraryRepositoryV8(
     this._db, {
@@ -67,37 +71,52 @@ final class DriftLibraryRepositoryV8 {
 
   // ---- Reads ---------------------------------------------------------------
 
-  /// Exercises that may enter new work and match [query], ordered by name
-  /// (ignoring case and diacritics), then id.
+  /// Exercises that selection and discovery offer, matching [query],
+  /// ordered by name (ignoring case and diacritics), then id.
   ///
   /// Excluded: deleted, retired, archived and blocked exercises (any active
   /// block row, R-01), and exercises whose stored type, category or alias
   /// list the library cannot read (see [LibraryExerciseV8.exercise]). The
-  /// exclusion is applied in SQL and again through the domain predicate
-  /// [ExerciseAvailability.canEnterNewWork].
+  /// exclusion is applied twice, independently: in SQL
+  /// ([selectionCandidateIds]) and through the domain predicate
+  /// [ExerciseAvailability.isDiscoverable].
   Future<List<CatalogueExercise>> selectable([
     LibrarySelectionQuery query = const LibrarySelectionQuery(),
   ]) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT e.id FROM exercises e '
-          'WHERE e.deleted_at IS NULL AND e.archived = 0 '
-          'AND e.retired_at IS NULL AND NOT EXISTS ( '
-          'SELECT 1 FROM exercise_blocks b WHERE b.exercise_id = e.id '
-          'AND b.resolved_at IS NULL)',
-          readsFrom: {_db.exercisesV8, _db.exerciseBlocks},
-        )
-        .get();
-    final candidates = await _load([
-      for (final r in rows) r.read<String>('id'),
-    ]);
+    final candidates = await _load(
+      await selectionCandidateIds(includeArchived: query.includeArchived),
+    );
     final reference = await _referenceData();
     final out = [
       for (final c in candidates)
-        if (c.availability.canEnterNewWork && c.exercise != null)
+        if (c.availability.discoverable(
+              includeArchived: query.includeArchived,
+            ) &&
+            c.exercise != null)
           if (query.matches(c, reference.anatomy)) c.exercise!,
     ]..sort(_byName);
     return out;
+  }
+
+  /// The SQL half of [selectable]: ids of exercises that are not deleted,
+  /// archived (unless [includeArchived]) or retired and have no unresolved
+  /// block row, in id order.
+  @visibleForTesting
+  Future<List<String>> selectionCandidateIds({
+    bool includeArchived = false,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT e.id FROM exercises e '
+          'WHERE e.deleted_at IS NULL '
+          '${includeArchived ? '' : 'AND e.archived = 0 '}'
+          'AND e.retired_at IS NULL AND NOT EXISTS ( '
+          'SELECT 1 FROM exercise_blocks b WHERE b.exercise_id = e.id '
+          'AND b.resolved_at IS NULL) ORDER BY e.id',
+          readsFrom: {_db.exercisesV8, _db.exerciseBlocks},
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
   }
 
   static int _byName(CatalogueExercise a, CatalogueExercise b) {
@@ -177,10 +196,12 @@ final class DriftLibraryRepositoryV8 {
 
   /// Ok with the exercise when [exerciseId] may enter new work; otherwise
   /// the refusal: [NotFoundError] for a missing or deleted exercise, a
-  /// [ValidationError] on field `exerciseId` for a blocked, retired or
-  /// archived one or one the library cannot read. `fieldErrors` carries
-  /// `availability` (the state) and, when blocked, `blockReasons` (the
-  /// active reasons, comma-separated, R-01).
+  /// [ValidationError] on field `exerciseId` for a blocked or archived one
+  /// or one the library cannot read. `fieldErrors` carries `availability`
+  /// (`blocked`, `archived` or `unreadable`) and, when blocked,
+  /// `blockReasons` (the active reasons, comma-separated, R-01). A retired
+  /// exercise is **not** refused: retirement hides it from discovery only
+  /// (ADR-0009 decision 4; owner question R-C8).
   Future<Result<LibraryExerciseV8>> requireNewWork(String exerciseId) async {
     final stored = await byId(exerciseId);
     return _newWork(stored);
@@ -192,26 +213,22 @@ final class DriftLibraryRepositoryV8 {
     }
     final a = stored.availability;
     if (!a.canEnterNewWork) {
-      final message = switch (a.state) {
-        ExerciseAvailabilityState.blocked =>
-          'This exercise is blocked '
-              '(${a.blockReasons.map((r) => r.name).join(', ')}) and cannot '
-              'be used for new work. Its history stays readable.',
-        ExerciseAvailabilityState.retired =>
-          'This exercise was retired by a catalogue release and cannot be '
-              'used for new work.',
-        ExerciseAvailabilityState.archived =>
-          'An archived exercise cannot be used. Restore it first.',
-        ExerciseAvailabilityState.deleted ||
-        ExerciseAvailabilityState.selectable => 'Unexpected state.',
-      };
+      // Blocked wins over archived: unarchiving never unblocks (R-01).
+      final state = a.isBlocked
+          ? ExerciseAvailabilityState.blocked
+          : ExerciseAvailabilityState.archived;
+      final message = a.isBlocked
+          ? 'This exercise is blocked '
+                '(${a.blockReasons.map((r) => r.name).join(', ')}) and cannot '
+                'be used for new work. Its history stays readable.'
+          : 'An archived exercise cannot be used. Restore it first.';
       return Err(
         ValidationError(
           message,
           field: 'exerciseId',
           fieldErrors: {
             'exerciseId': message,
-            'availability': a.state.name,
+            'availability': state.name,
             if (a.isBlocked)
               'blockReasons': a.blockReasons.map((r) => r.name).join(','),
           },
@@ -361,30 +378,40 @@ final class DriftLibraryRepositoryV8 {
 
   // ---- Correction route ----------------------------------------------------
 
-  /// Resolves the block [reason] of [exerciseId] with [fix], in one
-  /// transaction (D04 §7, 2026-11-06: "Provide a route to correct the
-  /// record later without rewriting historical sessions"; R-01).
+  /// Corrects the field behind the active block [reason] of [exerciseId]
+  /// with [fix], in one transaction (D04 §7, 2026-11-06: "Provide a route to
+  /// correct the record later without rewriting historical sessions"; R-01).
   ///
-  /// - The exercise must be a `user` or `imported` exercise. A `system`
-  ///   exercise is read-only for users and is corrected by a catalogue
-  ///   release (ADR-0009 decision 4 and rationale: edits of system content
-  ///   create copies; only the reconciler writes system-owned fields).
-  /// - The block [reason] must be active. `noPrimaryTarget` takes an
-  ///   [AddTargetsCorrection]; `unknownEquipment` and `invalidEquipment` take
-  ///   an [AddEquipmentCorrection]. Both must add at least one row; nothing
-  ///   is inferred or invented.
+  /// - The exercise must be a `user` or `imported` exercise. A blocked
+  ///   `system` exercise has no route in stage 3b: system content is
+  ///   read-only for users and only a catalogue release writes it (ADR-0009
+  ///   decision 4 and rationale); how a release clears a block is a stage 3c
+  ///   requirement (register R-C9).
+  /// - [reason] must be active. Its field takes the matching fix:
+  ///   `noPrimaryTarget` → [SetTargetsCorrection]; `unknownEquipment` and
+  ///   `invalidEquipment` → [SetEquipmentCorrection]. `invalidSecondaryTarget`
+  ///   has no route (register R-C3).
+  /// - The fix **sets the whole field**: the given list replaces the stored
+  ///   one (rows deleted and inserted in this transaction, as register R-29
+  ///   prescribes for reordering). Targets are stored primaries first, then
+  ///   secondaries, each group in the given order, ordinals contiguous from 0
+  ///   (IC-309), so a kept secondary can become the primary. The equipment
+  ///   list may be **empty**: an exercise that needs no item has no rows
+  ///   (`equipment.md` section 1 rule 2), which corrects a legacy
+  ///   `"bodyweight"` or `"None"` faithfully. Nothing is inferred.
   /// - The corrected exercise is checked with the 3a rules
   ///   (`validateExercise`): no error-severity finding may remain on the
-  ///   corrected field (`targets`: IC-204 at least one primary, IC-301,
-  ///   IC-302, IC-303, IC-304, IC-305, IC-309; `equipment`: IC-307, IC-315
-  ///   including Q6). Findings on fields the correction does not touch are
-  ///   not this correction's concern.
-  /// - Writes: the added rows (contiguous ordinals after the existing ones),
-  ///   `resolved_at` of that one block row, `updated_at` of the exercise,
-  ///   and one report run with one entry and its counts
-  ///   ([CorrectionReportContract], **provisional, owner decision open**).
-  ///   Plans, sessions, entries and sets are never touched. Another active
-  ///   reason keeps the exercise blocked (R-01).
+  ///   corrected field (`targets`: IC-204 at least one primary, IC-301 to
+  ///   IC-305, IC-309; `equipment`: IC-307, IC-315 including Q6). Findings on
+  ///   untouched fields are not this correction's concern (register C-5).
+  /// - Every active reason tied to the corrected field is resolved
+  ///   ([BlockedField]; register R-C4); a reason of another field keeps the
+  ///   exercise blocked (R-01).
+  /// - Writes: the field's rows, `resolved_at` of the resolved block rows,
+  ///   `updated_at` of the exercise, and one report run with one entry per
+  ///   resolved reason, recording the field's value before and after (R-06),
+  ///   and its counts ([CorrectionReportContract], **provisional, owner
+  ///   decision C-1**). Plans, sessions, entries and sets are never touched.
   /// - Any refusal or failure writes nothing.
   Future<Result<BlockCorrectionOutcome>> correctBlockedReason(
     String exerciseId,
@@ -418,23 +445,21 @@ final class DriftLibraryRepositoryV8 {
             ),
           );
         }
-        final resolved = resolveBlock(
-          stored.availability.blocks,
-          reason,
-          _clock.now().toUtc(),
-        );
-        if (resolved.problem case final problem?) {
+        if (!stored.availability.blockReasons.contains(reason)) {
+          final wasBlocked = stored.availability.blocks.any(
+            (b) => b.reason == reason,
+          );
           return Err<BlockCorrectionOutcome>(
-            ValidationError(switch (problem) {
-              BlockResolutionProblem.notBlockedForReason =>
-                'The exercise is not blocked for ${reason.name}.',
-              BlockResolutionProblem.alreadyResolved =>
-                'The block ${reason.name} is already resolved.',
-            }, field: 'reason'),
+            ValidationError(
+              wasBlocked
+                  ? 'The block ${reason.name} is already resolved.'
+                  : 'The exercise is not blocked for ${reason.name}.',
+              field: 'reason',
+            ),
           );
         }
-        final rule = CorrectionReportContract.ruleFor(reason);
-        if (rule == null) {
+        final field = BlockedField.of(reason);
+        if (field == null) {
           return Err<BlockCorrectionOutcome>(
             ValidationError(
               'The block reason ${reason.name} has no correction route.',
@@ -443,43 +468,26 @@ final class DriftLibraryRepositoryV8 {
           );
         }
         final CatalogueExercise corrected;
-        final String field;
-        switch ((reason, fix)) {
-          case (BlockReason.noPrimaryTarget, AddTargetsCorrection(:final add)):
-            if (add.isEmpty) {
-              return const Err<BlockCorrectionOutcome>(
-                ValidationError('Add at least one target.', field: 'targets'),
-              );
-            }
-            final base = current.targets.length;
+        switch ((field, fix)) {
+          case (BlockedField.targets, SetTargetsCorrection(:final targets)):
+            final ordered = [
+              for (final t in targets)
+                if (t.role == TargetRole.primary) t,
+              for (final t in targets)
+                if (t.role != TargetRole.primary) t,
+            ];
             corrected = current.copyWith(
               targets: [
-                ...current.targets,
-                for (var i = 0; i < add.length; i++)
+                for (var i = 0; i < ordered.length; i++)
                   ExerciseTarget(
-                    node: add[i].node,
-                    role: add[i].role,
-                    ordinal: base + i,
+                    node: ordered[i].node,
+                    role: ordered[i].role,
+                    ordinal: i,
                   ),
               ],
             );
-            field = 'targets';
-          case (
-            BlockReason.unknownEquipment || BlockReason.invalidEquipment,
-            AddEquipmentCorrection(:final add),
-          ):
-            if (add.isEmpty) {
-              return const Err<BlockCorrectionOutcome>(
-                ValidationError(
-                  'Add at least one equipment item.',
-                  field: 'equipment',
-                ),
-              );
-            }
-            corrected = current.copyWith(
-              equipment: [...current.equipment, ...add],
-            );
-            field = 'equipment';
+          case (BlockedField.equipment, SetEquipmentCorrection(:final items)):
+            corrected = current.copyWith(equipment: items);
           default:
             return Err<BlockCorrectionOutcome>(
               ValidationError(
@@ -490,72 +498,82 @@ final class DriftLibraryRepositoryV8 {
             );
         }
         final ctx = await _ruleContext();
-        final problems = _errorsOn(validateExercise(corrected, ctx), {field});
+        final problems = _errorsOn(validateExercise(corrected, ctx), {
+          field.name,
+        });
         if (problems != null) return Err<BlockCorrectionOutcome>(problems);
 
         final now = _clock.now().toUtc();
-        if (field == 'targets') {
-          await _insertTargets(
-            exerciseId,
-            corrected.targets.skip(current.targets.length),
-          );
+        final resolution = resolveField(stored.availability.blocks, field, now);
+        if (field == BlockedField.targets) {
+          await (_db.delete(
+            _db.exerciseTargets,
+          )..where((t) => t.exerciseId.equals(exerciseId))).go();
+          await _insertTargets(exerciseId, corrected.targets);
         } else {
+          await (_db.delete(
+            _db.exerciseEquipmentLinks,
+          )..where((t) => t.exerciseId.equals(exerciseId))).go();
           await _insertEquipment(
             exerciseId,
-            corrected.equipment.skip(current.equipment.length),
-            firstOrdinal: await _nextEquipmentOrdinal(exerciseId),
+            corrected.equipment,
+            firstOrdinal: 0,
           );
         }
-        final changed =
-            await (_db.update(_db.exerciseBlocks)..where(
-                  (t) =>
-                      t.exerciseId.equals(exerciseId) &
-                      t.reason.equals(reason.name) &
-                      t.resolvedAt.isNull(),
-                ))
-                .write(ExerciseBlocksCompanion(resolvedAt: Value(now)));
-        if (changed != 1) {
-          throw StateError('block $exerciseId/${reason.name} changed');
+        for (final r in resolution.resolved) {
+          final changed =
+              await (_db.update(_db.exerciseBlocks)..where(
+                    (t) =>
+                        t.exerciseId.equals(exerciseId) &
+                        t.reason.equals(r.name) &
+                        t.resolvedAt.isNull(),
+                  ))
+                  .write(ExerciseBlocksCompanion(resolvedAt: Value(now)));
+          if (changed != 1) {
+            throw StateError('block $exerciseId/${r.name} changed');
+          }
         }
         await (_db.update(_db.exercisesV8)
               ..where((t) => t.id.equals(exerciseId)))
             .write(ExercisesV8Companion(updatedAt: Value(now)));
 
-        final event = ReportEvent(
-          table: CorrectionReportContract.table,
-          recordId: exerciseId,
-          field: field,
-          originalValue: encodeStoredValue(
-            field == 'targets'
-                ? _targetsJson(current.targets)
-                : _equipmentJson(current.equipment),
-          ),
-          resultingValue: encodeStoredValue(
-            field == 'targets'
-                ? _targetsJson(corrected.targets)
-                : _equipmentJson(corrected.equipment),
-          ),
-          action: CorrectionReportContract.action,
-          rule: rule,
-          category: CorrectionReportContract.category,
-          reason:
-              'The block ${reason.name} was resolved by a user correction of '
-              '$field; historical sessions are unchanged.',
-        );
+        final before = field == BlockedField.targets
+            ? _targetsJson(current.targets)
+            : _equipmentJson(current.equipment);
+        final after = field == BlockedField.targets
+            ? _targetsJson(corrected.targets)
+            : _equipmentJson(corrected.equipment);
+        final events = [
+          for (final r in BlockReason.values)
+            if (resolution.resolved.contains(r))
+              ReportEvent(
+                table: CorrectionReportContract.table,
+                recordId: exerciseId,
+                field: field.name,
+                originalValue: encodeStoredValue(before),
+                resultingValue: encodeStoredValue(after),
+                action: CorrectionReportContract.action,
+                rule: CorrectionReportContract.ruleFor(r)!,
+                category: CorrectionReportContract.category,
+                reason:
+                    'The block ${r.name} was resolved by a user correction '
+                    'of ${field.name}; historical sessions are unchanged.',
+              ),
+        ];
         final runId = CorrectionReportContract.runIdFor(_newId());
-        final eventId = await _writeCorrectionRun(
+        final eventIds = await _writeCorrectionRun(
           runId,
           now,
           exerciseId,
-          event,
+          events,
         );
-        final after = await byId(exerciseId);
+        final afterRow = await byId(exerciseId);
         return Ok(
           BlockCorrectionOutcome(
-            exercise: after!,
-            reason: reason,
+            exercise: afterRow!,
+            resolved: resolution.resolved,
             runId: runId,
-            eventId: eventId,
+            eventIds: eventIds,
           ),
         );
       });
@@ -564,11 +582,11 @@ final class DriftLibraryRepositoryV8 {
     }
   }
 
-  Future<String> _writeCorrectionRun(
+  Future<List<String>> _writeCorrectionRun(
     String runId,
     DateTime at,
     String exerciseId,
-    ReportEvent event,
+    List<ReportEvent> events,
   ) async {
     final builder =
         MigrationReportBuilder(
@@ -579,10 +597,10 @@ final class DriftLibraryRepositoryV8 {
             appVersion: appVersion,
           ),
         )..examine(
-          table: event.table,
-          recordId: event.recordId,
+          table: CorrectionReportContract.table,
+          recordId: exerciseId,
           cleanOutcome: ReportCategory.migrated,
-          events: [event],
+          events: events,
         );
     final report = builder.build();
     await _db
@@ -648,7 +666,7 @@ final class DriftLibraryRepositoryV8 {
             );
       }
     }
-    return report.entries.single.eventId;
+    return [for (final e in report.entries) e.eventId];
   }
 
   static String _targetsJson(List<ExerciseTarget> targets) => jsonEncode([
@@ -939,15 +957,6 @@ final class DriftLibraryRepositoryV8 {
             ),
           );
     }
-  }
-
-  Future<int> _nextEquipmentOrdinal(String exerciseId) async {
-    final rows = await (_db.select(
-      _db.exerciseEquipmentLinks,
-    )..where((t) => t.exerciseId.equals(exerciseId))).get();
-    return rows.isEmpty
-        ? 0
-        : rows.map((r) => r.ordinal).reduce((a, b) => a > b ? a : b) + 1;
   }
 
   Future<void> _insertEquipment(
@@ -1312,6 +1321,7 @@ final class LibrarySelectionQuery {
     this.target,
     this.availableEquipment,
     this.sources,
+    this.includeArchived = false,
   });
 
   /// Every word must occur in the stored search key (name and aliases,
@@ -1329,6 +1339,10 @@ final class LibrarySelectionQuery {
   /// exercise with no equipment always passes.
   final Set<EquipmentItemId>? availableEquipment;
   final Set<ExerciseSource>? sources;
+
+  /// Also offer archived exercises (WP 9 history views, TRN-012(2)); never
+  /// blocked, retired or deleted ones.
+  final bool includeArchived;
 
   bool matches(LibraryExerciseV8 stored, AnatomyTree anatomy) {
     final e = stored.exercise;
@@ -1356,42 +1370,47 @@ final class LibrarySelectionQuery {
   }
 }
 
-/// A fix for one block reason (see
-/// [DriftLibraryRepositoryV8.correctBlockedReason]).
+/// A fix for the field behind a block reason (see
+/// [DriftLibraryRepositoryV8.correctBlockedReason]). Each fix sets the whole
+/// field.
 sealed class BlockCorrection {
   const BlockCorrection();
 }
 
-/// Adds anatomy targets (for `noPrimaryTarget`). The rows follow the
-/// existing targets in the given order; ordinals stay contiguous (IC-309).
-final class AddTargetsCorrection extends BlockCorrection {
-  const AddTargetsCorrection(this.add);
+/// Sets the full target list (for `noPrimaryTarget`). Stored primaries
+/// first, then secondaries, each group in the given order, ordinals
+/// contiguous from 0 (IC-309); a kept secondary can become the primary.
+final class SetTargetsCorrection extends BlockCorrection {
+  const SetTargetsCorrection(this.targets);
 
-  final List<({AnatomyNodeId node, TargetRole role})> add;
+  final List<({AnatomyNodeId node, TargetRole role})> targets;
 }
 
-/// Adds equipment links (for `unknownEquipment` and `invalidEquipment`),
-/// with optional role overrides and notes (IC-315).
-final class AddEquipmentCorrection extends BlockCorrection {
-  const AddEquipmentCorrection(this.add);
+/// Sets the full equipment list (for `unknownEquipment` and
+/// `invalidEquipment`), with optional role overrides and notes (IC-315).
+/// The list may be empty: an exercise that needs no item has none
+/// (`equipment.md` section 1 rule 2).
+final class SetEquipmentCorrection extends BlockCorrection {
+  const SetEquipmentCorrection(this.items);
 
-  final List<ExerciseEquipment> add;
+  final List<ExerciseEquipment> items;
 }
 
-/// The result of a correction: the exercise after it, the resolved reason,
-/// and the report run and entry that record it.
+/// The result of a correction: the exercise after it, the reasons resolved
+/// (every active reason of the corrected field, R-C4), and the report run
+/// and entries (one per resolved reason) that record it.
 final class BlockCorrectionOutcome {
   const BlockCorrectionOutcome({
     required this.exercise,
-    required this.reason,
+    required this.resolved,
     required this.runId,
-    required this.eventId,
+    required this.eventIds,
   });
 
   final LibraryExerciseV8 exercise;
-  final BlockReason reason;
+  final Set<BlockReason> resolved;
   final String runId;
-  final String eventId;
+  final List<String> eventIds;
 
   /// True when another reason keeps the exercise blocked (R-01).
   bool get stillBlocked => exercise.availability.isBlocked;
@@ -1409,24 +1428,27 @@ final class EquipmentRoleChange {
 
 /// How a correction is recorded in the migration report.
 ///
-/// **PROVISIONAL — owner decision required (WS6 register C-1).** The
-/// approved report vocabulary (`quality-and-duplicates.md` section 4.2,
-/// R-03, R-05; the `migration_runs` and `migration_report_entries` CHECKs)
-/// has no trigger and no action for a user correction. Until the owner
-/// decides, a correction is written inside the existing vocabulary:
+/// **PROVISIONAL — owner decision required (register C-1 in
+/// `docs/v8-library-use-cases.md`). Not a decided contract.** The approved
+/// report vocabulary (`quality-and-duplicates.md` section 4.2, R-03, R-05;
+/// the `migration_runs` and `migration_report_entries` CHECKs) has no
+/// trigger and no action for a user correction. Until the owner decides, a
+/// correction is written inside the existing vocabulary, so nothing in the
+/// schema changes:
 /// - its own run per correction (`correction:<id>`), trigger
 ///   `integrityCheck`, provenance `device`, so the migration run that
 ///   blocked the exercise is never changed;
-/// - one entry: table `exercises`, record and exercise = the exercise,
-///   field `targets` or `equipment`, action `mapped`, category `migrated`
-///   (an allowed pair, `ReportEvent.allowedCategories`), rule = the rule of
-///   the block entry (IC-204, ADR-0008-Q12 or R-02), `original_value` and
-///   `resulting_value` = the field's list before and after, as JSON text
-///   (R-06);
+/// - one entry per resolved reason: table `exercises`, record and exercise
+///   = the exercise, field `targets` or `equipment`, action `mapped`,
+///   category `migrated` (an allowed pair, `ReportEvent.allowedCategories`),
+///   rule = the rule of that reason's block entry (IC-204, ADR-0008-Q12 or
+///   R-02, so the event ids differ), `original_value` and `resulting_value`
+///   = the whole field before and after, as JSON text (R-06);
 /// - counts for that table in both dimensions, as the migration writes
 ///   them, so the run reconciles (R-04).
 /// A different decision (for example a new trigger `correction` or action
-/// `corrected`) is a schema and report-contract change.
+/// `corrected`) is a schema and report-contract change; only this class and
+/// its tests change with it.
 abstract final class CorrectionReportContract {
   static const ReportTrigger trigger = ReportTrigger.integrityCheck;
   static const ReportAction action = ReportAction.mapped;

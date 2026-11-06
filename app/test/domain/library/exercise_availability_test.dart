@@ -20,10 +20,13 @@ void main() {
       expect(a.state, ExerciseAvailabilityState.selectable);
       expect(a.states, [ExerciseAvailabilityState.selectable]);
       expect(a.canEnterNewWork, isTrue);
+      expect(a.isDiscoverable, isTrue);
       expect(a.blockReasons, isEmpty);
     });
 
-    test('blocked, retired, archived and deleted each refuse new work', () {
+    test('blocked, retired, archived and deleted are never discoverable; '
+        'blocked, archived and deleted refuse new work, retired does not '
+        '(ADR-0009: hidden from discovery only; R-C8 open)', () {
       final cases = {
         ExerciseAvailabilityState.blocked: ExerciseAvailability(
           exerciseId: 'e',
@@ -45,7 +48,12 @@ void main() {
       for (final MapEntry(key: state, value: a) in cases.entries) {
         expect(a.state, state, reason: '$a');
         expect(a.states, [state]);
-        expect(a.canEnterNewWork, isFalse, reason: '$a');
+        expect(a.isDiscoverable, isFalse, reason: '$a');
+        expect(
+          a.canEnterNewWork,
+          state == ExerciseAvailabilityState.retired,
+          reason: '$a',
+        );
       }
     });
 
@@ -79,6 +87,58 @@ void main() {
       );
       expect(unarchived.canEnterNewWork, isFalse);
       expect(unarchived.toString(), contains('noPrimaryTarget'));
+    });
+  });
+
+  group('R-C4: a field correction resolves every reason of that field', () {
+    test('reasons map to fields; invalidSecondaryTarget has no route', () {
+      expect(
+        BlockedField.of(BlockReason.noPrimaryTarget),
+        BlockedField.targets,
+      );
+      expect(
+        BlockedField.of(BlockReason.unknownEquipment),
+        BlockedField.equipment,
+      );
+      expect(
+        BlockedField.of(BlockReason.invalidEquipment),
+        BlockedField.equipment,
+      );
+      expect(BlockedField.of(BlockReason.invalidSecondaryTarget), isNull);
+    });
+
+    test('equipment resolves both equipment reasons and leaves the target '
+        'reason active', () {
+      final blocks = [
+        active(BlockReason.noPrimaryTarget),
+        active(BlockReason.unknownEquipment),
+        active(BlockReason.invalidEquipment),
+      ];
+      final r = resolveField(blocks, BlockedField.equipment, t1);
+      expect(r.problem, isNull);
+      expect(r.resolved, {
+        BlockReason.unknownEquipment,
+        BlockReason.invalidEquipment,
+      });
+      expect(activeBlockReasons(r.blocks!), {BlockReason.noPrimaryTarget});
+      expect(r.blocks![0], blocks[0]);
+      final t = resolveField(r.blocks!, BlockedField.targets, t1);
+      expect(isBlocked(t.blocks!), isFalse);
+      expect(t.resolved, {BlockReason.noPrimaryTarget});
+    });
+
+    test('a field without an active reason is refused', () {
+      final r = resolveField(
+        [resolved(BlockReason.unknownEquipment)],
+        BlockedField.equipment,
+        t1,
+      );
+      expect(r.problem, BlockResolutionProblem.notBlockedForReason);
+      expect(r.blocks, isNull);
+      expect(
+        resolveField(const [], BlockedField.targets, t1).problem,
+        BlockResolutionProblem.notBlockedForReason,
+      );
     });
   });
 

@@ -114,6 +114,7 @@ void main() {
       containsAll([
         'drift_library_repository_v8.dart',
         'drift_migration_report_repository_v8.dart',
+        'v8_exercise_read_port.dart',
       ]),
     );
     final forbidden = RegExp(

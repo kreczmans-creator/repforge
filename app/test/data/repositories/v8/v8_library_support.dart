@@ -22,6 +22,8 @@ import '../../../migration_v8/v8_migration_support.dart'
 /// `ex-rotator` (noPrimaryTarget and unknownEquipment: two reasons, R-01),
 /// `ex-empty` and `ex-neck` (noPrimaryTarget), `ex-garbage`
 /// (invalidEquipment), `ex-dup` (unknownEquipment). Added here, in v7:
+/// - `ex-sec-only`: an unmappable primary with mappable secondaries
+///   (blocked noPrimaryTarget, secondaries kept);
 /// - legacy history of blocked exercises: session `sess-legacy` with entries
 ///   and sets of `ex-rotator` and `ex-empty`, and plan entries listing them;
 /// - plan `plan-wp9` mixing usable and blocked exercises, and a planned
@@ -48,6 +50,7 @@ abstract final class V8LibraryFixture {
 
   /// Exercises blocked by the migration of the fixture, with their reasons.
   static const Map<String, Set<String>> blocked = {
+    'ex-sec-only': {'noPrimaryTarget'},
     'ex-rotator': {'noPrimaryTarget', 'unknownEquipment'},
     'ex-empty': {'noPrimaryTarget'},
     'ex-neck': {'noPrimaryTarget'},
@@ -61,6 +64,19 @@ abstract final class V8LibraryFixture {
     try {
       const t = '2026-01-10T07:00:00.000Z';
       db
+        // A legacy exercise whose primary cannot be mapped but whose
+        // secondaries can: blocked noPrimaryTarget with kept secondaries
+        // (rearDelts at ordinal 0, upperBack at 1).
+        ..execute(
+          'INSERT INTO exercises (id, created_at, updated_at, deleted_at, '
+          'name, type, category, primary_muscle, secondary_muscles_json, '
+          'equipment_json, aliases_json, search_key, supplied, '
+          'copied_from_id, archived) VALUES (?, ?, ?, NULL, '
+          "'Band pull-apart', 'weighted', 'pull', 'Shoulders', "
+          '\'["rearDelts","upperBack"]\', \'["resistanceBand"]\', '
+          "'[]', 'band pull-apart', 0, NULL, 0)",
+          ['ex-sec-only', t, t],
+        )
         ..execute(
           'INSERT INTO workout_plans (id, created_at, updated_at, deleted_at, '
           'name, split, scheduled_weekdays_json, archived) VALUES '

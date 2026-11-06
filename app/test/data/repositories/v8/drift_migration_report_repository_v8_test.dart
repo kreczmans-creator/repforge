@@ -173,7 +173,7 @@ void main() {
       final outcome = await h.library.correctBlockedReason(
         'ex-empty',
         BlockReason.noPrimaryTarget,
-        const AddTargetsCorrection([
+        const SetTargetsCorrection([
           (node: AnatomyNodeId('abs'), role: TargetRole.primary),
         ]),
       );
@@ -271,7 +271,7 @@ void main() {
       await h.library.correctBlockedReason(
         'ex-rotator',
         BlockReason.unknownEquipment,
-        const AddEquipmentCorrection([
+        const SetEquipmentCorrection([
           ExerciseEquipment(EquipmentItemId('dumbbell')),
         ]),
       );
@@ -282,7 +282,7 @@ void main() {
       await h.library.correctBlockedReason(
         'ex-rotator',
         BlockReason.noPrimaryTarget,
-        const AddTargetsCorrection([
+        const SetTargetsCorrection([
           (node: AnatomyNodeId('shoulders'), role: TargetRole.primary),
         ]),
       );

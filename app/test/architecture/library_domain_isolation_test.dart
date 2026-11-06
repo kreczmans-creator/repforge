@@ -119,6 +119,7 @@ void main() {
       'lib/data/db/migration/v7_to_v8.dart',
       'lib/data/repositories/v8/drift_library_repository_v8.dart',
       'lib/data/repositories/v8/drift_migration_report_repository_v8.dart',
+      'lib/data/repositories/v8/v8_exercise_read_port.dart',
     ]);
   });
 
