@@ -565,3 +565,16 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **Never rushed:** v1–v7 compatibility on frozen fixtures; real process termination; real-device timing. Anything not completed stays outstanding, never "passed".
 - **Handback:** the complete evidence package listed by the owner. Stage 3b stays unaccepted until the owner accepts it explicitly.
 
+### 2026-11-06 — WP 8 3b-2 register R-01 to R-11 approved; 3b-4 authorised (owner)
+- **R-01 Block key:** one row per exercise and blocking reason. Each reason is recorded and resolved independently. An exercise can have several active reasons. Resolving one reason never unblocks it while another stays active.
+- **R-02:** a separate reason code `invalidEquipment`, distinct from `unknownEquipment`.
+- **R-03:** the report gains the action `blocked`.
+- **R-04 Reconciliation:** four mutually exclusive record outcomes sum to the records examined. Every examined record belongs to exactly one outcome. Warnings are additional counts. They may reference records in any outcome and never inflate the total.
+- **R-05 Category codes:** five stored codes, persistent internal identifiers, never editable display text: `migrated` (migrated successfully), `preserved` (preserved unchanged), `quarantinedOrUnresolved` (quarantined or unresolved), `rejectedOrBlocked` (rejected or blocked), `warningForReview` (warnings requiring review). A later change needs an explicit compatibility decision. Display labels are decided separately.
+- **R-06 Original values:** one JSON text encoding contract. It keeps SQL NULL, JSON null, strings and numbers distinct, and never collapses any of them into an empty string.
+- **R-07 Event ids:** deterministic from run id, table, record id, field, position and rule. A resumed migration reuses its original run id. A genuinely new attempt gets a new run id.
+- **R-08 Provenance:** structured: source device or backup, app version and merge time.
+- **R-09 Bootstrap provider:** template values; attribution stays empty until stage 3c.
+- **R-10 Release 1:** hash the exact bundled seed-file bytes with the project's established convention (SHA-256, lowercase hex). The release record states the algorithm and encoding. Nothing hashes a re-serialised form.
+- **R-11 Secondary order:** contiguous and deterministic, as IC-309 requires. A removed or rejected entry leaves no gap.
+- **3b-4 authorised** once these decisions are recorded. All earlier safeguards stay: production schema 7, atomic migration, invalid records kept and reported, blocked history kept, full reconciliation, crash recovery and backup compatibility, independent review. Stage 3b stays unaccepted.
