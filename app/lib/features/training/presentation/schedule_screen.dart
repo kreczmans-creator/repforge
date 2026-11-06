@@ -272,8 +272,14 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             onMove: () => _move(w, name),
             onSkip: () => _skip(w, name),
             onRestore: () => _restore(w),
-            onStart: () =>
-                ref.startFromPlan(context, w.planId, scheduledWorkoutId: w.id),
+            // A deleted plan cannot be started, so the row offers no Start.
+            onStart: plans[w.planId] == null
+                ? null
+                : () => ref.startFromPlan(
+                    context,
+                    w.planId,
+                    scheduledWorkoutId: w.id,
+                  ),
           ),
         ),
       );
@@ -297,7 +303,7 @@ class _ScheduledRow extends StatelessWidget {
   final VoidCallback onMove;
   final VoidCallback onSkip;
   final VoidCallback onRestore;
-  final VoidCallback onStart;
+  final VoidCallback? onStart;
 
   @override
   Widget build(BuildContext context) {
@@ -335,15 +341,16 @@ class _ScheduledRow extends StatelessWidget {
             Wrap(
               spacing: RfSpace.s2,
               children: [
-                Tooltip(
-                  message: 'Start $planName',
-                  child: TextButton.icon(
-                    key: Key('schedule-start-${w.id}'),
-                    onPressed: onStart,
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start'),
+                if (onStart != null)
+                  Tooltip(
+                    message: 'Start $planName',
+                    child: TextButton.icon(
+                      key: Key('schedule-start-${w.id}'),
+                      onPressed: onStart,
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Start'),
+                    ),
                   ),
-                ),
                 Tooltip(
                   message: 'Move $planName to another date',
                   child: TextButton.icon(

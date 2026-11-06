@@ -13,15 +13,19 @@ const planCopySuffix = ' (copy)';
 /// name with " (copy)" appended (the original name is shortened if the result
 /// would pass the name limit), the same exercises and prescriptions under new
 /// plan-exercise ids, is not archived and has no scheduled weekdays. The
-/// original is not changed.
+/// original is not changed. An archived exercise is kept (TD-42: it can still
+/// be copied); an exercise that has been removed is dropped, and a plan with
+/// nothing left is refused.
 final class DuplicatePlan {
   const DuplicatePlan({
     required this.plans,
+    required this.exercises,
     required this.clock,
     required this.newId,
   });
 
   final WorkoutPlanRepository plans;
+  final ExerciseRepository exercises;
   final Clock clock;
   final IdGenerator newId;
 
@@ -31,7 +35,21 @@ final class DuplicatePlan {
       if (source == null) {
         return const Err(NotFoundError('That workout no longer exists.'));
       }
-      const room = maxTrainingNameLength - 7; // planCopySuffix.length
+      final ordered = List.of(source.exercises)
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+      final kept = <PlanExercise>[];
+      for (final e in ordered) {
+        if (await exercises.byId(e.exerciseId) != null) kept.add(e);
+      }
+      if (kept.isEmpty) {
+        return const Err(
+          ValidationError(
+            'Nothing to copy: every exercise in the plan has been removed.',
+            field: 'exercises',
+          ),
+        );
+      }
+      const room = maxTrainingNameLength - planCopySuffix.length;
       final base = source.name.length > room
           ? source.name.substring(0, room).trimRight()
           : source.name;
@@ -40,7 +58,10 @@ final class DuplicatePlan {
         id: newId(),
         name: '$base$planCopySuffix',
         split: source.split,
-        exercises: [for (final e in source.exercises) e.copyWith(id: newId())],
+        exercises: [
+          for (final (i, e) in kept.indexed)
+            e.copyWith(id: newId(), sortOrder: i),
+        ],
         createdAt: now,
         updatedAt: now,
       );
@@ -86,15 +107,26 @@ final class DeletePlan {
 /// `targetDuration` as the longest duration; distance sets give
 /// `targetMetres` as the greatest distance; cardio sets give both when
 /// recorded; `restSeconds` is the most common recorded rest (the earliest
-/// wins a tie). Loads are not carried over. The plan is stored through
+/// wins a tie). Loads are not carried over. An entry whose exercise is
+/// archived or removed is left out, as when starting a workout from a plan,
+/// and its name is reported in [SaveSessionAsPlanOutcome.skippedNames]; the
+/// save is refused only when no entry remains. The plan is stored through
 /// [SavePlan], so it is validated like any other plan.
 final class SaveSessionAsPlan {
-  const SaveSessionAsPlan({required this.sessions, required this.savePlan});
+  const SaveSessionAsPlan({
+    required this.sessions,
+    required this.exercises,
+    required this.savePlan,
+  });
 
   final WorkoutSessionRepository sessions;
+  final ExerciseRepository exercises;
   final SavePlan savePlan;
 
-  Future<Result<WorkoutPlan>> call(String sessionId, {String? name}) async {
+  Future<Result<SaveSessionAsPlanOutcome>> call(
+    String sessionId, {
+    String? name,
+  }) async {
     final WorkoutSession? session;
     try {
       session = await sessions.byId(sessionId);
@@ -105,12 +137,24 @@ final class SaveSessionAsPlan {
       return const Err(NotFoundError('That workout no longer exists.'));
     }
     final planExercises = <PlanExercise>[];
+    final skipped = <String>[];
     for (final entry in session.exercises) {
       final sets = [
         for (final s in session.sets)
           if (s.sessionExerciseId == entry.id) s,
       ]..sort((a, b) => a.setOrder.compareTo(b.setOrder));
       if (sets.isEmpty) continue;
+      final Exercise? exercise;
+      try {
+        exercise = await exercises.byId(entry.exerciseId);
+      } on Object catch (e) {
+        return Err(StorageError('Could not read the exercises.', cause: e));
+      }
+      if (exercise == null || exercise.archived) {
+        final name = exercise?.name ?? 'Removed exercise';
+        if (!skipped.contains(name)) skipped.add(name);
+        continue;
+      }
       final working = [
         for (final s in sets)
           if (s.completed && s.kind != SetKind.warmUp) s,
@@ -118,17 +162,25 @@ final class SaveSessionAsPlan {
       planExercises.add(_prescribe(entry, working.isEmpty ? sets : working));
     }
     if (planExercises.isEmpty) {
-      return const Err(
+      return Err(
         ValidationError(
-          'This workout has no sets to make a plan from.',
+          skipped.isEmpty
+              ? 'This workout has no sets to make a plan from.'
+              : 'Every exercise in this workout is archived or removed.',
           field: 'sets',
         ),
       );
     }
-    return await savePlan(
+    final saved = await savePlan(
       name: name ?? session.name,
       planExercises: planExercises,
     );
+    return switch (saved) {
+      Ok(:final value) => Ok(
+        SaveSessionAsPlanOutcome(plan: value, skippedNames: skipped),
+      ),
+      Err(:final error) => Err(error),
+    };
   }
 
   PlanExercise _prescribe(SessionExercise entry, List<SessionSet> sets) {
@@ -179,4 +231,16 @@ final class SaveSessionAsPlan {
       restSeconds: rest,
     );
   }
+}
+
+/// What [SaveSessionAsPlan] made: the stored plan and the names of the
+/// exercises left out because they are archived or removed.
+final class SaveSessionAsPlanOutcome {
+  const SaveSessionAsPlanOutcome({
+    required this.plan,
+    this.skippedNames = const [],
+  });
+
+  final WorkoutPlan plan;
+  final List<String> skippedNames;
 }

@@ -64,6 +64,7 @@ final savePlanProvider = Provider<SavePlan>(
 final duplicatePlanProvider = Provider<DuplicatePlan>(
   (ref) => DuplicatePlan(
     plans: ref.watch(workoutPlanRepositoryProvider),
+    exercises: ref.watch(exerciseRepositoryProvider),
     clock: ref.watch(clockProvider),
     newId: ref.watch(idGeneratorProvider),
   ),
@@ -76,6 +77,7 @@ final deletePlanProvider = Provider<DeletePlan>(
 final saveSessionAsPlanProvider = Provider<SaveSessionAsPlan>(
   (ref) => SaveSessionAsPlan(
     sessions: ref.watch(workoutSessionRepositoryProvider),
+    exercises: ref.watch(exerciseRepositoryProvider),
     savePlan: ref.watch(savePlanProvider),
   ),
 );

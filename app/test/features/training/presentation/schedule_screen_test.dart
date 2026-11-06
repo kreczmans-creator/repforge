@@ -438,4 +438,32 @@ void main() {
     expect(tester.takeException(), isNull);
     await unmount(tester);
   });
+
+  testWidgets('a planned occurrence of a deleted workout offers no Start', (
+    tester,
+  ) async {
+    await scheduled.upsert(
+      ScheduledWorkout(
+        id: 'orphan',
+        day: _today,
+        sourceDay: _today,
+        planId: 'ua',
+        origin: ScheduleOrigin.date,
+        status: ScheduleStatus.planned,
+        createdAt: _now.toUtc(),
+        updatedAt: _now.toUtc(),
+      ),
+    );
+    await plans.delete('ua');
+    await open(tester);
+    final row = find.byKey(const Key('scheduled-orphan'));
+    expect(
+      find.descendant(of: row, matching: find.text('Deleted workout')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('schedule-start-orphan')), findsNothing);
+    expect(find.byKey(const Key('schedule-move-orphan')), findsOneWidget);
+    expect(find.byKey(const Key('schedule-skip-orphan')), findsOneWidget);
+    await unmount(tester);
+  });
 }

@@ -156,13 +156,31 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     );
   }
 
-  Future<void> _move(int from, int to) => _do(
-    () => ref.read(reorderSessionExercisesProvider)(
-      sessionId: _id,
-      from: from,
-      to: to,
-    ),
-  );
+  /// True while a reorder is being written and the view reloads: indices
+  /// from a second drag or button press would still refer to the old order.
+  bool _moving = false;
+
+  Future<void> _move(int from, int to) async {
+    if (_moving) return;
+    _moving = true;
+    try {
+      await _do(
+        () => ref.read(reorderSessionExercisesProvider)(
+          sessionId: _id,
+          from: from,
+          to: to,
+        ),
+      );
+      if (!mounted) return;
+      try {
+        await ref.read(sessionViewProvider(_id).future);
+      } on Object {
+        // A failed reload shows its own error state; only the guard matters.
+      }
+    } finally {
+      _moving = false;
+    }
+  }
 
   Future<void> _editSet(SessionSet s, int number, String name) async {
     final saved = await showModalBottomSheet<bool>(

@@ -39,10 +39,15 @@ void main() {
   var n = 0;
   String newId() => 'id${n++}';
 
-  DuplicatePlan duplicate() =>
-      DuplicatePlan(plans: plans, clock: _clock, newId: newId);
+  DuplicatePlan duplicate() => DuplicatePlan(
+    plans: plans,
+    exercises: exercises,
+    clock: _clock,
+    newId: newId,
+  );
   SaveSessionAsPlan saveAsPlan() => SaveSessionAsPlan(
     sessions: sessions,
+    exercises: exercises,
     savePlan: SavePlan(
       plans: plans,
       exercises: exercises,
@@ -172,7 +177,20 @@ void main() {
       () async {
         final longName = 'A' * maxTrainingNameLength;
         await plans.upsert(
-          WorkoutPlan(id: 'p1', name: longName, createdAt: _t, updatedAt: _t),
+          WorkoutPlan(
+            id: 'p1',
+            name: longName,
+            createdAt: _t,
+            updatedAt: _t,
+            exercises: const [
+              PlanExercise(
+                id: 'pe1',
+                exerciseId: 'bench',
+                sortOrder: 0,
+                targetSets: 3,
+              ),
+            ],
+          ),
         );
         final copy = _ok(await duplicate()('p1'));
         expect(copy.name.length, lessThanOrEqualTo(maxTrainingNameLength));
@@ -180,6 +198,55 @@ void main() {
         expect((await plans.byId(copy.id))!.name, copy.name);
       },
     );
+
+    WorkoutPlan twoExercisePlan() => WorkoutPlan(
+      id: 'p1',
+      name: 'Upper A',
+      createdAt: _t,
+      updatedAt: _t,
+      exercises: const [
+        PlanExercise(
+          id: 'pe1',
+          exerciseId: 'bench',
+          sortOrder: 0,
+          targetSets: 3,
+        ),
+        PlanExercise(
+          id: 'pe2',
+          exerciseId: 'pull',
+          sortOrder: 1,
+          targetSets: 3,
+        ),
+      ],
+    );
+
+    test('keeps an archived exercise in the copy', () async {
+      await plans.upsert(twoExercisePlan());
+      await exercises.archive('bench', archived: true);
+      final copy = _ok(await duplicate()('p1'));
+      expect(copy.exercises.map((e) => e.exerciseId), ['bench', 'pull']);
+    });
+
+    test('drops a deleted exercise from the copy', () async {
+      await plans.upsert(twoExercisePlan());
+      await exercises.delete('bench');
+      final copy = _ok(await duplicate()('p1'));
+      expect(copy.exercises.map((e) => e.exerciseId), ['pull']);
+      expect((await plans.byId(copy.id))!.exercises, hasLength(1));
+    });
+
+    test('is refused when every exercise has been deleted', () async {
+      await plans.upsert(twoExercisePlan());
+      await exercises.delete('bench');
+      await exercises.delete('pull');
+      final r = await duplicate()('p1');
+      expect(r, isA<Err<WorkoutPlan>>());
+      expect(
+        (r as Err<WorkoutPlan>).error.message,
+        'Nothing to copy: every exercise in the plan has been removed.',
+      );
+      expect(await plans.watchAll().first, hasLength(1));
+    });
 
     test('a missing plan is reported', () async {
       final r = await duplicate()('nope');
@@ -255,7 +322,7 @@ void main() {
             sets: [(const SetData.bodyweight(reps: 10), null)],
           ),
         ]);
-        final plan = _ok(await saveAsPlan()('s1'));
+        final plan = _ok(await saveAsPlan()('s1')).plan;
         expect(plan.name, 'Push day');
         expect(plan.archived, isFalse);
         expect(plan.exercises.map((e) => e.exerciseId), ['bench', 'pull']);
@@ -302,7 +369,7 @@ void main() {
           ],
         ),
       ]);
-      final plan = _ok(await saveAsPlan()('s1', name: 'Mixed'));
+      final plan = _ok(await saveAsPlan()('s1', name: 'Mixed')).plan;
       expect(plan.name, 'Mixed');
       final plank = plan.exercises[0];
       expect(plank.targetSets, 2);
@@ -321,15 +388,18 @@ void main() {
         (exerciseId: 'bench', sets: []),
         (exerciseId: 'pull', sets: [(const SetData.bodyweight(reps: 5), null)]),
       ]);
-      final plan = _ok(await saveAsPlan()('s1'));
+      final plan = _ok(await saveAsPlan()('s1')).plan;
       expect(plan.exercises.map((e) => e.exerciseId), ['pull']);
     });
 
     test('a session with no sets is refused and no plan is stored', () async {
       await sessionWith('s1', [(exerciseId: 'bench', sets: [])]);
       final r = await saveAsPlan()('s1');
-      expect(r, isA<Err<WorkoutPlan>>());
-      expect((r as Err<WorkoutPlan>).error, isA<ValidationError>());
+      expect(r, isA<Err<SaveSessionAsPlanOutcome>>());
+      expect(
+        (r as Err<SaveSessionAsPlanOutcome>).error,
+        isA<ValidationError>(),
+      );
       expect(await plans.watchAll().first, isEmpty);
     });
 
@@ -340,7 +410,7 @@ void main() {
           sets: [for (var i = 0; i < 25; i++) (w(5), null)],
         ),
       ]);
-      final plan = _ok(await saveAsPlan()('s1'));
+      final plan = _ok(await saveAsPlan()('s1')).plan;
       expect(plan.exercises.single.targetSets, 20);
     });
 
@@ -351,23 +421,46 @@ void main() {
           sets: [(w(5), 90), (w(5), 120), (w(5), 120), (w(5), 90)],
         ),
       ]);
-      final plan = _ok(await saveAsPlan()('s1'));
+      final plan = _ok(await saveAsPlan()('s1')).plan;
       expect(plan.exercises.single.restSeconds, 90);
     });
 
-    test(
-      'an archived exercise surfaces the SavePlan error and stores no plan',
-      () async {
-        await sessionWith('s1', [
-          (exerciseId: 'bench', sets: [(w(5), null)]),
-        ]);
-        await exercises.archive('bench', archived: true);
-        final r = await saveAsPlan()('s1');
-        expect(r, isA<Err<WorkoutPlan>>());
-        expect((r as Err<WorkoutPlan>).error.message, contains('archived'));
-        expect(await plans.watchAll().first, isEmpty);
-      },
-    );
+    test('an archived exercise is skipped and its name reported', () async {
+      await sessionWith('s1', [
+        (exerciseId: 'bench', sets: [(w(5), null)]),
+        (exerciseId: 'pull', sets: [(w(8), null)]),
+      ]);
+      await exercises.archive('bench', archived: true);
+      final outcome = _ok(await saveAsPlan()('s1'));
+      expect(outcome.skippedNames, ['Name bench']);
+      expect(outcome.plan.exercises.map((e) => e.exerciseId), ['pull']);
+      expect(await plans.watchAll().first, hasLength(1));
+    });
+
+    test('a soft-deleted exercise is skipped and reported', () async {
+      await sessionWith('s1', [
+        (exerciseId: 'bench', sets: [(w(5), null)]),
+        (exerciseId: 'pull', sets: [(w(8), null)]),
+      ]);
+      await exercises.delete('bench');
+      final outcome = _ok(await saveAsPlan()('s1'));
+      expect(outcome.plan.exercises.map((e) => e.exerciseId), ['pull']);
+      expect(outcome.skippedNames, hasLength(1));
+    });
+
+    test('every exercise archived is refused and stores no plan', () async {
+      await sessionWith('s1', [
+        (exerciseId: 'bench', sets: [(w(5), null)]),
+      ]);
+      await exercises.archive('bench', archived: true);
+      final r = await saveAsPlan()('s1');
+      expect(r, isA<Err<SaveSessionAsPlanOutcome>>());
+      expect(
+        (r as Err<SaveSessionAsPlanOutcome>).error,
+        isA<ValidationError>(),
+      );
+      expect(await plans.watchAll().first, isEmpty);
+    });
 
     test(
       'warm-up and incomplete sets are ignored when working sets exist',
@@ -393,7 +486,7 @@ void main() {
             's1-e0-s5': (completed: false, kind: SetKind.working),
           },
         );
-        final bench = _ok(await saveAsPlan()('s1')).exercises.single;
+        final bench = _ok(await saveAsPlan()('s1')).plan.exercises.single;
         expect(bench.targetSets, 3);
         expect((bench.repsMin, bench.repsMax), (5, 5));
       },
@@ -412,7 +505,7 @@ void main() {
             's1-e0-s1': (completed: true, kind: SetKind.warmUp),
           },
         );
-        final bench = _ok(await saveAsPlan()('s1')).exercises.single;
+        final bench = _ok(await saveAsPlan()('s1')).plan.exercises.single;
         expect(bench.targetSets, 2);
         expect((bench.repsMin, bench.repsMax), (10, 12));
       },
@@ -420,7 +513,7 @@ void main() {
 
     test('a missing session is reported', () async {
       final r = await saveAsPlan()('nope');
-      expect(r, isA<Err<WorkoutPlan>>());
+      expect(r, isA<Err<SaveSessionAsPlanOutcome>>());
     });
   });
 }

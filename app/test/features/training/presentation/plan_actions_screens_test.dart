@@ -111,6 +111,46 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('an archived exercise is left out and named in the snackbar', (
+      tester,
+    ) async {
+      await h.seed(
+        pastSession(
+          's1',
+          started: DateTime(2026, 11, 1, 9),
+          sets: [(exerciseId: 'squat', kg: 100, reps: 5)],
+        ),
+      );
+      await h.sessions.addExercise(
+        const SessionExercise(
+          id: 'e-old',
+          sessionId: 's1',
+          exerciseId: 'old',
+          position: 5,
+        ),
+      );
+      await h.sessions.addSet(
+        SessionSet(
+          id: 's1-old',
+          sessionId: 's1',
+          exerciseId: 'old',
+          exerciseOrder: 5,
+          setOrder: 0,
+          data: weighted(40, 8),
+          completed: true,
+          sessionExerciseId: 'e-old',
+        ),
+      );
+      await h.open(tester, location: RfRoutes.trainHistoryDetail('s1'));
+      await h.tap(tester, 'detail-save-as-plan');
+      expect(
+        find.text('Saved without: Old press (archived or removed)'),
+        findsOneWidget,
+      );
+      expect(await h.plans.watchAll().first, hasLength(1));
+      await unmount(tester);
+    });
+
     testWidgets('a workout without sets shows an error and stores no plan', (
       tester,
     ) async {
@@ -206,6 +246,42 @@ void main() {
 
       final s = (await h.sessions.byId('s1'))!;
       expect(s.exercises.map((e) => e.exerciseId), ['bench', 'squat', 'plank']);
+      semantics.dispose();
+      await unmount(tester);
+    });
+
+    testWidgets('dragging an exercise handle upward changes the stored order', (
+      tester,
+    ) async {
+      await h.seed(open0());
+      for (final (i, ex) in ['squat', 'bench', 'plank'].indexed) {
+        await h.sessions.addExercise(
+          SessionExercise(
+            id: 'e$i',
+            sessionId: 's1',
+            exerciseId: ex,
+            position: i,
+          ),
+        );
+      }
+      final semantics = tester.ensureSemantics();
+      await h.open(tester, location: RfRoutes.trainSession('s1'));
+
+      final from = tester.getCenter(find.byKey(const Key('entry-drag-e2')));
+      final to = tester.getCenter(find.byKey(const Key('entry-drag-e1')));
+      final g = await tester.startGesture(from);
+      await tester.pump(const Duration(milliseconds: 100));
+      final steps = ((from.dy - to.dy) / 20).ceil() + 4;
+      for (var i = 1; i <= steps; i++) {
+        await g.moveBy(const Offset(0, -20));
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      await tester.pump(const Duration(milliseconds: 300));
+      await g.up();
+      await h.settle(tester);
+
+      final s = (await h.sessions.byId('s1'))!;
+      expect(s.exercises.map((e) => e.exerciseId), ['squat', 'plank', 'bench']);
       semantics.dispose();
       await unmount(tester);
     });

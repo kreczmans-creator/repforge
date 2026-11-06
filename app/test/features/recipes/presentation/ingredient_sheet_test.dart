@@ -160,4 +160,17 @@ void main() {
     expect(find.byTooltip('kilograms'), findsOneWidget);
     await unmount(tester);
   });
+
+  testWidgets('a portions-basis ingredient opens without a unit selector and '
+      'saves', (tester) async {
+    await open(tester, _food(ReferenceUnit.portions));
+    expect(find.byKey(const Key('ingredient-entry-unit')), findsNothing);
+    expect(find.byKey(const Key('ingredient-canonical')), findsNothing);
+    await tester.enterText(find.byKey(const Key('ingredient-amount')), '2');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('ingredient-save')));
+    await tester.pumpAndSettle();
+    expect(result?.quantity, Quantity.fromStored(2, ReferenceUnit.portions));
+    await unmount(tester);
+  });
 }

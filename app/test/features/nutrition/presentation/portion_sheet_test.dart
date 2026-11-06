@@ -226,4 +226,19 @@ void main() {
     expect(find.byTooltip('grams'), findsOneWidget);
     await unmount(tester);
   });
+
+  testWidgets('a portions-basis food opens without a unit selector and logs', (
+    tester,
+  ) async {
+    await open(tester, _food(per100, basis: ReferenceUnit.portions));
+    expect(find.byKey(const Key('portion-entry-unit')), findsNothing);
+    expect(find.byKey(const Key('portion-canonical')), findsNothing);
+    await tester.enterText(find.byKey(const Key('portion-amount')), '2');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('portion-log')));
+    await tester.pumpAndSettle();
+    expect(logged, isNotNull);
+    expect(logged!.quantity, Quantity.fromStored(2, ReferenceUnit.portions));
+    await unmount(tester);
+  });
 }

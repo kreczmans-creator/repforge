@@ -9,6 +9,7 @@ import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/training/volume.dart';
 import 'package:repforge/domain/units/units.dart';
+import 'package:repforge/features/training/application/plan_actions.dart';
 import 'package:repforge/features/training/application/session_view.dart';
 import 'package:repforge/features/training/application/training_providers.dart';
 import 'package:repforge/features/training/presentation/session_dialogs.dart';
@@ -66,7 +67,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     if (_busy) return;
     _busy = true;
     final router = GoRouter.of(context);
-    final Result<WorkoutPlan> result;
+    final Result<SaveSessionAsPlanOutcome> result;
     try {
       result = await ref.read(saveSessionAsPlanProvider)(s.id);
     } finally {
@@ -77,7 +78,13 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
       case Err(:final error):
         _snack(userMessageFor(error));
       case Ok(:final value):
-        unawaited(router.push(RfRoutes.trainPlan(value.id)));
+        if (value.skippedNames.isNotEmpty) {
+          _snack(
+            'Saved without: ${value.skippedNames.join(', ')} '
+            '(archived or removed)',
+          );
+        }
+        unawaited(router.push(RfRoutes.trainPlan(value.plan.id)));
     }
   }
 

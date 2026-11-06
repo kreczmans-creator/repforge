@@ -55,9 +55,11 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
   late final TextEditingController _servings = TextEditingController(text: '1');
   late MealSlot _meal = widget.initialMeal ?? MealSlot.snack;
   ServingSize? _serving;
-  late EntryUnit _entryUnit = EntryUnit.canonicalFor(
+  // Null for a `portions` basis (no measure unit): the typed amount is then
+  // in the reference unit itself, as before WP 15.
+  late EntryUnit? _entryUnit = EntryUnit.canonicalFor(
     widget.food.profile.per100,
-  )!;
+  );
   String? _error;
   bool _busy = false;
 
@@ -88,11 +90,14 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
   Quantity? get _entered {
     final v = double.tryParse(_amount.text.trim().replaceAll(',', '.'));
     if (v == null) return null;
-    return switch (_entryUnit.toCanonical(v)) {
+    return switch (_toStored(v)) {
       Ok(:final value) => value,
       Err() => null,
     };
   }
+
+  Result<Quantity> _toStored(double v) =>
+      _entryUnit?.toCanonical(v) ?? Quantity.of(v, widget.food.profile.per100);
 
   /// Validation error for the typed amount in the current unit, or null when
   /// it converts to a stored quantity.
@@ -101,7 +106,7 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     if (text.isEmpty) return null;
     final v = double.tryParse(text.replaceAll(',', '.'));
     if (v == null) return 'Enter a number.';
-    return switch (_entryUnit.toCanonical(v)) {
+    return switch (_toStored(v)) {
       Ok() => null,
       Err(:final error) => userMessageFor(error),
     };
@@ -177,6 +182,7 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
     final unit = food.profile.per100.symbol;
     final preview = _preview;
     final entered = _entered;
+    final entryUnit = _entryUnit;
     final labels = ref.watch(mealLabelsValueProvider);
     return Padding(
       padding: EdgeInsets.only(
@@ -229,32 +235,36 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
               const SizedBox(height: RfSpace.s3),
             ],
             if (_serving == null) ...[
-              SegmentedButton<EntryUnit>(
-                key: const Key('portion-entry-unit'),
-                showSelectedIcon: false,
-                segments: [
-                  for (final u in EntryUnit.forBase(food.profile.per100))
-                    ButtonSegment(
-                      value: u,
-                      label: Text(u.symbol),
-                      tooltip: u.name,
-                    ),
-                ],
-                selected: {_entryUnit},
-                onSelectionChanged: (s) => _selectUnit(s.first),
-              ),
-              const SizedBox(height: RfSpace.s2),
+              if (entryUnit != null) ...[
+                SegmentedButton<EntryUnit>(
+                  key: const Key('portion-entry-unit'),
+                  showSelectedIcon: false,
+                  segments: [
+                    for (final u in EntryUnit.forBase(food.profile.per100))
+                      ButtonSegment(
+                        value: u,
+                        label: Text(u.symbol),
+                        tooltip: u.name,
+                      ),
+                  ],
+                  selected: {entryUnit},
+                  onSelectionChanged: (s) => _selectUnit(s.first),
+                ),
+                const SizedBox(height: RfSpace.s2),
+              ],
               RfTextField.number(
                 key: const Key('portion-amount'),
                 controller: _amount,
                 label: 'Amount',
-                unit: _entryUnit.symbol,
-                decimals: _entryUnit.decimals,
+                unit: entryUnit?.symbol ?? unit,
+                decimals: entryUnit?.decimals ?? food.profile.per100.decimals,
                 errorText: _error,
                 autofocus: true,
                 onChanged: (_) => setState(() => _error = null),
               ),
-              if (!_entryUnit.isCanonical && entered != null)
+              if (entryUnit != null &&
+                  !entryUnit.isCanonical &&
+                  entered != null)
                 Padding(
                   padding: const EdgeInsets.only(top: RfSpace.s1),
                   child: Text(
