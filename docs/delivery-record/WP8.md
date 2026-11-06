@@ -608,3 +608,29 @@ The migration stays unimplemented until the project resolves the remaining evide
 - Follow-up done: `coverage.json` and `coverage-matrix.md` now carry the approved texts. A new test keeps `coverage.json` equal to the code.
 - The stale X1 comments in `exercise_attributes.dart` and `attribute_boundaries_test.dart` now say closed. No code changed.
 - Only the release and version fields (stage 3c) remain from the stage 3a decisions. This is not stage 3b acceptance.
+
+## Stage 3b — implementation (plan approved 2026-11-06)
+D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at schema version 7.
+
+| Sub-stage | Content | Status |
+|---|---|---|
+| 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | in progress (review found H1, M1–M4; fixing before first commit) |
+| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | waits for the ADR-0008 clarification |
+| 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | authorised |
+| 3b-4 | v7→v8 migration: safeguard A, report, quarantine, blocks | authorised |
+| 3b-5 | All paths v1..v7 → v8 | mandatory evidence |
+| 3b-6 | Real process kill | mandatory evidence |
+| 3b-7 | Backup format 3; restore formats 1–3 | mandatory evidence |
+| 3b-8 | Blocking and correction at domain and use-case level | mandatory evidence |
+| 3b-9 | Device timing | mandatory evidence |
+| 3b-10 | Record, independent review, CI, owner acceptance | — |
+
+### Process incident: analyzer info committed (ede7808)
+- ede7808 added a doc comment line over 80 characters. The local gate grepped the analyzer output and ignored its exit code, so the commit went through.
+- cb841cb fixed one line but missed a second; the same gap let it through.
+- b22224e fixed the comment. `flutter analyze --fatal-infos` exited 0.
+- Correction: every gate now checks the analyzer exit code before a commit. History stays unchanged.
+
+### Technical debt found in 3b-1 (production v7, unchanged)
+- The v6→v7 step `backfillSessionExercises` creates a `session_exercises` row for a set whose session is missing. Each damaged database gains one foreign-key violation. Severity is low: it mirrors existing damage and loses no data. The v8 foreign-key report must tolerate it.
+

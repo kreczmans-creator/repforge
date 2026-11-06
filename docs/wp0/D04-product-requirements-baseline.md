@@ -489,3 +489,43 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - Authorised follow-up: align `coverage.json` and `coverage-matrix.md` with the approved wording and remove the superseded elbow conditions. Thresholds and classifier stay unchanged.
 - The owner closes X1 against the current decision and implementation evidence. This is not stage 3b acceptance.
 
+### 2026-11-06 — WP 8 stage 3b plan approved; report, restore, integrity, attributes, device timing (owner)
+- **Plan:** the owner approved the staged plan (3b-1 to 3b-10) and the isolated version 8 schema.
+  - 3b-2 defines the version 8 schema but never connects it to the app.
+  - 3b-4 never repairs legacy data silently.
+  - The production switch is a separate change that needs explicit owner authorisation after stage 3b acceptance.
+- **Analyzer incident (ede7808, fixed in b22224e):** a process failure. The delivery record keeps the finding and the fix traceable. History stays unchanged.
+- **Report detail:**
+  - Each quarantined, blocked, rejected, changed or exceptional record gets its own row: stable id, field, original value, reason, disposition.
+  - Clean records appear only as reconciled counts by table and outcome.
+  - The report states records examined, migrated cleanly, preserved, blocked, quarantined and rejected. Counts reconcile to the input.
+  - A secondary suppressed by the OQ-19 roll-up rule is normal handling, not a warning. Target assignments stay preserved.
+- **Restore conflicts:** device wins for reference data.
+  - Restore inserts missing reference rows from the backup and overwrites no existing device row.
+  - The same stable id with conflicting immutable content is reported, and the restore fails atomically.
+  - Restore merges migration report history and never replaces it. Stable event ids prevent duplicates on repeated restores. Each report keeps its provenance and timestamp.
+- **3b check scope:** stage 3b verifies blocking and reporting at the domain, data and use-case layers.
+  - Blocked exercises cannot be selected for new work through the use cases.
+  - Workout and session history stays readable.
+  - The report lists each blocked exercise with stable id and reason.
+  - The correction route leaves historical sessions unchanged.
+  - Screen checks, including Settings › Data, move to 3d or the production-switch campaign. Data-layer tests are not evidence that the UI is complete.
+- **Damaged database at upgrade:** if `quick_check` fails before migration, the migration stops.
+  - No version 8 migration, no version 8 written, no record changed or quarantined.
+  - The app reports the integrity failure and shows the recovery and backup route.
+  - The original database stays intact for diagnosis.
+  - The app stays on its version 7 path where safe. It never promises normal operation on a damaged database.
+- **Attributes and equipment roles:** version 8 includes them now.
+  - Each single-valued, stable attribute is a typed column on the exercise.
+  - Equipment roles sit on each exercise-to-equipment association.
+  - Before 3b-2, ADR-0008 states each attribute's exact name, type, values, nullability and validation. A multi-valued or extensible attribute gets its own model.
+  - Nothing is inferred or invented: the schema follows the approved catalogue contract.
+- **Device timing:** one mid-range Android phone and one supported iPhone, with recorded specifications. This is platform evidence, not universal compatibility.
+  - Data: 5,000 exercises, 100,000 sets, the full reference bootstrap, the 303 synthetic no-primary exercises, a representative report and user data.
+  - At least three runs per device from an identical restored start. Record median and worst duration, model, OS, SQLite version, database size and outcome.
+  - Include a normal run and a recovery or retry run.
+  - The profile is a stress profile. Any material difference from the real production profile is recorded.
+- **Structural identity:** the migrated version 8 schema must equal a fresh version 8 database structurally: tables, indexes, triggers, constraints and foreign keys.
+- **Sub-stage authorisation:** 3b-1, 3b-3 and 3b-4 proceed. 3b-2 proceeds once ADR-0008 makes the attributes and equipment roles explicit. 3b-5 to 3b-9 are mandatory acceptance evidence. 3b-10 needs independent review, four green CI workflows, a complete record and owner acceptance.
+- **Production schema** stays version 7 throughout.
+
