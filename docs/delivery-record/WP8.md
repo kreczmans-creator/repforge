@@ -832,3 +832,31 @@ WP 8 has an approved programme baseline allocation of **18 effort points**. This
 The WP 8 lead must add a stage/deliverable breakdown totalling exactly 18 points to the active delivery plan and report allocated, earned and remaining points at every progress update. Earned points must be supported by completed deliverables and evidence; planned, assigned, started or unreviewed work does not earn credit by itself. Report confidence, blockers, dependencies, estimate variance and acceptance status alongside the percentage. Follow `docs/governance/effort-points-and-progress-reporting.md` and the repository-level `AGENTS.md`.
 
 The existing 35% programme snapshot is a provisional estimate (6.30 earned points of 18), not a stage-level earned-progress ledger. It must not be treated as a verified current percentage until the stage breakdown and evidence reconciliation are completed.
+
+
+## Effort-point breakdown and evidence reconciliation (2026-11-06)
+
+**Allocation:** 18.0 points. **Earned:** 7.50 points. **Progress:** 41.7%. **Remaining:** 10.50 points.  
+**Confidence:** Low–medium; this is the first stage-level allocation and must be validated by the WP lead at the next update.  
+**Acceptance:** Active; not accepted. Stage 3 implementation is authorised by the approved revision 3 plan (§21); stage 3 acceptance and final WP acceptance remain owner decisions.
+
+| Stage / deliverable | Allocated | Earned | Evidence / status |
+|---|---:|---:|---|
+| Stage 1 — training domain, schema v6, use cases | 2.00 | 2.00 | Implemented, independently reviewed and verified; delivery record test and CI evidence |
+| Stage 2 — Train tab library and exercise screens | 1.50 | 1.50 | Implemented, independently reviewed and verified; delivery record test and CI evidence |
+| Review fixes and regression closure for stages 1–2 | 0.50 | 0.50 | Review findings resolved and re-verified; recorded probes and four green workflows |
+| Stage 3a — domain model, reference-data structure, validation and integrity foundation | 2.00 | 2.00 | Reported complete in the current workstream status; stage gate evidence remains subject to its independent-review record |
+| Stage 3b — schema v8, migration, recovery, reporting and backup | 4.50 | 1.00 | 3b-1 accepted as foundation (0.50); 3b-3 complete (0.50). 3b-2 is implemented but awaiting commit and receives no earned credit yet. 3b-4 local work and 3b-5 to 3b-10 remain unearned pending committed evidence and their gates |
+| Stage 3c — catalogue format, reconciler and deterministic reference-data loading | 2.00 | 0.00 | Not yet evidenced as complete |
+| Stage 3d — adapt WP 8/WP 9 code and screens; full regression | 1.50 | 0.00 | Not yet started / not evidenced |
+| Stage 4 — catalogue governance, editorial guide, licence and QA specification | 0.50 | 0.50 | Approved reference outputs and stage 4 decisions recorded |
+| Stage 5 — anatomical catalogue population, tranches 5.1–5.7 | 2.00 | 0.00 | Stage 5 gate remains: stage 3 acceptance, reviewed 5.1 pilot and applied coverage matrix |
+| Stage 6 — search, discovery, exercise screens and history paging | 1.00 | 0.00 | Not yet evidenced as complete |
+| Combined final review, remediation and owner acceptance | 0.50 | 0.00 | Not yet reached |
+| **Total** | **18.00** | **7.50** | **41.7%** |
+
+**Evidence discipline:** no credit is assigned to uncommitted implementation, planned work, or a sub-stage whose acceptance gate is still outstanding. The 3b-2 implementation is recorded as work in progress but earns zero until committed and independently reviewed. The stage 3b allocation is provisional and must be refined against the approved sub-stage deliverables without changing the 18-point WP allocation.
+
+**Current blockers / dependencies:** stage 3b-2 commit and review; owner disposition of R-30 and R-28/R-31/R-32/R-33; completion and acceptance of 3b-4 through 3b-10; stage 3c, 3d and combined review; stage 5 remains gated as stated in the approved plan. No WP 9 regression or schema gate is waived.
+
+**Status correction:** the historical statements above describing stage 3 as gated pending WP 9 acceptance are retained as decision history. WP 9 was subsequently accepted on 2026-11-06 and the owner approved revision 3 and authorised stage 3 in sequence. This dated section is the current status and does not imply stage 3 acceptance.
