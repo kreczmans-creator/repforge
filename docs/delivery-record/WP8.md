@@ -336,3 +336,172 @@ The Text column quotes `AttributeVocabulary` verbatim. The Interval column descr
 **Review.** An independent review (opus) ran three rounds: M1–M4 and L1–L12, then M1, M2 and L1–L4, then L1 and L2. All findings are fixed. M1 limited mark removal to the combining-diacritic blocks. M2 added a generated lower-case map. The final verdict was "ready to commit".
 
 **Local gate** (from `app/`): `dart format` 0 changed; `flutter analyze --fatal-infos` no issues; `flutter test --coverage` 1,813 passed, 2 skipped; coverage gate 93.1 % (minimum 80 %). The run also held the uncommitted trial files, which the default run skips.
+
+## Stage 3b — table-rebuild comparison trial (results for owner decision)
+
+Status: trial only. The real v8 migration is not implemented. `schemaVersion` stays 7 and no production code changed. The owner asked for these results before choosing the final approach. **Host results do not prove device timing.** Treat durations as relative, not absolute. The trial files are frozen evidence for this decision. They are valid only while `schemaVersion` is 7.
+
+### Method and environment
+- Host: Linux 6.18.44 (virtual machine), 4 vCPU, 16 GB RAM, Dart 3.13.7, Flutter 3.47.9, drift 2.35.3.
+- SQLite: `select sqlite_version()` returns **3.54.1**. Journal mode `delete`. The database is a file on disk.
+- Device binary (reviewer-verified): the app bundles SQLite 3.54.1 on Android and iOS through the `sqlite3` 3.8.0 build hook. The asset hashes match `asset_hashes.dart` and the source id equals the host's. The build sets no `SQLITE_DEFAULT_FOREIGN_KEYS`. The system SQLite is not used.
+- Connection: the trial opens `NativeDatabase(File)`. `drift_flutter` uses the same engine in its background connection.
+- Harness: `app/test/migration_trial/`, tag `trial`, skipped by default through `app/dart_test.yaml`. CI skips it, so the coverage gate is unaffected.
+- Run: `flutter test --concurrency=1 --run-skipped --tags trial test/migration_trial/`. `--tags trial` alone cannot work, because a tag-level skip (and `exclude_tags`) also blocks the selected tests.
+- Option A uses drift's `Migrator.alterTable(TableMigration)` into a hand-written v8 `exercises` table. Option B3 uses `ALTER TABLE ADD COLUMN`, `UPDATE`, then `DROP COLUMN`. Both run through the real drift `onUpgrade` path from a v7 file.
+- Both options run the same steps around the change: a bootstrap `anatomy_nodes` table, an `exercise_targets` backfill with a cascading foreign key, quarantine of unmapped values, and the `source`, `provider_id` and `revision` backfill. All of it runs in one transaction with the foreign-key check before commit (safeguard A).
+- v8 shape assumptions: new columns follow the B3 add order. `anatomy_nodes` holds only `id` (19 muscle ids stand in for the 31 nodes). The `source` default `user` and `revision >= 1` are assumed. The value lists for `mechanics`, `laterality` and `difficulty` follow ADR-0008. None of this is final.
+- The first timing table below comes from the verification runs (5 runs each, fixed order). The interleaved table adds a warm-up round and rotates the order.
+
+### Fixture (deterministic, seed 20261106, 23.6 MB)
+The figures below are measured by the harness, not assumed.
+- Rows: 5,000 exercises (89 supplied), 100,000 sets, 4,535 sessions, 25,052 session exercises, 40 plans, 400 plan exercises, 300 scheduled workouts, 5 splits (35 days), 300 measurements, 200 foods, 400 servings, 10 goals, 12 settings, 25 quarantine rows. Recipe, food-log, saved-meal, meal-plan and prep tables are empty.
+- The fixture schema equals `AppDatabase` `createAll` (41 `sqlite_master` entities, compared after whitespace normalisation, no difference).
+- Values: load 0 to 1000, reps 1 to 100, heart rate up to 250, rest 60 to 3,600 (no rest of 0). 501 session-exercise notes have 4,000 characters. Exercise names reach 2,010 characters. Text includes quotes and non-ASCII characters. Some rows are soft-deleted.
+- Nulls: 41 nullable columns hold nulls. Two nullable columns never do: `foods.fat_g` and `session_sets.session_exercise_id` (v7 gives every set an entry).
+- Loose references: 78 sets in 18 entries reference exercises that do not exist.
+- Muscles: unmapped primaries (`rotator cuff`, `Neck`, empty) and one unmapped secondary text (`traps`). 752 secondaries equal the primary. 557 are `fullBody`. 31 exercises list a muscle twice in one secondary list.
+- Exertion: RPE 1 to 10 in halves, RIR 0 to 5, and 2,088 sets (2.1 %) with legacy values that break the TRN-020 rule (RPE 0, 0.5, 7.3, 9.75; RIR 2.5, 6, 7.5; scale `borg`; value without scale; scale without value).
+
+### Results: `exercises` change (the §17.1 comparison)
+Verification runs, 5 each, fixed order, no warm-up.
+
+| Item | A: `TableMigration` rebuild | B3: `ADD`/`DROP COLUMN` |
+|---|---|---|
+| Duration median / min / max (ms) | **113** / 108 / 140 | **134** / 125 / 160 |
+| Raw runs (ms) | 135, 113, 140, 113, 108 | 125, 160, 134, 132, 148 |
+| Keys off at open (app default), median of 3 (ms) | 99 | 135 |
+| Step split, median (ms): backfill / change / fk check / commit | 30 / 13 / 40 / 28 | 21 / 52 / 37 / 25 |
+| Value equality (row hashes) | Equal: retained columns of 5,000 rows and all other tables, 100,000 sets included | Equal, same checks |
+| `exercise_targets` from the old muscle columns | 11,908 rows equal the independent expectation | 11,908, equal |
+| `source`, provider, revision from `supplied` | 0 wrong of 5,000 | 0 wrong |
+| New `legacy_quarantine` rows (350) | each row's id, reason and original equal the independent expectation | same |
+| Exercises left with no primary target | 303 (see owner decision 4) | 303 |
+| `PRAGMA foreign_key_check` | empty | empty |
+| `PRAGMA integrity_check` | ok | ok |
+| Foreign keys after open | on | on |
+| Constraint enforcement | 12 of 12 violating statements rejected | 12 of 12 |
+| Cascade delete reaches `exercise_targets` | yes | yes |
+| Column shape equals a fresh v8 table | yes | yes |
+| Stored `CREATE TABLE` text equals a fresh v8 table | **yes** | **no** |
+
+Interleaved timing: one warm-up round, then 7 rounds with the order rotated each round. Medians in ms, with min and max.
+
+| Configuration | Median | Min / max | Raw runs |
+|---|---|---|---|
+| A: exercises rebuild | **105** | 99 / 112 | 103, 105, 110, 112, 99, 101, 105 |
+| B3: exercises ALTER ADD/DROP COLUMN | **138** | 126 / 173 | 148, 130, 126, 138, 173, 135, 162 |
+| T-A: session_sets rebuild | **526** | 482 / 559 | 526, 517, 536, 532, 559, 486, 482 |
+| T-B: session_sets triggers | **184** | 167 / 211 | 184, 192, 181, 211, 167, 200, 183 |
+| T-C: session_sets ADD CONSTRAINT | **215** | 182 / 231 | 231, 182, 194, 224, 200, 215, 217 |
+
+How to read the timing. A and B3 differ by about 30 ms. That is small and not decisive. The fixed-order runs overlap (A 108 to 140, B3 125 to 160). Earlier sessions gave A 107 to 131 and B3 138 to 150. The reviewer's run gave A 123 and B3 138. The page cache is warm on every run. The journal differs: about 38 KB for A against about 1 MB for B3 in the crash test. The host is shared with other work. The preference for A therefore rests on non-timing evidence (see the recommendation). T-A costs about 0.3 s more than T-B and T-C.
+
+### Crash recovery and version write
+Crash rows ran on the combined migrations (A + T-A, B3 + T-B, B3 + T-C). All three behaved the same.
+
+| Scenario | Result |
+|---|---|
+| Throw inside the transaction after the change | Fully v7, all 23 tables equal. Re-run gives v8, values equal. |
+| Throw inside the TRN-020 step (values cleared, constraint not yet added) | Fully v7. Re-run gives v8. |
+| Crash after commit, before drift writes `user_version` | v8 shape at version 7. Guarded re-run changes nothing, no duplicates, version 8. |
+| Hot journal copied mid-transaction (16-page cache) | The snapshot differs from the fixture before recovery. SQLite recovers it to fully v7. Re-run gives v8. |
+| `PRAGMA user_version = 8` as the last statement in the transaction, crash right after it | Version rolls back to 7 with the data. Fully v7. |
+| Same, crash after commit | Version 8 and v8 shape together. Re-open runs no migration. Values equal. |
+| Injected foreign-key violation (A + T-A, B3 + T-B) | `foreign_key_check` finds it, the migration throws, everything rolls back to fully v7. Re-run without it gives v8. |
+
+The hot-journal test models a process kill with a file copy. It is not a real kill.
+
+### Results: TRN-020 on `session_sets` (plan §6 step 6, safeguard C)
+Offending values are copied to `legacy_quarantine` (2,088 rows, each equal to the independent expectation) and the exertion pair is cleared first.
+
+| Option | Median (ms, verification runs) | Violations rejected | Valid values accepted | Equality |
+|---|---|---|---|---|
+| T-A: rebuild `session_sets` with table CHECK | **503** | 9 of 9 | 6 of 6 | equal to the expected cleared rows |
+| T-B: validation triggers | **194** | 9 of 9 | 6 of 6 | equal |
+| T-C: `ALTER TABLE ADD CONSTRAINT CHECK` | **206** | 9 of 9 | 6 of 6 | equal |
+| No TRN-020 change (v7 CHECK 0 to 10 only) | n/a | 2 of 9 | 6 of 6 | n/a |
+
+All variants: `integrity_check` ok, `foreign_key_check` empty, version 8. T-A leaves the file larger (34.8 MB against 23.9 MB); `VACUUM` was not tested. Whole migrations, medians in ms: A + T-A **544**; B3 + T-B **316**; B3 + T-C **289**.
+
+### Safeguard A: what drift's `onUpgrade` does
+These findings are now regression guards in the normal test run: `test/data/drift_upgrade_behaviour_test.dart` (untagged, about 1 s). Reviewer-verified for drift 2.35.3: migrations are not wrapped in a transaction, and `user_version` is written after `beforeOpen`. `alterTable` toggles the pragma and uses `legacy_alter_table`. `user_version` is transactional.
+1. `onUpgrade` runs **outside any transaction**.
+2. On the app's default connection, `PRAGMA foreign_keys` is **off** at the start of `onUpgrade`. The app turns it on in `beforeOpen`, after `onUpgrade`.
+3. `PRAGMA foreign_keys = OFF` **inside a transaction has no effect**. Outside a transaction it works.
+4. To set it before `onUpgrade`: the connection `setup` callback (`NativeDatabase(setup:)`, or `DriftNativeOptions.setup` in `drift_flutter`). Inside `onUpgrade`: `exclusively()`, with the pragma set before the transaction opens. `beforeOpen` is too late.
+5. A rebuild inside a transaction with keys on **deleted both `exercise_targets` rows** through the cascade. With keys off first, both survived.
+6. A failure rolls back only the work inside `transaction()`. Statements run directly in `onUpgrade` stay applied while `user_version` stays 7.
+7. drift writes `user_version` after `onUpgrade` and `beforeOpen`. A failure in between leaves the new shape at the old version. Every step needs a guard.
+8. `alterTable` does not run `foreign_key_check`. The trial runs it before commit and verifies keys are on afterwards.
+
+### Foreign-key check: orphan policy and lockout risk
+A whole-database `foreign_key_check` aborts the migration on any existing orphan, even in an untouched table. The test planted one orphan session exercise.
+- Whole-database check: the migration failed and the database stayed at v7. Every launch would fail again. The user cannot open the app. This is a lockout.
+- Check scoped to the rebuilt and new tables (`PRAGMA foreign_key_check(<table>)`): the migration succeeded at version 8. The orphan stayed in the database. The scope still covers `session_sets`, so an orphan set with a missing session would still block the migration. Scoping reduces the lockout risk; it does not remove it.
+
+Owner decision 3 covers the policy.
+
+### B3 limitations (what `ALTER TABLE` cannot express)
+Measured on SQLite 3.54.1.
+- A column used by an index, by a CHECK on another column, or by the primary key cannot be dropped. The v7 `exercises` table has none, so the three drops succeed today. A future index on the muscle columns would block them. A column's own CHECK (`supplied`) does not block it.
+- A trigger body that names the column blocks the drop. A trigger whose `UPDATE OF` list names the column does not: the drop succeeds and leaves a stale trigger.
+- `ADD COLUMN ... NOT NULL` needs a constant default. A new column's CHECK is tested against existing rows.
+- The unnamed v7 CHECKs cannot be dropped by name. After B3 with T-C, `session_sets` carries the old 0 to 10 CHECK and the new rule. A fresh v8 install need not.
+- B3 cannot change a retained column's type or default, and cannot reorder columns. The plan changes none of these for `exercises`.
+- B3 leaves a stored table definition that differs from a fresh v8 table (measured; Option A is equal). Whether drift's schema verifier accepts the difference was not tested.
+- SQLite 3.54.1 accepts `ADD CONSTRAINT CHECK` and `ALTER COLUMN SET NOT NULL`, so T-C needs no rebuild. The reviewer verified that 3.45.1 rejects `ADD CONSTRAINT CHECK` and that 3.53.1 and 3.54.1 accept it. The exact minimum version is unverified. The app bundles 3.54.1. If T-C is chosen, add a runtime `sqlite_version()` guard.
+- Both add-constraint forms fail while a row violates them. The migration clears the offending values first.
+- Validation triggers (T-B) are outside drift's schema model. They add work to every set write.
+
+### Versions v1 to v6 are not tested
+The trial starts only from v7. **Paths from v1 to v6 to v8 are not tested.** The hazard is real. The v5 to v6 step rebuilds `exercises` and `session_sets` with `alterTable` into the current table classes, then runs `UPDATE exercises SET ... primary_muscle ...` (`_normaliseExercisesV6`).
+- With v8 classes, that step would drop the muscle columns before the v8 backfill, and the UPDATE would fail.
+- It would copy `session_sets` into the TRN-020 CHECK shape before the offending values are cleared. A value such as RPE 7.3 would then fail the copy.
+
+Required for the implementation: versioned snapshot classes (drift step-by-step migrations with the generated `schema_vN`) and fixtures from v2 to v6, each migrated to v8 with the equality harness (§17.2). This is documented only; the trial does not demonstrate it.
+
+### Backup compatibility (format 2, current `DriftBackupRepository`)
+The test exports a v7 backup with the production repository from the fixture. It applies each migration, then replays the repository's restore algorithm on the migrated file: delete every table, then insert each row with the columns that still exist. It does not call the production `importJson`. Format 1 backups are untested.
+
+| Migrated shape | Restore outcome |
+|---|---|
+| A (exercises only) | Succeeds. `exercise_targets` ends with 0 rows, `source = 'system'` on 0 of 89 supplied exercises, `anatomy_nodes` falls from 19 to 0. |
+| B3 (exercises only) | Identical to A. |
+| A + T-A | Fails and rolls back: the CHECK rejects the 2,088 legacy exertion rows. The database is unchanged. |
+| B3 + T-B | Fails and rolls back: the trigger rejects them. |
+| B3 + T-C | Fails and rolls back: the constraint rejects them. |
+
+Production deletes **all** current tables (`drift_backup_repository.dart:93`). In v8 that would wipe the reference and catalogue tables. The old muscle and `supplied` columns are dropped silently.
+
+**Backup v3 must:**
+- Export `exercise_targets`, the new `exercises` columns, the migration report, `catalogue_releases` and user state.
+- On a format 1 or 2 restore, run the migration backfill: targets, and `source`, `provider_id` and `revision`. Quarantine and report unmapped muscles. Quarantine, clear and report TRN-020 exertion values.
+- Not wipe the reference and catalogue tables, or reload release 2 afterwards.
+- Run `foreign_key_check` before commit.
+
+### Neutral recommendation (owner decides)
+- **`exercises`:** the evidence favours A, on non-timing grounds. Both options pass every equality, integrity, constraint and crash check. A uses drift's own tooling. It leaves a stored definition equal to a fresh install. B3 would be blocked by a future index on the dropped columns. The timing difference is small and not decisive.
+- **TRN-020:** all three variants enforce the rule. T-A shares one mechanism with A and matches a fresh install. It costs about 0.3 s more. T-C is smaller but needs a SQLite version guard and keeps the old CHECK. T-B is not recommended: triggers sit outside the schema model.
+- **Version write:** write `PRAGMA user_version = 8` as the last statement inside the transaction, and keep the guards. The tests show it rolls back with the data and removes the commit-to-version window.
+- **Safeguard A:** disable keys through `setup` or before the transaction. Run in one transaction. Run `foreign_key_check` before commit. Then restore and verify keys.
+- **Device timing:** measure the chosen option on a mid-range Android phone and an iPhone before acceptance.
+
+### Owner decisions needed
+1. **`exercises` change:** option A or B3 (recommendation: A).
+2. **TRN-020 mechanism:** T-A rebuild, T-C `ADD CONSTRAINT` with a version guard, or T-B triggers (recommendation: T-A).
+3. **Foreign-key check scope:** check the whole database, check only rebuilt and new tables, or quarantine and report existing orphans. A whole-database check can lock a user out. A scoped check reduces that risk but does not remove it.
+4. **Unmapped primary muscles:** 303 fixture exercises (6 %) with unmapped primaries end with zero primary targets. That conflicts with amended TRN-010 (at least one primary). Decide the handling: a placeholder primary (this conflicts with plan §6 step 5, "nothing is invented"), a report-and-block rule, or an exception to TRN-010 for legacy rows.
+5. **Migration report categories:** confirm the listed categories, including secondaries equal to the primary (752) and secondaries repeated within one list (31).
+6. **Version write inside the transaction:** confirm the recommendation.
+7. **Backup v3 requirements:** confirm the list above, including that a restore must not wipe reference tables.
+8. **Version coverage:** confirm that versioned snapshot classes and v2 to v6 fixtures are required before the v8 migration is accepted.
+9. **Device measurement:** confirm it as an acceptance condition.
+10. **v8 constraint assumptions:** the trial assumed `source` default `user`, `revision >= 1`, the 31-node bootstrap (19 ids stand in), and that drift's schema verifier may need to accept an ALTER-built table. The owner decides these, or the stage 3b implementation settles them with review.
+
+### Review and local gate
+- An independent review (opus) ran twice. Round 1 raised H1, H2, M1–M5 and L1–L9. Round 2 raised six Low items. All are fixed or recorded as owner decisions.
+- The round 2 verdict: fit to commit as frozen evidence and return to the owner.
+- Local gate (from `app/`): `dart format` 0 changed; `flutter analyze --fatal-infos` no issues; `flutter test --coverage` 1,819 passed, 1 skipped; coverage gate 93.0 % (minimum 80 %).
+- The default run skips the tagged trial. The trial run (`--run-skipped --tags trial`, concurrency 1) passed 32 of 32.
+- No migration is implemented. `schemaVersion` stays 7. The owner chooses the approach before stage 3b implementation starts.

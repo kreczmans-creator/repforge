@@ -1,0 +1,3 @@
+tags:
+  trial:
+    skip: "Migration trial; run explicitly with --run-skipped --tags trial"
