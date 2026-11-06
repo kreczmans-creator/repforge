@@ -39,10 +39,6 @@ dependencies:
 dev_dependencies:
   build_runner: 2.17.1
   drift_dev: 2.35.2
-  # SDK package; `flutter drive` needs it for the profile-mode device
-  # timing harness (test_driver/integration_test.dart, WP 8 3b-9).
-  flutter_driver:
-    sdk: flutter
   flutter_test:
     sdk: flutter
   freezed: 4.0.3

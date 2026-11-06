@@ -35,9 +35,11 @@ cd "$here"
 
 case "$platform" in
   android)
-    adb_args=()
-    if [[ -n "$device" ]]; then adb_args=(-s "$device"); fi
-    prop() { adb "${adb_args[@]}" shell getprop "$1" | tr -d '\r'; }
+    # bash 3.2 (macOS) with `set -u` rejects "${empty[@]}", so the command
+    # array always holds at least `adb`; -s is added only for a given serial.
+    adb_cmd=(adb)
+    if [[ -n "$device" ]]; then adb_cmd+=(-s "$device"); fi
+    prop() { "${adb_cmd[@]}" shell getprop "$1" | tr -d '\r'; }
     manufacturer="$(prop ro.product.manufacturer)"
     model="$(prop ro.product.model)"
     release="$(prop ro.build.version.release)"
@@ -45,10 +47,10 @@ case "$platform" in
     soc="$(prop ro.soc.model)"
     [[ -z "$soc" ]] && soc="$(prop ro.board.platform)"
     abi="$(prop ro.product.cpu.abi)"
-    ram_kb="$(adb "${adb_args[@]}" shell cat /proc/meminfo | awk '/MemTotal/ {print $2}' | tr -d '\r')"
+    ram_kb="$("${adb_cmd[@]}" shell cat /proc/meminfo | awk '/MemTotal/ {print $2}' | tr -d '\r')"
     device_model="$manufacturer $model (SoC $soc, $abi, RAM ${ram_kb} kB)"
     device_os="Android $release (API $sdk)"
-    flutter_device="${device:-$(adb get-serialno | tr -d '\r')}"
+    flutter_device="${device:-$("${adb_cmd[@]}" get-serialno | tr -d '\r')}"
     ;;
   ios)
     if [[ -z "$device" ]]; then
@@ -63,7 +65,11 @@ import json, sys
 d = json.load(open(sys.argv[1]))["result"]
 hw = d.get("hardwareProperties", {})
 dev = d.get("deviceProperties", {})
-model = f'{hw.get("marketingName", "?")} ({hw.get("productType", "?")})'
+cpu = hw.get("cpuType", {})
+cpu = cpu.get("name", "?") if isinstance(cpu, dict) else cpu
+# devicectl reports no RAM size; the chip comes from cpuType when present.
+model = (f'{hw.get("marketingName", "?")} ({hw.get("productType", "?")}, '
+         f'chip {cpu}, RAM not reported by devicectl)')
 os_ = f'iOS {dev.get("osVersionNumber", "?")} ({dev.get("osBuildUpdate", "?")})'
 print(model.replace(" ", "_"), os_.replace(" ", "_"))
 PY

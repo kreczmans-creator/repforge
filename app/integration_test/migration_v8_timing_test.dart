@@ -50,68 +50,97 @@ void main() {
     'v8 migration timing (${_runFull ? 'FULL D04 profile' : 'smoke profile'})',
     timeout: const Timeout(Duration(minutes: 60)),
     (tester) async {
-      // The production database file (lib/data/db/open_database.dart).
-      final support = await getApplicationSupportDirectory();
-      final realDb = File('${support.path}/repforge.sqlite');
-      final realBefore = _fingerprint(realDb);
-
-      // SQLite cannot use /tmp on Android; the app engine (drift_flutter)
-      // points it at the cache directory, so the harness does the same.
-      final cache = await getTemporaryDirectory();
-      sqlite3.tempDirectory = cache.path;
-
-      final work = Directory(
-        '${cache.path}/repforge_v8_timing_${DateTime.now().microsecondsSinceEpoch}',
-      )..createSync(recursive: true);
-      expect(
-        _isWithin(work.path, support.path),
-        isFalse,
-        reason: 'the work directory must not be the app support directory',
-      );
-      expect(work.path, isNot(contains('repforge.sqlite')));
-
+      // Errors are reported, not only thrown: reportData (written by the
+      // driver also on failure) and the V8_TIMING_JSON log carry them.
+      final Map<String, Object?> result;
       try {
-        final result = await runTimingCampaign(
-          workDir: work,
-          migration: historicalChain,
-          spec: _runFull
-              ? const LargeProfileSpec.d04()
-              : const LargeProfileSpec.smoke(),
-          repetitions: int.tryParse(_repetitionsDefine) ?? 3,
-          recordV7Profile: _runFull,
-          environment: {
-            'device': true,
-            'deviceModel': _deviceModel.isEmpty ? 'not given' : _deviceModel,
-            'deviceOs': _deviceOs.isEmpty ? 'not given' : _deviceOs,
-            'buildMode': kReleaseMode
-                ? 'release'
-                : (kProfileMode ? 'profile' : 'debug'),
-            'profile': _runFull ? 'D04 full' : 'smoke',
-            'workDirectory': work.path,
-            'appDatabaseUntouched': realDb.path,
-          },
-          log: (l) => debugPrint('V8_TIMING $l'),
-        );
-
-        // The app's real database is exactly as it was.
-        expect(_fingerprint(realDb), realBefore);
-        expect(
-          work
-              .listSync(recursive: true)
-              .map((e) => e.path)
-              .where((p) => p.endsWith('repforge.sqlite')),
-          isEmpty,
-        );
-
-        binding.reportData = {'v8_timing': result};
-        _printChunked(jsonEncode(result));
-        expect(result['outcome'], 'pass');
-        expect(result['standIn'], isTrue);
-      } finally {
-        work.deleteSync(recursive: true);
+        result = await _run();
+      } on Object catch (e, stack) {
+        final report = <String, Object?>{
+          'outcome': 'ERROR',
+          'error': '$e',
+          'stack': '$stack'.split('\n').take(20).join('\n'),
+          'standIn': historicalChain.standIn,
+          'profile': _runFull ? 'D04 full' : 'smoke',
+        };
+        binding.reportData = {'v8_timing': report};
+        _printChunked(jsonEncode(report));
+        rethrow;
       }
+      binding.reportData = {'v8_timing': result};
+      _printChunked(jsonEncode(result));
+      expect(result['outcome'], 'pass', reason: '${result['outcome']}');
+      expect(result['standIn'], isTrue);
     },
   );
+}
+
+/// The timing procedure. Throws on a safety violation; returns the result,
+/// whose `outcome` is `pass`, `FAIL` or `INCOMPLETE ...`.
+Future<Map<String, Object?>> _run() async {
+  // The production database file (lib/data/db/open_database.dart).
+  final support = await getApplicationSupportDirectory();
+  final realDb = File('${support.path}/repforge.sqlite');
+  final realBefore = _fingerprint(realDb);
+
+  // SQLite cannot use /tmp on Android; the app engine (drift_flutter)
+  // points it at the cache directory, so the harness does the same.
+  final cache = await getTemporaryDirectory();
+  sqlite3.tempDirectory = cache.path;
+
+  final stamp = DateTime.now().microsecondsSinceEpoch;
+  final work = Directory('${cache.path}/repforge_v8_timing_$stamp')
+    ..createSync(recursive: true);
+  try {
+    if (_isWithin(work.path, support.path) ||
+        work.path.contains('repforge.sqlite')) {
+      throw StateError(
+        'unsafe work directory ${work.path} (app support: ${support.path})',
+      );
+    }
+    final result = await runTimingCampaign(
+      workDir: work,
+      migration: historicalChain,
+      spec: _runFull
+          ? const LargeProfileSpec.d04()
+          : const LargeProfileSpec.smoke(),
+      repetitions: int.tryParse(_repetitionsDefine) ?? 3,
+      recordV7Profile: _runFull,
+      environment: {
+        'device': true,
+        'deviceModel': _deviceModel.isEmpty ? 'not given' : _deviceModel,
+        'deviceOs': _deviceOs.isEmpty ? 'not given' : _deviceOs,
+        'buildMode': kReleaseMode
+            ? 'release'
+            : (kProfileMode ? 'profile' : 'debug'),
+        'profile': _runFull ? 'D04 full' : 'smoke',
+        'workDirectory': work.path,
+        'appDatabaseUntouched': realDb.path,
+      },
+      log: (l) => debugPrint('V8_TIMING $l'),
+    );
+
+    // The app's real database is exactly as it was.
+    if (_fingerprint(realDb) != realBefore) {
+      throw StateError('the app database ${realDb.path} changed');
+    }
+    if (work
+        .listSync(recursive: true)
+        .any((e) => e.path.endsWith('repforge.sqlite'))) {
+      throw StateError('a repforge.sqlite appeared in the work directory');
+    }
+    // A full run without the device's model and OS is not evidence.
+    if (_runFull &&
+        (_deviceModel.isEmpty || _deviceOs.isEmpty) &&
+        result['outcome'] == 'pass') {
+      result['outcome'] =
+          'INCOMPLETE: DEVICE_MODEL or DEVICE_OS not given '
+          '(run through tool/device_timing.sh)';
+    }
+    return result;
+  } finally {
+    work.deleteSync(recursive: true);
+  }
 }
 
 /// Existence, size and modification time of [f] (null fields if absent).
