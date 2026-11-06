@@ -412,6 +412,17 @@ void main() {
       await unmount(tester);
     });
   });
+
+  testWidgets('offers the owner actions workspace', (tester) async {
+    tester.view.physicalSize = const Size(600, 3600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(db));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('open-owner-actions')), findsOneWidget);
+    expect(find.text('Owner Actions & Delivery Blockers'), findsOneWidget);
+    await unmount(tester);
+  });
 }
 
 /// Reads active nutrition goals straight from the table for assertions.

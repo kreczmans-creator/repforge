@@ -1,5 +1,6 @@
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/delivery/owner_blocker.dart';
 import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
@@ -26,6 +27,7 @@ final class DriftSettingsRepository implements SettingsRepository {
   static const _bodyweightOnly = 'equipmentBodyweightOnly';
   static const _seedRecipesVersion = 'seedRecipesVersion';
   static const _seedExercisesVersion = 'seedExercisesVersion';
+  static const _blockerStates = 'ownerBlockerStates';
 
   @override
   Stream<AppSettings> watch() =>
@@ -153,6 +155,26 @@ final class DriftSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveSeedExercisesVersion(int version) =>
       _writeValue(_seedExercisesVersion, version.toString());
+
+  @override
+  Stream<Map<String, BlockerState>> watchBlockerStates() =>
+      (_db.select(_db.settings)..where((t) => t.key.equals(_blockerStates)))
+          .watchSingleOrNull()
+          .map((row) => BlockerStateCodec.decode(row?.value));
+
+  @override
+  Future<Map<String, BlockerState>> readBlockerStates() async =>
+      BlockerStateCodec.decode(await _readValue(_blockerStates));
+
+  /// Read-modify-write inside one transaction so two quick changes to
+  /// different blockers never lose each other.
+  @override
+  Future<void> saveBlockerState(String blockerId, BlockerState state) =>
+      _db.transaction(() async {
+        final current = Map.of(await readBlockerStates());
+        current[blockerId] = state;
+        await _writeValue(_blockerStates, BlockerStateCodec.encode(current));
+      });
 
   static AppSettings _fromRows(List<SettingRow> rows) {
     final map = {for (final r in rows) r.key: r.value};

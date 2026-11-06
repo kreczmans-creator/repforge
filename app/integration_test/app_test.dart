@@ -215,6 +215,55 @@ void main() {
     expect(find.text('83.2'), findsOneWidget);
   });
 
+  testWidgets('owner actions workspace is reachable from Settings and a '
+      'status change survives a restart (in-memory db)', (tester) async {
+    final db = AppDatabase.inMemory();
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
+    await pumpApp(tester, db: db);
+
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const Key('open-owner-actions')));
+    await tester.tap(find.byKey(const Key('open-owner-actions')));
+    await pumpUntil(tester, find.byKey(const Key('blockers-summary')));
+    expect(find.byKey(const Key('blockers-summary')), findsOneWidget);
+
+    // Open the highest-priority WP 8 item and record a status change.
+    await scrollTo(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
+    await tester.tap(find.byKey(const Key('blocker-row-OB-WP8-01')));
+    await pumpUntil(tester, find.byKey(const Key('blocker-status-choice')));
+    await scrollTo(tester, find.byKey(const Key('blocker-save-status')));
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('blocker-status-choice')),
+        matching: find.byTooltip('In progress'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('blocker-note-field')),
+      'integration-test note',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('blocker-save-status')));
+    await pumpUntil(tester, find.text('Status saved'));
+
+    // After a simulated restart on the same database the change is shown.
+    await restart(tester, db: db);
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const Key('open-owner-actions')));
+    await tester.tap(find.byKey(const Key('open-owner-actions')));
+    await pumpUntil(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
+    await scrollTo(tester, find.byKey(const Key('blocker-row-OB-WP8-01')));
+    await tester.tap(find.byKey(const Key('blocker-row-OB-WP8-01')));
+    await pumpUntil(tester, find.byKey(const Key('blocker-state-updated')));
+    expect(find.text('integration-test note'), findsOneWidget);
+    expect(find.textContaining('Changed 20'), findsOneWidget);
+  });
+
   testWidgets('export measurements CSV and a backup through the fake file '
       'gateway (in-memory db, WP 10 stage 3b)', (tester) async {
     final db = AppDatabase.inMemory();

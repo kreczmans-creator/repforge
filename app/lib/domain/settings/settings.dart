@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:repforge/domain/delivery/owner_blocker.dart';
 import 'package:repforge/domain/settings/meal_labels.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/units.dart';
@@ -64,4 +65,14 @@ abstract interface class SettingsRepository {
   /// Version of the bundled exercise library already imported (0 = none).
   Future<int> readSeedExercisesVersion();
   Future<void> saveSeedExercisesVersion(int version);
+
+  /// The owner's lifecycle changes to the delivery blockers, by blocker id
+  /// (Owner Actions & Delivery Blockers workspace). Empty until the owner
+  /// changes a status; a blocker without an entry keeps its register
+  /// status. Stored in the settings table, so it is in every backup.
+  Stream<Map<String, BlockerState>> watchBlockerStates();
+  Future<Map<String, BlockerState>> readBlockerStates();
+
+  /// Records [state] for [blockerId], replacing any earlier entry.
+  Future<void> saveBlockerState(String blockerId, BlockerState state);
 }

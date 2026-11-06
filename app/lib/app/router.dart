@@ -5,6 +5,8 @@ import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
+import 'package:repforge/features/delivery/presentation/owner_blocker_detail_screen.dart';
+import 'package:repforge/features/delivery/presentation/owner_blockers_screen.dart';
 import 'package:repforge/features/measurements/presentation/comparison_screen.dart';
 import 'package:repforge/features/measurements/presentation/measurement_entry_screen.dart';
 import 'package:repforge/features/measurements/presentation/measurements_home_screen.dart';
@@ -122,6 +124,12 @@ abstract final class RfRoutes {
 
   /// Backup and restore (DAT-004, BCM-009(2)).
   static const settingsBackup = '/settings/backup';
+
+  /// Owner actions and delivery blockers.
+  static const settingsOwnerActions = '/settings/owner-actions';
+
+  /// One owner action or blocker for [id].
+  static String settingsOwnerAction(String id) => '/settings/owner-actions/$id';
 
   /// Debug-only component gallery.
   static const gallery = '/gallery';
@@ -408,6 +416,18 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
         GoRoute(
           path: 'backup',
           builder: (context, state) => const BackupScreen(),
+        ),
+        GoRoute(
+          path: 'owner-actions',
+          builder: (context, state) => const OwnerBlockersScreen(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) => OwnerBlockerDetailScreen(
+                blockerId: state.pathParameters['id']!,
+              ),
+            ),
+          ],
         ),
       ],
     ),

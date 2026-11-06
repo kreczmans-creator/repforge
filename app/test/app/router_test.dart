@@ -6,7 +6,9 @@ import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
+import 'package:repforge/features/delivery/application/blocker_providers.dart';
 
+import '../features/delivery/blocker_fixtures.dart';
 import '../helpers/pump.dart';
 
 void main() {
@@ -117,6 +119,33 @@ void main() {
         ProviderScope(
           key: UniqueKey(),
           overrides: [databaseProvider.overrideWithValue(db)],
+          child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(entry.value)), findsOneWidget, reason: entry.key);
+      await unmount(tester);
+    }
+  });
+
+  testWidgets('owner action routes resolve', (tester) async {
+    expect(RfRoutes.settingsOwnerActions, '/settings/owner-actions');
+    expect(
+      RfRoutes.settingsOwnerAction('OB-1'),
+      '/settings/owner-actions/OB-1',
+    );
+    final expected = <String, String>{
+      RfRoutes.settingsOwnerActions: 'blockers-summary',
+      RfRoutes.settingsOwnerAction('missing'): 'blocker-missing',
+    };
+    for (final entry in expected.entries) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            ownerBlockerRegisterProvider.overrideWithValue(testRegister),
+          ],
           child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
         ),
       );

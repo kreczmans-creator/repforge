@@ -639,6 +639,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: RfSpace.s4),
+          const RfSectionHeader(title: 'Delivery'),
+          RfCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Decisions, approvals and checks the delivery needs from '
+                  'you, and anything that blocks it, in one place.',
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: RfSpace.s3),
+                RfButton(
+                  key: const Key('open-owner-actions'),
+                  label: 'Owner Actions & Delivery Blockers',
+                  variant: RfButtonVariant.secondary,
+                  icon: Icons.checklist_outlined,
+                  onPressed: () =>
+                      context.push<void>(RfRoutes.settingsOwnerActions),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: RfSpace.s8),
         ],
       ),
