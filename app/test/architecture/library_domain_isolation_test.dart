@@ -103,7 +103,10 @@ void main() {
   });
 
   test('no existing code imports lib/domain/library (3a changes nothing '
-      'else); only the unconnected v7 → v8 step uses it (3b-4)', () {
+      'else); only the unconnected v7 → v8 step (3b-4) and the unconnected '
+      'v8 repositories (3b-8) use it', () {
+    // The v8 repositories are kept out of the app by
+    // `schema_v8_isolation_test.dart`.
     final importers = [
       for (final f in Directory('lib').listSync(recursive: true))
         if (f is File &&
@@ -112,7 +115,11 @@ void main() {
             f.readAsStringSync().contains('domain/library/'))
           f.path.replaceAll(r'\', '/'),
     ];
-    expect(importers, ['lib/data/db/migration/v7_to_v8.dart']);
+    expect(importers..sort(), [
+      'lib/data/db/migration/v7_to_v8.dart',
+      'lib/data/repositories/v8/drift_library_repository_v8.dart',
+      'lib/data/repositories/v8/drift_migration_report_repository_v8.dart',
+    ]);
   });
 
   test('the existing exercise model and enums are still in place', () {

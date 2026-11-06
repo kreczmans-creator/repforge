@@ -667,6 +667,28 @@ void main() {
       }
     });
 
+    test('one transaction: a failure in the last write (the report run) '
+        'undoes the targets and the block resolution', () async {
+      // The correction run id will be `correction:new-1`; occupy it.
+      await sql(
+        'INSERT INTO migration_runs (id, trigger_kind, generated_at, '
+        'app_version, provenance_kind, provenance_source) VALUES '
+        "('correction:new-1', 'integrityCheck', ?, 'x', 'device', 'x')",
+        [V8LibraryFixture.now.toIso8601String()],
+      );
+      final r = await writesNothing(
+        () => h.library.correctBlockedReason(
+          'ex-empty',
+          BlockReason.noPrimaryTarget,
+          const AddTargetsCorrection([
+            (node: AnatomyNodeId('abs'), role: TargetRole.primary),
+          ]),
+        ),
+      );
+      expect(err(r), isA<StorageError>());
+      expect((await h.library.availability('ex-empty'))!.isBlocked, isTrue);
+    });
+
     test('mismatched, empty, inactive, system and missing corrections are '
         'refused and write nothing', () async {
       Future<AppError> refused(
@@ -1029,6 +1051,27 @@ void main() {
         isNull,
       );
     });
+
+    test(
+      'one transaction: a failing child row leaves no partial copy',
+      () async {
+        await classifySource();
+        // The copy's id will be `new-1`. An orphan target row with that id
+        // (keys off only while it is planted) makes the target insert fail
+        // after the exercise row of the copy was written.
+        await sql('PRAGMA foreign_keys = OFF');
+        await sql(
+          'INSERT INTO exercise_targets (exercise_id, node_id, role, ordinal) '
+          "VALUES ('new-1', 'quadriceps', 'primary', 0)",
+        );
+        await sql('PRAGMA foreign_keys = ON');
+        final r = await writesNothing(
+          () => h.library.createCustomCopy('lib-back-squat'),
+        );
+        expect(err(r), isA<StorageError>());
+        expect(await h.library.byId('new-1'), isNull);
+      },
+    );
 
     test('a user, blocked, deleted or missing source is refused and '
         'nothing is written', () async {
