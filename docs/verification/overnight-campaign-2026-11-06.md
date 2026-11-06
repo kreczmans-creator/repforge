@@ -1,6 +1,98 @@
 # Overnight integrated delivery campaign — 06/07 November 2026
 
-Status: **in progress** (this file is the integration ledger and becomes the morning delivery report). Integration lead: the campaign session on branch `claude/busy-hypatia-rhl3hu`. Final authority: the project owner.
+Status: **release candidate frozen at `d50f724`; CI evidence recorded below as it lands.** This file is the integration ledger and the morning delivery report. Integration lead: the campaign session on branch `claude/busy-hypatia-rhl3hu`. Final authority: the project owner.
+
+---
+
+# Morning delivery report
+
+## A. Executive summary
+- **Completed and integrated** on `claude/busy-hypatia-rhl3hu` (release candidate `d50f724`): WP 15 stages 1–2 (entry units kg/l in the portion and ingredient sheets) and WP 17 S3–S4 (Fuel pick-from-library and recents, recipe duplicate and category filter, plan duplicate/delete, save session as plan, elapsed time, drag reorder), both with their independent review fixes; eight corrections from a new independent cross-package integration review; the new **Owner Actions & Delivery Blockers** workspace (Settings > Delivery) with a 19-entry canonical register, persisted status changes with history, and tests; WP 14 CI fixes (emulator disk-space root cause, APK signature and metadata verification, presentation-isolation test); planning documents for WP 11 and WP 8 stages 3c/3d/5/6; updated WP 8, WP 15 and WP 17 records and a programme snapshot.
+- **Excluded, isolated:** WP 8 stage 3b code (decision-baseline implementation and WS3 backup format 3). The WP 8 session kept it unpushed and unreviewed, and its independent re-check found that the v7→v8 migration itself creates IC-101 system rows, which by the owner's own B-15 condition stops that work for an owner decision (OB-WP8-04). The candidate runs schema v7 with v8 not connected, so user data is unaffected.
+- **`main` not advanced.** The WP 8 session holds the owner's standing constraint "no merge to main without my explicit approval", so the integrated commit stays on the campaign branch; advancing `main` is a fast-forward away and is the first owner action below.
+- **APK:** release-ready or provisional per section B (filled when the Android workflow on `d50f724` completes). Signing uses the existing configuration (debug keystore for both build types, as on the rolling release), so every RepForge build to date is "debug-signed for testing"; no store signing exists yet (WP 14).
+
+## B. APK delivery
+| Field | Value |
+|---|---|
+| Commit | `d50f724` (branch `claude/busy-hypatia-rhl3hu`) |
+| Build variant | debug (`flutter build apk --debug`, the same variant as the rolling `debug-latest` release); the Android workflow also builds the release variant as an R8 check |
+| App version / code | 0.4.0+1 (`app/pubspec.yaml`), package `com.tempest.repforge` |
+| Artifact | GitHub Actions artifact `repforge-android-debug-apk` of the "Android build" run on `d50f724` (run id in section D), file `app-debug.apk`; SHA-256 and `apksigner verify --print-certs` / `aapt2 dump badging` output are printed in that run's "Report APKs" and "Verify APK signatures and metadata" steps |
+| Rolling release | not updated: `debug-release.yml` publishes only from `main`; when the owner fast-forwards `main` to `d50f724` it rebuilds and publishes the same commit to the `debug-latest` release automatically |
+| Local build | not possible in the campaign container (the Android SDK download host is blocked by the container's network policy); the CI build is the artifact of record |
+| Installation verification | emulator smoke tests (section D); no physical device was available overnight, so no physical-device claim is made |
+
+## C. Integrated functionality (by work package)
+**New functionality**
+- WP 15: kg and l entry in the food portion sheet and the recipe ingredient sheet with exact conversion to g/ml, canonical preview, conversion on unit switch; mg in the domain, hidden in the UI.
+- WP 17 S3: "Pick from library" (recipes, saved meals) and recent items in the Fuel add flow; recipe duplicate; recipe category filter.
+- WP 17 S4: plan duplicate and delete (confirmation names splits); save a finished session as a plan; session elapsed time; drag-reorder of session exercises.
+- Owner Actions & Delivery Blockers workspace: list grouped by work package with filters (WP, priority, category, status), Open/Resolved/All scope, summary; detail with description, why blocked, action, recommendation, consequences, dependencies, evidence, record, status control with note and change history; status persists in the settings table and travels with backups.
+**Corrections and refactoring**
+- WP 15/17 independent review fixes (R15-01..05, R17-02/03/05..09) from the parallel branch.
+- Integration review corrections D-01..D-05, D-08 (save-as-plan and duplicate skip archived/removed exercises and say so; deleted plan's schedule rows offer no Start; sheets tolerate a portions basis; reorder guard; suffix constant).
+- Workspace review corrections E-01..E-15 and re-check follow-ups.
+- WP 14: emulator disk-space fix, longer boot wait, APK verification steps in two workflows, presentation-isolation architecture test.
+**Documents**: WP 11 analytics plan; WP 8 stages 3c/3d/5/6 preparation; D04/D06 register entries for WP 17 and WP 15; WP 8/15/17 record sections; programme snapshot 2026-11-07.
+
+## D. CI and testing (release candidate `d50f724`)
+| Workflow | Run id | Conclusion | Notes |
+|---|---|---|---|
+| CI (format, analyse, test, coverage; recovery job) | RC-CI | RC-CI-RESULT | |
+| Android build | RC-ANDROID | RC-ANDROID-RESULT | debug + release (R8) APKs, signature and metadata verified in-log |
+| iOS build | RC-IOS | RC-IOS-RESULT | unsigned simulator build |
+| Integration tests (Android emulator) | RC-INTEGRATION | RC-INTEGRATION-RESULT | 7 integration tests incl. the workspace smoke test and the v8 timing smoke harness |
+
+Local full suite on the candidate tree (`0cbdf13` app content; `669d1e7`/`d50f724` change only the integration test file and the workflow): **2,742 passed, 5 skipped**, coverage 93.0 % of hand-written lines (gate rc2 below). Skipped tests are the five tag-skipped suites (kill, heavy, trial), explained below; none was disabled or weakened. Baseline for comparison: 2,361 passed / 4 skipped at `ded976b` (parallel branch) and 2,662 / 5 at the first merge.
+
+Infrastructure exceptions: the hosted emulator failed to start on three runs for lack of disk space (root cause and fix below); after the fix it boots in about 70 s.
+
+## E. Independent review
+Three independent reviews ran overnight, each by a separate agent with no part in the implementation, each followed by a re-check of the corrections by the same reviewer:
+1. **Cross-package integration review** (Workstream D): 8 findings (3 Medium, 5 Low) + test gaps; 7 corrected and re-checked closed, 1 deferred (plan-row actions, UX) — table in the ledger.
+2. **Owner blocker workspace review** (Workstream E/F): 1 High (register recommendation would have accepted sub-stages about to change), 11 Medium, several Low; all High/Medium corrected and re-checked closed; three new Low defects from the corrections fixed; two Low residues recorded (no backup round-trip test of the blocker row; malformed history items dropped on rewrite).
+3. **WP 15 review-fix re-check**: R15-01..06 closed; verdict PASS; three Low documentation items corrected.
+Planning documents were reviewed and corrected by a fourth independent agent.
+Accepted limitations: older-backup restore reverts blocker statuses (documented in-app and in the WP 8 record); D-06 plan-row actions; S4d rest-timer survival (owner decision). Outstanding risks: section H.
+
+## F. Work-package progress (evidence: the records' campaign sections; weighted, no averaging)
+| WP | Allocation | Earned | % | Remaining | Confidence | Implementation / review / acceptance |
+|---|---:|---:|---:|---:|---|---|
+| WP 8 | 18.00 (approved) | 9.66 | 53.7 % | 8.34 | low–medium | 3b decision baseline unpushed; B-15 open; not accepted |
+| WP 15 | 3.00 (approved) | 2.20 | 73.3 % | 0.80 | medium / low | integrated; independent re-check PASS (credit pending OB-PROG-01: 2.30, 76.7 %); not accepted |
+| WP 17 | 9.00 (**proposed**, OB-WP17-01) | 3.00 | 33.3 % | 6.00 | medium / low | S3–S4 integrated with review corrections; review credit pending OB-PROG-01; not accepted |
+Programme (105 full / 97 core): **73.4 % full, 79.5 % core** (77.11 points); with the proposed WP 17 allocation: 70.3 % / 75.6 % (80.11 of 114 / 106). Details and sensitivities: `docs/governance/programme-progress-2026-11-07.md`.
+
+## G. Owner Actions & Delivery Blockers (same list as in the app: Settings > Delivery)
+| Id | WP | Priority | Required action | Recommendation | Consequence of delay | Evidence |
+|---|---|---|---|---|---|---|
+| — | Programme | High | **Fast-forward `main` to `d50f724`** (`git fetch origin && git checkout main && git merge --ff-only d50f724 && git push`): this publishes the rolling `debug-latest` APK automatically | Do it after reading section D; it is a pure fast-forward of reviewed, CI-verified work | Testers keep the older rolling build; the WP 8 session's constraint was respected overnight | ledger, section D |
+| OB-WP8-04 | WP 8 | High | Choose B-15 option (a), (b) or (c) | (b) per the WP 8 session | WS3/3b-7 and the v8 switch-over wait | WP8.md campaign section; D04 §7 |
+| OB-WP17-01 | WP 17 | High | Approve the 9.00 allocation | Approve | every WP 17 figure stays provisional | WP17.md |
+| OB-WP8-01 / 02 | WP 8 | High (open, not yet ready) | Android and iPhone timing runs once the decision baseline and v7to8 harness land | wait for the WP 8 session's go, then run | 3b-9 stays at harness credit | docs/device-timing.md |
+| OB-WP8-03 | WP 8 | Medium | Accept reviewed sub-stages | hold until the baseline is re-reviewed | 3b below 100 % | WP8.md |
+| OB-PROG-01 | Programme | Medium | Decide whether agent reviews satisfy acceptance | accept for WP 15 / WP 17 S3–S4; human reviewer for WP 8 3b | review credit lines stay unearned | records |
+| OB-WP15-01..05 | WP 15 | Medium/Low | custom-food serving units; spec 1.4; OQ-02; mg; acceptance | (a); approve; metric only; keep hidden; accept after the four | WP 15 stays open at 73.3 % | WP15.md |
+| OB-WP17-02..09 | WP 17 | Medium/Low | S3b-ii; S4d; D-3..D-7; acceptance of S3/S4 (with the D-03 and D-06 points) | keep in WP 17; accept S4 without S4d; keep editable; approve draft; no density; no images; out of scope; accept | WP 17 review/acceptance lines stay at 0 | WP17.md |
+
+## H. Outstanding technical risks
+- **Code defects (open, Low):** no optimistic local order on drag reorder (brief snap-back); no test that a second reorder during a pending write is ignored; no backup round-trip test for the blocker row; malformed history items of a readable blocker entry are dropped on rewrite; WP 17 test gaps listed in the record.
+- **Infrastructure:** hosted-runner disk space (fixed by freeing space and sizing the AVD partition; watch the first runs); emulator boot is slow (68 s) but within the 900 s wait.
+- **Untested device behaviour:** no physical Android or iPhone run overnight; the v8 migration timing on devices (3b-9) is outstanding; the workspace at 2x text on a real phone keyboard is covered only by the emulator smoke test and widget tests.
+- **Deferred scope:** S4d rest-timer survival; S3b-ii; WP 17 S5/S6 (v9); D-06 UX change; WP 8 3b decision baseline, WS3 and B-15 (owner decision); merge-on-restore of blocker statuses.
+- **External dependencies:** Apple signing for device builds; store signing configuration (WP 14); owner devices.
+
+## I. Recommended next actions (in order)
+1. Fast-forward `main` to `d50f724` and let the rolling release publish; install `RepForge-debug-arm64-v8a.apk` on the test phone; open Settings > Delivery.
+2. Decide OB-WP8-04 (B-15) in the WP 8 session so WS3 and the decision baseline can be pushed, reviewed and integrated.
+3. Approve OB-WP17-01 and decide OB-PROG-01; then record WP 15 and WP 17 acceptances or conditions in the app and D04 §7.
+4. Run the device timing campaigns when the WP 8 session reports the harness and baseline as landed.
+5. Review the WP 11 plan and the WP 8 3c/3d preparation documents and decide their open questions.
+
+---
+
+# Integration ledger (working record)
 
 ## Integration ledger
 
