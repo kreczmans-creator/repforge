@@ -243,6 +243,31 @@ String _kind(Object? v) => switch (v) {
   _ => 'a value',
 };
 
+/// Switches for mapping choices that wait for an owner decision. The default
+/// is the behaviour delivered for review; nothing else may depend on a
+/// switch being on until the owner approves it.
+@immutable
+final class LegacyMappingOptions {
+  const LegacyMappingOptions({this.blockInvalidSecondaryTargets = false});
+
+  /// **OPEN (review WS4 H1, owner decision pending).** v7 hides an exercise
+  /// whose `secondary_muscles_json` is not a JSON array, holds a non-string
+  /// element or names an unknown muscle (`TrainingMappers.exerciseToEntity`
+  /// returns null). With this switch off (the default) the v8 mapping
+  /// quarantines those values and the exercise stays available: a visibility
+  /// change against v7. With it on, each such exercise is also blocked with
+  /// [BlockReason.invalidSecondaryTarget], like `unknownEquipment` (ADR-0008
+  /// Q12). Repeated secondaries and a secondary equal to the primary are
+  /// accepted by v7 and never block.
+  final bool blockInvalidSecondaryTargets;
+}
+
+/// **OPEN (review WS4 L9, for the owner alongside H1).** v7 also hides an
+/// exercise whose `type` or `category` is not a known identifier, or whose
+/// `aliases_json` is not a JSON array of strings. This mapping does not read
+/// those columns; whether v8 blocks such exercises is not decided here, and
+/// no behaviour is implemented for it.
+///
 /// Maps one v7 exercise row to v8 (plan section 6 step 3; ADR-0008 section
 /// B; ADR-0010 rule 5; D04 2026-11-06 no-primary disposition; R-01, R-02,
 /// R-11).
@@ -262,7 +287,12 @@ String _kind(Object? v) => switch (v) {
 ///     for review (ADR-0010 rule 5; action `retained`);
 ///   - otherwise → kept, with no event.
 /// - Text that is not a JSON array → quarantined whole (WP8-D3); no
-///   secondary is kept. This does not block the exercise.
+///   secondary is kept.
+/// - None of these blocks the exercise unless
+///   [LegacyMappingOptions.blockInvalidSecondaryTargets] is on (OPEN, H1):
+///   then any quarantined secondary value adds a block
+///   `invalidSecondaryTarget` with its own entry (rule
+///   [MigrationRuleCodes.invalidSecondaryTargetBlock]).
 /// - Ordinals are contiguous: the primary 0, the kept secondaries 1..n; with
 ///   no mapped primary the kept secondaries take 0..n-1 (IC-309).
 /// - A secondary that the OQ-19 roll-up would suppress is an ordinary kept
@@ -274,11 +304,13 @@ String _kind(Object? v) => switch (v) {
 /// - a known id repeated → skipped (IC-307), with its position and id
 ///   (ADR-0008 Q10); the first occurrence stays;
 /// - a string that is not one of the 21 ids → quarantined (IC-307) and the
-///   exercise blocked with `unknownEquipment`, naming the ids;
+///   exercise blocked with `unknownEquipment`, naming the ids (block entry
+///   rule ADR-0008-Q12);
 /// - a non-string element → quarantined (WP8-D3) and the exercise blocked
-///   with `invalidEquipment`;
-/// - text that is not a JSON array → blocked with `invalidEquipment`
-///   (WP8-D3); the original is quarantined; no item is linked.
+///   with `invalidEquipment` (block entry rule R-02);
+/// - text that is not a JSON array → a whole-column `quarantined` entry
+///   (WP8-D3) and a `blocked` entry `invalidEquipment` (R-02); no item is
+///   linked. The two entries differ by rule, so their event ids differ.
 /// The original `equipment_json` is quarantined whenever an element is
 /// unknown or invalid or the text is not an array; a list with only repeats
 /// migrates faithfully and is not quarantined (ADR-0008 clarification 3).
@@ -287,7 +319,10 @@ String _kind(Object? v) => switch (v) {
 /// `supplied` → `source` `system` with provider `repforge` and revision 1,
 /// or `user` with neither. A `supplied` value other than 0, 1 or a bool is
 /// outside the v7 CHECK and throws [ArgumentError].
-LegacyExerciseMapping mapLegacyExercise(LegacyExerciseRow row) {
+LegacyExerciseMapping mapLegacyExercise(
+  LegacyExerciseRow row, {
+  LegacyMappingOptions options = const LegacyMappingOptions(),
+}) {
   const table = LegacyV7Columns.exercisesTable;
   final id = row.id;
   if (id.isEmpty) throw ArgumentError.value(id, 'row.id', 'empty');
@@ -509,6 +544,28 @@ LegacyExerciseMapping mapLegacyExercise(LegacyExerciseRow row) {
         }
       }
   }
+  if (secondaryQuarantined && options.blockInvalidSecondaryTargets) {
+    blocks.add(
+      const BlockDecision(
+        BlockReason.invalidSecondaryTarget,
+        'secondary_muscles_json is not fully mappable',
+      ),
+    );
+    events.add(
+      event(
+        field: LegacyV7Columns.secondaryMuscles,
+        original: secondaryStored,
+        action: ReportAction.blocked,
+        rule: MigrationRuleCodes.invalidSecondaryTargetBlock,
+        category: ReportCategory.rejectedOrBlocked,
+        blockReason: BlockReason.invalidSecondaryTarget,
+        reason:
+            'The secondary muscle list holds a value v7 could not read, so '
+            'the exercise is blocked from new use; its id, history and '
+            'original data are kept.',
+      ),
+    );
+  }
   if (secondaryQuarantined) {
     quarantine.add(
       QuarantineRequest(
@@ -530,6 +587,18 @@ LegacyExerciseMapping mapLegacyExercise(LegacyExerciseRow row) {
   switch (_readArray(equipmentStored)) {
     case _NotArray(:final why):
       invalid.add('equipment_json: $why');
+      events.add(
+        event(
+          field: LegacyV7Columns.equipment,
+          original: equipmentStored,
+          action: ReportAction.quarantined,
+          rule: MigrationRuleCodes.legacyData,
+          category: ReportCategory.quarantinedOrUnresolved,
+          reason:
+              'The equipment list cannot be read because $why; the original '
+              'is quarantined and no item is linked.',
+        ),
+      );
     case _Array(:final elements):
       final seen = <String>{};
       for (var i = 0; i < elements.length; i++) {
@@ -596,7 +665,7 @@ LegacyExerciseMapping mapLegacyExercise(LegacyExerciseRow row) {
         field: LegacyV7Columns.equipment,
         original: equipmentStored,
         action: ReportAction.blocked,
-        rule: MigrationRuleCodes.equipment,
+        rule: MigrationRuleCodes.unknownEquipmentBlock,
         category: ReportCategory.rejectedOrBlocked,
         blockReason: BlockReason.unknownEquipment,
         reason:
@@ -613,7 +682,7 @@ LegacyExerciseMapping mapLegacyExercise(LegacyExerciseRow row) {
         field: LegacyV7Columns.equipment,
         original: equipmentStored,
         action: ReportAction.blocked,
-        rule: MigrationRuleCodes.legacyData,
+        rule: MigrationRuleCodes.invalidEquipmentBlock,
         category: ReportCategory.rejectedOrBlocked,
         blockReason: BlockReason.invalidEquipment,
         reason:

@@ -110,7 +110,12 @@ void main() {
     test('block reasons (R-02)', () {
       expect(
         [for (final r in BlockReason.values) r.name],
-        ['noPrimaryTarget', 'unknownEquipment', 'invalidEquipment'],
+        [
+          'noPrimaryTarget',
+          'unknownEquipment',
+          'invalidEquipment',
+          'invalidSecondaryTarget', // OPEN (H1): only behind the switch
+        ],
       );
     });
   });
@@ -215,6 +220,50 @@ void main() {
           reason: '$bad',
         );
       }
+    });
+
+    test('only canonical encodings decode (encode(decode(x)) == x)', () {
+      for (final bad in [
+        '-0',
+        '1E3',
+        '1e3',
+        '7.50',
+        ' 7 ',
+        '7 ',
+        '07',
+        '9223372036854775808',
+        '1e400',
+        '7.',
+        r'"\u0041"',
+        '{"blob":"AP8"}',
+        '{"blob":"AP8=" }',
+        '{ "real":"NaN"}',
+      ]) {
+        expect(
+          () => decodeStoredValue(bad),
+          throwsFormatException,
+          reason: bad,
+        );
+      }
+      for (final good in [
+        'null',
+        '0',
+        '-0.0',
+        '7',
+        '7.0',
+        '1e+21',
+        '1e-7',
+        '5e-324',
+        '9223372036854775807',
+        '-9223372036854775808',
+        r'"\ud800"',
+        '{"blob":"AP8="}',
+        '{"blob":""}',
+        '{"real":"NaN"}',
+      ]) {
+        expect(encodeStoredValue(decodeStoredValue(good)), good, reason: good);
+      }
+      expect(decodeStoredValue('{"real":"NaN"}'), isNaN);
     });
 
     test('text outside the contract does not decode', () {
@@ -787,7 +836,10 @@ void main() {
       final swapped = reconcileReport(
         withCounts(with_(blocked: 2, rejected: 0)),
       ).problems;
-      expect(swapped.single, contains('rejected 0 but 1 records'));
+      expect(swapped, [
+        contains('rejected 0 but 1 records'),
+        contains('blocked 2 but 1 records'),
+      ]);
     });
 
     test('totals by category, action and rule head the report', () {
@@ -847,6 +899,48 @@ void main() {
         ).problems.single,
         contains('plans'),
       );
+    });
+
+    test('a refused examine leaves the builder unchanged (review WS4 L7)', () {
+      final b = MigrationReportBuilder(run());
+      // Duplicate event ids: refused before anything is recorded.
+      expect(
+        () => b.examine(
+          table: 'exercises',
+          recordId: 'ex-1',
+          cleanOutcome: ReportCategory.migrated,
+          events: [ev(), ev()],
+        ),
+        throwsStateError,
+      );
+      // A foreign event: refused, and the table's clean outcome is not fixed.
+      expect(
+        () => b.examine(
+          table: 'session_sets',
+          recordId: 'set-1',
+          cleanOutcome: ReportCategory.migrated,
+          events: [ev(recordId: 'other')],
+        ),
+        throwsArgumentError,
+      );
+      // The same record and a different clean outcome are accepted now.
+      b
+        ..examine(
+          table: 'exercises',
+          recordId: 'ex-1',
+          cleanOutcome: ReportCategory.migrated,
+          events: [ev()],
+        )
+        ..examine(
+          table: 'session_sets',
+          recordId: 'set-1',
+          cleanOutcome: ReportCategory.preserved,
+        );
+      final r = b.build();
+      expect(r.entries, hasLength(1));
+      expect(r.counts['exercises']!.examined, 1);
+      expect(r.counts['session_sets']!.preserved, 1);
+      expect(reconcileReport(r).problems, isEmpty);
     });
 
     test('the builder refuses double counting and foreign events', () {
@@ -960,7 +1054,254 @@ void main() {
     });
   });
 
+  group('action and category (review WS4 M3)', () {
+    test('only the documented pairs are accepted', () {
+      const allowed = <ReportAction, Set<ReportCategory>>{
+        ReportAction.quarantined: {ReportCategory.quarantinedOrUnresolved},
+        ReportAction.cleared: {ReportCategory.quarantinedOrUnresolved},
+        ReportAction.rejected: {ReportCategory.rejectedOrBlocked},
+        ReportAction.blocked: {ReportCategory.rejectedOrBlocked},
+        ReportAction.skipped: {
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
+        ReportAction.mapped: {
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
+        ReportAction.retained: {
+          ReportCategory.warningForReview,
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
+        ReportAction.markerAdded: {
+          ReportCategory.warningForReview,
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
+        ReportAction.none: {
+          ReportCategory.warningForReview,
+          ReportCategory.quarantinedOrUnresolved,
+        },
+      };
+      expect(allowed.keys.toSet(), ReportAction.values.toSet());
+      for (final action in ReportAction.values) {
+        expect(ReportEvent.allowedCategories(action), allowed[action]);
+        for (final category in ReportCategory.values) {
+          ReportEvent make() => ev(
+            action: action,
+            category: category,
+            blockReason: action == ReportAction.blocked
+                ? BlockReason.noPrimaryTarget
+                : null,
+          );
+          if (allowed[action]!.contains(category)) {
+            expect(make, returnsNormally, reason: '$action $category');
+          } else {
+            expect(make, throwsArgumentError, reason: '$action $category');
+          }
+        }
+      }
+    });
+  });
+
+  group('reconciliation structure (review WS4 M1, L1, L2)', () {
+    MigrationReport sample() {
+      final b = MigrationReportBuilder(run());
+      final m = mapLegacyExercise(
+        const LegacyExerciseRow(
+          id: 'e1',
+          primaryMuscle: 'chest',
+          secondaryMusclesJson: '["traps"]',
+          equipmentJson: '[]',
+          supplied: 0,
+        ),
+      );
+      b
+        ..examine(
+          table: 'exercises',
+          recordId: 'e1',
+          cleanOutcome: ReportCategory.migrated,
+          events: m.events,
+        )
+        ..examine(
+          table: 'exercises',
+          recordId: 'e2',
+          cleanOutcome: ReportCategory.migrated,
+        );
+      return b.build();
+    }
+
+    TableCounts counts(String table) => TableCounts(
+      table: table,
+      examined: 2,
+      migrated: 1,
+      preserved: 0,
+      quarantinedOrUnresolved: 1,
+      rejectedOrBlocked: 0,
+      blocked: 0,
+      rejected: 0,
+      warningEntries: 0,
+      recordsWithWarnings: 0,
+      entriesByAction: const {ReportAction.quarantined: 1},
+    );
+
+    test('a counts key that is not its table fails', () {
+      final r = sample();
+      expect(reconcileReport(r).reconciles, isTrue);
+      final forged = MigrationReport.restored(
+        run: r.run,
+        entries: r.entries,
+        counts: {'exercises': counts('other')},
+        exceptionalOutcomes: r.exceptionalOutcomes,
+        cleanOutcomes: r.cleanOutcomes,
+      );
+      expect(
+        reconcileReport(forged, examinedByTable: {'exercises': 2}).problems,
+        ['counts key exercises holds the counts of table other'],
+      );
+    });
+
+    test('a missing clean outcome is a problem, not a type error', () {
+      final r = sample();
+      final forged = MigrationReport.restored(
+        run: r.run,
+        entries: r.entries,
+        counts: r.counts,
+        exceptionalOutcomes: r.exceptionalOutcomes,
+        cleanOutcomes: const {},
+      );
+      expect(
+        reconcileReport(forged).problems,
+        contains('exercises: no clean outcome recorded'),
+      );
+      final wrongKind = MigrationReport.restored(
+        run: r.run,
+        entries: r.entries,
+        counts: r.counts,
+        exceptionalOutcomes: r.exceptionalOutcomes,
+        cleanOutcomes: const {'exercises': ReportCategory.warningForReview},
+      );
+      expect(
+        reconcileReport(wrongKind).problems.join(),
+        contains('is not migrated or preserved'),
+      );
+    });
+
+    test('clean or exceptional outcomes of an uncounted table fail', () {
+      final r = sample();
+      final ghost = MigrationReport.restored(
+        run: r.run,
+        entries: r.entries,
+        counts: r.counts,
+        exceptionalOutcomes: {
+          ...r.exceptionalOutcomes,
+          'ghost': const {'g1': ReportCategory.rejectedOrBlocked},
+        },
+        cleanOutcomes: {
+          ...r.cleanOutcomes,
+          'phantom': ReportCategory.preserved,
+        },
+      );
+      expect(reconcileReport(ghost).problems, [
+        'clean outcome for table phantom, which has no counts',
+        'exceptional outcomes for table ghost, which has no counts',
+      ]);
+    });
+
+    test('affected records found independently must equal the report '
+        '(review WS4 M2; section 4.4)', () {
+      final r = sample();
+      final affected = {
+        'exercises': {
+          ReportCategory.quarantinedOrUnresolved: {'e1'},
+          ReportCategory.rejectedOrBlocked: <String>{},
+          ReportCategory.warningForReview: <String>{},
+        },
+      };
+      expect(reconcileReport(r, affectedByTable: affected).problems, isEmpty);
+      // Entries dropped and the record recounted as migrated: the counts
+      // still add up, but the independent input catches it.
+      final dropped = MigrationReport.restored(
+        run: r.run,
+        entries: const [],
+        counts: {
+          'exercises': TableCounts(
+            table: 'exercises',
+            examined: 2,
+            migrated: 2,
+            preserved: 0,
+            quarantinedOrUnresolved: 0,
+            rejectedOrBlocked: 0,
+            blocked: 0,
+            rejected: 0,
+            warningEntries: 0,
+            recordsWithWarnings: 0,
+          ),
+        },
+        exceptionalOutcomes: const {},
+        cleanOutcomes: const {'exercises': ReportCategory.migrated},
+      );
+      expect(
+        reconcileReport(dropped, examinedByTable: {'exercises': 2}).reconciles,
+        isTrue,
+        reason: 'counts alone cannot see dropped rows',
+      );
+      expect(
+        reconcileReport(
+          dropped,
+          examinedByTable: {'exercises': 2},
+          affectedByTable: affected,
+        ).problems.single,
+        'exercises: quarantinedOrUnresolved records differ from the '
+        'independent input (missing e1; unexpected )',
+      );
+      expect(
+        reconcileReport(
+          r,
+          affectedByTable: {
+            'sets': {ReportCategory.quarantinedOrUnresolved: <String>{}},
+          },
+        ).problems,
+        ['affected records given for table sets, which has no counts'],
+      );
+    });
+  });
+
   group('reconciliation detects tampering', () {
+    test('a stored event id that does not match its fields fails (L3)', () {
+      final b = MigrationReportBuilder(run())
+        ..examine(
+          table: 'exercises',
+          recordId: 'ex-1',
+          cleanOutcome: ReportCategory.migrated,
+          events: [ev()],
+        );
+      final good = b.build();
+      final entry = good.entries.single;
+      expect(entry.eventIdMatches, isTrue);
+      final stored = ReportEntry.stored(
+        runId: entry.runId,
+        eventId: entry.eventId,
+        event: entry.event,
+      );
+      expect(stored, entry);
+      expect(
+        reconcileReport(_Forged(good, entries: [stored]).report).reconciles,
+        isTrue,
+      );
+      final tampered = ReportEntry.stored(
+        runId: entry.runId,
+        eventId: '0' * 64,
+        event: entry.event,
+      );
+      expect(tampered.eventIdMatches, isFalse);
+      expect(
+        reconcileReport(_Forged(good, entries: [tampered]).report).problems,
+        ['event id ${'0' * 64} does not match its fields'],
+      );
+    });
+
     // Rebuilds a report through the builder with one inconsistency, using
     // the public surface only: entries are re-wrapped from another run, or
     // counts disagree with the input.

@@ -137,13 +137,22 @@ enum BlockReason {
   /// `equipment_json` is not a JSON array, or an element is not a string
   /// (R-02).
   invalidEquipment,
+
+  /// **OPEN (review WS4 H1, not approved).** `secondary_muscles_json` holds a
+  /// value v7 could not read (not an array, a non-string element, an unknown
+  /// muscle). Produced only when `LegacyMappingOptions.
+  /// blockInvalidSecondaryTargets` is on; the default mapping never uses it.
+  /// A stored schema value list must not include it until the owner
+  /// approves it.
+  invalidSecondaryTarget,
 }
 
 /// What started the report run (`quality-and-duplicates.md` section 4.2).
 enum ReportTrigger { migration, restore, integrityCheck, catalogueUpdate }
 
 /// Rule codes the v8 migration cites. Every code comes from an approved
-/// source; none is new.
+/// source (a check code or an owner decision), except
+/// [invalidSecondaryTargetBlock], which is OPEN.
 abstract final class MigrationRuleCodes {
   /// At least one primary target (`quality-and-duplicates.md` IC-204); cited
   /// by the `noPrimaryTarget` block.
@@ -169,6 +178,19 @@ abstract final class MigrationRuleCodes {
   /// original kept in quarantine). Cited by a value that is not readable at
   /// all: non-array JSON text, a non-string element (ADR-0008 B step 14).
   static const String legacyData = 'WP8-D3';
+
+  /// The owner decision that blocks an exercise with unknown equipment
+  /// (ADR-0008 section E, Q12). Cited by the `unknownEquipment` block entry.
+  static const String unknownEquipmentBlock = 'ADR-0008-Q12';
+
+  /// The owner decision that created the `invalidEquipment` block reason
+  /// (D04 register R-02). Cited by the `invalidEquipment` block entry, so it
+  /// differs from the WP8-D3 quarantine entry of the same column.
+  static const String invalidEquipmentBlock = 'R-02';
+
+  /// **OPEN (H1):** placeholder code of the `invalidSecondaryTarget` block,
+  /// used only behind the switch. The owner names the code on approval.
+  static const String invalidSecondaryTargetBlock = 'OPEN-H1';
 
   /// `fullBody` as a secondary target, kept historically (ADR-0010 rule 5;
   /// section 4.1 F08).
@@ -225,9 +247,20 @@ String encodeStoredValue(Object? value) {
   }
 }
 
-/// Decodes the output of [encodeStoredValue]. Throws [FormatException] for
-/// text outside the contract.
+/// Decodes the output of [encodeStoredValue]. Accepts only the canonical
+/// encoding: `encodeStoredValue(decodeStoredValue(x)) == x` for every
+/// accepted `x` (so `-0`, `1E3`, `7.50`, ` 7 `, `"\u0041"`, an integer
+/// beyond 64 bits or `1e400` are refused). Throws [FormatException] for text
+/// outside the contract.
 Object? decodeStoredValue(String encoded) {
+  final value = _decodeStoredValue(encoded);
+  if (encodeStoredValue(value) != encoded) {
+    throw FormatException('not a canonical encoded stored value', encoded);
+  }
+  return value;
+}
+
+Object? _decodeStoredValue(String encoded) {
   final Object? v;
   try {
     v = jsonDecode(encoded);
@@ -344,11 +377,44 @@ final class ReportEvent {
     if ((action == ReportAction.blocked) != (blockReason != null)) {
       throw ArgumentError('blockReason is set exactly for a blocked action');
     }
-    if (action == ReportAction.blocked &&
-        category != ReportCategory.rejectedOrBlocked) {
-      throw ArgumentError('a blocked action is rejectedOrBlocked');
+    if (!allowedCategories(action).contains(category)) {
+      throw ArgumentError(
+        'the action ${action.name} cannot have the category ${category.code}',
+      );
     }
   }
+
+  /// The categories an action may carry (review WS4 M3):
+  /// - `quarantined`, `cleared` → quarantinedOrUnresolved (the original is
+  ///   in quarantine, the operational value is not kept);
+  /// - `rejected`, `blocked` → rejectedOrBlocked;
+  /// - `skipped`, `mapped` → migrated or preserved (nothing is lost);
+  /// - `retained` → warningForReview, migrated or preserved (a kept value
+  ///   that may need review, for example a `fullBody` secondary);
+  /// - `markerAdded` → warningForReview, migrated or preserved (a "source
+  ///   updated" marker changes no value);
+  /// - `none` → warningForReview or quarantinedOrUnresolved (a finding with
+  ///   no action, for example an unresolved reference, IC-901 to IC-905).
+  static Set<ReportCategory> allowedCategories(ReportAction action) =>
+      switch (action) {
+        ReportAction.quarantined ||
+        ReportAction.cleared => const {ReportCategory.quarantinedOrUnresolved},
+        ReportAction.rejected ||
+        ReportAction.blocked => const {ReportCategory.rejectedOrBlocked},
+        ReportAction.skipped || ReportAction.mapped => const {
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
+        ReportAction.retained || ReportAction.markerAdded => const {
+          ReportCategory.warningForReview,
+          ReportCategory.migrated,
+          ReportCategory.preserved,
+        },
+        ReportAction.none => const {
+          ReportCategory.warningForReview,
+          ReportCategory.quarantinedOrUnresolved,
+        },
+      };
 
   /// The affected table, for example `exercises`.
   final String table;
@@ -450,9 +516,30 @@ final class ReportEntry {
         rule: event.rule,
       );
 
+  /// An entry read back from storage or a backup, with its stored
+  /// [eventId]. Nothing is re-derived here, so [reconcileReport] can detect
+  /// a stored id that does not match its fields.
+  const ReportEntry.stored({
+    required this.runId,
+    required this.eventId,
+    required this.event,
+  });
+
   final String runId;
   final String eventId;
   final ReportEvent event;
+
+  /// True when [eventId] equals the derivation from the entry's fields.
+  bool get eventIdMatches =>
+      eventId ==
+      migrationEventId(
+        runId: runId,
+        table: event.table,
+        recordId: event.recordId,
+        field: event.field,
+        position: event.position,
+        rule: event.rule,
+      );
 
   @override
   bool operator ==(Object other) =>
@@ -555,11 +642,11 @@ final class TableCounts {
   final int quarantinedOrUnresolved;
   final int rejectedOrBlocked;
 
-  /// Of [rejectedOrBlocked]: records with a blocked action and no rejected
-  /// one.
+  /// Of [rejectedOrBlocked]: records with at least one `blocked` entry and
+  /// no `rejected` entry.
   final int blocked;
 
-  /// Of [rejectedOrBlocked]: records with a rejected action.
+  /// Of [rejectedOrBlocked]: records with at least one `rejected` entry.
   final int rejected;
 
   /// Warning entries ([ReportCategory.warningForReview]): additional, never
@@ -714,19 +801,23 @@ final class MigrationReportBuilder {
 
   /// Registers one examined record of [table]. [cleanOutcome] is the outcome
   /// of the table's records without exceptional events (migrated or
-  /// preserved); it is fixed per table. Throws [StateError] when the record
-  /// was already examined, or when two events share an event id.
+  /// preserved); it is fixed per table. Everything is validated before the
+  /// builder changes: a refused call leaves it as it was. Throws
+  /// [StateError] when the record was already examined, the table counts
+  /// clean records differently, or an event id repeats; [ArgumentError] for
+  /// an event of another record or a wrong [cleanOutcome].
   ReportCategory examine({
     required String table,
     required String recordId,
     required ReportCategory cleanOutcome,
     Iterable<ReportEvent> events = const [],
   }) {
-    final known = _clean.putIfAbsent(table, () => cleanOutcome);
-    if (known != cleanOutcome) {
+    // Validate.
+    final known = _clean[table];
+    if (known != null && known != cleanOutcome) {
       throw StateError('table $table already counts clean records as $known');
     }
-    if (!_seen.putIfAbsent(table, () => <String>{}).add(recordId)) {
+    if (_seen[table]?.contains(recordId) ?? false) {
       throw StateError('record $table/$recordId examined twice');
     }
     final list = events.toList();
@@ -736,19 +827,27 @@ final class MigrationReportBuilder {
       }
     }
     final outcome = recordOutcome(list, cleanOutcome: cleanOutcome);
+    final newEntries = [for (final e in list) ReportEntry(run.runId, e)];
+    final newIds = <String>{};
+    for (final entry in newEntries) {
+      if (_eventIds.contains(entry.eventId) || !newIds.add(entry.eventId)) {
+        throw StateError('duplicate event id for ${entry.event}');
+      }
+    }
+
+    // Mutate.
+    _clean[table] = cleanOutcome;
+    _seen.putIfAbsent(table, () => <String>{}).add(recordId);
     _outcomeCounts
         .putIfAbsent(table, () => {})
         .update(outcome, (n) => n + 1, ifAbsent: () => 1);
     if (list.isEmpty) return outcome;
 
     _exceptional.putIfAbsent(table, () => {})[recordId] = outcome;
-    if (outcome == ReportCategory.rejectedOrBlocked) {
-      final rejected = list.any((e) => e.action == ReportAction.rejected);
-      (rejected ? _rejected : _blocked).update(
-        table,
-        (n) => n + 1,
-        ifAbsent: () => 1,
-      );
+    if (list.any((e) => e.action == ReportAction.rejected)) {
+      _rejected.update(table, (n) => n + 1, ifAbsent: () => 1);
+    } else if (list.any((e) => e.action == ReportAction.blocked)) {
+      _blocked.update(table, (n) => n + 1, ifAbsent: () => 1);
     }
     final warnings = list
         .where((e) => e.category == ReportCategory.warningForReview)
@@ -760,12 +859,9 @@ final class MigrationReportBuilder {
     final actions = _actions.putIfAbsent(table, () => {});
     for (final e in list) {
       actions.update(e.action, (n) => n + 1, ifAbsent: () => 1);
-      final entry = ReportEntry(run.runId, e);
-      if (!_eventIds.add(entry.eventId)) {
-        throw StateError('duplicate event id for $e');
-      }
-      _entries.add(entry);
     }
+    _eventIds.addAll(newIds);
+    _entries.addAll(newEntries);
     return outcome;
   }
 
@@ -817,26 +913,39 @@ final class ReconciliationResult {
       reconciles ? 'reconciles' : 'does not reconcile: ${problems.join('; ')}';
 }
 
-/// Proves that [report] reconciles (R-04; D04 "Report detail"):
-/// 1. per table, examined = migrated + preserved + quarantined or unresolved
-///    + rejected or blocked, and blocked + rejected = rejected or blocked,
-///    with rejected = the records that have a rejected entry;
-/// 2. when [examinedByTable] is given (records counted independently from
+/// Proves that [report] reconciles (R-04; D04 "Report detail";
+/// `quality-and-duplicates.md` section 4.4):
+/// 1. structure: each `counts` key equals its [TableCounts.table]; every
+///    counted table has a clean outcome (migrated or preserved); clean and
+///    exceptional outcomes and entries name only counted tables;
+/// 2. per table, examined = migrated + preserved + quarantined or unresolved
+///    + rejected or blocked; rejected = records with a `rejected` entry;
+///    blocked = records with a `blocked` entry and no `rejected` one; and
+///    blocked + rejected = rejected or blocked (a rejected-or-blocked entry
+///    is always one of those two actions, `ReportEvent.allowedCategories`);
+/// 3. when [examinedByTable] is given (records counted independently from
 ///    the input), every table's examined count equals it, and no table is
 ///    missing on either side;
-/// 3. every entry belongs to an examined record with an exceptional outcome,
+/// 4. when [affectedByTable] is given (table → category → record ids found
+///    independently, for example from the mapping's quarantine and block
+///    lists): for an outcome category, the records counted under it with
+///    entries equal the given ids; for [ReportCategory.warningForReview], the
+///    records with a warning entry equal the given ids. Only the given
+///    categories are checked; a table without counts is a problem;
+/// 5. every entry belongs to an examined record with an exceptional outcome,
 ///    each such record is counted once, and its outcome equals the outcome
-///    recomputed from its entries;
-/// 4. every quarantined and rejected-or-blocked record has an entry (no
-///    exceptional record is reported as a count only);
-/// 5. event ids are unique and equal their derivation from the entry fields;
-/// 6. warning counts equal the warning entries and never exceed the records
+///    recomputed from its entries; every quarantined and rejected-or-blocked
+///    record has an entry (no exceptional record is a count only);
+/// 6. every entry belongs to the report's run, event ids are unique, and each
+///    stored id equals its derivation from the entry's fields;
+/// 7. warning counts equal the warning entries and never exceed the records
 ///    examined;
-/// 7. each disposition count of a table equals the number of its entries
+/// 8. each disposition count of a table equals the number of its entries
 ///    with that disposition.
 ReconciliationResult reconcileReport(
   MigrationReport report, {
   Map<String, int>? examinedByTable,
+  Map<String, Map<ReportCategory, Set<String>>>? affectedByTable,
 }) {
   final problems = <String>[];
   final byRecord = <String, Map<String, List<ReportEvent>>>{};
@@ -846,15 +955,7 @@ ReconciliationResult reconcileReport(
     if (entry.runId != report.run.runId) {
       problems.add('entry ${entry.eventId} belongs to run ${entry.runId}');
     }
-    final derived = migrationEventId(
-      runId: entry.runId,
-      table: e.table,
-      recordId: e.recordId,
-      field: e.field,
-      position: e.position,
-      rule: e.rule,
-    );
-    if (derived != entry.eventId) {
+    if (!entry.eventIdMatches) {
       problems.add('event id ${entry.eventId} does not match its fields');
     }
     if (!ids.add(entry.eventId)) {
@@ -866,6 +967,39 @@ ReconciliationResult reconcileReport(
         .add(e);
   }
 
+  // 1. Structure.
+  for (final MapEntry(key: t, value: c) in report.counts.entries) {
+    if (c.table != t) {
+      problems.add('counts key $t holds the counts of table ${c.table}');
+    }
+    final clean = report.cleanOutcomes[t];
+    if (clean == null) {
+      problems.add('$t: no clean outcome recorded');
+    } else if (clean != ReportCategory.migrated &&
+        clean != ReportCategory.preserved) {
+      problems.add(
+        '$t: clean outcome ${clean.code} is not migrated or '
+        'preserved',
+      );
+    }
+  }
+  for (final t in report.cleanOutcomes.keys) {
+    if (!report.counts.containsKey(t)) {
+      problems.add('clean outcome for table $t, which has no counts');
+    }
+  }
+  for (final t in report.exceptionalOutcomes.keys) {
+    if (!report.counts.containsKey(t)) {
+      problems.add('exceptional outcomes for table $t, which has no counts');
+    }
+  }
+  for (final t in byRecord.keys) {
+    if (!report.counts.containsKey(t)) {
+      problems.add('entries for table $t, which has no counts');
+    }
+  }
+
+  // 3. Independent input count.
   if (examinedByTable != null) {
     for (final t in {...examinedByTable.keys, ...report.counts.keys}) {
       final expected = examinedByTable[t];
@@ -879,24 +1013,68 @@ ReconciliationResult reconcileReport(
     }
   }
 
-  for (final c in report.counts.values) {
+  // 4. Independent affected records.
+  if (affectedByTable != null) {
+    for (final MapEntry(key: t, value: byCategory) in affectedByTable.entries) {
+      if (!report.counts.containsKey(t)) {
+        problems.add(
+          'affected records given for table $t, which has no '
+          'counts',
+        );
+        continue;
+      }
+      final exceptional = report.exceptionalOutcomes[t] ?? const {};
+      final records = byRecord[t] ?? const {};
+      for (final MapEntry(key: category, value: expected)
+          in byCategory.entries) {
+        final Set<String> actual;
+        if (category == ReportCategory.warningForReview) {
+          actual = {
+            for (final MapEntry(:key, :value) in records.entries)
+              if (value.any(
+                (e) => e.category == ReportCategory.warningForReview,
+              ))
+                key,
+          };
+        } else {
+          actual = {
+            for (final MapEntry(:key, :value) in exceptional.entries)
+              if (value == category) key,
+          };
+        }
+        final missing = expected.difference(actual).toList()..sort();
+        final extra = actual.difference(expected).toList()..sort();
+        if (missing.isNotEmpty || extra.isNotEmpty) {
+          problems.add(
+            '$t: ${category.code} records differ from the independent input '
+            '(missing ${missing.join(', ')}; unexpected ${extra.join(', ')})',
+          );
+        }
+      }
+    }
+  }
+
+  // 2, 5, 7, 8. Per table.
+  for (final MapEntry(key: t, value: c) in report.counts.entries) {
     if (c.outcomeTotal != c.examined) {
       problems.add(
-        '${c.table}: outcomes sum to ${c.outcomeTotal}, examined '
+        '$t: outcomes sum to ${c.outcomeTotal}, examined '
         '${c.examined}',
       );
     }
     if (c.blocked + c.rejected != c.rejectedOrBlocked) {
       problems.add(
-        '${c.table}: blocked ${c.blocked} + rejected ${c.rejected} '
+        '$t: blocked ${c.blocked} + rejected ${c.rejected} '
         '!= rejectedOrBlocked ${c.rejectedOrBlocked}',
       );
     }
     if (c.recordsWithWarnings > c.examined) {
-      problems.add('${c.table}: more records with warnings than examined');
+      problems.add('$t: more records with warnings than examined');
     }
-    final exceptional = report.exceptionalOutcomes[c.table] ?? const {};
-    final clean = report.cleanOutcomes[c.table];
+    final exceptional = report.exceptionalOutcomes[t] ?? const {};
+    final clean = report.cleanOutcomes[t];
+    final cleanValid =
+        clean == ReportCategory.migrated || clean == ReportCategory.preserved;
     for (final outcome in [
       ReportCategory.quarantinedOrUnresolved,
       ReportCategory.rejectedOrBlocked,
@@ -904,41 +1082,43 @@ ReconciliationResult reconcileReport(
       final listed = exceptional.values.where((o) => o == outcome).length;
       if (listed != c.count(outcome)) {
         problems.add(
-          '${c.table}: ${outcome.code} count ${c.count(outcome)} '
-          'but $listed records have entries',
+          '$t: ${outcome.code} count ${c.count(outcome)} but '
+          '$listed records have entries',
         );
       }
     }
     for (final outcome in [ReportCategory.migrated, ReportCategory.preserved]) {
       final listed = exceptional.values.where((o) => o == outcome).length;
       if (listed > c.count(outcome) ||
-          (outcome != clean && c.count(outcome) != 0)) {
+          (cleanValid && outcome != clean && c.count(outcome) != 0)) {
         problems.add(
-          '${c.table}: ${outcome.code} count ${c.count(outcome)} '
-          'does not cover its $listed listed records',
+          '$t: ${outcome.code} count ${c.count(outcome)} does not '
+          'cover its $listed listed records',
         );
       }
     }
-    final records = byRecord[c.table] ?? const {};
+    final records = byRecord[t] ?? const {};
     var warnings = 0;
     var withWarnings = 0;
     var rejectedRecords = 0;
+    var blockedRecords = 0;
     for (final MapEntry(key: id, value: events) in records.entries) {
       final listed = exceptional[id];
       if (listed == null) {
-        problems.add('${c.table}/$id has entries but no counted outcome');
-        continue;
+        problems.add('$t/$id has entries but no counted outcome');
+      } else if (cleanValid) {
+        final recomputed = recordOutcome(events, cleanOutcome: clean!);
+        if (recomputed != listed) {
+          problems.add(
+            '$t/$id counted as ${listed.code}, entries say '
+            '${recomputed.code}',
+          );
+        }
       }
-      final recomputed = recordOutcome(events, cleanOutcome: clean!);
-      if (recomputed != listed) {
-        problems.add(
-          '${c.table}/$id counted as ${listed.code}, entries say '
-          '${recomputed.code}',
-        );
-      }
-      if (listed == ReportCategory.rejectedOrBlocked &&
-          events.any((e) => e.action == ReportAction.rejected)) {
+      if (events.any((e) => e.action == ReportAction.rejected)) {
         rejectedRecords++;
+      } else if (events.any((e) => e.action == ReportAction.blocked)) {
+        blockedRecords++;
       }
       final w = events
           .where((e) => e.category == ReportCategory.warningForReview)
@@ -948,17 +1128,23 @@ ReconciliationResult reconcileReport(
     }
     for (final id in exceptional.keys) {
       if (!records.containsKey(id)) {
-        problems.add('${c.table}/$id has an exceptional outcome but no entry');
+        problems.add('$t/$id has an exceptional outcome but no entry');
       }
     }
     if (rejectedRecords != c.rejected) {
       problems.add(
-        '${c.table}: rejected ${c.rejected} but $rejectedRecords '
-        'records have a rejected entry',
+        '$t: rejected ${c.rejected} but $rejectedRecords records '
+        'have a rejected entry',
+      );
+    }
+    if (blockedRecords != c.blocked) {
+      problems.add(
+        '$t: blocked ${c.blocked} but $blockedRecords records '
+        'have a blocked entry and no rejected one',
       );
     }
     if (warnings != c.warningEntries || withWarnings != c.recordsWithWarnings) {
-      problems.add('${c.table}: warning counts do not match the entries');
+      problems.add('$t: warning counts do not match the entries');
     }
     for (final action in ReportAction.values) {
       var listed = 0;
@@ -967,15 +1153,10 @@ ReconciliationResult reconcileReport(
       }
       if (listed != c.entries(action)) {
         problems.add(
-          '${c.table}: ${action.name} count ${c.entries(action)} '
-          'but $listed entries',
+          '$t: ${action.name} count ${c.entries(action)} but '
+          '$listed entries',
         );
       }
-    }
-  }
-  for (final t in byRecord.keys) {
-    if (!report.counts.containsKey(t)) {
-      problems.add('entries for table $t, which has no counts');
     }
   }
   return ReconciliationResult(problems);

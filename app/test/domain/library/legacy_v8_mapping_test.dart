@@ -355,7 +355,7 @@ void main() {
         LegacyEquipmentLink(EquipmentItemId('dumbbell'), 0),
       ]);
       expect(eventsOf(m), [
-        ('equipment_json', null, 'blocked', 'IC-307'),
+        ('equipment_json', null, 'blocked', 'ADR-0008-Q12'),
         ('equipment_json', 0, 'quarantined', 'IC-307'),
         ('equipment_json', 2, 'quarantined', 'IC-307'),
         ('equipment_json', 3, 'quarantined', 'IC-307'),
@@ -379,7 +379,7 @@ void main() {
         LegacyEquipmentLink(EquipmentItemId('barbell'), 0),
       ]);
       expect(eventsOf(m), [
-        ('equipment_json', null, 'blocked', 'WP8-D3'),
+        ('equipment_json', null, 'blocked', 'R-02'),
         ('equipment_json', 1, 'quarantined', 'WP8-D3'),
         ('equipment_json', 2, 'quarantined', 'WP8-D3'),
         ('equipment_json', 3, 'quarantined', 'WP8-D3'),
@@ -393,10 +393,21 @@ void main() {
           'as invalidEquipment; nothing is linked', () {
         final m = map(equipment: text);
         expect(m.equipment, isEmpty);
-        expect(eventsOf(m), [('equipment_json', null, 'blocked', 'WP8-D3')]);
+        // A quarantined entry and a blocked entry, told apart by rule
+        // (review WS4 L5), so their event ids differ.
+        expect(eventsOf(m), [
+          ('equipment_json', null, 'blocked', 'R-02'),
+          ('equipment_json', null, 'quarantined', 'WP8-D3'),
+        ]);
+        final ids = {for (final e in m.events) ReportEntry('run-1', e).eventId};
+        expect(ids, hasLength(2));
         expect(m.blocks.single.reason, BlockReason.invalidEquipment);
         expect(m.quarantine.single.original, {'equipment_json': text});
-        expect(m.events.single.originalValue, encodeStoredValue(text));
+        for (final e in m.events) {
+          expect(e.originalValue, encodeStoredValue(text));
+          expect(e.position, isNull);
+        }
+        expect(m.outcome, ReportCategory.rejectedOrBlocked);
       });
     }
 
@@ -427,6 +438,93 @@ void main() {
       expect(m.events, isEmpty);
     });
   });
+
+  group(
+    'OPEN H1: blocking unreadable secondaries (switch, off by default)',
+    () {
+      const on = LegacyMappingOptions(blockInvalidSecondaryTargets: true);
+      LegacyExerciseMapping mapOn(
+        Object? secondary, {
+        Object? primary = 'chest',
+      }) => mapLegacyExercise(
+        LegacyExerciseRow(
+          id: 'ex-1',
+          primaryMuscle: primary,
+          secondaryMusclesJson: secondary,
+          equipmentJson: '[]',
+          supplied: 0,
+        ),
+        options: on,
+      );
+
+      test('the default never blocks for a secondary', () {
+        expect(
+          const LegacyMappingOptions().blockInvalidSecondaryTargets,
+          false,
+        );
+        for (final text in <Object?>['["traps"]', '[1]', 'oops', null]) {
+          expect(map(secondary: text).blocks, isEmpty, reason: '$text');
+        }
+      });
+
+      for (final (text, label) in <(Object?, String)>[
+        ('["triceps","traps"]', 'an unknown muscle'),
+        ('["triceps",null]', 'a non-string element'),
+        ('oops', 'non-array text'),
+        (null, 'NULL'),
+      ]) {
+        test('with the switch on, $label blocks as invalidSecondaryTarget, '
+            'still quarantined, valid secondaries kept', () {
+          final m = mapOn(text);
+          expect(m.blocks, [
+            const BlockDecision(
+              BlockReason.invalidSecondaryTarget,
+              'secondary_muscles_json is not fully mappable',
+            ),
+          ]);
+          final block = m.events.singleWhere(
+            (e) => e.action == ReportAction.blocked,
+          );
+          expect(block.field, 'secondary_muscles_json');
+          expect(block.position, isNull);
+          expect(block.rule, MigrationRuleCodes.invalidSecondaryTargetBlock);
+          expect(block.blockReason, BlockReason.invalidSecondaryTarget);
+          expect(block.originalValue, encodeStoredValue(text));
+          expect(
+            m.events.where((e) => e.action == ReportAction.quarantined),
+            isNotEmpty,
+          );
+          expect(m.quarantine.single.original, {
+            'secondary_muscles_json': text,
+          });
+          expect(m.outcome, ReportCategory.rejectedOrBlocked);
+          expect({
+            for (final e in m.events) ReportEntry('r', e).eventId,
+          }, hasLength(m.events.length));
+        });
+      }
+
+      test('with the switch on, what v7 accepts never blocks: repeats, the '
+          'primary repeated, fullBody', () {
+        for (final text in [
+          '["triceps","triceps"]',
+          '["chest"]',
+          '["fullBody"]',
+          '[]',
+        ]) {
+          expect(mapOn(text).blocks, isEmpty, reason: text);
+        }
+      });
+
+      test('with the switch on, reasons stay independent (R-01)', () {
+        final m = mapOn('["traps"]', primary: 'Neck');
+        expect(
+          [for (final b in m.blocks) b.reason],
+          [BlockReason.noPrimaryTarget, BlockReason.invalidSecondaryTarget],
+        );
+      });
+    },
+  );
 
   group('consistency with the 3a domain rules', () {
     test('mapped targets of every non-blocked row pass the target rules '
@@ -597,8 +695,22 @@ void main() {
           expect(entries('ADR-0010', ReportAction.retained), fullBodySecondary);
           expect(entries('IC-302', ReportAction.skipped), repeatedInList);
           expect(entries('IC-307', ReportAction.skipped), repeatedEquipment);
-          expect(entries('IC-307', ReportAction.blocked), unknownEquipment);
-          expect(entries('WP8-D3', ReportAction.blocked), nonArrayEquipment);
+          expect(
+            entries('ADR-0008-Q12', ReportAction.blocked),
+            unknownEquipment,
+          );
+          expect(entries('R-02', ReportAction.blocked), nonArrayEquipment);
+          expect(
+            report.entries
+                .where(
+                  (e) =>
+                      e.event.field == 'equipment_json' &&
+                      e.event.rule == 'WP8-D3' &&
+                      e.event.position == null,
+                )
+                .length,
+            nonArrayEquipment,
+          );
           for (final c in [
             unmappedPrimary,
             equalToPrimary,
