@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/recipes/recipes.dart';
+import 'package:repforge/domain/units/entry_unit.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
@@ -80,6 +81,7 @@ class _IngredientSheetState extends State<_IngredientSheet> {
   }();
 
   ServingSize? _serving;
+  late EntryUnit _entryUnit = EntryUnit.canonicalFor(_profile.per100)!;
   late final TextEditingController _amount;
   late final TextEditingController _count;
   String? _error;
@@ -113,6 +115,29 @@ class _IngredientSheetState extends State<_IngredientSheet> {
   double? _num(TextEditingController c) =>
       double.tryParse(c.text.trim().replaceAll(',', '.'));
 
+  Quantity? get _entered {
+    final v = _num(_amount);
+    if (v == null) return null;
+    return switch (_entryUnit.toCanonical(v)) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  void _selectUnit(EntryUnit next) {
+    final current = _entered;
+    setState(() {
+      if (current != null) {
+        _amount.text = formatNumber(
+          next.fromCanonical(current),
+          maxDecimals: next.decimals,
+        );
+      }
+      _entryUnit = next;
+      _error = null;
+    });
+  }
+
   void _save() {
     final s = _serving;
     final count = s == null ? null : _num(_count);
@@ -125,7 +150,7 @@ class _IngredientSheetState extends State<_IngredientSheet> {
     if (s != null) {
       quantity = s.quantityFor(raw);
     } else {
-      final q = Quantity.of(raw, _profile.per100);
+      final q = _entryUnit.toCanonical(raw);
       if (q case Err(:final error)) {
         setState(() => _error = userMessageFor(error));
         return;
@@ -156,6 +181,7 @@ class _IngredientSheetState extends State<_IngredientSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final unit = _profile.per100.symbol;
+    final entered = _entered;
     return Padding(
       padding: EdgeInsets.only(
         left: RfSpace.gutter,
@@ -192,17 +218,38 @@ class _IngredientSheetState extends State<_IngredientSheet> {
               ),
               const SizedBox(height: RfSpace.s3),
             ],
-            if (_serving == null)
+            if (_serving == null) ...[
+              SegmentedButton<EntryUnit>(
+                key: const Key('ingredient-entry-unit'),
+                showSelectedIcon: false,
+                segments: [
+                  for (final u in EntryUnit.forBase(_profile.per100))
+                    ButtonSegment(value: u, label: Text(u.symbol)),
+                ],
+                selected: {_entryUnit},
+                onSelectionChanged: (s) => _selectUnit(s.first),
+              ),
+              const SizedBox(height: RfSpace.s2),
               RfTextField.number(
                 key: const Key('ingredient-amount'),
                 controller: _amount,
                 label: 'Amount',
-                unit: unit,
+                unit: _entryUnit.symbol,
+                decimals: _entryUnit.decimals,
                 errorText: _error,
                 autofocus: true,
                 onChanged: (_) => setState(() => _error = null),
-              )
-            else
+              ),
+              if (!_entryUnit.isCanonical && entered != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: RfSpace.s1),
+                  child: Text(
+                    key: const Key('ingredient-canonical'),
+                    '= ${entered.label}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+            ] else
               RfTextField.number(
                 key: const Key('ingredient-count'),
                 controller: _count,
