@@ -544,3 +544,15 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **3b-3** continues independently. **3b-2** starts after the ADR-0008 commit, with a version 8 schema that reflects these decisions.
 - Production stays at schema version 7, with no connection to the version 8 database. Stage 3b acceptance keeps all agreed gates.
 
+### 2026-11-06 — WP 8 3b-3 complete; 3b-2 rules (owner)
+- **3b-3 complete at 31f7652.** The delivery record keeps the independent review, both re-checks and the test evidence.
+- Coverage (93.3 %) is supporting evidence only. It never replaces the migration acceptance tests.
+- **3b-2 proceeds** under these rules:
+  - Implement version 8 strictly against the approved ADR-0008 decisions.
+  - Version 7 stays the immutable production baseline. No app connection, no production database change, no schema version advance.
+  - Frozen v1–v7 snapshots, migration steps and locked manifests stay unchanged.
+  - Ambiguities are never resolved silently. An assumption register records each: decision, sources, alternatives, recommendation, implications, and whether it blocks.
+  - A choice that materially affects the schema, migration behaviour, data integrity or compatibility stops for owner approval.
+  - Independent review checks every applicable ADR-0008 decision, v7 unchanged, frozen evidence intact, and schema comparison with reproducible tests.
+- **Stage 3b overall is not accepted.** The remaining gates stay: migration and report, crash and process-kill tests, backup, blocked records, device timing, CI and independent review.
+

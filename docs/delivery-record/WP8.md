@@ -615,8 +615,8 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 | Sub-stage | Content | Status |
 |---|---|---|
 | 3b-1 | Frozen fixtures v1–v7, golden backups, today's v7 digests | committed 6c05f24; accepted by the owner as the test foundation |
-| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | ADR-0008 clarification approved 2026-11-06; starts after 3b-3 |
-| 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | committed (review and re-check passed) |
+| 3b-2 | Version 8 schema, not connected; attributes and equipment roles | in progress; material assumptions stop for owner approval |
+| 3b-3 | Historical steps v1→v7 on frozen schemas; differential proof | complete at 31f7652 (owner, 2026-11-06); review and two re-checks recorded below |
 | 3b-4 | v7→v8 migration: safeguard A, report, quarantine, blocks | authorised |
 | 3b-5 | All paths v1..v7 → v8 | mandatory evidence |
 | 3b-6 | Real process kill | mandatory evidence |
@@ -730,3 +730,5 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 - Production characteristic, reproduced on purpose: a quarantined exercise's `original_json` holds the rebuilt v6 row, not the v5 row.
   - Nothing is lost: `is_custom` is NOT `supplied`, and the free text survives, because the UPDATE runs after the quarantine insert.
   - Flagged for 3b-4: the quarantine design decides whether v8 keeps this form.
+
+**Stage 3b status (2026-11-06):** 3b-1 accepted as foundation; 3b-3 complete; 3b-2 in progress; 3b-4 to 3b-10 outstanding. Stage 3b as a whole is not accepted.
