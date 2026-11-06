@@ -556,3 +556,12 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
   - Independent review checks every applicable ADR-0008 decision, v7 unchanged, frozen evidence intact, and schema comparison with reproducible tests.
 - **Stage 3b overall is not accepted.** The remaining gates stay: migration and report, crash and process-kill tests, backup, blocked records, device timing, CI and independent review.
 
+### 2026-11-06 — WP 8 3B-ACC-01 accelerated stage 3b campaign authorised (owner)
+- **Authorised:** coordinated parallel workstreams WS1–WS6 (schema, migration engine, backup and restore, integrity and report, recovery and performance, domain and use cases). Agents may implement, integrate, test, review and commit isolated version 8 work in reviewable increments.
+- **Not authorised:** production schema version 8, app connection to version 8, production migration rollout, stage 3b acceptance, or any domain-rule change without owner approval.
+- **Hard constraints:** frozen fixtures and manifests immutable; all v1–v7 paths tested; fresh and migrated v8 schemas structurally identical; no silent deletion, inference, rounding or correction; material assumptions resolved through owner approval, never by inference.
+- **Required behaviours:** the owner's scenario table (clean v7 migrates; failed integrity stays v7; no-primary and unknown-equipment exercises blocked individually; duplicate equipment ids reported; invalid TRN-020 values preserved and reported; restore conflicts rejected atomically; missing reference rows inserted only; crash leaves v7 or full v8; repeat migration writes nothing twice; v7 and settings-only backups restore; empty backups rejected).
+- **Reviews:** A (schema and contracts), B (migration and compatibility), C (integrated release candidate). Reviewers inspect diffs and tests. High and Medium findings are fixed and re-checked; Low findings get a recorded disposition.
+- **Never rushed:** v1–v7 compatibility on frozen fixtures; real process termination; real-device timing. Anything not completed stays outstanding, never "passed".
+- **Handback:** the complete evidence package listed by the owner. Stage 3b stays unaccepted until the owner accepts it explicitly.
+
