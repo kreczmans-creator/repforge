@@ -607,3 +607,11 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **WS3 closure evidence:** H1 fixed; four Medium findings resolved and independently re-checked; B-03 tested with migration-report links intact; B-04 documented and tested; B-08 and B-09 tested; existing equivalence, atomicity and device-wins evidence retained; full regression and four green CI workflows.
 - Strong existing evidence does not offset the domain-validation defect. The Medium fixes are not accepted merely because the High issue is resolved. WS3 stays open until the corrected work passes independent review.
 - B-01, B-02 and B-07 (with R-30) stay open.
+
+### 2026-11-06 — WP 8 3b-7 B-15 (conditional) and B-16 decided (owner)
+- **B-15 (accepted, conditional on the independent re-check):**
+  - **Format 3:** full domain validation for every exercise. Catalogue completeness rules (author, description and similar) are excluded. A user exercise without a primary target is allowed only while explicitly blocked. No other domain rule is weakened.
+  - **Formats 1 and 2:** the per-exercise migration blocking stays. A system exercise without a valid primary target is rejected. Rejection is not broadened to other legacy id-format violations without evidence that the migration cannot handle them safely.
+  - **Condition:** the re-check must confirm that the migration itself does not introduce the same IC-101 problem. If it does, work stops and the inconsistency is resolved before B-15 is accepted.
+- **B-16 (accepted limitation):** the single-outcome-per-table report contract stays. WS3 adds no complexity for it. The limitation is recorded and revisited with the 3d report screen.
+- **WS3 closes only when:** B-15's migration id behaviour is verified; the conditional boundary is implemented and tested; B-16 is recorded; the final independent review confirms all fixes; the complete regression suite passes. The final WS3 report separates verified fixes, accepted limitations and outstanding risks, and never presents the work as complete while a criterion is unresolved.
