@@ -414,3 +414,15 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - WP 8 delivery plan revision 3 (b63c4d9) **approved**; **stage 3 implementation authorised** (3a domain model; 3b schema v8, migration, repositories, backup format 3; 3c catalogue format, release reconciliation, integrity tooling; 3d WP 8/WP 9 integration; combined review and owner acceptance). Independent review and explicit gates at each sub-stage; implementation completion is not acceptance.
 - Binding safeguards (plan §21): A — SQLite foreign-key sequence (no `PRAGMA foreign_keys` change inside a transaction; atomic migration; foreign-key check; enforcement restored and verified); B — 31-node migration bootstrap distinct from the complete approved catalogue (126 / 79 / 33), loaded deterministically without duplicates; C — TRN-020 per-scale database constraints from the authoritative text (RPE 1–10 in 0.5 steps; RIR integers 0–5; no RPE–RIR conversion invented).
 
+### 2026-11-06 — WP 8 stage 3a decisions and acceptance; stage 3b authorised (owner)
+- **X1 geometry cut points approved in principle**: bench angle 10°, arm position 20° and 135°, knee angle 10°; a bench tilted 5° head-down is flat. **X1 closes only when the exact inclusive/exclusive boundary texts are recorded** with no gaps or overlaps.
+- **X2 IC-412**: the **narrow rule (19 pairs)** — the name-token gate is skipped only when a recorded attribute differs and the load items are equal; pairs documented; positive and negative tests.
+- **X3**: wording "Machine back extensions in which the spine itself moves." approved.
+- **IC-809**: `regionChest` relabelled **"Chest region"**; stable id and hierarchy unchanged.
+- **ED-501**: a functional double-tag violation is an **error for system-supplied content**, never downgraded; user content may be handled differently but must not bypass fundamental domain integrity constraints.
+- **Name normalisation**: full Unicode **NFKD** for comparison and duplicate-detection keys, covering Latin, Greek and full-width characters; no new dependency; display names never rewritten; consistent case handling; tests for accented, compatibility, Greek and full-width forms and for no false merges of distinct names.
+- **OQ-19 roll-up**: when a primary and a secondary target of one exercise resolve to the same parent group, **only the primary credit is counted at that parent level**; the exercise's target assignments are unchanged (calculation rule only).
+- **Release and version fields** for anatomy, movement-pattern and equipment records approved for stage 3c; no schema change in 3a.
+- **Stage 3a technical delivery accepted at f2f9e9e**, subject to recording the final X1 boundary wording.
+- **Stage 3b authorised**, beginning with the table-rebuild comparison trial (5,000 exercises, 100,000 sets; performance, integrity, crash recovery). Mandatory before the migration is finalised or committed: trial documented and returned to the owner; value equality; crash recovery; foreign-key integrity; migration from every supported schema; backup formats 1–3; independent review.
+
