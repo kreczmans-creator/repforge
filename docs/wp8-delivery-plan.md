@@ -1,6 +1,6 @@
 # WP 8 — Revised delivery plan (expanded exercise library)
 
-- Status: **Structure, scope and architectural direction approved (2026-11-05). Stage 4 authorised (documentation and reference data only). Stage 3 implementation gated** (§18). WP 8 is the active work package; no WP 16 implementation exists or is authorised.
+- Status: **Structure, scope and architectural direction approved (2026-11-05). Stage 4 outputs approved (2026-11-05). WP 9 accepted (2026-11-06). Stage 3 implementation NOT authorised — this revised plan (revision 3, 2026-11-06) awaits owner review and explicit authorisation** (§18, §20). WP 8 is the active work package; no WP 16 implementation exists or is authorised.
 - History: drafted as the WP 16a plan (2026-11-05), re-scoped the same day into WP 8 by owner decision (D04 §7); technical design unchanged; revised with OQ-19/OQ-21 decisions and the owner's technical qualifications (§17).
 - Date: 2026-11-05
 - Governance: owner decision of 2026-11-05 — the expanded exercise library is delivered **within WP 8**, which stays the active work package. WP 8 is not created as a delivery package. WP 9 is unchanged.
@@ -21,7 +21,7 @@ The 89-exercise implementation is the foundation. It does **not** satisfy the ex
 ## 0.1 Remaining stages
 | Stage | Content (workstream) | Can start | Gate |
 |---|---|---|---|
-| 3 | Architecture and reference data (§1–§14 below) — sub-stages 3a domain model, 3b schema v8 and migration, 3c catalogue format and reconciler, 3d adapt WP 8/9 code | after WP 9 delivery (shared code) and owner authorisation | tests, independent review per sub-stage, four workflows |
+| 3 | Architecture and reference data (§1–§14 below) — sub-stages 3a domain model, 3b schema v8 and migration, 3c catalogue format and reconciler, 3d adapt WP 8/9 code | WP 9 accepted 2026-11-06 (shared code); after explicit owner authorisation of this revised plan | tests, independent review per sub-stage, four workflows |
 | 4 | Catalogue tooling and quality assurance: editorial guide (naming, variation rules, instruction style, anatomical tagging), licence register, integrity checks and coverage report in CI, **coverage matrix with regional minimums (OQ-23)**, **anatomy node and movement pattern lists (OQ-22)** | documents and lists now (no code overlap with WP 9); CI tooling after stage 3c | owner approval of matrix and lists before stage 5 |
 | 5 | Anatomical catalogue population in tranches: 5.1 chest, 5.2 back, 5.3 shoulders, 5.4 arms, 5.5 hips and legs, 5.6 trunk, 5.7 conditioning and mobility | after stages 3 and 4 | per tranche: coverage minimums met, instructions for every exercise, zero integrity failures, gap report, owner content review |
 | 6 | Search, discovery and exercise screens: filters by anatomy, equipment, pattern, mechanics, laterality, difficulty, logging type; sorting; favourites; relationship navigation; instructions; custom exercises with the new fields; **exercise history paging — 20 sessions first, more on scroll (TRN-025(2); allocated from WP 9 by owner decision M4 / OQ-25, 2026-11-05)** | after stage 3; parallel with stage 5 | widget and integration tests, accessibility, independent review |
@@ -40,14 +40,16 @@ Out of scope: catalogue population beyond re-expressing the existing 89 exercise
 ## 2. Preconditions and dependencies
 | Item | Status | Effect |
 |---|---|---|
-| WP 9 delivered (schema v7) | in progress | WP 8 stage 3 starts after WP 9 delivery so the two do not change the same code |
-| ADR-0008, ADR-0009 approved | proposed | required before implementation |
-| This plan authorised | proposed | required before implementation |
-| OQ-19 volume attribution with several primary targets | **approved 2026-11-05** | rule in §8 |
-| OQ-21 definition of "imported" source | **approved 2026-11-05** | ADR-0009 §1 |
-| OQ-22 anatomy node list and movement pattern list | open | WP 8 stage 3 ships the structure and a proposed list; owner approves the lists before WP 8 stage 5 |
-| WP 8 decisions 1 (taxonomy) and acceptance | open | WP 8 stage 3 extends the 19 identifiers; it does not decide WP 8 acceptance |
-| Schema numbering with WP 10 | coordination | WP 8 stage 3 takes v8 if it lands first; otherwise the next free version. No data dependency |
+| WP 9 (schema v7) | **accepted 2026-11-06** at 0c35ef1 | stage 3 may change the code WP 9 uses (sub-stage 3d) under full regression |
+| WP 10 | **accepted 2026-11-05** at bb5f788; **no schema change** | schema **v8 is available** to WP 8 stage 3; no data dependency |
+| ADR-0008, ADR-0009 | **direction accepted 2026-11-05** | implement as written |
+| ADR-0010 (`fullBody`) | **accepted 2026-11-05** | rules in §4 and §11 |
+| OQ-19 volume attribution | **approved 2026-11-05** | rule in §8 |
+| OQ-21 definition of "imported" | **approved 2026-11-05** | ADR-0009 §1 |
+| OQ-22 anatomy and movement-pattern lists | **approved 2026-11-05** | stage 3 loads the approved `docs/catalogue/reference/anatomy.json` (126 nodes), `movement-patterns.json` (79 entries) and `equipment.json` (33 items) — §4, §6, §7, §11 |
+| OQ-23 coverage matrix | **approved 2026-11-05** | governs stage 5, not stage 3 |
+| Legacy invalid values, TRN-020, screen ownership | **approved 2026-11-05** | §6, §11 |
+| This plan | **revision 3 awaiting owner authorisation** | required before implementation |
 
 ## 3. Domain model (Engineering Objects)
 | Object | Identity | Source / provenance | Versioning | Key rules |
@@ -67,37 +69,37 @@ Out of scope: catalogue population beyond re-expressing the existing 89 exercise
 Closed enums (owner-defined): mechanics `compound | isolation`; laterality `bilateral | unilateral | alternating`; difficulty `beginner | intermediate | advanced` (technical complexity, not load or fitness); relationship kinds; source kinds; content section kinds (domain list, stored as text); logging type and category unchanged.
 
 ## 4. Identifier preservation — the 19 WP 8 muscle identifiers
-Each identifier becomes an anatomy node at its anatomically correct level. Stored values (`primary_muscle`, `secondary_muscles_json`) map one to one. New nodes are added around them (proposed list approved under OQ-22).
+Source of truth: the **approved** `docs/catalogue/reference/anatomy.json` (126 nodes: 10 L1, 26 L2, 63 L3, 27 L4; OQ-22, 2026-11-05). Each of the 19 identifiers is a node of that file at the level and parent below; stored values (`primary_muscle`, `secondary_muscles_json`) map one to one; no identifier changes.
 
-| WP 8 id | Level | Parent (proposed id) | Note |
+| WP 8 id | Level | Ancestors (approved) | Children (approved) |
 |---|---|---|---|
-| `chest` | L2 group | `regionChest` (L1) | L3 pectoralis major (L4 clavicular, sternocostal), pectoralis minor, serratus anterior |
-| `frontDelts` | L4 head | `deltoid` (L3) › `shoulders` (L2) › `regionShoulder` (L1) | anterior deltoid |
-| `sideDelts` | L4 head | `deltoid` | lateral deltoid |
-| `rearDelts` | L4 head | `deltoid` | posterior deltoid |
-| `triceps` | L3 muscle | `upperArmPosterior` (L2) › `regionArm` | L4 long, lateral, medial heads |
-| `biceps` | L3 muscle | `upperArmAnterior` (L2) | L4 long, short heads; brachialis sibling |
-| `forearms` | L2 group | `regionArm` | L3 wrist flexors, wrist extensors, brachioradialis |
-| `upperBack` | L2 group | `regionBack` | L3 trapezius (L4 upper, middle, lower), rhomboids |
-| `lats` | L2 group | `regionBack` | L3 latissimus dorsi, teres major |
-| `lowerBack` | L2 group | `regionBack` | L3 erector spinae, quadratus lumborum |
-| `abs` | L2 group | `regionTrunk` | L3 rectus abdominis, transversus abdominis |
-| `obliques` | L2 group | `regionTrunk` | L3 external, internal oblique |
-| `glutes` | L2 group | `regionHip` | L3 gluteus maximus, medius, minimus |
-| `abductors` | L2 group | `regionHip` | L3 tensor fasciae latae (gluteus medius and minimus stay under `glutes`: one parent per node; functional groupings are not modelled — recorded limitation) |
-| `adductors` | L2 group | `regionHip` | L3 adductor magnus, longus, brevis, gracilis, pectineus |
-| `quadriceps` | L2 group | `regionThigh` | L3 rectus femoris, vastus lateralis, medialis, intermedius |
-| `hamstrings` | L2 group | `regionThigh` | L3 biceps femoris (L4 long, short head), semitendinosus, semimembranosus |
-| `calves` | L2 group | `regionLowerLeg` | L3 gastrocnemius (L4 medial, lateral head), soleus |
-| `fullBody` | L1, non-anatomical | — | kept as an identifier for conditioning and whole-body work; flagged non-anatomical, has no children, excluded from anatomical coverage |
+| `chest` | L2 | `regionChest` | `pectoralisMajor`, `pectoralisMinor`, `serratusAnterior` |
+| `frontDelts` | L4 | `deltoid` › `shoulders` › `regionShoulder` | — |
+| `sideDelts` | L4 | `deltoid` › `shoulders` › `regionShoulder` | — |
+| `rearDelts` | L4 | `deltoid` › `shoulders` › `regionShoulder` | — |
+| `triceps` | L3 | `upperArmPosterior` › `regionArm` | `tricepsLongHead`, `tricepsLateralHead`, `tricepsMedialHead` |
+| `biceps` | L3 | `upperArmAnterior` › `regionArm` | `bicepsLongHead`, `bicepsShortHead` |
+| `forearms` | L2 | `regionArm` | `wristFlexors`, `wristExtensors`, `brachioradialis`, `forearmPronators`, `forearmSupinators` |
+| `upperBack` | L2 | `regionBack` | `trapezius`, `rhomboids`, `levatorScapulae` |
+| `lats` | L2 | `regionBack` | `latissimusDorsi`, `teresMajor` |
+| `lowerBack` | L2 | `regionBack` | `erectorSpinae`, `quadratusLumborum`, `multifidus` |
+| `abs` | L2 | `regionTrunk` | `rectusAbdominis`, `transversusAbdominis` |
+| `obliques` | L2 | `regionTrunk` | `externalOblique`, `internalOblique` |
+| `glutes` | L2 | `regionHip` | `gluteusMaximus`, `gluteusMedius`, `gluteusMinimus` |
+| `abductors` | L2 | `regionHip` | `tensorFasciaeLatae` (gluteus medius and minimus stay under `glutes`: one parent per node) |
+| `adductors` | L2 | `regionHip` | `adductorMagnus`, `adductorLongus`, `adductorBrevis`, `gracilis`, `pectineus` |
+| `quadriceps` | L2 | `regionThigh` | `rectusFemoris`, `vastusLateralis`, `vastusMedialis`, `vastusIntermedius` |
+| `hamstrings` | L2 | `regionThigh` | `bicepsFemoris`, `semitendinosus`, `semimembranosus` |
+| `calves` | L2 | `regionLowerLeg` | `gastrocnemius`, `soleus` |
+| `fullBody` | L1, non-anatomical | — | none (ADR-0010: only the single primary of qualifying whole-body or conditioning exercises; never secondary; never with anatomical primaries; excluded from anatomical roll-ups, coverage and attributed set counts) |
 
-Further proposed nodes: rotator cuff (L2, shoulders), hip flexors (L2, hip), tibialis anterior (L2, lower leg), neck (L1). Filtering by any node includes its descendants; primary matches rank first (TRN-010(2) behaviour kept).
+The 19 identifiers and their 12 ancestors (`regionShoulder`, `regionChest`, `regionBack`, `regionArm`, `regionTrunk`, `regionHip`, `regionThigh`, `regionLowerLeg`, `shoulders`, `deltoid`, `upperArmAnterior`, `upperArmPosterior`) are the **31 nodes** the migration needs for integrity (§6). The other approved L1/L2 nodes include `regionNeck` (neck flexors, extensors, lateral flexors), `rotatorCuff`, `hipFlexors`, `hipExternalRotators`, `anteriorLowerLeg`, `lateralLowerLeg`, `deepPosteriorLowerLeg` and `pelvicFloor` (content excluded by owner decision; identifier kept). Filtering by any node includes its descendants; primary matches rank first (TRN-010(2) behaviour kept).
 
 ## 5. Schema v8 (proposed)
 New tables:
 - `anatomy_nodes(id PK, parent_id → anatomy_nodes, level 1–4, non_anatomical bool, sort_order, provider_id, release)`
 - `movement_patterns(id PK, parent_id, sort_order, provider_id, release)`
-- `equipment_items(id PK, sort_order, provider_id, release)` (21 existing ids)
+- `equipment_items(id PK, sort_order, provider_id, release)` (21 existing ids kept; 33 in the approved list incl. 12 additions)
 - `reference_labels(kind, id, locale, label, PK(kind, id, locale))` — `en-GB` only
 - `exercise_targets(exercise_id → exercises CASCADE, node_id → anatomy_nodes, role CHECK primary|secondary, ordinal, PK(exercise_id, node_id))`
 - `exercise_patterns(exercise_id, pattern_id, ordinal, PK(exercise_id, pattern_id))`
@@ -115,15 +117,17 @@ New tables:
 
 ## 6. Migration strategy (v7 → v8)
 1. One transaction; foreign keys off during the rebuild, on afterwards; each step guarded so a crash and re-run complete without duplicates (v6/v7 discipline).
-2. Create reference tables; insert the minimum reference rows needed for integrity from constants in the migration code: the 19 nodes (with `regionX` parents per §4), the 21 equipment items, provider `repforge`. The full proposed lists arrive with catalogue release 2 at startup.
-3. Backfill `exercise_targets` from `primary_muscle` (primary, ordinal 0) and `secondary_muscles_json` (secondary, in order), skipping a secondary equal to the primary; backfill `source` from `supplied` (`system` with provider `repforge`, else `user`); `revision` = 1 for system rows.
-4. Rebuild `exercises` without the three columns; verify row count and every retained column equal before and after (test).
-5. Rows that cannot be mapped (an unknown muscle text left by the v6 legacy mapping, TD-41) keep their exercise row; the unmapped value goes to `legacy_quarantine` with a reason; no value is invented.
-6. No stored set, plan, session, schedule or exercise identifier changes.
-7. Release 1 of provider `repforge` is recorded as the existing seed; `seedExercisesVersion` is read once to decide whether release 1 was applied, then retired.
+2. Create reference tables; insert only the reference rows needed for integrity, from constants in the migration code that are **identical to the approved `anatomy.json`** (a test compares them): the **31 nodes** of §4 with their approved parents and levels, the 21 existing equipment items, provider `repforge`. The full approved lists (anatomy 126 nodes, movement patterns 79 entries, equipment 33 items, seven attributes) are loaded by catalogue release 2 at startup (§7).
+3. Backfill `exercise_targets` from `primary_muscle` (primary, ordinal 0) and `secondary_muscles_json` (secondary, in order); backfill `source` from `supplied` (`system` with provider `repforge`, else `user`); `revision` = 1 for system rows. A secondary equal to the primary is not duplicated and is **listed in the migration report**; a `fullBody` secondary (ADR-0010) is kept historically and **listed in the migration report**.
+4. Rebuild `exercises` without the three columns — **only after the §17.1 comparison trial and the §17.2 value-equality evidence are recorded**; verify row count and every retained column equal before and after (test).
+5. Values that cannot be mapped (an unknown muscle text left by the v6 legacy mapping, TD-41) keep their exercise row; the original goes to `legacy_quarantine` with a reason; **nothing is invented or silently corrected**.
+6. **TRN-020 in the database**: `session_sets` exertion is constrained to RPE 1–10 in steps of 0.5 and RIR integers 0–5 (CHECK via table rebuild, or validation triggers — chosen by the §17.1 evidence method). Stored values outside the rule are copied to `legacy_quarantine`, the operational value is cleared (exertion is optional), and each is **listed in the migration report**; the set row and its relationships are kept.
+7. **Migration report**: every affected record — quarantined, cleared, not duplicated or kept historically, in v6 and v8 — is listed with table, id, field, original value, action and reason; shown in Settings › Data and included in the backup. Never a sample.
+8. No stored set, plan, session, schedule or exercise identifier changes.
+9. Release 1 of provider `repforge` is recorded as the existing seed; `seedExercisesVersion` is read once to decide whether release 1 was applied, then retired.
 
 ## 7. Catalogue release format 2 and reconciler
-Per ADR-0009: bundled JSON per provider and release, holding reference data, exercises (`id`, `revision`, names, aliases, logging type, category, targets with roles, patterns, equipment, mechanics, laterality, difficulty, relationships, content sections by locale, media references) and provider metadata. Validation is all-or-nothing. The reconciler inserts, updates system-owned fields when the revision is higher, retires missing ids, and never writes user-owned data. Re-running a release is a no-op. WP 8 stage 3 ships release 2 = the 89 existing exercises re-expressed in the new format with targets and patterns; mechanics, laterality and difficulty are filled where defensible, instructions are not written yet (WP 8 stage 5).
+Per ADR-0009: bundled JSON per provider and release, holding reference data, exercises (`id`, `revision`, names, aliases, logging type, category, targets with roles, patterns, equipment, mechanics, laterality, difficulty, relationships, content sections by locale, media references) and provider metadata. Validation is all-or-nothing. The reconciler inserts, updates system-owned fields when the revision is higher, retires missing ids, and never writes user-owned data. Re-running a release is a no-op. WP 8 stage 3 ships release 2 = the approved reference data (`docs/catalogue/reference/`) and the 89 existing exercises re-expressed with the **approved release-2 classifications** (`mapping-existing.json`: targets, patterns, mechanics, laterality, difficulty, alias clean-up); instructions are not written yet (WP 8 stage 5). **Reference-data loading is deterministic and repeatable**: the same release produces byte-identical reference tables on every device and every run (content hash recorded; re-applying writes nothing), and is validated against the stage 4 integrity checks (`docs/catalogue/quality-and-duplicates.md`) before any write.
 
 ## 8. Changes to WP 8 and WP 9 code (behaviour preserved)
 - `Exercise`: `primaryMuscle`/`secondaryMuscles` → `targets`; `supplied` → `source`; new classification fields. Library queries filter by node with descendants; equipment filter unchanged; search unchanged.
@@ -140,32 +144,39 @@ Backup `formatVersion` 3 with the new tables. Restore accepts 1, 2 and 3; files 
 - Repository tests for every new table, including descendant filtering and favourites.
 - Migration tests: `SchemaVerifier` v1–v7 → v8; every v7 exercise, set, plan, session and schedule value compared before and after; crash re-run; quarantine of unmapped values; foreign-key check after migration.
 - Reconciler tests: insert, update by revision, retire, idempotent re-run, all-or-nothing on an invalid release, user state and custom copies untouched, "source updated" marker, provider licence recorded.
-- Backup tests: v1, v2, v3 restore; v3 round-trip of all new data.
+- Backup tests: v1, v2, v3 restore; v3 round-trip of all new data incl. the migration report.
+- Migration report tests: every affected record listed (quarantined, cleared, not duplicated, kept historically); nothing silently corrected.
+- TRN-020 persistence tests: the database rejects RIR outside 0–5 and non-integers, and RPE outside 1–10 or off 0.5 steps; legacy out-of-range values quarantined, cleared and reported.
+- Reference-data tests: migration constants equal the approved `anatomy.json` for the 31 nodes; loading release 2 twice gives identical tables (hashes); integrity checks of `quality-and-duplicates.md` (incl. IC-304 `fullBody` rules and IC-900 reference resolution incl. retired exercises) pass for release 2.
 - Regression: all WP 8 and WP 9 tests pass with the adapted model; WP 9 volume tests updated only for OQ-19.
 - Architecture tests: domain has no Flutter imports; only the reconciler writes system catalogue fields; reference ids used through typed wrappers.
 - CI: integrity report over the shipped catalogue as a gate; four workflows green; coverage ≥ 80 % hand-written.
 - Independent review of each stage and of the final diff, with probe tests, as for WP 8 and WP 9.
 
 ## 11. Stage 3 acceptance criteria
-1. ADR-0008 and ADR-0009 approved; implementation matches them.
-2. Schema v8 migration from every earlier version preserves all exercise identifiers, the 19 muscle identifiers (as nodes) and all training data; tests prove value equality.
+1. ADR-0008, ADR-0009 and ADR-0010 implemented as written.
+2. Schema v8 migration from every earlier version (v1–v7) preserves all exercise identifiers, the 19 muscle identifiers (as nodes) and all training data; tests prove value equality (§17.2); the `exercises` rebuild is justified by the recorded comparison trial (§17.1).
 3. Exercises, anatomy nodes, patterns, equipment, relationships, content, media references, providers and releases meet the Engineering Object definition (identity, type, provenance, validation, timestamps, relationships, versioning, persistence, query, backup, restore).
-4. Four-level anatomy with validation; exercises carry one or more primary and zero or more secondary targets.
-5. Movement pattern, mechanics, laterality and difficulty (owner definitions) stored and validated.
+4. Four-level anatomy with validation; exercises carry one or more primary and zero or more secondary targets; `fullBody` rules per ADR-0010 enforced.
+5. Movement pattern, mechanics, laterality and difficulty (owner definitions) and the seven approved optional attributes stored and validated.
 6. Five relationship kinds validated: direction, no self-reference, no duplicates or inverse duplicates, no cycles where directional.
 7. Content sections and media references stored per locale (`en-GB`), extensible without schema change.
-8. Source separation system/user/imported; provider registry with licence; catalogue releases applied idempotently; user-owned data never overwritten (tests).
-9. Duplicate detection and an integrity report generated in CI; zero integrity failures for release 2.
-10. Favourites and other user state persisted and backed up (UI in WP 8 stage 6).
-11. WP 8 and WP 9 behaviour unchanged except where an owner decision changes it (TRN-010(1), OQ-19); full suite, coverage gate and four workflows green.
-12. Delivery record with tests, CI runs, independent review findings and resolutions, deviations and open items.
+8. Source separation system/user/imported; provider registry with licence; catalogue releases atomic, repeatable and auditable (§17.6); **user-owned data never overwritten** by any release (§17.4, row-hash test).
+9. **Approved stage 4 reference data loaded and validated**: anatomy 126 nodes, movement patterns 79 entries, equipment 33 items and the seven attributes from `docs/catalogue/reference/`; loading deterministic and repeatable; duplicate detection and the integrity report run in CI with zero integrity failures for release 2.
+10. **Migration report**: every affected legacy record listed (v6 quarantine and v8 findings), shown in Settings › Data and included in the backup; **no invalid value silently corrected** (resolves TD-41's visibility gap).
+11. **TRN-020 enforced in the database**: RIR integers 0–5 and RPE 1–10 in 0.5 steps rejected at persistence as well as in the domain; stored out-of-range values quarantined, cleared and reported.
+12. **Retired exercises remain available to historical records**: never deleted, identifiers never reused; the reference-integrity check (IC-900) proves every set, session-exercise and plan reference resolves, retired exercises included (§17.5).
+13. Favourites and other user state persisted and backed up (UI in WP 8 stage 6).
+14. Backup format 3 with restore of formats 1, 2 and 3 (§17.3).
+15. WP 8 and WP 9 behaviour unchanged except where an owner decision changes it (TRN-010(1), OQ-19, TRN-020 persistence); full suite, coverage gate (≥ 80 %), four workflows and the emulator run green.
+16. Delivery record with tests, CI runs, the §17.1 trial evidence, independent review findings and resolutions, deviations and open items.
 
 ## 12. Stage 3 sub-stages and gates
 | Stage | Content | Gate |
 |---|---|---|
-| 3a | Domain model, reference data structure, validation rules, duplicate detection, integrity report (pure code, no schema) | tests; independent review |
-| 3b | Schema v8, migration, repositories, backup v3 | migration and backup tests; independent review |
-| 3c | Catalogue format 2, reconciler, release 1→2 of the 89 exercises, CI integrity gate | reconciler tests; integrity report |
+| 3a | Domain model, reference data structure, validation rules, duplicate detection, integrity report (pure code, no schema); deferred stage 4 items X1–X3 | tests; independent review |
+| 3b | §17.1 comparison trial first; then schema v8, migration (incl. migration report and TRN-020 persistence), repositories, backup v3 | trial evidence recorded before finalising; migration, equality and backup tests; independent review |
+| 3c | Catalogue format 2, reconciler, deterministic loading of the approved reference data, release 1→2 of the 89 exercises, CI integrity gate | reconciler and reference-data tests; integrity report with zero failures |
 | 3d | Adapt WP 8/9 code and screens; OQ-19 rule | full regression, four workflows, emulator |
 | Stage 3 close | combined independent review of stage 3, remediation, record update | owner review of stage 3 |
 
@@ -175,18 +186,19 @@ Backup `formatVersion` 3 with the new tables. Restore accepts 1, 2 and 3; files 
 | Table rebuild of `exercises` loses data | v6-proven pattern; before/after equality tests; crash re-run test |
 | Anatomy over-precision | qualitative roles only; tag at the most defensible level; editorial guide (WP 8 stage 4) |
 | Refactor of WP 8/9 code introduces regressions | sub-stage 3d alone; full regression and emulator run |
-| Reference list churn | lists approved (OQ-22) before WP 8 stage 5; identifiers never reused |
+| Reference list churn | lists approved (OQ-22, 2026-11-05); identifiers never reused; reference-data lifecycle (active/retired) per the catalogue ledger |
 | Licence contamination | provider registry; no proprietary content; review in WP 8 stage 4 |
-| Schema version clash with WP 10 | coordinate numbering at start |
+| Schema version clash with WP 10 | resolved: WP 10 accepted with no schema change; v8 is available |
 
-## 14. Decisions requested to authorise stage 3
-1. Approve ADR-0008 and ADR-0009.
-2. Approve the identifier mapping in §4 and the `fullBody` treatment.
-3. Approve the `exercises` table rebuild in v8 (§5), on the evidence plan in §17.1.
+## 14. Decisions to authorise stage 3
+1. ~~Approve ADR-0008 and ADR-0009~~ — direction accepted 2026-11-05.
+2. ~~Approve the identifier mapping in §4 and the `fullBody` treatment~~ — approved 2026-11-05 (ADR-0010 accepted; §4 now from the approved `anatomy.json`).
+3. ~~Approve the `exercises` table rebuild~~ — conditionally approved 2026-11-05, subject to the §17.1 trial and §17.2–§17.5 evidence before sub-stage 3b is finalised.
 4. ~~OQ-19~~ approved 2026-11-05 (§8).
 5. ~~OQ-21~~ approved 2026-11-05 (ADR-0009).
-6. Confirm sequencing (§16).
-7. Authorise implementation of stage 3.
+6. ~~OQ-22, OQ-23~~ approved 2026-11-05 (§2).
+7. ~~Confirm sequencing~~ — confirmed 2026-11-05 (§16).
+8. **Pending: authorise implementation of stage 3 against this revised plan.**
 
 ## 15. Final WP 8 acceptance criteria
 WP 8 is accepted when all of the following hold:
@@ -203,9 +215,11 @@ WP 8 is accepted when all of the following hold:
 9. Independent review of the final combined diff with findings resolved or accepted as debt; delivery record complete with exact commits and CI runs.
 
 ## 16. Dependencies and sequencing
-- **WP 9** (unchanged scope, in progress): built on the WP 8 foundation (stages 1–2 and review fixes). WP 8 stage 3 code starts after WP 9 delivery, because stage 3d adapts code WP 9 uses; stage 4 documents and lists can proceed now.
-- **WP 10**: depends on WP 3 and WP 4 only; not blocked; schema version numbers coordinated (v8 to whichever lands first).
-- **WP 11**: depends on WP 5, WP 9, WP 10 as before; its training-volume-per-muscle reporting follows WP 8 stage 3 (soft dependency).
+- **WP 9**: accepted 2026-11-06 at 0c35ef1. Stage 3d adapts code WP 9 uses; WP 9 behaviour is protected by the full regression suite and the emulator run.
+- **WP 10**: accepted 2026-11-05 at bb5f788 with no schema change; **schema v8 is available** to stage 3.
+- **WP 11**: depends on WP 8's expanded anatomy and exercise taxonomy (stage 3) for its training analytics, such as volume per muscle (D06).
+- **Stage 4**: outputs approved 2026-11-05; its CI integrity and coverage tooling is built in stage 3c.
+- **Stage 5**: no bulk population before stage 3 tooling is implemented and verified, the 5.1 pilot is reviewed and the coverage matrix is applied.
 - Established roadmap order otherwise unchanged.
 
 ## 17. Owner technical qualifications (2026-11-05) and how the plan meets them
@@ -245,10 +259,18 @@ Atomic: validation of the whole release before any write; one transaction per re
 | TRN-020 | RIR integer 0–5 at domain **and persistence** boundaries | stage 3b adds persistence enforcement for `session_sets` exertion (CHECK via table rebuild, or validation triggers — chosen by the same evidence method as §17.1); stored out-of-range values quarantined, cleared (exertion is optional) and reported |
 | Screen ownership | WP 8: library, taxonomy, discovery, detail, favourites; WP 9: planning, execution, sessions, sets, rest timers | stage 6 scope; exercise detail history stays a WP 8 screen reading WP 9 data |
 | Stage 4 | authorised; **outputs approved 2026-11-05** (OQ-22, OQ-23, ADR-0010) | `docs/catalogue/` is the approved specification for stages 3c and 5; X1–X4 deferred to stage 3a or the 5.1 pilot |
-| Stage 3 | gated | starts after: WP 9 stage 3b CI green; Android/iOS builds reviewed (desugaring); emulator full-session test passed; independent WP 9 review complete; WP 9 accepted; then final authorisation of this stage |
+| Stage 3 | gated | WP 9 accepted 2026-11-06; implementation starts only after explicit owner authorisation of this revised plan (revision 3) |
 
 ## 19. Stage 4 approval (2026-11-05) and the stage 5 gate
 - OQ-22 and OQ-23 approved; ADR-0010 accepted; primary-muscle principle, equipment, attributes, mechanics and content-policy decisions approved (D04 §7). `docs/catalogue/` is the approved reference specification.
 - Stage 3 must load the approved reference data (anatomy 126 nodes, patterns 79 entries, equipment 33 with the 12 additions, seven attributes) and implement the integrity checks, the `fullBody` rules (ADR-0010) and the migration report.
 - **Stage 5 gate**: authorised in principle; no bulk population before stage 3 tooling is implemented and verified; 5.1 chest pilot first; mandatory re-baselining and explicit owner approval before 5.2–5.7.
+
+## 20. Revision 3 (2026-11-06) — corrections for owner review
+Documentation and acceptance-criteria corrections only; no approved decision or architecture changed:
+1. §2 and §14 show ADR-0008, ADR-0009, ADR-0010, OQ-22 and OQ-23 as approved and WP 9 as accepted.
+2. §2, §13 and §16 confirm schema v8 is available (WP 10 accepted with no schema change).
+3. §4 uses the approved `anatomy.json` (126 nodes) with its actual parents and children; §6 names the 31 nodes the migration needs and requires the constants to equal the approved file.
+4. §11 adds the migration report, database-enforced TRN-020, loading and validation of the approved stage 4 reference data, and explicit criteria for retired-exercise references and user data; §6, §7, §10 and §12 aligned with §11, §17 and §19.
+Retained requirements: every affected legacy record reported; invalid values never silently corrected; RIR 0–5 enforced in the database; deterministic, repeatable reference-data loading with validation; retired exercises available to historical records; no user data overwritten by catalogue releases; the conditional table-rebuild approval with the comparison trial and migration evidence.
 
