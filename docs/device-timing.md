@@ -143,8 +143,9 @@ reports the result as `hostReference` (D04 profile only):
 |---|---|
 | Stand-in start: D04 profile at v5 | `v5 e18285a1cb9d27d2` |
 | Stand-in end: after v5 → v7 | `v7 cb68ca68ae2be071` |
-| D04 profile at v7 (the v7 → v8 input; `profile.v7Profile.digest`) | `v7 602dbcd0601b46b7` | The kill and heavy suites upload their
-JSON reports as the CI artefact `migration-v8-ws5-reports`.
+| D04 profile at v7 (the v7 → v8 input; `profile.v7Profile.digest`) | `v7 602dbcd0601b46b7` |
+
+The kill and heavy suites upload their JSON reports as the CI artefact `migration-v8-ws5-reports`.
 
 Observations from the host runs:
 - The engine matters. The app engine (background isolate) took about three
