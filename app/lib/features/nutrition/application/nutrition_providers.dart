@@ -13,6 +13,7 @@ import 'package:repforge/features/nutrition/application/cache_food.dart';
 import 'package:repforge/features/nutrition/application/create_custom_food.dart';
 import 'package:repforge/features/nutrition/application/log_food.dart';
 import 'package:repforge/features/nutrition/application/lookup_barcode.dart';
+import 'package:repforge/features/nutrition/application/recent_items.dart';
 import 'package:repforge/features/nutrition/application/saved_meals.dart';
 import 'package:repforge/features/nutrition/application/scan_session.dart';
 
@@ -263,3 +264,24 @@ final lookupBarcodeProvider = Provider<LookupBarcode>(
 /// State machine behind the barcode scan screen.
 final NotifierProvider<ScanSession, ScanState> scanSessionProvider =
     NotifierProvider.autoDispose<ScanSession, ScanState>(ScanSession.new);
+
+final loadRecentItemsProvider = Provider<LoadRecentItems>(
+  (ref) => LoadRecentItems(
+    log: ref.watch(foodLogRepositoryProvider),
+    foods: ref.watch(foodRepositoryProvider),
+    recipes: ref.watch(recipeRepositoryProvider),
+  ),
+);
+
+/// Recently logged foods and recipes for the add flow. Recomputed when the
+/// selected day's entries change, so a fresh log shows up on reopening.
+// ignore: specify_nonobvious_property_types
+final recentItemsProvider = FutureProvider.autoDispose<List<RecentItem>>((
+  ref,
+) async {
+  ref.watch(selectedDayEntriesProvider);
+  return switch (await ref.watch(loadRecentItemsProvider)()) {
+    Ok(:final value) => value,
+    Err() => const <RecentItem>[], // recents are a convenience, not critical
+  };
+});

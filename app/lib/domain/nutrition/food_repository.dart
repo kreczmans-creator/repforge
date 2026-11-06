@@ -20,4 +20,23 @@ abstract interface class FoodLogRepository {
   Future<void> insertAll(List<FoodLogEntry> entries);
   Future<void> update(FoodLogEntry entry);
   Future<void> delete(String id);
+
+  /// The foods and recipes most recently logged, newest first, one row per
+  /// distinct source (NUT-014). Entries that carry neither a food id nor a
+  /// recipe id are ignored. Reads live (not deleted) entries only; it does
+  /// not check that the source still exists.
+  Future<List<RecentLogSource>> recentSources({int limit = 50});
+}
+
+/// A food or a recipe that was logged, with when it was last logged.
+final class RecentLogSource {
+  const RecentLogSource({required this.loggedAt, this.foodId, this.recipeId})
+    : assert(
+        (foodId == null) != (recipeId == null),
+        'exactly one of foodId and recipeId',
+      );
+
+  final String? foodId;
+  final String? recipeId;
+  final DateTime loggedAt;
 }

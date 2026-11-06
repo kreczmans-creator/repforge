@@ -82,7 +82,9 @@ abstract final class RfRoutes {
   static const fuelScan = '/fuel/scan';
   static const fuelWeek = '/fuel/week';
   static const fuelSavedMeals = '/fuel/saved-meals';
+  static const fuelPickSavedMeal = '/fuel/saved-meals?pick=1';
   static const fuelRecipes = '/fuel/recipes';
+  static const fuelPickRecipe = '/fuel/recipes?pick=1';
   static const fuelRecipeNew = '/fuel/recipes/new';
 
   /// Meal plan (RCP-014).
@@ -275,7 +277,9 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                 GoRoute(
                   path: 'saved-meals',
                   parentNavigatorKey: _rootKey,
-                  builder: (context, state) => const SavedMealsScreen(),
+                  builder: (context, state) => SavedMealsScreen(
+                    pickMode: state.uri.queryParameters['pick'] == '1',
+                  ),
                 ),
                 GoRoute(
                   path: 'plan',
@@ -285,7 +289,9 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                 GoRoute(
                   path: 'recipes',
                   parentNavigatorKey: _rootKey,
-                  builder: (context, state) => const RecipeListScreen(),
+                  builder: (context, state) => RecipeListScreen(
+                    pickMode: state.uri.queryParameters['pick'] == '1',
+                  ),
                   routes: [
                     // 'new' is declared before ':id' so it is not an id.
                     GoRoute(

@@ -89,4 +89,38 @@ final class DriftFoodLogRepository implements FoodLogRepository {
       FoodLogEntriesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
     );
   }
+
+  @override
+  Future<List<RecentLogSource>> recentSources({int limit = 50}) async {
+    // Read-only over existing columns. An entry is keyed by its recipe when
+    // it has one, otherwise by its food. Timestamps are stored as UTC ISO-8601
+    // text, so MAX orders them correctly.
+    final rows = await _db
+        .customSelect(
+          'SELECT COALESCE(recipe_id, food_id) AS source_id, '
+          '(recipe_id IS NOT NULL) AS is_recipe, '
+          'MAX(logged_at) AS last_logged '
+          'FROM food_log_entries '
+          'WHERE deleted_at IS NULL '
+          'AND (recipe_id IS NOT NULL OR food_id IS NOT NULL) '
+          'GROUP BY source_id, is_recipe '
+          'ORDER BY last_logged DESC, source_id ASC '
+          'LIMIT ?1',
+          variables: [Variable.withInt(limit)],
+          readsFrom: {_db.foodLogEntries},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        RecentLogSource(
+          foodId: row.read<bool>('is_recipe')
+              ? null
+              : row.read<String>('source_id'),
+          recipeId: row.read<bool>('is_recipe')
+              ? row.read<String>('source_id')
+              : null,
+          loggedAt: DateTime.parse(row.read<String>('last_logged')).toUtc(),
+        ),
+    ];
+  }
 }
