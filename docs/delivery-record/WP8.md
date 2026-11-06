@@ -823,3 +823,12 @@ The owner approved all eleven recommendations, with constraints (D04 §7, same d
 R-12 (mixed foreign keys), R-20 (application enforcement of default roles), R-14, R-15, R-22, R-23 and R-24 are approved as recommended (D04 §7, same date). R-19 was already resolved. R-13, R-16, R-17, R-18 and R-21 are deferred to stage 3c as recorded requirements. TD-44 (D05) records the v6→v7 backfill orphan.
 
 **Stage 3b status (2026-11-06):** 3b-1 accepted as foundation; 3b-3 complete; 3b-2 implemented with the register decisions, Review A re-check fixes applied, awaiting commit; 3b-4 to 3b-10 outstanding. Stage 3b as a whole is not accepted.
+
+
+## Effort-point reporting requirement (owner direction, 2026-11-06)
+
+WP 8 has an approved programme baseline allocation of **18 effort points**. This is a relative effort allocation, not a time budget. WP 8 remains active and not accepted; this reporting requirement does not alter its scope, stage gates or acceptance criteria.
+
+The WP 8 lead must add a stage/deliverable breakdown totalling exactly 18 points to the active delivery plan and report allocated, earned and remaining points at every progress update. Earned points must be supported by completed deliverables and evidence; planned, assigned, started or unreviewed work does not earn credit by itself. Report confidence, blockers, dependencies, estimate variance and acceptance status alongside the percentage. Follow `docs/governance/effort-points-and-progress-reporting.md` and the repository-level `AGENTS.md`.
+
+The existing 35% programme snapshot is a provisional estimate (6.30 earned points of 18), not a stage-level earned-progress ledger. It must not be treated as a verified current percentage until the stage breakdown and evidence reconciliation are completed.
