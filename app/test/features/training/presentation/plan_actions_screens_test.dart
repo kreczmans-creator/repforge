@@ -49,6 +49,23 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('a double tap on Duplicate creates exactly one copy', (
+      tester,
+    ) async {
+      await h.plans.upsert(plan('p1', 'Upper A'));
+      await h.open(tester, location: RfRoutes.trainPlans);
+      final f = find.byKey(const Key('plan-duplicate-p1'));
+      await tester.ensureVisible(f);
+      await tester.pump();
+      await tester.tap(f);
+      await tester.tap(f);
+      await h.settle(tester);
+      final all = await h.plans.watchAll().first;
+      expect(all.where((p) => p.name == 'Upper A (copy)'), hasLength(1));
+      expect(all, hasLength(2));
+      await unmount(tester);
+    });
+
     testWidgets(
       'Delete asks first; cancel keeps the plan, confirm removes it',
       (tester) async {

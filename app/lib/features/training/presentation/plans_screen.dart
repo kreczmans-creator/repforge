@@ -27,6 +27,7 @@ class PlansScreen extends ConsumerStatefulWidget {
 
 class _PlansScreenState extends ConsumerState<PlansScreen> {
   bool _showArchived = false;
+  bool _busy = false;
 
   Future<void> _setArchived(WorkoutPlan plan, {required bool archived}) async {
     final result = await ref.read(archivePlanProvider)(
@@ -41,7 +42,14 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
   }
 
   Future<void> _duplicate(WorkoutPlan plan) async {
-    final result = await ref.read(duplicatePlanProvider)(plan.id);
+    if (_busy) return;
+    _busy = true;
+    final Result<WorkoutPlan> result;
+    try {
+      result = await ref.read(duplicatePlanProvider)(plan.id);
+    } finally {
+      _busy = false;
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -59,7 +67,8 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
       title: 'Delete "${plan.name}"?',
       message:
           'The workout is removed. Past workouts and scheduled sessions '
-          'are not changed.',
+          'are not changed. A training split day that lists this workout '
+          'will show it as missing until the split is edited.',
       confirmLabel: 'Delete',
       confirmKey: 'plan-delete-confirm',
     );

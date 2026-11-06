@@ -1,11 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_exercise_repository.dart';
+import 'package:repforge/data/repositories/drift_scheduled_workout_repository.dart';
 import 'package:repforge/data/repositories/drift_workout_plan_repository.dart';
 import 'package:repforge/data/repositories/drift_workout_session_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/training/scheduled_workout.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/training/training_validation.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/application/plan_actions.dart';
 import 'package:repforge/features/training/application/plan_use_cases.dart';
@@ -64,8 +67,9 @@ void main() {
 
   Future<void> sessionWith(
     String id,
-    List<({String exerciseId, List<(SetData, int?)> sets})> entries,
-  ) async {
+    List<({String exerciseId, List<(SetData, int?)> sets})> entries, {
+    Map<String, ({bool completed, SetKind kind})> meta = const {},
+  }) async {
     await sessions.upsert(
       WorkoutSession(
         id: id,
@@ -95,7 +99,8 @@ void main() {
             exerciseOrder: i,
             setOrder: j,
             data: data,
-            completed: true,
+            completed: meta['$entryId-s$j']?.completed ?? true,
+            kind: meta['$entryId-s$j']?.kind ?? SetKind.working,
             restSeconds: rest,
             sessionExerciseId: entryId,
           ),
@@ -162,6 +167,20 @@ void main() {
       expect(original.exercises.first.id, 'pe1');
     });
 
+    test(
+      'a 100-character name is truncated so the copy still fits the limit',
+      () async {
+        final longName = 'A' * maxTrainingNameLength;
+        await plans.upsert(
+          WorkoutPlan(id: 'p1', name: longName, createdAt: _t, updatedAt: _t),
+        );
+        final copy = _ok(await duplicate()('p1'));
+        expect(copy.name.length, lessThanOrEqualTo(maxTrainingNameLength));
+        expect(copy.name, endsWith(planCopySuffix));
+        expect((await plans.byId(copy.id))!.name, copy.name);
+      },
+    );
+
     test('a missing plan is reported', () async {
       final r = await duplicate()('nope');
       expect(r, isA<Err<WorkoutPlan>>());
@@ -191,6 +210,31 @@ void main() {
         final s = (await sessions.byId('s1'))!;
         expect(s.planId, 'p1');
         expect(s.name, 'Upper');
+      },
+    );
+
+    test(
+      'a scheduled workout keeps its planId after the plan is deleted',
+      () async {
+        await plans.upsert(
+          WorkoutPlan(id: 'p1', name: 'Upper', createdAt: _t, updatedAt: _t),
+        );
+        final scheduled = DriftScheduledWorkoutRepository(db);
+        await scheduled.upsert(
+          ScheduledWorkout(
+            id: 'sw1',
+            day: DateTime(2026, 11, 9),
+            sourceDay: DateTime(2026, 11, 9),
+            planId: 'p1',
+            origin: ScheduleOrigin.date,
+            status: ScheduleStatus.planned,
+            createdAt: _t,
+            updatedAt: _t,
+          ),
+        );
+        _ok(await DeletePlan(plans: plans)('p1'));
+        expect(await plans.byId('p1'), isNull);
+        expect((await scheduled.byId('sw1'))!.planId, 'p1');
       },
     );
 
@@ -288,6 +332,91 @@ void main() {
       expect((r as Err<WorkoutPlan>).error, isA<ValidationError>());
       expect(await plans.watchAll().first, isEmpty);
     });
+
+    test('targetSets is clamped at 20 when more sets were performed', () async {
+      await sessionWith('s1', [
+        (
+          exerciseId: 'bench',
+          sets: [for (var i = 0; i < 25; i++) (w(5), null)],
+        ),
+      ]);
+      final plan = _ok(await saveAsPlan()('s1'));
+      expect(plan.exercises.single.targetSets, 20);
+    });
+
+    test('a rest tie goes to the earliest value', () async {
+      await sessionWith('s1', [
+        (
+          exerciseId: 'bench',
+          sets: [(w(5), 90), (w(5), 120), (w(5), 120), (w(5), 90)],
+        ),
+      ]);
+      final plan = _ok(await saveAsPlan()('s1'));
+      expect(plan.exercises.single.restSeconds, 90);
+    });
+
+    test(
+      'an archived exercise surfaces the SavePlan error and stores no plan',
+      () async {
+        await sessionWith('s1', [
+          (exerciseId: 'bench', sets: [(w(5), null)]),
+        ]);
+        await exercises.archive('bench', archived: true);
+        final r = await saveAsPlan()('s1');
+        expect(r, isA<Err<WorkoutPlan>>());
+        expect((r as Err<WorkoutPlan>).error.message, contains('archived'));
+        expect(await plans.watchAll().first, isEmpty);
+      },
+    );
+
+    test(
+      'warm-up and incomplete sets are ignored when working sets exist',
+      () async {
+        await sessionWith(
+          's1',
+          [
+            (
+              exerciseId: 'bench',
+              sets: [
+                (w(12), null),
+                (w(12), null),
+                (w(5), null),
+                (w(5), null),
+                (w(5), null),
+                (w(20), null),
+              ],
+            ),
+          ],
+          meta: {
+            's1-e0-s0': (completed: true, kind: SetKind.warmUp),
+            's1-e0-s1': (completed: true, kind: SetKind.warmUp),
+            's1-e0-s5': (completed: false, kind: SetKind.working),
+          },
+        );
+        final bench = _ok(await saveAsPlan()('s1')).exercises.single;
+        expect(bench.targetSets, 3);
+        expect((bench.repsMin, bench.repsMax), (5, 5));
+      },
+    );
+
+    test(
+      'an entry with only warm-up sets falls back to all its sets',
+      () async {
+        await sessionWith(
+          's1',
+          [
+            (exerciseId: 'bench', sets: [(w(12), null), (w(10), null)]),
+          ],
+          meta: {
+            's1-e0-s0': (completed: true, kind: SetKind.warmUp),
+            's1-e0-s1': (completed: true, kind: SetKind.warmUp),
+          },
+        );
+        final bench = _ok(await saveAsPlan()('s1')).exercises.single;
+        expect(bench.targetSets, 2);
+        expect((bench.repsMin, bench.repsMax), (10, 12));
+      },
+    );
 
     test('a missing session is reported', () async {
       final r = await saveAsPlan()('nope');

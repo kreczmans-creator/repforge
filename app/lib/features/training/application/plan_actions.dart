@@ -76,8 +76,12 @@ final class DeletePlan {
 /// Use case: make a plan from a performed session (WP 17 G5c).
 ///
 /// One plan exercise per session entry, in entry order. Entries without sets
-/// are skipped; a session with no sets at all is refused. Per entry:
-/// `targetSets` is the number of sets (1 to 20); rep sets give `repsMin` and
+/// are skipped; a session with no sets at all is refused. Per entry the
+/// prescription comes from the sets that represent the working prescription:
+/// sets that are `completed` and whose `kind` is not `SetKind.warmUp`
+/// (working and failure sets); if an entry has no such set, all of its sets
+/// are used instead. Only the chosen sets count below. `targetSets` is the
+/// number of chosen sets (1 to 20); rep sets give `repsMin` and
 /// `repsMax` as the lowest and highest performed reps; timed sets give
 /// `targetDuration` as the longest duration; distance sets give
 /// `targetMetres` as the greatest distance; cardio sets give both when
@@ -107,7 +111,11 @@ final class SaveSessionAsPlan {
           if (s.sessionExerciseId == entry.id) s,
       ]..sort((a, b) => a.setOrder.compareTo(b.setOrder));
       if (sets.isEmpty) continue;
-      planExercises.add(_prescribe(entry, sets));
+      final working = [
+        for (final s in sets)
+          if (s.completed && s.kind != SetKind.warmUp) s,
+      ];
+      planExercises.add(_prescribe(entry, working.isEmpty ? sets : working));
     }
     if (planExercises.isEmpty) {
       return const Err(

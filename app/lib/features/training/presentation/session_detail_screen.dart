@@ -42,6 +42,7 @@ class SessionDetailScreen extends ConsumerStatefulWidget {
 
 class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
   String get _id => widget.sessionId;
+  bool _busy = false;
 
   void _snack(String message) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
@@ -62,8 +63,15 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
   }
 
   Future<void> _saveAsPlan(WorkoutSession s) async {
+    if (_busy) return;
+    _busy = true;
     final router = GoRouter.of(context);
-    final result = await ref.read(saveSessionAsPlanProvider)(s.id);
+    final Result<WorkoutPlan> result;
+    try {
+      result = await ref.read(saveSessionAsPlanProvider)(s.id);
+    } finally {
+      _busy = false;
+    }
     if (!mounted) return;
     switch (result) {
       case Err(:final error):
