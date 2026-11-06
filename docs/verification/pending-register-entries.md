@@ -1,5 +1,7 @@
 # Register entries staged for the integration gate (S7)
 
+**Applied 2026-11-07 at the overnight campaign integration gate** (D04 §7 entry, D06 WP 17 entry and WP 15 status line, with the R17-01 wording "recents (subset of NUT-014)"). Kept for traceability.
+
 These texts are applied verbatim to the named register files when the parallel branch is integrated. They are not applied earlier because the primary WP 8 session edits D04, D05 and D06 several times a day and parallel edits would conflict.
 
 ## D04 §7 — new amendment entry

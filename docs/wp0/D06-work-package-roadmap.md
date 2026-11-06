@@ -146,6 +146,7 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 - Acceptance: a tagged release produces signed artefacts and a changelog without manual steps beyond approval.
 
 ### WP 15 — Nutrition entry units (added 2026-11-04, owner allocation)
+- Status: **In progress** — stages 1–2 implemented and independently reviewed (`docs/delivery-record/WP15.md`), four CI workflows green at 353fcd8 and the review-fix commit 26e9f10 integrated at the overnight campaign gate (2026-11-07); not accepted; specification revision 1.4 proposed; custom-food serving entry units open.
 - Objective: enter food quantities in the units people use, with exact canonical storage.
 - Scope: **NUT-022** — kg, l (and mg where meaningful) entry with conversion to canonical g/ml (spec §2.3, GEN-004 table); explicit decision on which imperial input units are supported (OQ-02) and their entry; validation and display conversion; applies to food logging, portion sheets and recipe ingredients; no mass↔volume conversion without a stated density (NUT-022(2)).
 - Dependencies: WP 5 (accepted), WP 7.
@@ -158,3 +159,11 @@ Suggested release points: **R0 internal** after WP 6 (food logging parity with t
 ## Sizing guidance
 
 Sizing is deliberately not given in days: velocity will be established in WP 1 and used to estimate WP 2 onwards. Each WP must be completable within a single short cycle; if a WP grows beyond that, split it.
+
+### WP 17 — Fuel and Train workflow completion (added 2026-11-06, owner decision D-1)
+- Status: **Active**; record `docs/delivery-record/WP17.md`. Effort allocation 9.00 points proposed, awaiting owner approval (standard §6).
+- Objective: close the workflow gaps left after WP 7 and WP 9 without reopening them.
+- Scope: Fuel add flow "pick from library" and recent items (recents delivered as a subset of NUT-014; remainder S3b-ii); recipe duplicate and category filter; plan duplicate, delete and save-session-as-plan; session elapsed time, drag reorder, rest-timer survival (S4d, deferred pending owner decision); after schema v9 (WP 8 v8 accepted first): plan metadata, prebuilt workout catalogue and library UI, recipe tags and image.
+- Dependencies: WP 7, WP 9 (accepted); WP 8 stage 3d for the Train code rebase; WP 8 v8 acceptance for v9.
+- Acceptance: each stage's criteria in the record; no change to accepted WP 7 / WP 9 behaviour under the full regression suite; definitions and history stay separate.
+- Register entry applied at the integration gate (2026-11-07) from `docs/verification/pending-register-entries.md`.
