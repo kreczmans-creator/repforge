@@ -8,8 +8,15 @@ import 'package:repforge/data/db/app_database.dart';
 /// connected to the app. Production stays at schema v7 (`AppDatabase`) until
 /// the owner accepts stage 3b and authorises the switch (D04 §7,
 /// 2026-11-06).
+///
+/// Sub-stage 3b-8 adds the v8 repositories (`lib/data/repositories/v8/`) to
+/// the isolated zone: they may use v8, and nothing outside the zone may
+/// import either directory. The production repositories, providers, use
+/// cases and screens stay on v7.
 void main() {
   const v8Dir = 'lib/data/db/v8';
+  const v8RepositoriesDir = 'lib/data/repositories/v8';
+  const isolatedZone = [v8Dir, v8RepositoriesDir];
   final importPattern = RegExp(
     r'''^\s*(?:import|export|part)\s+['"]([^'"]+)['"]''',
     multiLine: true,
@@ -45,6 +52,11 @@ void main() {
   ];
 
   final reachesV8 = RegExp('^package:repforge/data/db/v8/');
+  final reachesV8Repositories = RegExp(
+    '^package:repforge/data/repositories/v8/',
+  );
+  bool inZone(File f) =>
+      isolatedZone.any((dir) => normalise(f.path).startsWith('$dir/'));
 
   test('the v8 directory holds the definition', () {
     final names = dartFiles(v8Dir)
@@ -61,7 +73,8 @@ void main() {
     );
   });
 
-  test('app, features, UI and repositories do not import v8', () {
+  test('app, features, UI and production repositories do not import v8 or '
+      'the v8 repositories', () {
     final files = [
       for (final dir in [
         'lib/app',
@@ -69,18 +82,45 @@ void main() {
         'lib/ui',
         'lib/data/repositories',
       ])
-        if (Directory(dir).existsSync()) ...dartFiles(dir),
+        if (Directory(dir).existsSync())
+          for (final f in dartFiles(dir))
+            if (!inZone(f)) f,
     ];
     expect(files.length, greaterThan(20));
     expect(importsOf(files, reachesV8), isEmpty);
+    expect(importsOf(files, reachesV8Repositories), isEmpty);
   });
 
-  test('no production file outside lib/data/db/v8 imports v8', () {
+  test('no production file outside the isolated zone imports v8 or the v8 '
+      'repositories', () {
     final files = [
       for (final f in dartFiles('lib'))
-        if (!normalise(f.path).startsWith('$v8Dir/')) f,
+        if (!inZone(f)) f,
     ];
+    expect(files.length, greaterThan(100));
     expect(importsOf(files, reachesV8), isEmpty);
+    expect(importsOf(files, reachesV8Repositories), isEmpty);
+  });
+
+  test('the v8 definition does not import the v8 repositories', () {
+    expect(importsOf(dartFiles(v8Dir), reachesV8Repositories), isEmpty);
+  });
+
+  test('the v8 repositories import no production database, mapper, '
+      'repository, app, feature or UI code', () {
+    final files = dartFiles(v8RepositoriesDir);
+    expect(
+      files.map((f) => normalise(f.path).split('/').last),
+      containsAll([
+        'drift_library_repository_v8.dart',
+        'drift_migration_report_repository_v8.dart',
+      ]),
+    );
+    final forbidden = RegExp(
+      '^package:repforge/(app/|features/|ui/|data/mappers/|'
+      r'data/db/app_database\.dart|data/repositories/(?!v8/))',
+    );
+    expect(importsOf(files, forbidden), isEmpty);
   });
 
   test('v8 imports no production database, app, feature, UI or repository '
