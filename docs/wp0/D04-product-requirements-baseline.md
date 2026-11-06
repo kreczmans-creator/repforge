@@ -578,3 +578,22 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **R-10 Release 1:** hash the exact bundled seed-file bytes with the project's established convention (SHA-256, lowercase hex). The release record states the algorithm and encoding. Nothing hashes a re-serialised form.
 - **R-11 Secondary order:** contiguous and deterministic, as IC-309 requires. A removed or rejected entry leaves no gap.
 - **3b-4 authorised** once these decisions are recorded. All earlier safeguards stay: production schema 7, atomic migration, invalid records kept and reported, blocked history kept, full reconciliation, crash recovery and backup compatibility, independent review. Stage 3b stays unaccepted.
+
+### 2026-11-06 — WP 8 3b-2 register R-12, R-14, R-15, R-19 to R-24 decided; 3c deferrals (owner)
+- **R-12 Foreign keys (mixed):**
+  - Catalogue relationships get foreign keys: provider links, movement-pattern links and exercise-name records.
+  - Exercise-owned child records with no independent lifecycle use `ON DELETE CASCADE`.
+  - User exercise state gets no database key. IC-902 stays a reported check, like plan exercises.
+  - A referenced catalogue record cannot be deleted. Exercise retirement never deletes workout or session history.
+  - Tests cover cascades explicitly, including an exercise with several child records.
+  - IC-902 names orphaned user-state records by stable id with actionable diagnostics. A missing key never permits ignoring an integrity failure.
+- **R-20 Default-role immutability (application enforcement):** the release reconciler, backup restore validation and explicit conflict detection against the existing item enforce it. A conflicting role rejects the whole restore atomically. No trigger. Tests show that neither a later release nor a restore can silently change a default role.
+- **R-14:** every system exercise needs a provider and a revision; a database constraint enforces it.
+- **R-15:** `source` has no default; every insert states it.
+- **R-22:** an override note may exist without an override.
+- **R-23:** an existing device reference row wins silently during the version 8 migration.
+- **R-24:** `archived` stays beside the retirement date; user archiving and catalogue retirement are distinct states.
+- **R-19:** already resolved: overrides apply to load and support only, enforced in the domain.
+- **Deferred to stage 3c (requirements, not forgotten):** R-13 release columns on anatomy, patterns and equipment; R-16 relationships table; R-17 content table and body-length rule; R-18 media table; R-21 reference lifecycle and creation times. They must not enter version 8 now, and the version 8 design must not prevent them later.
+- **Device timing:** mandatory acceptance evidence. The harness may be completed now; real runs stay outstanding until performed on physical Android and iOS devices. Records give device model and hardware, OS version, SQLite version, database size and record counts, durations across repeated runs, outcome and errors.
+- R-12 and R-20 may now be implemented. Stage 3b stays unaccepted.
