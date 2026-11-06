@@ -104,7 +104,7 @@ void main() {
 
   test('no existing code imports lib/domain/library (3a changes nothing '
       'else); only the unconnected v7 → v8 step (3b-4) and the unconnected '
-      'v8 repositories (3b-8) use it', () {
+      'v8 repositories (3b-7 backup, 3b-8) use it', () {
     // The v8 repositories are kept out of the app by
     // `schema_v8_isolation_test.dart`.
     final importers = [
@@ -117,6 +117,8 @@ void main() {
     ];
     expect(importers..sort(), [
       'lib/data/db/migration/v7_to_v8.dart',
+      'lib/data/repositories/v8/backup_restore_plan_v8.dart',
+      'lib/data/repositories/v8/drift_backup_repository_v8.dart',
       'lib/data/repositories/v8/drift_library_repository_v8.dart',
       'lib/data/repositories/v8/drift_migration_report_repository_v8.dart',
       'lib/data/repositories/v8/v8_exercise_read_port.dart',

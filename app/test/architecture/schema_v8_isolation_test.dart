@@ -109,17 +109,19 @@ void main() {
   test('the v8 repositories import no production database, mapper, '
       'repository, app, feature or UI code', () {
     final files = dartFiles(v8RepositoriesDir);
-    expect(
-      files.map((f) => normalise(f.path).split('/').last),
-      containsAll([
-        'drift_library_repository_v8.dart',
-        'drift_migration_report_repository_v8.dart',
-        'v8_exercise_read_port.dart',
-      ]),
-    );
+    // Pinned exactly: 3b-7 (backup) and 3b-8 (library, report, read port).
+    expect(files.map((f) => normalise(f.path).split('/').last).toSet(), {
+      'backup_schema_v8.dart',
+      'backup_restore_plan_v8.dart',
+      'drift_backup_repository_v8.dart',
+      'drift_library_repository_v8.dart',
+      'drift_migration_report_repository_v8.dart',
+      'v8_exercise_read_port.dart',
+    });
     final forbidden = RegExp(
       '^package:repforge/(app/|features/|ui/|data/mappers/|'
-      r'data/db/app_database\.dart|data/repositories/(?!v8/))',
+      r'data/db/app_database\.dart|data/db/legacy_training_rows\.dart|'
+      'data/repositories/(?!v8/))',
     );
     expect(importsOf(files, forbidden), isEmpty);
   });

@@ -10,6 +10,7 @@ import 'package:repforge/data/db/app_database.dart';
 /// 2026-11-06).
 void main() {
   const migrationDir = 'lib/data/db/migration';
+  const v8RepositoryDir = 'lib/data/repositories/v8';
   final importPattern = RegExp(
     r'''^\s*(?:import|export|part)\s+['"]([^'"]+)['"]''',
     multiLine: true,
@@ -80,9 +81,12 @@ void main() {
   });
 
   test('app, features and repositories do not import the chain', () {
+    // WP 8 3b-7: the unconnected v8 backup repository
+    // (`lib/data/repositories/v8/`) is checked separately below.
     final files = [
       for (final dir in ['lib/app', 'lib/features', 'lib/data/repositories'])
-        ...dartFiles(dir),
+        for (final f in dartFiles(dir))
+          if (!normalise(f.path).startsWith('$v8RepositoryDir/')) f,
     ];
     expect(files.length, greaterThan(20));
     expect(offenders(files), isEmpty);
@@ -92,7 +96,8 @@ void main() {
     final files = [
       for (final f in dartFiles('lib'))
         if (!normalise(f.path).startsWith('$migrationDir/') &&
-            !normalise(f.path).startsWith('lib/data/db/v8/'))
+            !normalise(f.path).startsWith('lib/data/db/v8/') &&
+            !normalise(f.path).startsWith('$v8RepositoryDir/'))
           f,
     ];
     expect(offenders(files), isEmpty);
@@ -113,6 +118,24 @@ void main() {
     };
     final reaching = [
       for (final f in dartFiles('lib/data/db/v8'))
+        for (final m in importPattern.allMatches(f.readAsStringSync()))
+          if (reachesMigration(f, m.group(1)!)) asPackageUri(f, m.group(1)!),
+    ];
+    expect(reaching, isNotEmpty);
+    expect(reaching.where((u) => !allowed.contains(u)), isEmpty);
+  });
+
+  test('the unconnected v8 backup repository (3b-7) imports only the '
+      'frozen v6 mapping, the bootstrap, the frozen backfill and the v7 -> '
+      'v8 step from the chain', () {
+    const allowed = {
+      'package:repforge/data/db/migration/legacy_training_rows_v6.dart',
+      'package:repforge/data/db/migration/bootstrap_reference_v8.dart',
+      'package:repforge/data/db/migration/historical_steps.dart',
+      'package:repforge/data/db/migration/v7_to_v8.dart',
+    };
+    final reaching = [
+      for (final f in dartFiles(v8RepositoryDir))
         for (final m in importPattern.allMatches(f.readAsStringSync()))
           if (reachesMigration(f, m.group(1)!)) asPackageUri(f, m.group(1)!),
     ];
