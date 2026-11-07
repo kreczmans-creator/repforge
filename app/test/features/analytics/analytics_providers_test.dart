@@ -8,7 +8,9 @@ import 'package:repforge/domain/analytics/metric.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
+import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
+import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
 
 import '../../helpers/analytics_fixtures.dart';
@@ -44,7 +46,7 @@ void main() {
     ]);
 
     final nutrition = await container.read(nutritionWeekProvider(week).future);
-    expect(nutrition.daysLoggedText, '1 of 7 days logged');
+    expect(nutrition.daysLoggedText, '1 of 6 days logged');
 
     final weight = await container.read(weightSummaryProvider(week).future);
     expect(weight.latestTrend!.average, 90);
@@ -130,28 +132,105 @@ void main() {
       expect(n.averageEnergyKcal, isA<NotEnoughData<double>>());
     },
   );
+
+  test('editing a single set recomputes the training providers', () async {
+    final week = AnalyticsPeriod.thisWeek(now, 1);
+    final repo = container.read(workoutSessionRepositoryProvider);
+    final start = DateTime(2026, 11, 3, 18).toUtc();
+    await repo.upsert(
+      WorkoutSession(
+        id: 's',
+        name: 's',
+        startedAt: start,
+        endedAt: start.add(const Duration(hours: 1)),
+        createdAt: start,
+        updatedAt: start,
+      ),
+    );
+    SessionSet set(double kg) => SessionSet(
+      id: 'set1',
+      sessionId: 's',
+      exerciseId: 'bench',
+      exerciseOrder: 0,
+      setOrder: 0,
+      data: SetData.weighted(load: LoadKg.fromStored(kg), reps: 5),
+      completed: true,
+    );
+    await repo.addSet(set(80));
+
+    final volumes = <double>[];
+    container.listen(weekTrainingProvider(week), (_, next) {
+      final v = next.value;
+      if (v != null) volumes.add(v.week.volume.loadKg);
+    }, fireImmediately: true);
+    await container.read(weekTrainingProvider(week).future);
+    expect(volumes.last, 400);
+
+    await repo.updateSet(set(100));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await container.read(weekTrainingProvider(week).future);
+    expect(volumes.last, 500);
+
+    await repo.deleteSet('set1');
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await container.read(weekTrainingProvider(week).future);
+    expect(volumes.last, 0);
+  });
+
+  test(
+    'currentPeriodProvider uses the saved week start and day start',
+    () async {
+      container
+        ..listen(settingsProvider, (_, _) {})
+        ..listen(currentPeriodProvider(PeriodChoice.thisWeek), (_, _) {});
+      Future<void> until(bool Function() done) async {
+        for (var i = 0; i < 60 && !done(); i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      }
+
+      await until(() => container.read(settingsProvider).hasValue);
+      expect(
+        container.read(currentPeriodProvider(PeriodChoice.thisWeek)).from.day,
+        2, // Monday 2 Nov by default
+      );
+      await container
+          .read(settingsRepositoryProvider)
+          .save(const AppSettings(weekStartDay: 7, dayStartHour: 4));
+      await until(
+        () => container.read(settingsProvider).value?.weekStartDay == 7,
+      );
+      final p = container.read(currentPeriodProvider(PeriodChoice.thisWeek));
+      expect(p.from.day, 1); // Sunday 1 Nov
+      expect(p.dayStartHour, 4);
+      expect(
+        container.read(currentPeriodProvider(PeriodChoice.lastMonth)).label,
+        'October 2026',
+      );
+    },
+  );
 }
 
 final class _FailingGoals implements GoalRepository {
   @override
-  Future<List<Goal>> active() => Future.error(StateError('db gone'));
+  Future<List<Goal>> active() => Future.error(Exception('db gone'));
   @override
-  Future<List<Goal>> history() => Future.error(StateError('db gone'));
+  Future<List<Goal>> history() => Future.error(Exception('db gone'));
   @override
-  Stream<List<Goal>> watchActive() => Stream.error(StateError('db gone'));
+  Stream<List<Goal>> watchActive() => Stream.error(Exception('db gone'));
   @override
-  Stream<List<Goal>> watchHistory() => Stream.error(StateError('db gone'));
+  Stream<List<Goal>> watchHistory() => Stream.error(Exception('db gone'));
   @override
-  Future<void> upsert(Goal goal) => Future.error(StateError('db gone'));
+  Future<void> upsert(Goal goal) => Future.error(Exception('db gone'));
   @override
   Future<void> replaceActive(
     GoalKind kind,
     Goal? next, {
     MeasurementSite? site,
-  }) => Future.error(StateError('db gone'));
+  }) => Future.error(Exception('db gone'));
   @override
   Future<void> replaceActiveAll(Map<GoalKind, Goal?> changes) =>
-      Future.error(StateError('db gone'));
+      Future.error(Exception('db gone'));
   @override
-  Future<void> delete(String id) => Future.error(StateError('db gone'));
+  Future<void> delete(String id) => Future.error(Exception('db gone'));
 }

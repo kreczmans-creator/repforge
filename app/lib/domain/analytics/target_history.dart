@@ -13,6 +13,7 @@ final class TargetPeriod {
     required this.target,
     required this.effectiveFrom,
     required this.active,
+    this.replacedSameDay = false,
     this.site,
     this.effectiveTo,
   });
@@ -31,6 +32,10 @@ final class TargetPeriod {
 
   /// Whether the stored goal row is still the active one.
   final bool active;
+
+  /// Set when the target was replaced or cleared on the day it started, so
+  /// it applied on no day. Kept for the history view; [covers] is false.
+  final bool replacedSameDay;
 
   /// Whether the target applied on [day].
   bool covers(CalendarDate day) =>
@@ -51,12 +56,13 @@ final class TargetPeriod {
 /// 3. A goal applies from its start date until the day before the next goal
 ///    of the same group starts. The last goal of a group applies with no end
 ///    while it is active.
-/// 4. Inactive rows still define the periods before their successor. An
-///    inactive last row (the target was cleared, so no successor exists)
-///    applies until the day before the date it was last updated, which is the
-///    date `GoalRepository.replaceActive` deactivated it.
-/// 5. A goal that a later goal of its group replaced on the same date it
-///    started never applied on any day and is left out.
+/// 4. An inactive row applies until the day before it was deactivated (the
+///    date of its `updatedAt`, set by `GoalRepository.replaceActive`), or
+///    until the day before its successor starts, whichever is earlier. So a
+///    target cleared on 15 Oct stays cleared when a new one starts on 1 Nov.
+/// 5. A goal replaced or cleared on the date it started never applied on any
+///    day. It stays in the periods with `replacedSameDay` set, for the
+///    history view, and `targetsOn` never returns it.
 /// 6. Days before the first goal of a group have no target (null), and a
 ///    goal's `endDate` (a deadline) does not end its period.
 @immutable
@@ -82,15 +88,19 @@ final class TargetHistory {
       for (var i = 0; i < list.length; i++) {
         final g = list[i];
         final from = _startDay(g);
-        final CalendarDate? to;
+        CalendarDate? to;
         if (i + 1 < list.length) {
           to = _startDay(list[i + 1]).addDays(-1);
         } else if (g.active) {
           to = null;
         } else {
-          to = CalendarDate.fromInstant(g.updatedAt).addDays(-1);
+          to = _deactivatedDay(g);
         }
-        if (to != null && to.isBefore(from)) continue;
+        if (!g.active && i + 1 < list.length) {
+          final ended = _deactivatedDay(g);
+          if (to != null && ended.isBefore(to)) to = ended;
+        }
+        final replacedSameDay = to != null && to.isBefore(from);
         periods.add(
           TargetPeriod(
             goalId: g.id,
@@ -100,6 +110,7 @@ final class TargetHistory {
             effectiveFrom: from,
             effectiveTo: to,
             active: g.active,
+            replacedSameDay: replacedSameDay,
           ),
         );
       }
@@ -112,6 +123,11 @@ final class TargetHistory {
     });
     return TargetHistory._(List.unmodifiable(periods));
   }
+
+  /// The last day an inactive row applied: the day before it was
+  /// deactivated (its `updatedAt` date).
+  static CalendarDate _deactivatedDay(Goal g) =>
+      CalendarDate.fromInstant(g.updatedAt).addDays(-1);
 
   static CalendarDate _startDay(Goal g) =>
       CalendarDate.fromInstant(g.startDate);

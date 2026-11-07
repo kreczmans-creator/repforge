@@ -121,8 +121,10 @@ void main() {
       expect(w.volume.seconds, 45);
       expect(w.volume.loadKg, 0);
       expect(w.workingSets, 2);
-      final m = w.totalVolumeKg;
-      expect(m, isA<NotEnoughData<double>>());
+      // Sessions exist but carry no load: a real 0 kg, not "not enough data".
+      final m = w.totalVolumeKg as MetricValue<double>;
+      expect(m.value, 0);
+      expect(m.basis.sampleCount, 2);
     });
 
     test('an empty week has no volume figure instead of 0', () {

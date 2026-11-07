@@ -63,6 +63,7 @@ final class WeightSummary {
     required this.trendPoints,
     required this.rateOfChange,
     required this.trendChange,
+    required this._weights,
   });
 
   /// Builds the summary from weight [readings] (other sites are ignored;
@@ -140,10 +141,55 @@ final class WeightSummary {
       trendPoints: List.unmodifiable(inWindow),
       rateOfChange: rate,
       trendChange: change,
+      weights: upToEnd,
     );
   }
 
   final AnalyticsPeriod period;
+
+  /// Weight readings up to the period end, oldest first.
+  final List<Measurement> _weights;
+
+  /// The trend value of the window ending on [day], from the readings this
+  /// summary holds (so the lookback before the period counts); null when the
+  /// window holds fewer than [trendMinReadings] readings. Unlike a trend
+  /// point it is defined for a day without a reading.
+  double? trendValueOn(CalendarDate day) {
+    final byDay = <CalendarDate, List<double>>{};
+    for (final m in _weights) {
+      final d = CalendarDate.fromInstant(m.recordedAt);
+      if (d.isAfter(day) || d.isBefore(day.addDays(-(trendWindowDays - 1)))) {
+        continue;
+      }
+      (byDay[d] ??= []).add(m.value.raw);
+    }
+    final n = byDay.values.fold<int>(0, (a, l) => a + l.length);
+    if (n < trendMinReadings) return null;
+    final means = [
+      for (final l in byDay.values)
+        l.fold<double>(0, (a, b) => a + b) / l.length,
+    ];
+    return means.fold<double>(0, (a, b) => a + b) / means.length;
+  }
+
+  /// The baseline value of a goal that started on [day]: the trend value on
+  /// that day, else the latest raw reading on or before it, else the first
+  /// raw reading after it; null when there is no reading at all.
+  double? baselineOn(CalendarDate day) {
+    final trend = trendValueOn(day);
+    if (trend != null) return trend;
+    Measurement? before;
+    Measurement? after;
+    for (final m in _weights) {
+      final d = CalendarDate.fromInstant(m.recordedAt);
+      if (!d.isAfter(day)) {
+        before = m;
+      } else {
+        after ??= m;
+      }
+    }
+    return (before ?? after)?.value.raw;
+  }
 
   /// The newest weight reading on or before the period end; null when there
   /// is none.

@@ -86,14 +86,16 @@ final class WeekTraining {
   /// Completed working and failure sets of every type (warm-ups excluded).
   int get workingSets => volume.sets;
 
-  /// Total kg volume; not enough data when the period has no weighted
-  /// working set (never 0 in its place).
+  /// Total kg volume. Not enough data only when nothing was recorded (no
+  /// counted set). A period whose sets carry no load (bodyweight, timed)
+  /// has a real total of 0 kg; its reps, seconds and metres are in
+  /// [volume] (TRN-027(2)).
   Metric<double> get totalVolumeKg {
-    if (volume.loadKg <= 0) {
+    if (volume.sets == 0) {
       return NotEnoughData(
         have: 0,
         need: 1,
-        reason: 'No weighted working set was recorded in ${period.label}.',
+        reason: 'No working set was recorded in ${period.label}.',
       );
     }
     return MetricValue(

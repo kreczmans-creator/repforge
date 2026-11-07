@@ -47,7 +47,7 @@ final class AnalyticsPeriod {
     required this.to,
     required this.kind,
     this.dayStartHour = 0,
-  }) : assert(!from.isAfter(to), 'from must not be after to'),
+  }) : assert(!from.isAfter(to), 'from is after to'),
        assert(dayStartHour >= 0 && dayStartHour <= 23, 'dayStartHour 0-23');
 
   /// A free range.

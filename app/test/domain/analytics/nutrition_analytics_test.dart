@@ -289,4 +289,18 @@ void main() {
     expect(w.daysLoggedText, '2 of 31 days logged');
     expect((w.averageEnergyKcal as MetricValue<double>).value, 2500);
   });
+
+  test('a week in progress does not count future days as not logged', () {
+    final w = NutritionWeek.build(
+      period: _week,
+      entries: [_e('2026-11-02', 2000), _e('2026-11-03', 2000)],
+      history: TargetHistory.fromGoals(const []),
+      dayStartHour: 0,
+      asOf: CalendarDate(2026, 11, 4),
+    );
+    expect(w.elapsedDays, 3);
+    expect(w.daysLoggedText, '2 of 3 days logged');
+    expect(w.notLoggedDays, 1);
+    expect(w.days, hasLength(7));
+  });
 }

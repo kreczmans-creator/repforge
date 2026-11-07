@@ -106,9 +106,12 @@ final class NutritionWeek {
     required this.days,
     required this.summary,
     required this.dayRule,
+    required this.elapsedDays,
   });
 
   /// Builds the period from [entries] (entries outside it are ignored).
+  /// [asOf] is the current diary day: days after it have not happened and are
+  /// not counted as not logged.
   /// [dayStartHour] is the day-start setting the entries' day keys were
   /// stored with; it is stated beside the figures.
   factory NutritionWeek.build({
@@ -116,6 +119,7 @@ final class NutritionWeek {
     required Iterable<FoodLogEntry> entries,
     required TargetHistory history,
     required int dayStartHour,
+    CalendarDate? asOf,
   }) {
     final inPeriod = [
       for (final e in entries)
@@ -140,6 +144,9 @@ final class NutritionWeek {
         entries: inPeriod,
       ),
       dayRule: AnalyticsPeriod.dayRuleFor(dayStartHour),
+      elapsedDays: asOf == null
+          ? period.dayCount
+          : period.days.where((d) => !d.isAfter(asOf)).length,
     );
   }
 
@@ -157,11 +164,17 @@ final class NutritionWeek {
   /// Days with at least one entry.
   int get loggedDays => summary.loggedDays;
 
-  /// Days with no entry.
-  int get notLoggedDays => period.dayCount - loggedDays;
+  /// Days of the period that have started: all of them for a past period,
+  /// up to `asOf` for the current one. Future days are neither logged nor
+  /// not logged.
+  final int elapsedDays;
 
-  /// "5 of 7 days logged" (NUT-016(1)).
-  String get daysLoggedText => '$loggedDays of ${period.dayCount} days logged';
+  /// Elapsed days with no entry.
+  int get notLoggedDays => elapsedDays - loggedDays;
+
+  /// "5 of 7 days logged" (NUT-016(1)); for a week in progress the days that
+  /// have started, for example "3 of 4 days logged".
+  String get daysLoggedText => '$loggedDays of $elapsedDays days logged';
 
   /// The weakest provenance among all entries of the period (NUT-019);
   /// null when nothing was logged.

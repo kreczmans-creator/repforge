@@ -3,6 +3,7 @@ import 'package:repforge/domain/analytics/goal_progress.dart';
 import 'package:repforge/domain/analytics/period_comparison.dart';
 import 'package:repforge/domain/analytics/recomposition.dart';
 import 'package:repforge/domain/analytics/weekly_report.dart';
+import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_repository.dart';
@@ -68,11 +69,15 @@ final class LoadPeriodComparison {
     required this.nutrition,
     required this.training,
     required this.measurements,
+    this.clock = const SystemClock(),
   });
 
   final LoadNutritionWeek nutrition;
   final LoadWeekTraining training;
   final MeasurementRepository measurements;
+
+  /// Gives the current diary day, to mark a period in progress.
+  final Clock clock;
 
   Future<Result<PeriodComparison>> call({
     required AnalyticsPeriod later,
@@ -101,6 +106,7 @@ final class LoadPeriodComparison {
         earlierTraining: okValue(et),
         laterTraining: okValue(lt),
         weightReadings: weights,
+        asOf: diaryDay(clock.now(), later.dayStartHour),
       );
     });
   }

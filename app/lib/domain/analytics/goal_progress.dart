@@ -45,14 +45,14 @@ final class DrillDown {
 /// latest reading (GOL-004(1)); sessions-per-week goals count completed
 /// sessions of the week (GOL-005(1)).
 ///
-/// Direction is derived at read time (plan decision 2a); there is no stored
-/// direction. The rule: the direction is the side the current value lies on
-/// relative to the target (above the target: decrease). When the goal's
-/// first value since its start date is known, it also tells whether the
-/// target has been passed: if the first value lay on the other side of the
-/// target than the current one, the state is [GoalState.passedTarget] and the
-/// direction is the original one. Without a first value the state cannot be
-/// "passed".
+/// Direction is derived at read time from the goal's baseline (plan decision
+/// 2a, corrected after review); there is no stored direction. The baseline is
+/// the trend value on the start date (weight), else the latest reading on or
+/// before it, else the first reading after it. The direction is the side of
+/// the target the baseline lies on (above: decrease). If the current value
+/// lies on the other side, the state is [GoalState.passedTarget]. With no
+/// baseline the direction stays unknown and is never taken from the current
+/// value.
 @immutable
 final class GoalProgress {
   const GoalProgress._({
@@ -95,13 +95,7 @@ final class GoalProgress {
       );
     }
     final startDay = CalendarDate.fromInstant(goal.startDate);
-    double? start;
-    for (final p in summary.trendPoints) {
-      if (!p.date.isBefore(startDay)) {
-        start = p.average;
-        break;
-      }
-    }
+    final start = summary.baselineOn(startDay);
     return GoalProgress._towardTarget(
       goal: goal,
       unit: 'kg',
@@ -163,12 +157,15 @@ final class GoalProgress {
     final latest = own.last;
     final latestDay = CalendarDate.fromInstant(latest.recordedAt).iso;
     final startDay = CalendarDate.fromInstant(goal.startDate);
+    // Baseline: the latest reading on or before the start date, else the
+    // first one after it.
     double? start;
     for (final m in own) {
-      if (!CalendarDate.fromInstant(m.recordedAt).isBefore(startDay)) {
-        start = m.value.raw;
+      if (CalendarDate.fromInstant(m.recordedAt).isAfter(startDay)) {
+        start ??= m.value.raw;
         break;
       }
+      start = m.value.raw;
     }
     return GoalProgress._towardTarget(
       goal: goal,
@@ -296,12 +293,14 @@ final class GoalProgress {
       unit: unit,
       current: current,
       state: GoalState.inProgress,
-      direction: now,
+      direction: startDirection,
       remaining: left,
       percent: percent,
       startValue: start,
       drillDown: drillDown,
-      statement: '${left.toStringAsFixed(1)} $unit to go',
+      statement: startDirection == null
+          ? '${left.toStringAsFixed(1)} $unit from target'
+          : '${left.toStringAsFixed(1)} $unit to go',
     );
   }
 

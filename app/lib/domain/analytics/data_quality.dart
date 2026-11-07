@@ -4,6 +4,16 @@ import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 
+/// How "weight on at least 3 days per week" is read.
+enum WeightFrequencyRule {
+  /// Every 7-day block of the window must reach the minimum; the block with
+  /// the fewest weigh-in days is the observed value.
+  weakestBlock,
+
+  /// The average weigh-in days per 7-day block must reach the minimum.
+  averagePerWeek,
+}
+
 /// The numbers the data-quality check compares against (GOL-012).
 ///
 /// The figures are the OWNER's to set (GOL-012, OQ-15, WP 11 plan decision
@@ -17,6 +27,11 @@ final class DataQualityThresholds {
     required this.minLoggedDayShare,
     required this.minVerifiedEnergyShare,
     required this.minWeightDaysPerWeek,
+    this.acceptedEnergyProvenances = const {
+      DataProvenance.verified,
+      DataProvenance.userEntered,
+    },
+    this.weightRule = WeightFrequencyRule.weakestBlock,
     this.label = 'unapproved thresholds',
   });
 
@@ -42,6 +57,14 @@ final class DataQualityThresholds {
   /// Days with a weight reading required in every 7-day block of the
   /// window.
   final int minWeightDaysPerWeek;
+
+  /// Which provenances count towards the energy share. The owner's choice
+  /// (OQ-15): D04 says "verified or user-entered", so `crowdsourced` is out
+  /// by default.
+  final Set<DataProvenance> acceptedEnergyProvenances;
+
+  /// How the weigh-in days per week are read (owner's choice, OQ-15).
+  final WeightFrequencyRule weightRule;
 
   /// Where the figures come from, stated beside any result.
   final String label;
@@ -94,17 +117,16 @@ final class DataQualityReport {
 
   /// Evaluates the data of the `thresholds.minDays` days ending on [asOf].
   ///
-  /// - Days of data: from the earliest food entry or weight reading to
-  ///   [asOf], inclusive.
+  /// - Days of data: the span from the earliest food entry or weight reading
+  ///   to [asOf], inclusive (not the number of days that have data).
   /// - Days with food logged: logged days in the window over the window
   ///   length.
   /// - Energy provenance: the share of the window's logged kcal from
-  ///   `verified` or `userEntered` entries (`crowdsourced` and `estimated`
-  ///   do not count towards it).
+  ///   entries whose provenance is in `thresholds.acceptedEnergyProvenances`
+  ///   (default `verified` and `userEntered`).
   /// - Weigh-ins: the window is cut into 7-day blocks counted back from
-  ///   [asOf]; the block with the fewest weigh-in days is the observed
-  ///   value (the exact reading of "3 days per week" is for the owner to
-  ///   confirm).
+  ///   [asOf]; `thresholds.weightRule` picks the weakest block or the
+  ///   average (the reading of "3 days per week" is the owner's, OQ-15).
   ///
   /// Entries and readings after [asOf] are ignored.
   factory DataQualityReport.evaluate({
@@ -166,8 +188,7 @@ final class DataQualityReport {
       for (final e
           in foodDays[windowFrom.addDays(i)] ?? const <FoodLogEntry>[]) {
         totalKcal += e.nutrients.kcal;
-        if (e.provenance == DataProvenance.verified ||
-            e.provenance == DataProvenance.userEntered) {
+        if (thresholds.acceptedEnergyProvenances.contains(e.provenance)) {
           strongKcal += e.nutrients.kcal;
         }
       }
@@ -201,24 +222,34 @@ final class DataQualityReport {
     final blocks = windowDays < 7 ? 1 : windowDays ~/ 7;
     final blockLength = windowDays < 7 ? windowDays : 7;
     var fewest = blockLength;
+    var total = 0;
     for (var b = 0; b < blocks; b++) {
       final end = asOf.addDays(-b * blockLength);
       var n = 0;
       for (var i = 0; i < blockLength; i++) {
         if (weightDays.contains(end.addDays(-i))) n++;
       }
+      total += n;
       if (n < fewest) fewest = n;
     }
+    final average = total / blocks;
+    final byAverage =
+        thresholds.weightRule == WeightFrequencyRule.averagePerWeek;
+    final observed = byAverage ? average : fewest.toDouble();
     final weight = CriterionResult(
       id: DataQualityCriterionId.weightFrequency,
-      observed: fewest.toDouble(),
+      observed: observed,
       required: thresholds.minWeightDaysPerWeek.toDouble(),
-      passed: fewest >= thresholds.minWeightDaysPerWeek,
-      reason:
-          'The $blockLength-day block with the fewest weigh-ins had '
-          '$fewest ${_days(fewest)} (of $blocks '
-          '${blocks == 1 ? 'block' : 'blocks'} checked); at least '
-          '${thresholds.minWeightDaysPerWeek} are required.',
+      passed: observed + 1e-12 >= thresholds.minWeightDaysPerWeek,
+      reason: byAverage
+          ? 'Weight was recorded on ${average.toStringAsFixed(1)} days per '
+                '$blockLength-day block on average ($blocks '
+                '${blocks == 1 ? 'block' : 'blocks'} checked); at least '
+                '${thresholds.minWeightDaysPerWeek} are required.'
+          : 'The $blockLength-day block with the fewest weigh-ins had '
+                '$fewest ${_days(fewest)} (of $blocks '
+                '${blocks == 1 ? 'block' : 'blocks'} checked); at least '
+                '${thresholds.minWeightDaysPerWeek} are required.',
     );
 
     return DataQualityReport._(

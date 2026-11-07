@@ -70,16 +70,31 @@ void main() {
     expect(seen.length, greaterThan(files.length));
   });
 
-  test('no domain text instructs the user (GOL-011)', () {
+  test('no analytics text instructs the user (GOL-011)', () {
     final advice = RegExp(
-      r'\b(should|try to|we recommend|you need to|consider|aim for)\b',
+      r'\b(should|must|try to|we recommend|recommend\w*|you need to|'
+      r'consider|aim for|eat|reduce|increase your|cut back)\b',
       caseSensitive: false,
     );
+    final literal = RegExp(
+      "'''[\\s\\S]*?'''|\"\"\"[\\s\\S]*?\"\"\"|"
+      r"'(?:[^'\\\n]|\\.)*'|"
+      r'"(?:[^"\\\n]|\\.)*"',
+    );
+    final sources = [
+      for (final dir in ['lib/domain/analytics', 'lib/features/analytics'])
+        ...Directory(dir)
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart')),
+    ];
+    expect(sources, isNotEmpty);
     final offenders = <String>[];
-    for (final f in files) {
-      // Look at string literals only, not doc comments.
-      for (final m in RegExp(r"'([^'\n]*)'").allMatches(f.readAsStringSync())) {
-        if (advice.hasMatch(m.group(1)!)) {
+    for (final f in sources) {
+      // Strings only: comments are removed first.
+      final code = f.readAsStringSync().replaceAll(RegExp('//.*'), '');
+      for (final m in literal.allMatches(code)) {
+        if (advice.hasMatch(m.group(0)!)) {
           offenders.add('${f.path}: ${m.group(0)}');
         }
       }

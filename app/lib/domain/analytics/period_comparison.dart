@@ -3,6 +3,7 @@ import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/analytics/metric.dart';
 import 'package:repforge/domain/analytics/nutrition_analytics.dart';
 import 'package:repforge/domain/analytics/training_analytics.dart';
+import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/measurements/measurement_comparison.dart'
     show periodStats, roundToTenth;
 import 'package:repforge/domain/measurements/measurements.dart';
@@ -91,6 +92,7 @@ final class PeriodComparison {
     required this.earlier,
     required this.later,
     required this.measures,
+    required this.laterElapsedDays,
   });
 
   /// Compares [later] with [earlier]. Weight uses the mean of the readings
@@ -101,6 +103,7 @@ final class PeriodComparison {
     required WeekTraining earlierTraining,
     required WeekTraining laterTraining,
     required Iterable<Measurement> weightReadings,
+    CalendarDate? asOf,
   }) {
     final readings = weightReadings.toList();
     Metric<double> weightOf(AnalyticsPeriod p) {
@@ -126,6 +129,9 @@ final class PeriodComparison {
     return PeriodComparison._(
       earlier: earlierNutrition.period,
       later: laterNutrition.period,
+      laterElapsedDays: asOf == null
+          ? laterNutrition.period.dayCount
+          : laterNutrition.period.days.where((d) => !d.isAfter(asOf)).length,
       measures: [
         MeasureComparison.of(
           ComparisonMeasure.energy,
@@ -153,6 +159,25 @@ final class PeriodComparison {
 
   final AnalyticsPeriod earlier;
   final AnalyticsPeriod later;
+
+  /// Days of [later] that have started. When fewer than its length, [later]
+  /// is still in progress: per-day averages compare fairly, totals such as
+  /// volume do not, and the screen says so.
+  final int laterElapsedDays;
+
+  /// Whether [later] is a period in progress.
+  bool get laterIsPartial => laterElapsedDays < later.dayCount;
+
+  /// "Week of ... so far: 3 of 7 days", or null for a finished period.
+  String? get partialNote => laterIsPartial
+      ? '${later.label} so far: $laterElapsedDays of ${later.dayCount} days'
+      : null;
+
+  /// How weight is compared (the weekly report shows the trend value
+  /// instead).
+  static const String weightBasisNote =
+      'Weight is the mean of the raw readings in each period, not the trend '
+      'value.';
 
   /// Energy, protein, volume and weight, in that order.
   final List<MeasureComparison> measures;

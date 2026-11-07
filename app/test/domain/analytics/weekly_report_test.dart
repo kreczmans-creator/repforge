@@ -95,15 +95,32 @@ void main() {
       expect(b.latestTrendKg, 89.25);
     });
 
-    test('each section says "not enough data" when it has no input', () {
+    test('bodyweight-only sessions report reps, not missing volume', () {
+      final r = _build(
+        sessions: [
+          workout(DateTime(2026, 11, 3, 18), [
+            const SetData.bodyweight(reps: 12),
+            const SetData.timed(duration: Duration(seconds: 45)),
+          ], exercise: 'mix'),
+        ],
+      );
+      final t = (r.training as MetricValue<TrainingSummary>).value;
+      expect((t.totalVolumeKg as MetricValue<double>).value, 0);
+      expect(t.reps, 12);
+      expect(t.seconds, 45);
+      expect(t.metres, 0);
+    });
+
+    test('without input: 0 days logged, training and body not enough data', () {
       final r = _build();
-      expect(r.nutrition, isA<NotEnoughData<NutritionSummary>>());
+      // Days logged is a known count: "0 of 7 days logged", averages missing.
+      final n = (r.nutrition as MetricValue<NutritionSummary>).value;
+      expect(n.daysLoggedText, '0 of 7 days logged');
+      expect((n.daysLogged as MetricValue<int>).value, 0);
+      expect(n.averageEnergyKcal, isA<NotEnoughData<double>>());
+      expect(n.averageProteinG, isA<NotEnoughData<double>>());
       expect(r.training, isA<NotEnoughData<TrainingSummary>>());
       expect(r.body, isA<NotEnoughData<BodySummary>>());
-      expect(
-        (r.nutrition as NotEnoughData<NutritionSummary>).reason,
-        contains('No day was logged'),
-      );
     });
 
     test('sections are independent: only nutrition present', () {

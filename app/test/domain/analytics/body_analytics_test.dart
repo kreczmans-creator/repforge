@@ -163,7 +163,7 @@ void main() {
         expect(p.remaining, 5.0);
         expect(p.statement, '5.0 kg to go');
         expect(p.target, 80);
-        expect(p.percent, 0);
+        expect(p.percent, 7.4);
         expect(p.drillDown.kind, DrillDownKind.weightEntries);
         final basis = (p.current as MetricValue<double>).basis;
         expect(basis.period, _p(2, 8));
@@ -188,6 +188,30 @@ void main() {
       expect(p.startValue, 85);
       expect(p.remaining, 2.5);
       expect(p.percent, 50);
+    });
+
+    test('sparse readings: a goal already passed is not "in progress"', () {
+      // 80 kg goal set 1 Oct at 85; readings 1 Oct, 15 Oct, then daily from
+      // 1 Nov at about 79.4.
+      final goal = _goal(GoalKind.bodyWeight, 80, DateTime(2026, 10, 1, 9));
+      final period = AnalyticsPeriod.custom(
+        CalendarDate(2026, 10, 1),
+        CalendarDate(2026, 11, 5),
+      );
+      final summary = WeightSummary.build(
+        period: period,
+        readings: [
+          _w(85, 1, 12, 10),
+          _w(84, 15, 12, 10),
+          for (var d = 1; d <= 5; d++) _w(79.4, d),
+        ],
+      );
+      final p = GoalProgress.bodyWeight(goal: goal, summary: summary);
+      expect(p.startValue, 85);
+      expect(p.state, GoalState.passedTarget);
+      expect(p.direction, GoalDirection.decrease);
+      expect(p.remaining, 0.6);
+      expect(p.statement, 'Passed target by 0.6 kg');
     });
 
     test('gaining goal: a trend below the target has to increase', () {
@@ -372,8 +396,8 @@ void main() {
         readings: [_m(MeasurementSite.waist, 90, 10, 20)],
       );
       expect((p.current as MetricValue<double>).value, 90);
-      expect(p.startValue, isNull);
-      expect(p.percent, isNull);
+      expect(p.startValue, 90);
+      expect(p.direction, GoalDirection.decrease);
       expect(p.statement, '5.0 cm to go');
     });
   });

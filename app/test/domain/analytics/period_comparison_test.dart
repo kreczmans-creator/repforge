@@ -5,6 +5,7 @@ import 'package:repforge/domain/analytics/nutrition_analytics.dart';
 import 'package:repforge/domain/analytics/period_comparison.dart';
 import 'package:repforge/domain/analytics/target_history.dart';
 import 'package:repforge/domain/analytics/training_analytics.dart';
+import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
 import 'package:repforge/domain/settings/settings.dart';
@@ -139,6 +140,42 @@ void main() {
       final e = c.of(ComparisonMeasure.energy);
       expect(e.isAvailable, isTrue);
       expect(e.difference, 0);
+    });
+
+    test('a period in progress is marked partial', () {
+      final done = _compare();
+      expect(done.laterIsPartial, isFalse);
+      expect(done.partialNote, isNull);
+      final c = PeriodComparison.build(
+        earlierNutrition: NutritionWeek.build(
+          period: _last,
+          entries: const [],
+          history: TargetHistory.fromGoals(const []),
+          dayStartHour: 0,
+        ),
+        laterNutrition: NutritionWeek.build(
+          period: _this,
+          entries: const [],
+          history: TargetHistory.fromGoals(const []),
+          dayStartHour: 0,
+        ),
+        earlierTraining: WeekTraining.build(
+          period: _last,
+          sessions: const [],
+          settings: const AppSettings(),
+        ),
+        laterTraining: WeekTraining.build(
+          period: _this,
+          sessions: const [],
+          settings: const AppSettings(),
+        ),
+        weightReadings: const [],
+        asOf: CalendarDate(2026, 11, 11),
+      );
+      expect(c.laterElapsedDays, 3);
+      expect(c.laterIsPartial, isTrue);
+      expect(c.partialNote, 'Week of 2026-11-09 so far: 3 of 7 days');
+      expect(PeriodComparison.weightBasisNote, contains('raw readings'));
     });
   });
 }

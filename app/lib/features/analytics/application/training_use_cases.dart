@@ -48,7 +48,7 @@ final class LoadWeekTraining {
   /// The aggregate only: no names, no records.
   Future<Result<WeekTraining>> loadWeek(AnalyticsPeriod period) =>
       guardAnalytics('Could not read the training summary.', () async {
-        final s = await settings.read();
+        final s = await _settingsFor(period);
         return WeekTraining.build(
           period: period,
           sessions: await _sessionsOf(period),
@@ -58,7 +58,7 @@ final class LoadWeekTraining {
 
   Future<Result<WeekTrainingView>> call(AnalyticsPeriod period) =>
       guardAnalytics('Could not read the training summary.', () async {
-        final s = await settings.read();
+        final s = await _settingsFor(period);
         final list = await _sessionsOf(period);
         final week = WeekTraining.build(
           period: period,
@@ -91,6 +91,12 @@ final class LoadWeekTraining {
           recordEvents: events,
         );
       });
+
+  /// The settings with the period's day-start hour, so the period and the
+  /// session attribution use one value (the period was built from the same
+  /// setting).
+  Future<AppSettings> _settingsFor(AnalyticsPeriod period) async =>
+      (await settings.read()).copyWith(dayStartHour: period.dayStartHour);
 
   Future<List<WorkoutSession>> _sessionsOf(AnalyticsPeriod period) =>
       sessions.sessionsBetween(

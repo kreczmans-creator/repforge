@@ -114,6 +114,22 @@ void main() {
       expect(h.periodsFor(GoalKind.fat).single.effectiveTo, _d(2026, 11, 5));
     });
 
+    test('a cleared target stays cleared until its successor starts', () {
+      final h = TargetHistory.fromGoals([
+        _goal(
+          GoalKind.calories,
+          2000,
+          DateTime(2026, 10),
+          active: false,
+          updated: DateTime(2026, 10, 15, 9),
+        ),
+        _goal(GoalKind.calories, 2500, DateTime(2026, 11)),
+      ]);
+      expect(h.targetsOn(_d(2026, 10, 14)).kcal, 2000);
+      expect(h.targetsOn(_d(2026, 10, 20)).kcal, isNull);
+      expect(h.targetsOn(_d(2026, 11, 1)).kcal, 2500);
+    });
+
     test('a target replaced on the day it was set never applied', () {
       final h = TargetHistory.fromGoals([
         _goal(
@@ -129,8 +145,12 @@ void main() {
           created: DateTime(2026, 11, 3, 18),
         ),
       ]);
-      expect(h.periodsFor(GoalKind.calories), hasLength(1));
       expect(h.targetsOn(_d(2026, 11, 3)).kcal, 2500);
+      final p = h.periodsFor(GoalKind.calories);
+      expect(p, hasLength(2));
+      expect(p.first.replacedSameDay, isTrue);
+      expect(p.first.covers(_d(2026, 11, 3)), isFalse);
+      expect(p.last.replacedSameDay, isFalse);
     });
 
     test('the order of the input rows does not matter', () {

@@ -41,6 +41,9 @@ final class TrainingSummary {
   const TrainingSummary({
     required this.sessionsCompleted,
     required this.totalVolumeKg,
+    this.reps = 0,
+    this.seconds = 0,
+    this.metres = 0,
     this.sessionsGoal,
   });
 
@@ -49,6 +52,15 @@ final class TrainingSummary {
   /// "2 of 3 sessions" progress when a sessions-per-week goal is set.
   final GoalProgress? sessionsGoal;
   final Metric<double> totalVolumeKg;
+
+  /// Repetitions of bodyweight and assisted sets (TRN-027(2)).
+  final int reps;
+
+  /// Seconds of timed and cardio sets.
+  final int seconds;
+
+  /// Metres of distance and cardio sets.
+  final double metres;
 }
 
 /// The body part of the weekly report: weight change over the period.
@@ -106,39 +118,32 @@ final class WeeklyReport {
       weakestProvenance: provenance,
     );
 
-    final Metric<NutritionSummary> nutritionSection;
-    if (nutrition.loggedDays == 0) {
-      nutritionSection = NotEnoughData(
-        have: 0,
-        need: 1,
-        reason: 'No day was logged in ${period.label}.',
-      );
-    } else {
-      nutritionSection = MetricValue(
-        NutritionSummary(
-          daysLogged: MetricValue(
-            nutrition.loggedDays,
-            basis(
-              period.dayCount,
-              'food log days',
-              nutrition.dayRule,
-              provenance: nutrition.weakestProvenanceOfPeriod,
-            ),
-          ),
-          daysLoggedText: nutrition.daysLoggedText,
-          averageEnergyKcal: nutrition.averageEnergyKcal,
-          averageProteinG: nutrition.averageProteinG,
-          hasMissingData: nutrition.hasMissingData,
-          weakestProvenance: nutrition.weakestProvenanceOfPeriod,
-        ),
-        basis(
+    // Days logged is a known count even when it is 0 ("0 of 7 days
+    // logged"); the averages inside say "not enough data" without a day.
+    final nutritionSection = MetricValue(
+      NutritionSummary(
+        daysLogged: MetricValue(
           nutrition.loggedDays,
-          'food log entries',
-          nutrition.dayRule,
-          provenance: nutrition.weakestProvenanceOfPeriod,
+          basis(
+            nutrition.elapsedDays,
+            'food log days',
+            nutrition.dayRule,
+            provenance: nutrition.weakestProvenanceOfPeriod,
+          ),
         ),
-      );
-    }
+        daysLoggedText: nutrition.daysLoggedText,
+        averageEnergyKcal: nutrition.averageEnergyKcal,
+        averageProteinG: nutrition.averageProteinG,
+        hasMissingData: nutrition.hasMissingData,
+        weakestProvenance: nutrition.weakestProvenanceOfPeriod,
+      ),
+      basis(
+        nutrition.loggedDays,
+        'food log entries',
+        nutrition.dayRule,
+        provenance: nutrition.weakestProvenanceOfPeriod,
+      ),
+    );
 
     final Metric<TrainingSummary> trainingSection;
     final anySession =
@@ -162,6 +167,9 @@ final class WeeklyReport {
           ),
           sessionsGoal: sessionsGoal,
           totalVolumeKg: training.totalVolumeKg,
+          reps: training.volume.reps,
+          seconds: training.volume.seconds,
+          metres: training.volume.metres,
         ),
         basis(
           training.sessionsCompleted,

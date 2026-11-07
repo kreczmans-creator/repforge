@@ -243,6 +243,47 @@ void main() {
       expect(r2.of(DataQualityCriterionId.loggedDays).passed, isFalse);
     });
 
+    test('accepted provenances and the weigh-in rule are parameters', () {
+      const lenient = DataQualityThresholds(
+        minDays: 28,
+        minLoggedDayShare: 0.8,
+        minVerifiedEnergyShare: 0.9,
+        minWeightDaysPerWeek: 3,
+        acceptedEnergyProvenances: {
+          DataProvenance.verified,
+          DataProvenance.userEntered,
+          DataProvenance.crowdsourced,
+        },
+        weightRule: WeightFrequencyRule.averagePerWeek,
+      );
+      final crowd = _eval(
+        _food(provenance: DataProvenance.crowdsourced),
+        _weights(),
+        t: lenient,
+      );
+      expect(
+        crowd.of(DataQualityCriterionId.verifiedEnergyShare).passed,
+        isTrue,
+      );
+      // 4 + 3 + 3 + 2 weigh-in days: weakest block 2 fails, average 3 passes.
+      final uneven = [
+        ..._weights(weeks: 3),
+        for (final i in [21, 22, 28])
+          weightReading(80, _asOf.addDays(-i).month, _asOf.addDays(-i).day),
+        weightReading(80, _asOf.addDays(-5).month, _asOf.addDays(-5).day),
+      ];
+      final weakest = _eval(_food(), uneven);
+      final average = _eval(_food(), uneven, t: lenient);
+      expect(
+        weakest.of(DataQualityCriterionId.weightFrequency).passed,
+        isFalse,
+      );
+      expect(
+        average.of(DataQualityCriterionId.weightFrequency).reason,
+        contains('on average'),
+      );
+    });
+
     test('reasons contain no instruction to the user (GOL-011)', () {
       final r = _eval(_food(days: 3), const []);
       for (final c in r.criteria) {

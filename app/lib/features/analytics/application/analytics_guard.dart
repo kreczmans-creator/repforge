@@ -9,7 +9,7 @@ Future<Result<T>> guardAnalytics<T>(
 ) async {
   try {
     return Ok(await body());
-  } on Object catch (e) {
+  } on Exception catch (e) {
     return Err(StorageError(message, cause: e));
   }
 }

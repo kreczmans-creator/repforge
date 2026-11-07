@@ -72,7 +72,7 @@ void main() {
   Future<String?> name(String id) async => (await exercises.byId(id))?.name;
 
   LoadNutritionWeek nutrition() =>
-      LoadNutritionWeek(foodLog: foodLog, goals: goals);
+      LoadNutritionWeek(foodLog: foodLog, goals: goals, clock: _clock);
   LoadWeekTraining training() => LoadWeekTraining(
     sessions: sessions,
     settings: settings,
@@ -211,7 +211,7 @@ void main() {
       () async {
         final w = _ok(await nutrition()(thisWeek));
         expect(w.loggedDays, 2);
-        expect(w.daysLoggedText, '2 of 7 days logged');
+        expect(w.daysLoggedText, '2 of 6 days logged');
         expect(w.days[1].targetsInEffect.kcal, 2400); // 3 Nov
         expect(w.days[2].targetsInEffect.kcal, 2600); // 4 Nov
         expect(w.days[1].totals.known.kcal, 2300);
@@ -302,7 +302,7 @@ void main() {
     expect(byKind.keys.toSet(), {'bw', 'wst', 'spw'});
     final bw = byKind['bw']!;
     expect(bw.statement, '9.3 kg to go');
-    expect(bw.percent, 10.5);
+    expect(bw.percent, 7.5);
     expect(bw.drillDown.kind, DrillDownKind.weightEntries);
     final wst = byKind['wst']!;
     expect(wst.statement, '5.0 cm to go');
@@ -342,14 +342,17 @@ void main() {
       expect(t.sessionsGoal!.statement, '2 of 3 sessions');
       expect(
         (r.nutrition as MetricValue<NutritionSummary>).value.daysLoggedText,
-        '2 of 7 days logged',
+        '2 of 6 days logged',
       );
     });
 
-    test('a week without data says not enough data in every section', () async {
+    test('a week without data reads 0 days logged and no body data', () async {
       final empty = AnalyticsPeriod.thisWeek(DateTime(2026, 6, 10, 12), 1);
       final r = _ok(await report()(empty));
-      expect(r.nutrition.isAvailable, isFalse);
+      expect(
+        (r.nutrition as MetricValue<NutritionSummary>).value.daysLoggedText,
+        '0 of 7 days logged',
+      );
       expect(r.training, isA<MetricValue<TrainingSummary>>()); // goal is set
       expect(r.body.isAvailable, isFalse);
     });
@@ -494,26 +497,26 @@ void main() {
 
 final class _ThrowingGoals implements GoalRepository {
   @override
-  Future<List<Goal>> history() => throw StateError('db gone');
+  Future<List<Goal>> history() => throw Exception('db gone');
   @override
-  Stream<List<Goal>> watchHistory() => throw StateError('db gone');
+  Stream<List<Goal>> watchHistory() => throw Exception('db gone');
   @override
-  Future<List<Goal>> active() => throw StateError('db gone');
+  Future<List<Goal>> active() => throw Exception('db gone');
   @override
-  Stream<List<Goal>> watchActive() => throw StateError('db gone');
+  Stream<List<Goal>> watchActive() => throw Exception('db gone');
   @override
-  Future<void> upsert(Goal goal) => throw StateError('db gone');
+  Future<void> upsert(Goal goal) => throw Exception('db gone');
   @override
   Future<void> replaceActive(
     GoalKind kind,
     Goal? next, {
     MeasurementSite? site,
-  }) => throw StateError('db gone');
+  }) => throw Exception('db gone');
   @override
   Future<void> replaceActiveAll(Map<GoalKind, Goal?> changes) =>
-      throw StateError('db gone');
+      throw Exception('db gone');
   @override
-  Future<void> delete(String id) => throw StateError('db gone');
+  Future<void> delete(String id) => throw Exception('db gone');
 }
 
 final class _ThrowingMeasurements implements MeasurementRepository {
@@ -522,30 +525,29 @@ final class _ThrowingMeasurements implements MeasurementRepository {
     DateTime from,
     DateTime to, {
     MeasurementSite? site,
-  }) => throw StateError('db gone');
+  }) => throw Exception('db gone');
   @override
   Stream<List<Measurement>> watchSite(MeasurementSite site) =>
-      throw StateError('db gone');
+      throw Exception('db gone');
   @override
   Stream<List<Measurement>> watchAll({int? limit}) =>
-      throw StateError('db gone');
+      throw Exception('db gone');
   @override
   Future<Measurement?> latest(MeasurementSite site) =>
-      throw StateError('db gone');
+      throw Exception('db gone');
   @override
-  Future<Measurement?> byId(String id) => throw StateError('db gone');
+  Future<Measurement?> byId(String id) => throw Exception('db gone');
   @override
-  Future<bool> exists(String id) => throw StateError('db gone');
+  Future<bool> exists(String id) => throw Exception('db gone');
   @override
   Stream<List<UnreadableMeasurement>> watchUnreadable() =>
-      throw StateError('db gone');
+      throw Exception('db gone');
   @override
-  Future<void> insert(Measurement m) => throw StateError('db gone');
+  Future<void> insert(Measurement m) => throw Exception('db gone');
   @override
-  Future<void> insertAll(List<Measurement> items) =>
-      throw StateError('db gone');
+  Future<void> insertAll(List<Measurement> items) => throw Exception('db gone');
   @override
-  Future<int> update(Measurement m) => throw StateError('db gone');
+  Future<int> update(Measurement m) => throw Exception('db gone');
   @override
-  Future<void> delete(String id) => throw StateError('db gone');
+  Future<void> delete(String id) => throw Exception('db gone');
 }

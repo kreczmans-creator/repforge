@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
+import 'package:repforge/data/repositories/analytics_revision.dart';
 import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/analytics/body_analytics.dart';
 import 'package:repforge/domain/analytics/goal_progress.dart';
@@ -10,7 +11,7 @@ import 'package:repforge/domain/analytics/target_history.dart';
 import 'package:repforge/domain/analytics/training_analytics.dart';
 import 'package:repforge/domain/analytics/weekly_report.dart';
 import 'package:repforge/domain/core/result.dart';
-import 'package:repforge/domain/measurements/measurements.dart';
+import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/features/analytics/application/body_use_cases.dart';
 import 'package:repforge/features/analytics/application/nutrition_use_cases.dart';
 import 'package:repforge/features/analytics/application/report_use_cases.dart';
@@ -44,23 +45,71 @@ typedef PeriodPair = ({AnalyticsPeriod later, AnalyticsPeriod earlier});
 /// The chosen period and exercise of the recomposition view, as a family key.
 typedef RecompositionKey = ({AnalyticsPeriod period, String? exerciseId});
 
-/// The newest weight or measurement. Analytics providers watch it so a new
-/// reading recomputes them; edits of older rows need an explicit
-/// `ref.invalidate`.
-final latestMeasurementProvider = StreamProvider<List<Measurement>>(
-  (ref) => ref.watch(measurementRepositoryProvider).watchAll(limit: 1),
+/// Counts the writes to any table the analytics read (see
+/// `analyticsTableUpdates`). Every analytics provider watches it, so an edit
+/// of any row, an old one or a single set included, recomputes the figures.
+class AnalyticsRevision extends Notifier<int> {
+  @override
+  int build() {
+    final sub = analyticsTableUpdates(ref.watch(databaseProvider))
+        .listen((_) => state = state + 1);
+    ref.onDispose(sub.cancel);
+    return 0;
+  }
+}
+
+final analyticsRevisionProvider = NotifierProvider<AnalyticsRevision, int>(
+  AnalyticsRevision.new,
 );
 
-/// Re-runs the analytics when settings, goals, today's entries, the newest
-/// session or the newest measurement change.
+/// Re-runs the analytics on any write to the data they read.
 void _refreshOn(Ref ref) {
-  ref
-    ..watch(settingsProvider)
-    ..watch(activeGoalsProvider)
-    ..watch(todayEntriesProvider)
-    ..watch(recentSessionsProvider)
-    ..watch(latestMeasurementProvider);
+  ref.watch(analyticsRevisionProvider);
 }
+
+/// The periods the screens open on.
+enum PeriodChoice { thisWeek, lastWeek, thisMonth, lastMonth }
+
+/// The period for [choice] at [now], with the week start and day-start hour
+/// of [settings]: the one place those two settings become a period.
+AnalyticsPeriod periodFor(
+  PeriodChoice choice,
+  DateTime now,
+  AppSettings settings,
+) => switch (choice) {
+  PeriodChoice.thisWeek => AnalyticsPeriod.thisWeek(
+    now,
+    settings.weekStartDay,
+    dayStartHour: settings.dayStartHour,
+  ),
+  PeriodChoice.lastWeek => AnalyticsPeriod.lastWeek(
+    now,
+    settings.weekStartDay,
+    dayStartHour: settings.dayStartHour,
+  ),
+  PeriodChoice.thisMonth => AnalyticsPeriod.thisMonth(
+    now,
+    dayStartHour: settings.dayStartHour,
+  ),
+  PeriodChoice.lastMonth => AnalyticsPeriod.lastMonth(
+    now,
+    dayStartHour: settings.dayStartHour,
+  ),
+};
+
+/// The current week or month from the saved settings and the clock. It
+/// rolls over with the diary day (`todayKeyProvider`) and follows a change of
+/// week start or day start.
+// ignore: specify_nonobvious_property_types, the family type is not exported
+final currentPeriodProvider = Provider.family<AnalyticsPeriod, PeriodChoice>((
+  ref,
+  choice,
+) {
+  ref.watch(todayKeyProvider);
+  final settings =
+      ref.watch(settingsProvider.select((s) => s.value)) ?? const AppSettings();
+  return periodFor(choice, ref.watch(clockProvider).now(), settings);
+});
 
 /// Resolves exercise names for the analytics, including archived exercises.
 /// Swap this one provider when the exercise port changes (WP 8 stage 3d).
@@ -77,6 +126,7 @@ final loadNutritionWeekProvider = Provider<LoadNutritionWeek>(
   (ref) => LoadNutritionWeek(
     foodLog: ref.watch(foodLogRepositoryProvider),
     goals: ref.watch(goalRepositoryProvider),
+    clock: ref.watch(clockProvider),
   ),
 );
 
@@ -125,6 +175,7 @@ final loadPeriodComparisonProvider = Provider<LoadPeriodComparison>(
     nutrition: ref.watch(loadNutritionWeekProvider),
     training: ref.watch(loadWeekTrainingProvider),
     measurements: ref.watch(measurementRepositoryProvider),
+    clock: ref.watch(clockProvider),
   ),
 );
 
@@ -137,7 +188,7 @@ final loadRecompositionSeriesProvider = Provider<LoadRecompositionSeries>(
 
 /// The target history, including inactive goals (GOL-006(2)).
 final targetHistoryProvider = FutureProvider<TargetHistory>((ref) {
-  ref.watch(activeGoalsProvider);
+  _refreshOn(ref);
   return _load(ref.watch(loadTargetHistoryProvider)());
 }, retry: _noRetry);
 
