@@ -34,7 +34,7 @@ Unknown keys are refused at every level (RF-006). A change of the format is a ne
 | `id` | string | yes | Stable provider id (`repforge`). |
 | `name` | string | yes | Display name. |
 | `licence` | string | yes | SPDX identifier or licence name (`provenance-and-licensing.md` section 2). |
-| `attribution` | string | yes | Exact attribution text. |
+| `attribution` | string | yes | Exact attribution text; the empty string when none is required. |
 | `url` | string or null | no | Source or licence URL. |
 
 These are the fields of the existing `ContentProvider` record (ADR-0009 decision 2). The wider registry fields of `provenance-and-licensing.md` section 2 (`kind`, `licenceUrl`, `sourceVersion` and so on) are not part of format 2; a dataset provider that needs them needs a later specification revision. The licence is always recorded.
@@ -114,7 +114,7 @@ The release content hash is the **SHA-256 of the exact bytes of the bundled file
 | RF-003 | `formatVersion` is not 2. |
 | RF-006 | Unknown key. |
 | RF-007 | Duplicate relationship declaration. |
-| RF-008 | A reference section is missing, or its hash differs from the supplied file. |
+| RF-008 | A reference file's hash differs from the supplied file, or the file was not supplied. (A missing or malformed section in the release is RF-002.) |
 | RF-009 | Provider mismatch between the release and a reference file. |
 | RF-010 | The content hash differs from the expected hash supplied by the caller. |
 
@@ -150,8 +150,8 @@ A shortened valid document (reference hashes are those of the approved files; tw
   "provider": {
     "id": "repforge",
     "name": "RepForge",
-    "licence": "Original RepForge content",
-    "attribution": "RepForge editorial",
+    "licence": "proprietary (RepForge)",
+    "attribution": "",
     "url": null
   },
   "release": 2,

@@ -1,0 +1,3985 @@
+{
+  "formatVersion": 2,
+  "provider": {
+    "id": "repforge",
+    "name": "RepForge",
+    "licence": "proprietary (RepForge)",
+    "attribution": "",
+    "url": null
+  },
+  "release": 2,
+  "releasedOn": "2026-11-07",
+  "reference": {
+    "anatomy": {
+      "path": "reference/anatomy.json",
+      "sha256": "207b151fd9d5be164494a4e852ffe52781d1e9b3ea8c29c8277a160330e334d6"
+    },
+    "movementPatterns": {
+      "path": "reference/movement-patterns.json",
+      "sha256": "1a2c28239fb8ee9c3f288d83a90309a4a8cfa2cb3bf44ea0cfba07523df67655"
+    },
+    "equipment": {
+      "path": "reference/equipment.json",
+      "sha256": "7595bab7c19bdad044b60257959eae7c6adc3dd630b4ab7714d88bfb9c7058bf"
+    },
+    "ledger": {
+      "path": "reference/ledger.json",
+      "sha256": "f1b3aae2cd298916657bbe548dedaf71e8de62140c925968f1bfa98b019bef4e"
+    },
+    "coverage": {
+      "path": "reference/coverage.json",
+      "sha256": "06f9d72aecc32a16d69fb94a374340b68fbeb68d9fd4e5749e3f9fd2734494c4"
+    }
+  },
+  "exercises": [
+    {
+      "id": "lib-back-squat",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell back squat",
+          "aliases": [
+            "Back squat",
+            "Squat"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "adductors",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        },
+        {
+          "item": "squatRack"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-front-squat",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell front squat",
+          "aliases": [
+            "Front squat"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "abs",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        },
+        {
+          "item": "squatRack"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-goblet-squat",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Goblet squat",
+          "aliases": [
+            "Dumbbell goblet squat"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "adductors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hack-squat",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Hack squat",
+          "aliases": [
+            "Machine hack squat"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-leg-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Leg press",
+          "aliases": [
+            "45-degree leg press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "adductors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-leg-extension",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Leg extension",
+          "aliases": [
+            "Quad extension"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "kneeExtension"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-leg-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Seated leg curl",
+          "aliases": [
+            "Hamstring curl",
+            "Machine leg curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "hamstrings",
+          "role": "primary"
+        },
+        {
+          "node": "gastrocnemius",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "kneeFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "bodyPosition": "seated"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-lying-leg-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Lying leg curl",
+          "aliases": [
+            "Prone leg curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "hamstrings",
+          "role": "primary"
+        },
+        {
+          "node": "gastrocnemius",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "kneeFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "bodyPosition": "lying"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-romanian-deadlift",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Romanian deadlift",
+          "aliases": [
+            "RDL",
+            "Barbell Romanian deadlift"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "hamstrings",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hinge"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-dumbbell-rdl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell Romanian deadlift",
+          "aliases": [
+            "Dumbbell RDL"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "hamstrings",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hinge"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-deadlift",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Conventional deadlift",
+          "aliases": [
+            "Deadlift",
+            "Barbell deadlift"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hinge"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "stance": "standard"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-sumo-deadlift",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Sumo deadlift",
+          "aliases": [
+            "Barbell sumo deadlift",
+            "Wide-stance deadlift"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "adductors",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hinge"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "stance": "wide"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-trap-bar-deadlift",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Trap bar deadlift",
+          "aliases": [
+            "Hex bar deadlift"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hinge",
+        "squat"
+      ],
+      "equipment": [
+        {
+          "item": "trapBar"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hip-thrust",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell hip thrust",
+          "aliases": [
+            "Hip thrust"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hipExtension"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "bodyPosition": "inclined"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-glute-bridge",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Glute bridge",
+          "aliases": [
+            "Bodyweight glute bridge"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hipExtension"
+      ],
+      "equipment": [],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "bodyPosition": "lying"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-walking-lunge",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell walking lunge",
+          "aliases": [
+            "Walking lunge"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "adductors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "lunge"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "alternating",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-bodyweight-lunge",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Bodyweight lunge",
+          "aliases": [
+            "Forward lunge",
+            "Lunge"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "lunge"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-bulgarian-split-squat",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Bulgarian split squat",
+          "aliases": [
+            "Rear-foot elevated split squat"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "adductors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "lunge"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-step-up",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell step-up",
+          "aliases": [
+            "Step-up"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "lunge"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "plyoBox"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-bodyweight-squat",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Bodyweight squat",
+          "aliases": [
+            "Air squat"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-standing-calf-raise",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Standing calf raise",
+          "aliases": [
+            "Calf raise"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "gastrocnemius",
+          "role": "primary"
+        },
+        {
+          "node": "soleus",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "plantarFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "kneePosition": "straight"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hip-abduction",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Machine hip abduction",
+          "aliases": [
+            "Hip abductor"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "abductors",
+          "role": "primary"
+        },
+        {
+          "node": "gluteusMedius",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hipAbduction"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hip-adduction",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Machine hip adduction",
+          "aliases": [
+            "Hip adductor"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "adductors",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "hipAdduction"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-bench-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell bench press",
+          "aliases": [
+            "Bench press",
+            "Flat bench press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPush"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        },
+        {
+          "item": "bench"
+        },
+        {
+          "item": "squatRack"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "angle": "flat"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-db-bench-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell bench press",
+          "aliases": [
+            "Flat dumbbell press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPush"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "angle": "flat"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-incline-bench-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Incline barbell bench press",
+          "aliases": [
+            "Incline bench press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPush"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        },
+        {
+          "item": "bench"
+        },
+        {
+          "item": "squatRack"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "angle": "incline"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-incline-db-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Incline dumbbell press",
+          "aliases": [
+            "Incline dumbbell bench press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPush"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "angle": "incline"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-machine-chest-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Machine chest press",
+          "aliases": [
+            "Seated chest press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPush"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "angle": "flat"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-cable-fly",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Cable chest fly",
+          "aliases": [
+            "Cable crossover",
+            "Cable fly"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "shoulderHorizontalAdduction"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-db-fly",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell chest fly",
+          "aliases": [
+            "Dumbbell fly"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "shoulderHorizontalAdduction"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-push-up",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Push-up",
+          "aliases": [
+            "Press-up"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "push",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        },
+        {
+          "node": "abs",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPush",
+        "antiExtension"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-overhead-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell overhead press",
+          "aliases": [
+            "OHP",
+            "Standing press",
+            "Military press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "frontDelts",
+          "role": "primary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        },
+        {
+          "node": "sideDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPush"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-db-shoulder-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell shoulder press",
+          "aliases": [
+            "Seated dumbbell press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "frontDelts",
+          "role": "primary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        },
+        {
+          "node": "sideDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPush"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-lateral-raise",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell lateral raise",
+          "aliases": [
+            "Side raise",
+            "Lateral raise"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "sideDelts",
+          "role": "primary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "shoulderAbduction"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-triceps-pushdown",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Triceps pushdown",
+          "aliases": [
+            "Cable pushdown",
+            "Tricep pushdown"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "triceps",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "elbowExtension"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "besideBody"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-skull-crusher",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "EZ bar skull crusher",
+          "aliases": [
+            "Skull crusher",
+            "Lying triceps extension"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "triceps",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "elbowExtension"
+      ],
+      "equipment": [
+        {
+          "item": "ezBar"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "bodyPosition": "lying"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-overhead-triceps-extension",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Overhead triceps extension",
+          "aliases": [
+            "French press",
+            "Dumbbell triceps extension"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "triceps",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "elbowExtension"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "overhead"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-dips",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dips",
+          "aliases": [
+            "Parallel bar dip",
+            "Triceps dip"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "push",
+      "targets": [
+        {
+          "node": "triceps",
+          "role": "primary"
+        },
+        {
+          "node": "chest",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPush"
+      ],
+      "equipment": [
+        {
+          "item": "dipBars"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-assisted-dip",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Assisted dip (machine)",
+          "aliases": [
+            "Machine-assisted dip",
+            "Assisted dips"
+          ]
+        }
+      },
+      "loggingType": "assisted",
+      "category": "push",
+      "targets": [
+        {
+          "node": "triceps",
+          "role": "primary"
+        },
+        {
+          "node": "chest",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPush"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-pull-up",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Pull-up",
+          "aliases": [
+            "Overhand pull-up"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPull"
+      ],
+      "equipment": [
+        {
+          "item": "pullUpBar"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "grip": "pronated"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-chin-up",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Chin-up",
+          "aliases": [
+            "Underhand pull-up"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPull"
+      ],
+      "equipment": [
+        {
+          "item": "pullUpBar"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "attributes": {
+        "grip": "supinated"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-assisted-pull-up",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Assisted pull-up (machine)",
+          "aliases": [
+            "Machine-assisted pull-up",
+            "Assisted pull-ups"
+          ]
+        }
+      },
+      "loggingType": "assisted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPull"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-band-assisted-pull-up",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Band-assisted pull-up",
+          "aliases": [
+            "Resistance band pull-up"
+          ]
+        }
+      },
+      "loggingType": "assisted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPull"
+      ],
+      "equipment": [
+        {
+          "item": "pullUpBar"
+        },
+        {
+          "item": "resistanceBand"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-lat-pulldown",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Lat pulldown",
+          "aliases": [
+            "Wide-grip pulldown"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "rearDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "verticalPull"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-seated-cable-row",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Seated cable row",
+          "aliases": [
+            "Cable row"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "upperBack",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "rearDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPull"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-barbell-row",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell bent-over row",
+          "aliases": [
+            "Barbell row",
+            "Bent-over row"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "upperBack",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        },
+        {
+          "node": "rearDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPull"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-db-row",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "One-arm dumbbell row",
+          "aliases": [
+            "Dumbbell row",
+            "Single-arm row"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "rearDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPull"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        },
+        {
+          "item": "bench"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-chest-supported-row",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Chest-supported machine row",
+          "aliases": [
+            "Machine row"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "upperBack",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "rearDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPull"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-inverted-row",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Inverted row",
+          "aliases": [
+            "Bodyweight row",
+            "Australian pull-up"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "upperBack",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "biceps",
+          "role": "secondary"
+        },
+        {
+          "node": "rearDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "horizontalPull"
+      ],
+      "equipment": [
+        {
+          "item": "barbell",
+          "role": "support",
+          "roleNote": "Equipment lists barbell and squatRack; the barbell is a fixed bar here, so it is a support item (equipmentRoles). The class is then bodyweight."
+        },
+        {
+          "item": "squatRack"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-face-pull",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Face pull",
+          "aliases": [
+            "Cable face pull"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "rearDelts",
+          "role": "primary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "shoulderHorizontalAbduction",
+        "shoulderExternalRotation"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-rear-delt-fly",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Reverse pec deck",
+          "aliases": [
+            "Rear delt fly",
+            "Machine reverse fly"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "rearDelts",
+          "role": "primary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "shoulderHorizontalAbduction"
+      ],
+      "equipment": [
+        {
+          "item": "machine"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-shrug",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell shrug",
+          "aliases": [
+            "Shrug"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "trapeziusUpper",
+          "role": "primary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "scapularElevation"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-barbell-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell biceps curl",
+          "aliases": [
+            "Barbell curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "biceps",
+          "role": "primary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "elbowFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "supinated"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-db-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell biceps curl",
+          "aliases": [
+            "Dumbbell curl",
+            "Bicep curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "biceps",
+          "role": "primary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "elbowFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "supinated"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hammer-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Hammer curl",
+          "aliases": [
+            "Neutral-grip curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "biceps",
+          "role": "primary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "elbowFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "neutral"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-preacher-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "EZ bar preacher curl",
+          "aliases": [
+            "Preacher curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "biceps",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "elbowFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "ezBar"
+        },
+        {
+          "item": "preacherBench"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "supportedInFront"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-cable-curl",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Cable biceps curl",
+          "aliases": [
+            "Cable curl"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "pull",
+      "targets": [
+        {
+          "node": "biceps",
+          "role": "primary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "elbowFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "attributes": {
+        "armPosition": "besideBody",
+        "grip": "supinated"
+      },
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-plank",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Plank",
+          "aliases": [
+            "Front plank",
+            "Forearm plank"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "core",
+      "targets": [
+        {
+          "node": "abs",
+          "role": "primary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "antiExtension"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-side-plank",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Side plank",
+          "aliases": [
+            "Lateral plank"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "core",
+      "targets": [
+        {
+          "node": "obliques",
+          "role": "primary"
+        },
+        {
+          "node": "abs",
+          "role": "secondary"
+        },
+        {
+          "node": "abductors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "antiLateralFlexion"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "unilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-weighted-plank",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Weighted plank",
+          "aliases": [
+            "Plank with plate"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "core",
+      "targets": [
+        {
+          "node": "abs",
+          "role": "primary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "antiExtension"
+      ],
+      "equipment": [
+        {
+          "item": "plate"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-dead-hang",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dead hang",
+          "aliases": [
+            "Passive hang",
+            "Bar hang"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "core",
+      "targets": [
+        {
+          "node": "forearms",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "gripHold"
+      ],
+      "equipment": [
+        {
+          "item": "pullUpBar"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-wall-sit",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Wall sit",
+          "aliases": [
+            "Wall squat hold"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "legs",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hanging-leg-raise",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Hanging leg raise",
+          "aliases": [
+            "Hanging knee raise"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "core",
+      "targets": [
+        {
+          "node": "abs",
+          "role": "primary"
+        },
+        {
+          "node": "forearms",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "hipFlexors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hipFlexion",
+        "trunkFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "pullUpBar"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-cable-crunch",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Cable crunch",
+          "aliases": [
+            "Kneeling cable crunch"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "core",
+      "targets": [
+        {
+          "node": "abs",
+          "role": "primary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "trunkFlexion"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-crunch",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Crunch",
+          "aliases": [
+            "Sit-up crunch"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "core",
+      "targets": [
+        {
+          "node": "abs",
+          "role": "primary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "trunkFlexion"
+      ],
+      "equipment": [],
+      "mechanics": "isolation",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-pallof-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Pallof press",
+          "aliases": [
+            "Cable anti-rotation press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "core",
+      "targets": [
+        {
+          "node": "obliques",
+          "role": "primary"
+        },
+        {
+          "node": "abs",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "antiRotation"
+      ],
+      "equipment": [
+        {
+          "item": "cable"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-ab-wheel",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Ab wheel rollout",
+          "aliases": [
+            "Ab roller"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "core",
+      "targets": [
+        {
+          "node": "abs",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "antiExtension"
+      ],
+      "equipment": [
+        {
+          "item": "abWheel"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-farmers-carry",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Farmer's carry",
+          "aliases": [
+            "Farmer's walk"
+          ]
+        }
+      },
+      "loggingType": "distance",
+      "category": "core",
+      "targets": [
+        {
+          "node": "forearms",
+          "role": "primary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "abs",
+          "role": "secondary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "carryBilateral"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-sled-push",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Sled push",
+          "aliases": [
+            "Prowler push"
+          ]
+        }
+      },
+      "loggingType": "distance",
+      "category": "fullBody",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "sledPushPull"
+      ],
+      "equipment": [
+        {
+          "item": "sled"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-kettlebell-swing",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Kettlebell swing",
+          "aliases": [
+            "Russian swing"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "fullBody",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "hinge"
+      ],
+      "equipment": [
+        {
+          "item": "kettlebell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-clean-and-press",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Dumbbell clean and press",
+          "aliases": [
+            "Clean and press"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "fullBody",
+      "targets": [
+        {
+          "node": "frontDelts",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "explosiveLift",
+        "verticalPush"
+      ],
+      "equipment": [
+        {
+          "item": "dumbbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-burpee",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Burpee",
+          "aliases": [
+            "Squat thrust with jump"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "fullBody",
+      "targets": [
+        {
+          "node": "fullBody",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "fullBodyConditioning"
+      ],
+      "equipment": [],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-thruster",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Barbell thruster",
+          "aliases": [
+            "Thruster"
+          ]
+        }
+      },
+      "loggingType": "weighted",
+      "category": "fullBody",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "triceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "squat",
+        "verticalPush"
+      ],
+      "equipment": [
+        {
+          "item": "barbell"
+        }
+      ],
+      "mechanics": "compound",
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-treadmill-run",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Treadmill run",
+          "aliases": [
+            "Treadmill running",
+            "Running"
+          ]
+        }
+      },
+      "loggingType": "cardio",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "fullBody",
+          "role": "primary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "walkRun"
+      ],
+      "equipment": [
+        {
+          "item": "treadmill"
+        }
+      ],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-incline-walk",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Incline treadmill walk",
+          "aliases": [
+            "Incline walk"
+          ]
+        }
+      },
+      "loggingType": "cardio",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "walkRun"
+      ],
+      "equipment": [
+        {
+          "item": "treadmill"
+        }
+      ],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-stationary-bike",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Exercise bike",
+          "aliases": [
+            "Cycling",
+            "Stationary bike"
+          ]
+        }
+      },
+      "loggingType": "cardio",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "quadriceps",
+          "role": "primary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "ergometer"
+      ],
+      "equipment": [
+        {
+          "item": "bike"
+        }
+      ],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-rowing-machine",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Rowing machine",
+          "aliases": [
+            "Rowing",
+            "Rower",
+            "Ergometer row"
+          ]
+        }
+      },
+      "loggingType": "cardio",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "fullBody",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "ergometer"
+      ],
+      "equipment": [
+        {
+          "item": "rower"
+        }
+      ],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-cross-trainer",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Cross-trainer",
+          "aliases": [
+            "Elliptical",
+            "Elliptical trainer"
+          ]
+        }
+      },
+      "loggingType": "cardio",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "fullBody",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "ergometer"
+      ],
+      "equipment": [
+        {
+          "item": "elliptical"
+        }
+      ],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-skipping",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Skipping",
+          "aliases": [
+            "Jump rope",
+            "Rope skipping"
+          ]
+        }
+      },
+      "loggingType": "cardio",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "calves",
+          "role": "primary"
+        }
+      ],
+      "patterns": [
+        "skipping"
+      ],
+      "equipment": [
+        {
+          "item": "skippingRope"
+        }
+      ],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-run-400m",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "400 m run",
+          "aliases": [
+            "Quarter-mile run",
+            "400 m repeat"
+          ]
+        }
+      },
+      "loggingType": "distance",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "fullBody",
+          "role": "primary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "walkRun"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-outdoor-run",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Outdoor run",
+          "aliases": [
+            "Road run",
+            "Jogging"
+          ]
+        }
+      },
+      "loggingType": "distance",
+      "category": "cardio",
+      "targets": [
+        {
+          "node": "fullBody",
+          "role": "primary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "calves",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "walkRun"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hip-flexor-stretch",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Hip flexor stretch",
+          "aliases": [
+            "Kneeling hip flexor stretch"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "hipFlexors",
+          "role": "primary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "glutes",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "staticStretch"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "unilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-hamstring-stretch",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Hamstring stretch",
+          "aliases": [
+            "Seated forward fold"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "hamstrings",
+          "role": "primary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "staticStretch"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-childs-pose",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Child's pose",
+          "aliases": [
+            "Balasana"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "lats",
+          "role": "primary"
+        },
+        {
+          "node": "lowerBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "staticStretch"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-cat-cow",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Cat-cow",
+          "aliases": [
+            "Cat camel"
+          ]
+        }
+      },
+      "loggingType": "bodyweight",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "lowerBack",
+          "role": "primary"
+        },
+        {
+          "node": "abs",
+          "role": "secondary"
+        },
+        {
+          "node": "upperBack",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "spinalMobility"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-thoracic-extension",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Thoracic spine extension",
+          "aliases": [
+            "Upper back extension"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "upperBack",
+          "role": "primary"
+        },
+        {
+          "node": "lats",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "spinalMobility"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-worlds-greatest-stretch",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "World's greatest stretch",
+          "aliases": [
+            "Lunge with rotation"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "quadriceps",
+          "role": "secondary"
+        },
+        {
+          "node": "hamstrings",
+          "role": "secondary"
+        },
+        {
+          "node": "obliques",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "dynamicMobility"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "alternating",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-doorway-chest-stretch",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Doorway chest stretch",
+          "aliases": [
+            "Pec stretch"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "chest",
+          "role": "primary"
+        },
+        {
+          "node": "frontDelts",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "staticStretch"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "bilateral",
+      "difficulty": "beginner",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    },
+    {
+      "id": "lib-pigeon-pose",
+      "revision": 1,
+      "names": {
+        "en-GB": {
+          "name": "Pigeon pose",
+          "aliases": [
+            "Figure-four stretch"
+          ]
+        }
+      },
+      "loggingType": "timed",
+      "category": "mobility",
+      "targets": [
+        {
+          "node": "glutes",
+          "role": "primary"
+        },
+        {
+          "node": "abductors",
+          "role": "secondary"
+        }
+      ],
+      "patterns": [
+        "staticStretch"
+      ],
+      "equipment": [],
+      "mechanics": null,
+      "laterality": "unilateral",
+      "difficulty": "intermediate",
+      "provenance": {
+        "authoredBy": "RepForge editorial (WP 8 seed)",
+        "reviewedBy": null,
+        "sourceRef": null
+      }
+    }
+  ],
+  "retirements": []
+}
