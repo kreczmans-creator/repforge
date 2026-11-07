@@ -465,9 +465,9 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Consequences:** The programme roll-up uses the confirmed figure (Part 2D-7 sensitivity table).
 
-**Owner's decision:** Option B: WP 15 earned points are confirmed at 2.30 / 3.00 (76.7 %).  
+**Owner's decision:** Option B as amended by 2B-2: WP 15 earned points are confirmed at 2.30, and the WP 15 total is reduced from 3.00 to 2.75 by the exclusion of the custom-food serving row, so the earned position is 2.30 / 2.75 (83.6 %).  
 **Owner's rationale:** Consistent with Decision 2D-5 (agent reviews satisfy the independent-review criterion). The +0.10 is a governance adjustment releasing the review line, not an additional implementation achievement.  
-**Conditions / follow-up:** Update the WP 15 record's breakdown (independent review 0.10 earned) and the next programme snapshot. The custom-food row (0.25) stays allocated and unearned pending the owner's statement on the total (2B-2).  
+**Conditions / follow-up:** Update the WP 15 record's breakdown (independent review 0.10 earned; custom-food row marked excluded; total 2.75), the governance standard §2 (WP 15 allocation 2.75 with the dated owner decision; programme total 104.75 full / 96.75 core, or as the owner restates the denominators), and the next programme snapshot.  
 **Decision date:** 2026-11-07  
 **Resulting status:** Approved
 
@@ -490,7 +490,7 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Owner's decision:** Option (b): the custom-food serving-definition amounts are explicitly excluded from WP 15 and from NUT-022's acceptance text.  
 **Owner's rationale:** Scope discipline over superficial consistency across every screen; D06's WP 15 scope names food logging, portion sheets and recipe ingredients only.  
-**Conditions / follow-up:** Record in D04 §7 and the WP 15 record: (1) explicit exclusion from WP 15; (2) the 0.25 "custom-food serving entry" row is re-dispositioned as excluded: no implementation credit is earned for it in WP 15; (3) the item may be allocated to a future work package. Governance note: the owner has not stated whether the 0.25 leaves the WP 15 total (3.00 → 2.75, earned 2.30 / 2.75 = 83.6 %) or stays as an unearnable row (2.30 / 3.00 = 76.7 %); this document records 3.00 until the owner states the total change as a traceable decision — see 2B-1.  
+**Conditions / follow-up:** Record in D04 §7 and the WP 15 record: (1) explicit exclusion from WP 15; (2) the 0.25 "custom-food serving entry" row is re-dispositioned as excluded: no implementation credit is earned for it in WP 15; (3) the item may be allocated to a future work package. Owner's statement (2026-11-07): the excluded 0.25 row is retained in the WP 15 table for traceability, marked excluded; the WP 15 total is reduced from 3.00 to 2.75 (a traceable owner decision under the governance standard §6, to be recorded in the standard's §2 baseline note and D04 §7); earned position 2.30 / 2.75 = 83.6 %.  
 **Decision date:** 2026-11-07  
 **Resulting status:** Approved
 
@@ -515,7 +515,7 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Owner's decision:** Option A: WP 15 stages 1 and 2 are accepted with conditions on Baseline C (integration branch, `app/` tree of `28b67b3`), implementation and independent review. The review verdict ACCEPT WITH CONDITIONS stands, with the six findings R15-01..R15-06 closed by the re-check.  
 **Owner's rationale:** Independent review and re-check complete; the acceptance conditions are now recorded decisions.  
-**Conditions / remaining remediation:** Acceptance is conditional on and references: specification revision 1.4 approved (2E-1); metric-only entry for v1 (2E-2); milligram entry hidden (2E-3); custom-food serving-definition amounts excluded from WP 15 (2B-2); earned allocation confirmed at 2.30 / 3.00 (2B-1). Record the acceptance in the WP 15 record and D04 §7; the acceptance row (0.25) is then earned, giving 2.55 / 3.00 with the excluded 0.25 row as the only unearned line.  
+**Conditions / remaining remediation:** Acceptance is conditional on and references: specification revision 1.4 approved (2E-1); metric-only entry for v1 (2E-2); milligram entry hidden (2E-3); custom-food serving-definition amounts excluded from WP 15 (2B-2); earned allocation confirmed at 2.30 / 3.00 (2B-1). Record the acceptance in the WP 15 record and D04 §7; the acceptance row (0.25) is then earned, giving 2.55 / 2.75 with the excluded row retained for traceability and no other unearned line.  
 **Decision date:** 2026-11-07  
 **Resulting status:** Approved
 
@@ -556,7 +556,7 @@ Baseline labels as in Part 4 and 2B (Baseline B = `ded976b`; Baseline C = `28b67
 **Context and rationale (recorded position):** Review R17-01 found the record over-claimed NUT-014; S3b was split into S3b-i (delivered: 10 most recent distinct foods and recipes; 0.40 earned) and S3b-ii (0.20, not started). Traceability now says "partially met". D04's integration-gate text must read "recents (subset of NUT-014)".
 
 **Options:**
-- [ ] Keep S3b-ii in WP 17 as recorded (non-schema parts may proceed after the release; the saved-meal part waits for S6/v9).
+- [x] Keep S3b-ii in WP 17 as recorded (non-schema parts may proceed after the release; the saved-meal part waits for S6/v9).
 - [ ] Move S3b-ii out of WP 17 (name the package; adjust the allocation with a traceable decision).
 - [ ] Descope S3b-ii (NUT-014 stays "partially met").
 - [ ] Defer.
@@ -565,11 +565,11 @@ Baseline labels as in Part 4 and 2B (Baseline B = `ded976b`; Baseline C = `28b67
 
 **Consequences:** Affects the allocation total (2C-1) if moved or descoped; no effect on this release's code.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: S3b-ii stays in WP 17 at 0.20; the non-schema parts (frequent foods, last-used quantity pre-fill) may proceed after this release; the saved-meal part waits for S6 (schema v9).  
+**Owner's rationale:** Keeps NUT-014's remainder traceable inside the package that owns it.  
+**Conditions / follow-up:** none  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2C-3 — S4d scope (rest-timer survival across process death)
 
@@ -581,7 +581,7 @@ Baseline labels as in Part 4 and 2B (Baseline B = `ded976b`; Baseline C = `28b67
 
 **Options:**
 - [ ] Implement S4d before S4 acceptance (0.30 remains to earn; new review).
-- [ ] Accept S4 without S4d for this release; S4d stays allocated and open.
+- [x] Accept S4 without S4d for this release; S4d stays allocated and open.
 - [ ] Descope S4d (traceable allocation change).
 - [ ] Defer.
 
@@ -589,11 +589,11 @@ Baseline labels as in Part 4 and 2B (Baseline B = `ded976b`; Baseline C = `28b67
 
 **Consequences:** Implementing it changes the release candidate (re-test Part 3 section 5); accepting without it leaves a documented behaviour gap (DFR-004).
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option B: S4 is accepted without S4d for this release; S4d remains allocated (0.30) and open in WP 17.  
+**Owner's rationale:** The timer already survives backgrounding; implementing process-death survival now would re-open the release candidate.  
+**Conditions / follow-up:** S4d recorded as DFR-004 (deferred functionality, allocated, open); no reallocation.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decisions 2C-4 — D-3, D-4, D-5, D-6 and D-7 (parallel-workstream assessment §14)
 
@@ -603,11 +603,11 @@ D-3 to D-7 have **no recorded decision**. Each maps to a register entry.
 
 | Ref | Decision | Options (as raised) | Recommendation (register, delivery agent) | Owner's decision | Rationale / conditions | Date | Status |
 |---|---|---|---|---|---|---|---|
-| D-3 (OB-WP17-04) | Canonical seed recipes: editable or read-only | `[ ] keep editable (WP 7 decision; "estimated until linked")  [ ] read-only with "copy to edit"  [ ] defer` | keep editable | `[enter]` | `[enter]` | `[ ]` | `[Proposed/…]` |
-| D-4 (OB-WP17-05, Medium) | Workout catalogue content: approve the 30-plan draft (10 categories) limited to the 89 current exercises; name the reviewer | `[ ] approve draft as release-1 content, 89 exercises only  [ ] approve with changes  [ ] hold (S5 stays held)  [ ] defer` | approve as release-1 content; second pass after WP 8 stage 5 | `[enter]` | reviewer name: `[enter]` | `[ ]` | `[Proposed/…]` |
-| D-5 density part (OB-WP17-06) — the imperial part is OQ-02, Decision 2E-2 | Whether a food may carry a density for volume↔mass conversion (NUT-022(2)) | `[ ] no density in v1 (per-100 ml foods offer ml/l only; otherwise the app asks for grams)  [ ] allow density (new scope, v9)  [ ] defer` | no density in v1; revisit with the v9 allocation | `[enter]` | confirm that ml/l-only for per-100 ml foods is an acceptable reading of NUT-022(2): `[ ] yes  [ ] no` | `[ ]` | `[Proposed/…]` |
-| D-6 (OB-WP17-07) | Recipe image (OQ-04): device-only storage and backup size | `[ ] no images in v1  [ ] images, device-only, excluded from backup  [ ] images included in backup  [ ] defer` | no images in v1 | `[enter]` | `[enter]` | `[ ]` | `[Proposed/…]` |
-| D-7 (OB-WP17-08) | CSV export of nutrition and training: new scope or not | `[ ] out of scope for this release  [ ] in scope under its own allocation (name WP)  [ ] defer` | out of scope; reuse the WP 10 exporter later | `[enter]` | `[enter]` | `[ ]` | `[Proposed/…]` |
+| D-3 (OB-WP17-04) | Canonical seed recipes: editable or read-only | `[x] keep editable (WP 7 decision; "estimated until linked")  [ ] read-only with "copy to edit"  [ ] defer` | keep editable | Option A: keep editable | Consistent with the WP 7 decision | 2026-11-07 | Approved |
+| D-4 (OB-WP17-05, Medium) | Workout catalogue content: approve the 30-plan draft (10 categories) limited to the 89 current exercises; name the reviewer | `[x] approve draft as release-1 content, 89 exercises only  [ ] approve with changes  [ ] hold (S5 stays held)  [ ] defer` | approve as release-1 content; second pass after WP 8 stage 5 | Option A: the 30-plan draft is approved as release-1 content limited to the 89 current exercises; a second pass follows WP 8 stage 5 | reviewer name: the Product Owner (kreczmans-creator). S5 may proceed; its 0.80 is earned on delivery and review | 2026-11-07 | Approved |
+| D-5 density part (OB-WP17-06) — the imperial part is OQ-02, Decision 2E-2 | Whether a food may carry a density for volume↔mass conversion (NUT-022(2)) | `[x] no density in v1 (per-100 ml foods offer ml/l only; otherwise the app asks for grams)  [ ] allow density (new scope, v9)  [ ] defer` | no density in v1; revisit with the v9 allocation | Option A: no density in v1 | confirm that ml/l-only for per-100 ml foods is an acceptable reading of NUT-022(2): `[x] yes  [ ] no` | 2026-11-07 | Approved |
+| D-6 (OB-WP17-07) | Recipe image (OQ-04): device-only storage and backup size | `[x] no images in v1  [ ] images, device-only, excluded from backup  [ ] images included in backup  [ ] defer` | no images in v1 | Option A: no recipe images in v1 | S6c image UI is descoped for v1; the S6c row stays allocated for tags and backup round-trip evidence until the owner restates it | 2026-11-07 | Approved |
+| D-7 (OB-WP17-08) | CSV export of nutrition and training: new scope or not | `[x] out of scope for this release  [ ] in scope under its own allocation (name WP)  [ ] defer` | out of scope; reuse the WP 10 exporter later | Option A: out of scope for this release | May return later under its own allocation, reusing the WP 10 exporter | 2026-11-07 | Approved |
 
 #### Decision 2C-5 — Specification revision 1.4 approval
 
@@ -622,20 +622,20 @@ Revision 1.4 of `docs/nutrition-calculation-spec.md` was proposed by WP 15 stage
 **Context and rationale (recorded position):** Corrections on the integration branch: D-01 (Medium: `SaveSessionAsPlan` now skips archived/soft-deleted exercises and reports them instead of refusing the whole save — **this changes S4b behaviour after the independent review**; R17-03's archived-refusal test replaced), D-02 (Medium latent: `DuplicatePlan` checks exercises; follow-up `91ea266`), D-03 (Medium: scheduled occurrence of a deleted plan no longer offers Start; follow-up `91ea266`), D-04 (Low: sheets degrade for `portions` basis), D-05 (Low: drag-reorder guard), D-08 (Low: copy-suffix length), D-T1 (presentation-isolation test) — all in `5956ad9` (+ `91ea266`, `0aa8058`); D-06 deferred to S4 acceptance; D-07 record wording; D-T2 recorded test gaps. **No record in the repository recommends cherry-picking**; the only statement is the "not replayed" one (Part 9). The frozen branch therefore differs in behaviour from the release candidate for S4b (refuses on archived exercise vs skips and warns).
 
 **Options:**
-- [ ] Do not cherry-pick: the frozen branch stays a historical record; acceptance of WP 15 / WP 17 names Baseline C (integration branch) as the behaviour accepted.
+- [x] Do not cherry-pick: the frozen branch stays a historical record; acceptance of WP 15 / WP 17 names Baseline C (integration branch) as the behaviour accepted.
 - [ ] Cherry-pick D-01..D-05, D-08, D-T1 (and follow-ups) onto the frozen branch so both lines match (needs CI on the frozen branch; emulator evidence there is infrastructure-blocked).
-- [ ] Delete or archive the frozen branch after acceptance on Baseline C.
+- [x] Delete or archive the frozen branch after acceptance on Baseline C. (Archive, not delete.)
 - [ ] Defer.
 
 **Recommendation:** none recorded.
 
 **Consequences:** Not cherry-picking keeps one integration line (the records' stated reason) but means any acceptance on Baseline B accepts behaviour that is not in the release; cherry-picking costs CI time and re-review on a branch that is otherwise frozen.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A, then option C: no cherry-pick; the frozen branch `claude/repforge-parallel-implementation-flyjqw` stays a historical record, and it is archived after Decision 2C-7 is recorded.  
+**Owner's rationale:** One integration line; acceptance names Baseline C as the behaviour accepted.  
+**Conditions / follow-up:** Archive (do not delete) the frozen branch once 2C-7 is recorded in the WP 17 record; keep its last commits `ded976b` / `43aa667` referenced from the records.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2C-7 — Formal acceptance of the WP 17 S3 / S4 implementation and independent review
 
@@ -646,7 +646,7 @@ Revision 1.4 of `docs/nutrition-calculation-spec.md` was proposed by WP 15 stage
 **Context and rationale (recorded position):** All ten review findings dispositioned (R17-01 record split; R17-02 code: save-as-plan derives from completed non-warm-up sets, "owner may override the rule"; R17-03 tests; R17-04 record; R17-05..R17-09 corrected; R17-10 allocation unapproved). Integration review on Baseline C added D-01..D-08 with the behaviour change noted above. Two points the register asks the owner to call with acceptance: (1) whether deleting a plan should also skip its future planned occurrences on the schedule (today they stay, labelled "Deleted workout", no Start); (2) whether the plan row keeps its four trailing actions or moves Duplicate, Delete and Archive into a menu (D-06, deferred). Evidence: Baseline B (CI at `ded976b` green except the emulator block) and Baseline C (emulator green on the candidate with the merged code). WP 17 stays at 3.00 earned of 9.00 (proposed) with review and acceptance lines at 0 until 2C-1 and 2D-5 are decided.
 
 **Options:**
-- [ ] Accept S3 and S4 on Baseline C (integration branch `28b67b3`) — requires 2C-1 approved; state the answers to (1) and (2) and whether the R17-02 warm-up rule and the D-01 skip-and-warn behaviour are accepted design choices.
+- [x] Accept S3 and S4 on Baseline C (integration branch `28b67b3`) — requires 2C-1 approved; state the answers to (1) and (2) and whether the R17-02 warm-up rule and the D-01 skip-and-warn behaviour are accepted design choices.
 - [ ] Accept on Baseline B (frozen branch `ded976b`) only (note: differs from the release in S4b behaviour).
 - [ ] Accept with conditions (list: S4d per 2C-3, D-06 menu follow-up, D-T2 test gaps, human review per 2D-5).
 - [ ] Reject: remediation required (state it).
@@ -656,13 +656,13 @@ Revision 1.4 of `docs/nutrition-calculation-spec.md` was proposed by WP 15 stage
 
 **Consequences:** Acceptance releases the WP 17 acceptance line only after the allocation (2C-1) is approved; conditions recorded here flow to Part 6.6/6.8.
 
-**Owner's decision:** `[enter]`  
-**Answer to (1) deleted-plan future occurrences:** `[enter]`  
-**Answer to (2) plan-row actions:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: WP 17 stages S3 and S4 are accepted on Baseline C (integration branch, `app/` tree of `28b67b3`), implementation and independent review (R17-01..R17-10 dispositioned; cross-package D-01..D-08 dispositioned), with the conditions below. The R17-02 warm-up rule in save-as-plan and the D-01 skip-and-warn behaviour on archived exercises are accepted as design choices.  
+**Answer to (1) deleted-plan future occurrences:** No — retain the future scheduled occurrences as they are (labelled "Deleted workout", no Start).  
+**Answer to (2) plan-row actions:** Move Duplicate, Delete and Archive into a menu as a small follow-up.  
+**Owner's rationale:** Allocation approved (2C-1); review verdicts ACCEPT WITH CONDITIONS with all findings dispositioned; integration-branch corrections reviewed.  
+**Conditions / follow-up:** S4d remains allocated and open (2C-3, DFR-004). D-06 (plan-row actions into a menu) is a small follow-up, not a condition of acceptance. D-T2 test gaps remain recorded for closure in a later stage. Record the acceptance in the WP 17 record and D04 §7; the review line (0.50 share for S3/S4) and the acceptance line become earnable per 2D-5.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 ### 2D — Programme and release governance
 
@@ -874,10 +874,10 @@ These are genuine owner items with register entries that the sections above do n
 | OB-WP15-04 | Milligram entry | Low | 2E-3 | Decided: hidden (2E-3) | 2026-11-07 |
 | OB-WP15-05 | WP 15 acceptance | Medium | 2B-3 | Accepted with conditions on Baseline C (2B-3) | 2026-11-07 |
 | OB-WP17-01 | 9.00 allocation | High | 2C-1 | Approved (2C-1) | 2026-11-07 |
-| OB-WP17-02 | S3b-ii | Low | 2C-2 | `[ref]` | `[ ]` |
-| OB-WP17-03 | S4d | Low | 2C-3 | `[ref]` | `[ ]` |
-| OB-WP17-04..08 | D-3..D-7 | Low/Medium | 2C-4 | `[ref]` | `[ ]` |
-| OB-WP17-09 | S3/S4 acceptance | Medium | 2C-7 | `[ref]` | `[ ]` |
+| OB-WP17-02 | S3b-ii | Low | 2C-2 | Decided: stays in WP 17 (2C-2) | 2026-11-07 |
+| OB-WP17-03 | S4d | Low | 2C-3 | Decided: S4 accepted without S4d; S4d allocated and open (2C-3) | 2026-11-07 |
+| OB-WP17-04..08 | D-3..D-7 | Low/Medium | 2C-4 | All decided (2C-4): editable seed recipes; catalogue draft approved, reviewer the owner; no density; no images; CSV out of scope | 2026-11-07 |
+| OB-WP17-09 | S3/S4 acceptance | Medium | 2C-7 | Accepted on Baseline C with conditions (2C-7) | 2026-11-07 |
 | OB-PROG-01 | Agent reviews as acceptance | Medium | 2D-5 | Approved, option B (2D-5) | 2026-11-07 |
 | OB-PROG-02 | Actions allowance | High | 2D-1 | Resolved: spending limit; repository made public (2D-1) | 2026-11-07 |
 
@@ -4029,9 +4029,9 @@ These are documented in the records; none is dispositioned by the owner yet.
 |---|---|---|---|---|
 | DFR-001 | WP 11 D2 per-muscle figures (waits for WP 8 stage 3d) | WP 11 plan §9 | `[ ] Deferred to next campaign  [ ] Descoped  [ ] Required for this release` | `[ ]` |
 | DFR-002 | WP 11 G2 integration and acceptance (large-profile load test, accessibility pass, owner acceptance); WP 11 goals smoke test on a physical device | WP 11 plan §9 | `[ ] Deferred  [ ] Required for this release` | `[ ]` |
-| DFR-003 | WP 17 S3b-ii frequent foods, last-used quantity pre-fill, saved meals in recents (NUT-014 remainder; needs a schema change, v9) | Decision 2C-2 | see 2C-2 | — |
-| DFR-004 | WP 17 S4d rest-timer survival across process death | Decision 2C-3 | see 2C-3 | — |
-| DFR-005 | WP 17 S5 catalogue content, S6 recipe tags/images/density, CSV export (OB-WP17-04..08) | Decisions 2C-4 | see 2C-4 | — |
+| DFR-003 | WP 17 S3b-ii frequent foods, last-used quantity pre-fill, saved meals in recents (NUT-014 remainder; needs a schema change, v9) | Decision 2C-2 | Deferred within WP 17 (2C-2) | 2026-11-07 |
+| DFR-004 | WP 17 S4d rest-timer survival across process death | Decision 2C-3 | Deferred; allocated and open in WP 17 (2C-3) | 2026-11-07 |
+| DFR-005 | WP 17 S5 catalogue content, S6 recipe tags/images/density, CSV export (OB-WP17-04..08) | Decisions 2C-4 | S5 content approved (may proceed); images, density and CSV out of v1 scope; tags remain with S6 (2C-4) | 2026-11-07 |
 | DFR-006 | WP 15 stage 3 custom-food serving-definition entry units | Decision 2B-2 | Excluded from WP 15 (2B-2, option b); may be allocated to a future package | 2026-11-07 |
 | DFR-007 | WP 8 stages 3c-2..3c-4 (reference-data loader, reconciler transaction, relationship/content/media tables), 3d, 5, 6 | WP 8 record; OB-WP8-05..11 | `[ ] Deferred  [ ] n/a` | `[ ]` |
 | DFR-008 | WP 14: signed release via `release.yml`, beta pipeline, store listings, crash reporting (owner accounts and decisions) | OB-WP14-01..05 | `[ ] Deferred  [ ] Required for this release` | `[ ]` |
