@@ -1,0 +1,85 @@
+{
+  "schema": "repforge.acceptedGaps/1",
+  "provider": "repforge",
+  "note": "These dispositions are copied from docs/catalogue/quality-and-duplicates.md sections 6 and 6.1 (approved with that document on 2026-11-05). They were not re-decided here: the owner must confirm that each is an owner decision. No coverage gap is accepted (owner only).",
+  "accepted": [
+    {
+      "id": "AG-0001",
+      "kind": "warning",
+      "code": "IC-311",
+      "exerciseId": "lib-kettlebell-swing",
+      "reason": "Category fullBody with a lower-body compound pattern family; accepted as the pattern guide says.",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
+      "acceptedOn": "2026-11-05",
+      "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-311",
+      "untilRelease": null
+    },
+    {
+      "id": "AG-0002",
+      "kind": "warning",
+      "code": "IC-311",
+      "exerciseId": "lib-thruster",
+      "reason": "Category fullBody with a lower-body compound pattern family; accepted as the pattern guide says.",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
+      "acceptedOn": "2026-11-05",
+      "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-311",
+      "untilRelease": null
+    },
+    {
+      "id": "AG-0003",
+      "kind": "warning",
+      "code": "IC-508",
+      "pair": [
+        "lib-hip-abduction",
+        "lib-hip-adduction"
+      ],
+      "reason": "Machine hip abduction and machine hip adduction are distinct exercises.",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
+      "acceptedOn": "2026-11-05",
+      "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-508",
+      "untilRelease": null
+    },
+    {
+      "id": "AG-0004",
+      "kind": "warning",
+      "code": "IC-508",
+      "pair": [
+        "lib-push-up",
+        "lib-pull-up"
+      ],
+      "reason": "Push-up and pull-up are distinct exercises.",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
+      "acceptedOn": "2026-11-05",
+      "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-508",
+      "untilRelease": null
+    },
+    {
+      "id": "AG-0005",
+      "kind": "duplicate",
+      "pair": [
+        "lib-hack-squat",
+        "lib-leg-press"
+      ],
+      "decision": "distinct",
+      "reason": "Different machines and load paths.",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md §6.1 (2026-11-05); per-entry confirmation pending",
+      "acceptedOn": "2026-11-05",
+      "reference": "docs/catalogue/quality-and-duplicates.md section 6.1, IC-602",
+      "untilRelease": null
+    },
+    {
+      "id": "AG-0006",
+      "kind": "duplicate",
+      "pair": [
+        "lib-bulgarian-split-squat",
+        "lib-step-up"
+      ],
+      "decision": "distinct",
+      "reason": "Rear-foot-elevated split squat versus step; the support items are ignored, so the equipment terms match.",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md §6.1 (2026-11-05); per-entry confirmation pending",
+      "acceptedOn": "2026-11-05",
+      "reference": "docs/catalogue/quality-and-duplicates.md section 6.1, IC-602",
+      "untilRelease": null
+    }
+  ]
+}

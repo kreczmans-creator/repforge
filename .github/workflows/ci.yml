@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches: ["**"]
-    paths: ["app/**", ".github/workflows/ci.yml"]
+    paths: ["app/**", "docs/catalogue/**", ".github/workflows/ci.yml"]
   pull_request:
-    paths: ["app/**", ".github/workflows/ci.yml"]
+    paths: ["app/**", "docs/catalogue/**", ".github/workflows/ci.yml"]
   workflow_dispatch:
 
 permissions:
@@ -77,6 +77,21 @@ jobs:
 
       - name: Unit and widget tests
         run: flutter test --coverage --reporter expanded
+
+      # WP 8 stage 3c: integrity checks and coverage evaluation over every
+      # shipped catalogue release, accepted-gaps applied, byte-equality of the
+      # bundled reference data with docs/catalogue/reference/. Fails on any
+      # error; the JSON and Markdown reports are published below.
+      - name: Catalogue integrity gate
+        run: dart run tool/catalogue_gate.dart --out build/catalogue_gate
+
+      - name: Upload catalogue gate reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalogue-gate
+          path: app/build/catalogue_gate
+          if-no-files-found: warn
 
       # Owner decision at WP 3 acceptance (2026-11-04): 80 % line coverage of
       # hand-written code, generated files excluded. Not lowered without an
