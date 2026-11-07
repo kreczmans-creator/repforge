@@ -2,6 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/analytics/body_analytics.dart';
 import 'package:repforge/domain/analytics/metric.dart';
+import 'package:repforge/domain/analytics/training_analytics.dart';
 import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_comparison.dart'
@@ -186,6 +187,51 @@ final class GoalProgress {
     );
   }
 
+  /// Progress of a sessions-per-week goal from the completed sessions of
+  /// [week] ("2 of 3 sessions", GOL-005(1)). A week with no completed session
+  /// reads "0 of N": the count of completed sessions is known.
+  factory GoalProgress.sessionsPerWeek({
+    required Goal goal,
+    required WeekTraining week,
+  }) {
+    final done = week.sessionsCompleted;
+    final target = goal.target;
+    final GoalState state;
+    if (done < target) {
+      state = GoalState.inProgress;
+    } else if (done == target) {
+      state = GoalState.atTarget;
+    } else {
+      state = GoalState.passedTarget;
+    }
+    return GoalProgress._(
+      goal: goal,
+      unit: 'sessions',
+      current: MetricValue(
+        done.toDouble(),
+        MetricBasis(
+          period: week.period,
+          sampleCount: done,
+          sources: const ['completed sessions'],
+          dayRule: week.dayRule,
+        ),
+      ),
+      state: state,
+      direction: GoalDirection.increase,
+      remaining: done >= target ? 0 : target - done,
+      percent: target <= 0
+          ? null
+          : roundToTenth((done / target * 100).clamp(0, 100)),
+      startValue: 0,
+      drillDown: DrillDown(
+        kind: DrillDownKind.sessions,
+        from: week.period.from,
+        to: week.period.to,
+      ),
+      statement: '$done of ${_trim(target)} sessions',
+    );
+  }
+
   factory GoalProgress._towardTarget({
     required Goal goal,
     required String unit,
@@ -258,6 +304,9 @@ final class GoalProgress {
       statement: '${left.toStringAsFixed(1)} $unit to go',
     );
   }
+
+  static String _trim(double v) =>
+      v == v.roundToDouble() ? v.round().toString() : v.toStringAsFixed(1);
 
   final Goal goal;
 
