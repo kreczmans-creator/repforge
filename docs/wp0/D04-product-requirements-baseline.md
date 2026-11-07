@@ -634,3 +634,41 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **Schema**: WP 8 keeps exclusive ownership of v8. WP 17 owns v9, which starts only after v8 is connected, migrated and accepted.
 - **WP 15**: stages 1–2 delivered for review (kg/l entry in the portion and ingredient sheets; spec revision 1.4 proposed). Not accepted. The custom-food serving-definition amounts are an explicit open scope item.
 - Applied at the integration gate (2026-11-07, overnight campaign) from `docs/verification/pending-register-entries.md`; the owner decisions D-1 and D-2 were recorded on 2026-11-06 in `docs/verification/parallel-workstream-assessment-2026-11-06.md` §14.
+
+### 2026-11-07 — Train workspace redesign and exercise knowledge system: allocation (owner)
+- **Integration baseline:** the clean release candidate (`claude/busy-hypatia-rhl3hu`, clean base aa59021). It holds accepted WP 15/WP 17 work and no WP 8 3b code.
+- **Isolation:** branch `ccr-9fda2c32-wr163b` stays isolated. Nobody merges, cherry-picks or otherwise brings its 3b commits into the release candidate. OB-WP8-04 stays open until the owner decides.
+- **Allocation:**
+  - **Exercise knowledge system:** the WP 8 session, on a separate clean branch without 3b code (content architecture, instructions, media, catalogue population, offline support).
+  - **Train dashboard redesign, filter-chip design-system correction, integration and regression testing:** the other (integration) session, on the release candidate.
+- **Rules:**
+  - The other session acknowledges the allocation before proceeding.
+  - No duplicate implementation.
+  - Independent review of all work.
+  - No merge to main.
+  - Source commit ancestry is checked before any release-candidate integration.
+  - Four CI workflows rerun on the integrated commit.
+- **Handover:** the WP 8 session pushes only to its own clean branch, never merges into the release candidate, and hands over commit SHAs, changed files, tests, review findings and outstanding work.
+
+### 2026-11-07 — Exercise knowledge base branch; Train UX handover contingency (owner; supersedes the base in the entry above)
+- **Base branch:** `claude/campaign-2026-11-07` is the exercise-knowledge baseline. The owner withdraws the earlier strict aa59021 base.
+  - The handover demonstrates ancestry from aa59021 and shows no WP 8 3b commits or migration code.
+  - The stage 3c catalogue release format is canonical. The knowledge system extends it and adds no competing exercise-reference format.
+  - Compatibility with the existing catalogue and offline behaviour stays.
+- **Train dashboard and filter-chip correction:** the WP 8 session prepares its locally started work as a reviewed commit series for handover, if the other session does not implement it.
+  - The other session confirms implementation responsibility, or accepts the handover. It then reviews independently, integrates into its clean campaign branch, and runs regression and emulator tests.
+  - The WP 8 session never merges into the release candidate itself. Started work is not discarded.
+- **Push permission:** the WP 8 session may push independently reviewed exercise-knowledge work to `claude/exercise-knowledge-2026-11-07`, with:
+  - no 3b ancestry or code;
+  - complete test evidence;
+  - the relationship to the 3c format documented;
+  - no direct merge into the release candidate.
+- **Responsibility matrix:**
+
+  | Deliverable | Responsibility |
+  |---|---|
+  | Exercise knowledge architecture, content, imagery and instructions, offline references | WP 8 session |
+  | Train dashboard and filter-chip correction | Other session, or the WP 8 session's reviewed handover |
+  | Final integration | Campaign integration authority |
+  | WP 8 3b | Isolated |
+  | Merge to main | Owner approval required |
