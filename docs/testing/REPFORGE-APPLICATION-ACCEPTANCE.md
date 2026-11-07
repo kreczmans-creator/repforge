@@ -120,7 +120,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Options (as recorded in D04 §7, 2026-11-07):**
 - [ ] **(a)** Block such exercises at migration (a block reason for a non-catalogue system id). They are then not selectable and need a correction route; none exists for system exercises today (R-C9).
-- [ ] **(b)** Keep them as labelled legacy ids. The migration reports one `warningForReview` IC-101 entry per such exercise. A format 3 restore exempts IC-101 only when the backup's own report history holds that entry for that exercise.
+- [x] **(b)** Keep them as labelled legacy ids. The migration reports one `warningForReview` IC-101 entry per such exercise. A format 3 restore exempts IC-101 only when the backup's own report history holds that entry for that exercise.
 - [ ] **(c)** Accept that such devices have no cross-device format 3 restore; record as a limitation.
 - [ ] Request further investigation (state what).
 - [ ] Defer decision.
@@ -129,11 +129,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** (a) blocks user data that was usable in v7 and needs a new correction route (R-C9) before release; (b) requires migration and restore code changes inside 3b-4 and 3b-7 (the record says the rework "falls inside 3b-7 and 3b-4"; no points change recorded) and a re-review; (c) leaves a class of users without cross-device restore and the stress profile unrestorable on a fresh device. Under every option the related B-01 field-ownership behaviour (12 of 63 golden-onto-migrated-device combinations rejected, enumerated in `golden_restore_v8_test.dart`) stays as decided. Until decided: WS3 stays open, 3b-7 review credit (0.12) and acceptance credit (0.06) stay withheld, stage 3b cannot be accepted, and OB-WP8-04 keeps every 3b commit out of the release candidate.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option (b): pre-v6 custom exercises that became system rows are kept as labelled legacy ids; the migration reports one `warningForReview` IC-101 entry per such exercise; a format 3 restore exempts IC-101 only when the backup's own report history holds that entry for that exercise.  
+**Owner's rationale:** The only option that keeps the user's data usable and the migration report complete, with the exemption limited to rows the migration itself recorded.  
+**Conditions / follow-up:** Implement in 3b-4 and 3b-7 with tests over fixtures v2–v5 and the WS5 stress profile; independent re-review of the rework; the exemption must be shown to apply only to history-recorded rows; R-C9 is decided with this choice (blocked system exercises clear through the stage 3c release process). B-15 is not accepted until the rework is reviewed by the project owner (kreczmans-creator) as the named human reviewer for stage 3b, subject to personal review (Decision 2D-5); WS3 stays open until then.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved (option chosen; implementation and review outstanding)
 
 #### Decision 2A-2 — B-17: a device with tolerated foreign-key damage exports a backup that restores nowhere (Review C M-3)
 
@@ -144,7 +144,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Context and rationale (recorded position):** R-31 (owner, 2026-11-06) says earlier damage is reported separately and never blocks the migration. B-12 says a backup with damaged declared relationships is rejected atomically. Together: a migrated device with tolerated damage exports a file every v8 restore refuses in phase 1a, the exporting device included ("such a user has no working backup until the damage is gone"). Evidence: reviewer probe P1 re-run 2026-11-07 with `fixture_v2_orphans`, `fixture_v5_orphans`, `fixture_v7_orphans`: each migrates and reports the damage; preview and restore are then refused with foreign-key details. Status: OPEN, owner decision requested 2026-11-07; behaviour unchanged (reject); the register marks it as blocking 3b-7 closure.
 
 **Options (as recorded):**
-- [ ] **(a)** Restore and report the damage as R-31 does (an integrity run on the restoring device), at least where the backup's own report history already records it as an R-31 finding.
+- [x] **(a)** Restore and report the damage as R-31 does (an integrity run on the restoring device), at least where the backup's own report history already records it as an R-31 finding.
 - [ ] **(b)** Warn at export that the file will not restore anywhere, and say why.
 - [ ] **(c)** Keep the current behaviour (reject).
 - [ ] Request further investigation.
@@ -154,11 +154,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** (a) changes restore code and the B-12 contract for the recorded-damage case and needs tests and re-review inside 3b-7; (b) adds an export-time warning only, leaves the user without a working backup; (c) accepts a documented data-availability gap for users with pre-existing damage. Any choice other than (c) re-opens WS3 implementation before its re-check.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option (a): a format 3 restore restores and reports pre-existing foreign-key damage as R-31 does, limited to damage the backup's own report history already records as an R-31 finding; otherwise B-12 applies (reject).  
+**Owner's rationale:** Gives users with tolerated damage a working backup without weakening B-12 for unrecorded damage.  
+**Conditions / follow-up:** Implement inside 3b-7 with tests over `fixture_v2/v5/v7_orphans`; independent re-review; reviewed by the project owner (kreczmans-creator) as the named human reviewer for stage 3b, subject to personal review (Decision 2D-5) before WS3 closes.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved (option chosen; implementation and review outstanding)
 
 #### Decision 2A-3 — B-18: stress-profile backup exceeds the 50 MiB file-picker cap (Review C M-1)
 
@@ -172,18 +172,18 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 - [ ] Raise the cap at the production switch (3d).
 - [ ] Stream the import.
 - [ ] Keep the cap and document the limit.
-- [ ] Confirm the record's proposal: defer the decision to the production switch, with device evidence.
+- [x] Confirm the record's proposal: defer the decision to the production switch, with device evidence.
 - [ ] Request further investigation.
 
 **Recommendation (WP 8 session register):** defer to the production switch (3d) with device evidence.
 
 **Consequences:** Raising the cap needs device memory evidence (Part 5) first; streaming is new work in 3d; keeping the cap means a documented ceiling on restorable backup size (LIM-007). None affects the current release (production writes format 2).
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Deferred to the stage 3d production switch, to be decided with device memory evidence (Part 5).  
+**Owner's rationale:** No effect on the current release (production writes format 2); the cap choice needs device figures.  
+**Conditions / follow-up:** Keep LIM-007 open; revisit at 3d.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Deferred
 
 #### Decision 2A-4 — R-34: fate of the `seedExercisesVersion` setting after the migration (Review C L-4)
 
@@ -196,18 +196,18 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Options (as recorded in `docs/schema-v8.md`):**
 - [ ] **(a)** Keep the setting in v8 (implemented). Consequence: a v8 device keeps a v7 setting that nothing in v8 reads after the migration (dead data, no behaviour).
 - [ ] **(b)** Retire it in the migration (delete or mark it after release 1 is decided). Consequence: changes the migrated database and the R-30 text; the restore must still read the backup's setting.
-- [ ] **(c)** Retire it in stage 3c, once the reconciler owns the release log.
+- [x] **(c)** Retire it in stage 3c, once the reconciler owns the release log.
 - [ ] Defer decision.
 
 **Recommendation (register, author not named):** (c), or an explicit owner decision now.
 
 **Consequences:** (b) re-opens 3b-4 evidence (digests change); (a) and (c) leave stage 3b unchanged.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option (c): `seedExercisesVersion` is retired in stage 3c, once the reconciler owns the release log; the migration keeps it unchanged (R-30 option (b)).  
+**Owner's rationale:** Leaves the reviewed 3b-4 evidence and digests unchanged.  
+**Conditions / follow-up:** Record in `docs/schema-v8.md` R-34 and the 3c plan.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2A-5 — C-10: setting an unreadable exercise type while a plan uses the exercise
 
@@ -218,7 +218,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Context and rationale (recorded position):** WP 9's `SaveCustomExercise` refuses a type change while a plan uses the exercise, and `validatePlanExercise(type:)` ties plan targets to type. The correction currently refuses (option (a)), "the most conservative option until the owner decides"; a test pins the refusal (`field: type`, nothing written; a deleted plan does not count).
 
 **Options (as recorded):**
-- [ ] **(a)** Refuse while any non-deleted plan uses the exercise (implemented). The user removes the exercise from its plans, corrects it, adds it again.
+- [x] **(a)** Refuse while any non-deleted plan uses the exercise (implemented). The user removes the exercise from its plans, corrects it, adds it again.
 - [ ] **(b)** Allow when every entry of those plans passes `validatePlanExercise` with the new type; only inconsistent entries block.
 - [ ] **(c)** Allow freely (the record says this is not recommended: a plan entry could contradict its exercise).
 - [ ] Defer decision.
@@ -227,11 +227,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** (b) needs a code change and tests in the decision-baseline code (`163ce4a` line) and re-review; (a) is in place; (c) weakens plan validity.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option (a): the correction refuses to set a type while any non-deleted plan uses the exercise (the implemented, conservative behaviour).  
+**Owner's rationale:** The case arises only from damaged data; no rework before stage 3b acceptance.  
+**Conditions / follow-up:** Revisit option (b) at stage 3d if the refusal proves burdensome.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2A-6 — C-11: an unreadable type with mixed-type recorded sets cannot be corrected (owner-visible limitation)
 
@@ -242,7 +242,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Context and rationale (recorded position):** Cause: WP 9's set-type rule plus "never rewrite history". Frozen v7 data holds mixed-type sets (`ex-long`); "no real exercise with an unreadable type and recorded sets is expected". The record lists no options and no recommendation; it is raised with C-10 for the owner.
 
 **Options:**
-- [ ] Accept as a documented limitation (record in Part 6.5).
+- [x] Accept as a documented limitation (record in Part 6.5).
 - [ ] Reject: require a correction route (new scope; state where it belongs).
 - [ ] Request further investigation (e.g. frequency in real data).
 - [ ] Defer decision.
@@ -251,11 +251,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** Accepting adds a limitation to the user-facing documentation of the v8 switch; rejecting adds scope to stage 3b or 3c and re-opens the WP 9 set-type rule.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Accepted as a documented limitation: an exercise with an unreadable type and mixed-type recorded sets cannot be corrected; it stays blocked and its history stays readable.  
+**Owner's rationale:** No real exercise with an unreadable type and recorded sets is expected; history is never rewritten.  
+**Conditions / follow-up:** Add to the user-facing documentation of the v8 switch (stage 3d) and to Part 6.5 as LIM-010.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2A-7 — F3: B-04 immutable-field list versus B-01 field ownership for `exercises.source` / `provider_id`
 
@@ -266,7 +266,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Context and rationale (recorded position):** Implementation follows B-01: 11 reference fields on the B-04 list (13 before B-01); the two exercise columns no longer reject. The register asks for confirmation only; no options are recorded and no recommendation beyond "implemented per the later B-01". Related note F6 (restoring `archived`/`deleted_at` on a device-kept system exercise keeps the device's `updated_at`) is recorded, behaviour unchanged, to be settled with sync and 3d.
 
 **Options:**
-- [ ] Confirm: B-01 supersedes B-04 for `exercises.source` and `provider_id` (implemented behaviour stands).
+- [x] Confirm: B-01 supersedes B-04 for `exercises.source` and `provider_id` (implemented behaviour stands).
 - [ ] Reject: restore the B-04 rejection for these two columns (code change in 3b-7).
 - [ ] Defer decision.
 
@@ -274,11 +274,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** Confirming closes F3 with no code change; rejecting re-opens WS3 implementation and the B-01 decision.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Confirmed: B-01 field-level ownership supersedes the earlier B-04 immutable list for `exercises.source` and `exercises.provider_id`; the implemented behaviour stands.  
+**Owner's rationale:** B-01 is the later decision and the implementation follows it.  
+**Conditions / follow-up:** Close F3 in the WS3 register; F6 stays recorded for sync and 3d.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2A-8 — Confirmation of the Train/knowledge allocation relayed to the WP 8 session
 
@@ -313,7 +313,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Context and rationale (recorded position):** OB-WP8-04 carries the B-15 decision (2A-1) as the gate. The later implementation is reviewed on its branch (Review C passed; `ac14711` has all four workflows green, Baseline A) but is **not accepted** and not integrated. The earlier work's presence in `main` is not evidence of integration or acceptance of the later work. The campaign-2 release candidate contains none of the later commits.
 
 **Options:**
-- [ ] Keep stage 3b isolated until B-15 (2A-1) is decided and implemented, WS3 closes, device timing passes (2A-11) and stage 3b is accepted (2A-12); only then integrate.
+- [x] Keep stage 3b isolated until B-15 (2A-1) is decided and implemented, WS3 closes, device timing passes (2A-11) and stage 3b is accepted (2A-12); only then integrate.
 - [ ] Allow integration of the reviewed `ac14711` line into the integration branch now, as isolated and unconnected code (production stays schema 7), with B-15 still open — state the review and CI conditions.
 - [ ] Request further investigation (e.g. an independent integration review of `ac14711` against the integration branch).
 - [ ] Defer.
@@ -322,11 +322,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** The first option keeps the release candidate free of the later 3b work and keeps two code lines diverging (merge cost grows); the second brings reviewed but unaccepted code into the candidate and requires the four workflows and an ancestry check on the merged commit; neither connects v8 to production.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option 1: the later stage 3b line stays isolated on `ccr-9fda2c32-wr163b` until the B-15 rework (2A-1) and B-17 (2A-2) are implemented and re-reviewed, WS3 closes with its re-check passed, device timing passes on both platforms (2A-11), the named human review is recorded, and stage 3b is accepted (2A-12). Only then is it integrated, with an ancestry check and four green workflows on the merged commit.  
+**Owner's rationale:** The release candidate stays free of unaccepted migration code; the acceptance threshold for stage 3b is not lowered by the other packages' acceptance.  
+**Conditions / follow-up:** OB-WP8-04 stays open until 2A-12 is recorded; nobody merges or cherry-picks 3b commits into the integration branch before then.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2A-10 — Permission and disposition for the reviewed Train dashboard series
 
@@ -364,18 +364,18 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 - [ ] Accept the Android and iPhone results recorded in Part 5.3 as meeting the 3b-9 requirement.
 - [ ] Accept Android only; iPhone outstanding (state why).
 - [ ] Reject: runs do not meet the procedure (state the gap).
-- [ ] Not yet possible: no runs exist (status stays Proposed).
+- [x] Not yet possible: no runs exist (status stays Proposed).
 - [ ] Defer: stage 3b is not under acceptance for this release (see 2A-9).
 
 **Recommendation:** none; the record sets the procedure.
 
 **Consequences:** Without accepted runs on both platforms stage 3b cannot be accepted (owner's 2026-11-06 condition).
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Not yet possible: no device run exists. The runs are scheduled only after the B-15 rework (2A-1) lands, because a run before it would time the wrong migration.  
+**Owner's rationale:** Host and emulator figures are not device evidence (owner condition of 2026-11-06).  
+**Conditions / follow-up:** Owner's devices: one mid-range Android phone and one supported iPhone; record in Part 5.3 with the harness commit; then return to this decision.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Proposed
 
 #### Decision 2A-12 — Formal stage 3b acceptance decision
 
@@ -404,30 +404,30 @@ WP 8 total at `f3a12a4`: 10.08 of 18.00 (56.0 %). Note for the owner: the record
 **Options:**
 - [ ] Accept stage 3b in full (requires 2A-1, 2A-2, 2A-7 decided and implemented, WS3 closed and re-checked, 2A-11 accepted on both platforms, four green workflows on the final 3b commit).
 - [ ] Accept the reviewed sub-stages 3b-2, 3b-4, 3b-5, 3b-6, 3b-8 now (OB-WP8-03) and hold 3b-7, 3b-9, 3b-10.
-- [ ] Reject / not yet: list the conditions still open.
+- [x] Reject / not yet: list the conditions still open.
 - [ ] Defer.
 
 **Recommendation:** none recorded (the WP 8 session reports status only).
 
 **Consequences:** Sub-stage acceptance releases the withheld 10 % acceptance credit for those sub-stages (0.05 + 0.075 + 0.025 + 0.04 + 0.04); full acceptance is the gate for stage 3c formal start, 3d and the v8 switch-over.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Not yet: stage acceptance is withheld. Sub-stages 3b-2, 3b-4, 3b-5, 3b-6 and 3b-8 are **not** accepted on agent review alone; they await the named human review. Human reviewer: the project owner (kreczmans-creator) as the named human reviewer for stage 3b, subject to personal review (Decision 2D-5).  
+**Owner's rationale:** This is the package for which named human review was reserved in 2D-5; the acceptance of the other campaign-2 packages does not lower its evidence threshold.  
+**Conditions / follow-up:** Open conditions: (1) B-15 option (b) implemented and re-reviewed (2A-1); (2) B-17 option (a) implemented and re-reviewed (2A-2); (3) WS3 closed with its re-check passed; (4) device timing accepted on Android and iPhone (2A-11); (5) Review C and the fix round (`ac14711`) confirmed by the human reviewer; (6) four CI workflows green on the final 3b commit (currently met at `ac14711`, to be repeated after the rework); (7) the WP 8 record re-based onto the final commit with the evidence trail; (8) the human review of each sub-stage recorded. The 3c schema decisions (OB-WP8-05, OB-WP8-06) are decided together with this acceptance.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Proposed (withheld)
 
 #### 2A-13 — Other open WP 8 stage 3b items (confirmation requests; one line each)
 
 | Id | Item (recorded position at `f3a12a4`) | Owner's answer | Date |
 |---|---|---|---|
-| B-05 | `acknowledged_at` merge: device wins; merged runs' provenance becomes `backup` with backup identity. Confirmation requested. | `[ ] Confirm  [ ] Change: …` | `[ ]` |
-| B-06 | Report rule code for a device-wins difference: `D04-RESTORE-DEVICE-WINS`, action `retained`, category `warningForReview`. Confirmation requested. | `[ ] Confirm  [ ] Change: …` | `[ ]` |
-| B-10 | Restore run provenance `backup`, `provenance_source` = `sha256:` of the backup text, `merged_at` = `generated_at` = restore time. Confirmation requested. | `[ ] Confirm  [ ] Change: …` | `[ ]` |
-| B-11 | Unresolved references in restored data → separate integrity run `<run id>:integrity`, never blocking (with R-31). Confirmation requested. | `[ ] Confirm  [ ] Change: …` | `[ ]` |
-| B-12 | Damaged declared relationships rejected atomically (interacts with B-17). No confirmation requested by the record; listed for completeness. | `[ ] Noted  [ ] Change: …` | `[ ]` |
-| B-13 | Preview runs phase 1a only; the register marks it as a note for the production switch (3d), not a 3b decision. | `[ ] Noted  [ ] Change: …` | `[ ]` |
-| R-C9 | How a blocked system exercise is cleared; tied to the B-15 choice; 3c requirement. | `[ ] Decide with 2A-1  [ ] Defer to 3c` | `[ ]` |
+| B-05 | `acknowledged_at` merge: device wins; merged runs' provenance becomes `backup` with backup identity. Confirmation requested. | `[x] Confirm  [ ] Change: …` | 2026-11-07 |
+| B-06 | Report rule code for a device-wins difference: `D04-RESTORE-DEVICE-WINS`, action `retained`, category `warningForReview`. Confirmation requested. | `[x] Confirm  [ ] Change: …` | 2026-11-07 |
+| B-10 | Restore run provenance `backup`, `provenance_source` = `sha256:` of the backup text, `merged_at` = `generated_at` = restore time. Confirmation requested. | `[x] Confirm  [ ] Change: …` | 2026-11-07 |
+| B-11 | Unresolved references in restored data → separate integrity run `<run id>:integrity`, never blocking (with R-31). Confirmation requested. | `[x] Confirm  [ ] Change: …` | 2026-11-07 |
+| B-12 | Damaged declared relationships rejected atomically (interacts with B-17). No confirmation requested by the record; listed for completeness. | `[x] Noted  [ ] Change: …` — stands, with the 2A-2 option (a) carve-out for history-recorded R-31 damage | 2026-11-07 |
+| B-13 | Preview runs phase 1a only; the register marks it as a note for the production switch (3d), not a 3b decision. | `[x] Noted  [ ] Change: …` | 2026-11-07 |
+| R-C9 | How a blocked system exercise is cleared; tied to the B-15 choice; 3c requirement. | `[x] Decide with 2A-1  [ ] Defer to 3c` — decided with B-15 option (b): legacy-id rows are not blocked; any blocked system exercise clears through the stage 3c release process | 2026-11-07 |
 | 3B-ACC-01 | Acceptance scenario set for 3b (WS2, WS3, WS5). Covered by 2A-12. | — | — |
 
 ### 2B — WP 15, stages S1 / S2 (nutrition entry units)
@@ -843,10 +843,10 @@ These are genuine owner items with register entries that the sections above do n
 
 | Register id | Title (short) | Priority | Where decided in this document | Owner's decision / cross-reference | Date |
 |---|---|---|---|---|---|
-| OB-WP8-01 | Android physical timing run (3b-9) | High | 2A-11 / Part 5.3 | `[ref]` | `[ ]` |
-| OB-WP8-02 | iPhone physical timing run (3b-9) | High | 2A-11 / Part 5.3 | `[ref]` | `[ ]` |
-| OB-WP8-03 | Acceptance of reviewed 3b sub-stages | Medium | 2A-12 | `[ref]` | `[ ]` |
-| OB-WP8-04 | B-15 option (a)/(b)/(c) | High | 2A-1, 2A-9 | `[ref]` | `[ ]` |
+| OB-WP8-01 | Android physical timing run (3b-9) | High | 2A-11 / Part 5.3 | Outstanding; scheduled after the B-15 rework (2A-11) | — |
+| OB-WP8-02 | iPhone physical timing run (3b-9) | High | 2A-11 / Part 5.3 | Outstanding; scheduled after the B-15 rework (2A-11) | — |
+| OB-WP8-03 | Acceptance of reviewed 3b sub-stages | Medium | 2A-12 | Withheld: no acceptance on agent review alone; awaits the named human review by the project owner (2A-12) | 2026-11-07 |
+| OB-WP8-04 | B-15 option (a)/(b)/(c) | High | 2A-1, 2A-9 | Option (b) chosen (2A-1); 3b stays isolated until accepted (2A-9) | 2026-11-07 |
 | OB-WP8-05 | D-3c-1: where the deferred 3c schema (R-13/R-16/R-17/R-18/R-21) goes: (a) amend v8 before it is connected, (b) a later schema step | High | here | `[ ] (a)  [ ] (b)  [x] defer` — deferred by the owner: decided together with stage 3b acceptance (2A-12); needed only for 3c-2 and 3c-4, which wait on 3b | 2026-11-07 |
 | OB-WP8-06 | D-3c-2: confirm the five register choices incl. whether `releasedOn` is the R-21 reference-row time | Medium | here | `[ ] confirm  [ ] change: …  [x] defer` — deferred with OB-WP8-05, to be decided with stage 3b acceptance | 2026-11-07 |
 | OB-WP8-07 | D-3c-3: bundle the release and reference JSON as app assets | Medium | here | `[ ] bundle now  [x] not until 3c-2  [ ] defer` — the JSON stays validated data under `app/assets/catalogue/` and is bundled only when the 3c-2 loader exists | 2026-11-07 |
@@ -4018,7 +4018,8 @@ These are documented in the records; none is dispositioned by the owner yet.
 | LIM-004 | Owner Actions workspace status changes are stored in the `settings` table and are replaced by a backup restore (older backup → older statuses). | `WP8.md` "Follow-up for the backup owner (E-04)" | `[ ] Accept as limitation  [ ] Fix (merge on restore)` | `[YYYY-MM-DD]` |
 | LIM-005 | WP 11: deadlines saved by pre-release campaign builds were stored as local midnight (east-of-UTC shows one day early); nothing released, no migration. `latestBeforeStart` loads up to a year of one site's readings; `measurements.latest(site)` loads every row for a site (performance, pre-WP 11). | `docs/delivery-record/WP11.md` | `[ ] Accept as limitation  [ ] Fix before release` | `[YYYY-MM-DD]` |
 | LIM-006 | WP 11 UI Lows open: silent failed refresh after a good load (N2); body-data "today" from the diary day between midnight and the day-start hour (N3); bodyweight exercise rows read "not enough data" on the training screen (N4); the advice-text guard scans Settings only inside the Daily targets card (must widen before G1). | `WP11.md` UI re-check | `[ ] Accept as limitation  [x] Fix before WP 11 stage G2 (condition of the WP 11 stage acceptance, 2D-6); not a release blocker` | 2026-11-07 |
-| LIM-007 | WP 8 3b (session branch only): B-18 — a stress-profile format 3 backup (55.7 MB compact) exceeds the 50 MiB file-picker cap (`maxPickedFileBytes`); registered for the production switch. | `docs/backup-format-3.md` B-18 (at `f3a12a4`) | see Decision 2A-3 | — |
+| LIM-007 | WP 8 3b (session branch only): B-18 — a stress-profile format 3 backup (55.7 MB compact) exceeds the 50 MiB file-picker cap (`maxPickedFileBytes`); registered for the production switch. | `docs/backup-format-3.md` B-18 (at `f3a12a4`) | Deferred to the 3d production switch with device evidence (2A-3) | 2026-11-07 |
+| LIM-010 | WP 8 3b (session branch only): C-11 — an exercise with an unreadable type and mixed-type recorded sets cannot be corrected; it stays blocked with readable history. | `docs/v8-library-use-cases.md` C-11 (at `f3a12a4`) | Accepted as a documented limitation (2A-6); to appear in the v8 switch documentation | 2026-11-07 |
 | LIM-008 | Hosted emulator runner was shut down during a Gradle build twice (campaign 1 and run 42325613118); not reproduced locally. | campaign-2 report, section I | `[ ] Accept as limitation  [ ] Investigate` | `[YYYY-MM-DD]` |
 | LIM-009 | Default theme is Dark in code, while GEN-012(1) says the system theme by default (observation from test T-01-04). | `app/lib` theme setup; D04 GEN-012 | `[ ] Accept as limitation  [ ] Fix before release  [ ] Not a requirement gap: …` | `[YYYY-MM-DD]` |
 | `[add rows]` | | | | |
