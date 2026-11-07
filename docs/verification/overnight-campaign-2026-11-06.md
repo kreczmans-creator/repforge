@@ -1,34 +1,34 @@
 # Overnight integrated delivery campaign — 06/07 November 2026
 
-Status: **release candidate `695fab0`** (app content identical to `d50f724`; the last commit before the dispatch is the report draft). The four workflows were dispatched on this exact commit; results below. Later commits on the branch are report updates only (docs), no app change. This file is the integration ledger and the morning delivery report. Integration lead: the campaign session on branch `claude/busy-hypatia-rhl3hu`. Final authority: the project owner.
+Status: **FINAL — release candidate `aa59021`, four workflows green on that exact commit** (CI 42317321015, Android build 42317323974, iOS build 42317326764, Integration tests 42317315355). App content is identical to `0cbdf13`/`695fab0`; `aa59021` adds only the emulator job's disk-space step. Later commits on the branch are report updates only (docs), no app change. This file is the integration ledger and the morning delivery report. Integration lead: the campaign session on branch `claude/busy-hypatia-rhl3hu`. Final authority: the project owner.
 
 ---
 
 # Morning delivery report
 
 ## A. Executive summary
-- **Completed and integrated** on `claude/busy-hypatia-rhl3hu` (release candidate `695fab0`): WP 15 stages 1–2 (entry units kg/l in the portion and ingredient sheets) and WP 17 S3–S4 (Fuel pick-from-library and recents, recipe duplicate and category filter, plan duplicate/delete, save session as plan, elapsed time, drag reorder), both with their independent review fixes; eight corrections from a new independent cross-package integration review; the new **Owner Actions & Delivery Blockers** workspace (Settings > Delivery) with a 19-entry canonical register, persisted status changes with history, and tests; WP 14 CI fixes (emulator disk-space root cause, APK signature and metadata verification, presentation-isolation test); planning documents for WP 11 and WP 8 stages 3c/3d/5/6; updated WP 8, WP 15 and WP 17 records and a programme snapshot.
+- **Completed and integrated** on `claude/busy-hypatia-rhl3hu` (release candidate `aa59021`): WP 15 stages 1–2 (entry units kg/l in the portion and ingredient sheets) and WP 17 S3–S4 (Fuel pick-from-library and recents, recipe duplicate and category filter, plan duplicate/delete, save session as plan, elapsed time, drag reorder), both with their independent review fixes; eight corrections from a new independent cross-package integration review; the new **Owner Actions & Delivery Blockers** workspace (Settings > Delivery) with a 19-entry canonical register, persisted status changes with history, and tests; WP 14 CI fixes (emulator disk-space root cause, APK signature and metadata verification, presentation-isolation test); planning documents for WP 11 and WP 8 stages 3c/3d/5/6; updated WP 8, WP 15 and WP 17 records and a programme snapshot.
 - **Excluded, isolated:** WP 8 stage 3b code (decision-baseline implementation and WS3 backup format 3). The WP 8 session kept it unpushed and unreviewed, and its independent re-check found that the v7→v8 migration itself creates IC-101 system rows, which by the owner's own B-15 condition stops that work for an owner decision (OB-WP8-04). The candidate runs schema v7 with v8 not connected, so user data is unaffected.
 - **`main` not advanced.** The WP 8 session holds the owner's standing constraint "no merge to main without my explicit approval", so the integrated commit stays on the campaign branch; advancing `main` is a fast-forward away and is the first owner action below.
-- **APK:** built by CI from `695fab0`, signature verified (V2, Android Debug certificate, the existing configuration used by every RepForge build and the rolling release), package and version verified; classification **release-ready as a test build** once the emulator workflow is green on the same commit, otherwise **provisional** with the exception stated in section D. No store signing exists yet (WP 14).
+- **APK:** built by CI from `aa59021`, signature verified (V2, Android Debug certificate, the existing configuration used by every RepForge build and the rolling release), package and version verified; all four workflows green on the same commit: **release-ready as a test build** (the same class of build as the rolling `debug-latest` release). No store signing exists yet (WP 14). One release-engineering finding: each hosted runner signs with its own freshly generated debug keystore, so two CI builds carry different certificates and Android refuses to install one over the other without uninstalling first (section H).
 
 ## B. APK delivery
 | Field | Value |
 |---|---|
-| Commit | `695fab0` (branch `claude/busy-hypatia-rhl3hu`) |
+| Commit | `aa59021` (branch `claude/busy-hypatia-rhl3hu`) |
 | Build variant | debug (`flutter build apk --debug`, the same variant as the rolling `debug-latest` release); the Android workflow also builds the release variant as an R8 check |
 | App version / code | 0.4.0+1 (`app/pubspec.yaml`), package `com.tempest.repforge` |
-| Artifact | GitHub Actions run 42310425424 ("Android build", `695fab0`), artifact `repforge-android-debug-apk` (id 13548957953, https://github.com/kreczmans-creator/repforge/actions/runs/42310425424/artifacts/13548957953), file `app-debug.apk` |
-| File size | 201,431,460 bytes (debug, universal ABI) |
-| SHA-256 (app-debug.apk) | `aa8383dd767426c300d7b9deeb4978728690e802363d0f09aa1ac8e2f58d6365` |
-| Signing verification | `apksigner verify --print-certs`: V2 signer, certificate DN `C=US, O=Android, CN=Android Debug`, certificate SHA-256 `00be07b6f6645036262eb69542f4e7950bc89ff6c3a895d3a449aeea126de5f4` (the existing debug keystore; same identity on every RepForge build) |
+| Artifact | GitHub Actions run 42317323974 ("Android build", `aa59021`), artifact `repforge-android-debug-apk` (id 13552308589, https://github.com/kreczmans-creator/repforge/actions/runs/42317323974/artifacts/13552308589), file `app-debug.apk` |
+| File size | 201,431,464 bytes (debug, universal ABI) |
+| SHA-256 (app-debug.apk) | `51d06a0b8743c590227526901cbbe47ebc16397618c1f8416cab7deb1813f851` |
+| Signing verification | `apksigner verify --print-certs`: V2 signer, certificate DN `C=US, O=Android, CN=Android Debug`, certificate SHA-256 `d60293ab8f044f59f6316db8ca2c2c2a546a10a3b0653dfabe9613940791fe37`. The debug keystore is generated per runner, so this certificate differs from the earlier build on `695fab0` (`00be07b6…`) and from the rolling release's; installing over another build needs an uninstall first |
 | Package metadata | `aapt2 dump badging`: `package: name='com.tempest.repforge' versionCode='1' versionName='0.4.0'`, `targetSdkVersion:'36'`, `application-label:'RepForge'` |
-| Release variant (R8 check, not distributed) | `app-release.apk` 88,617,141 bytes, SHA-256 `c7c905e9045c02f06365a729ae190fc6c5522e9636432663703e705fbc15fe6e`, same signer |
+| Release variant (R8 check, not distributed) | `app-release.apk` 88,617,137 bytes, SHA-256 `37cdbaaa8708490918897139d853e938d6a70f55a4035ad836a80dbfb2cdf575`, same signer |
 | Build command | `flutter build apk --debug` (and `--release` for the R8 check), Flutter 3.47.9, JDK 17, on ubuntu-latest |
-| Build timestamp | 2026-11-06 23:31:05 UTC (debug), 23:35:11 UTC (release) |
+| Build timestamp | 2026-11-07 00:39:40 UTC (debug), 00:44:39 UTC (release) |
 | Rolling release | not updated: `debug-release.yml` publishes only from `main`; when the owner fast-forwards `main` to `d50f724` it rebuilds and publishes the same commit to the `debug-latest` release automatically |
 | Local build and local re-verification | not possible in the campaign container: the Android SDK download host and the artifact blob host are both refused by the container's network policy; the CI build and its in-log verification are the artifact of record |
-| Installation verification | emulator smoke tests (section D); no physical device was available overnight, so no physical-device claim is made |
+| Installation verification | emulator (API 34, x86_64): the Integration workflow installed the debug build of `aa59021` and ran the eight integration tests, including the workspace smoke test and a simulated restart on the same database; no physical device was available overnight, so no physical-device claim is made |
 
 ## C. Integrated functionality (by work package)
 **New functionality**
@@ -43,17 +43,17 @@ Status: **release candidate `695fab0`** (app content identical to `d50f724`; the
 - WP 14: emulator disk-space fix, longer boot wait, APK verification steps in two workflows, presentation-isolation architecture test.
 **Documents**: WP 11 analytics plan; WP 8 stages 3c/3d/5/6 preparation; D04/D06 register entries for WP 17 and WP 15; WP 8/15/17 record sections; programme snapshot 2026-11-07.
 
-## D. CI and testing (release candidate `d50f724`)
+## D. CI and testing (release candidate `aa59021`)
 | Workflow | Run id | Conclusion | Notes |
 |---|---|---|---|
-| CI (format, analyse, test, coverage; recovery job) | 42310421837 | **success** (quality job 23:13–23:26; recovery job kill + heavy 23:14–23:32) | 2,742 passed, 5 skipped; coverage 93.0 % (20,145 of 21,671 hand-written lines) |
-| Android build | 42310425424 | **success** (23:13–23:35) | same quality gates, 2,742 passed; debug + release (R8) APKs; signature and metadata verified in-log |
-| iOS build | 42310429036 | **success** (23:13–23:18) | unsigned simulator build |
-| Integration tests (Android emulator) | 42310432671 | attempt 1: **runner shutdown signal** before any test ran (infrastructure). Attempt 2: emulator booted, **all 7 `app_test.dart` integration tests passed** (weight/targets/food logging; **owner actions workspace reachable and status change survives a restart**; CSV and backup export; recipe snapshot; barcode; full training session with rest timer, PR and history; real on-device database open, migrate and persist), then the runner received a **shutdown signal** while building the second test file (the v8 timing smoke harness, which passed on run 42307776044 on the same app code). Attempt 3: RC-INTEGRATION-RESULT | the conclusion of the run is a failure for the workflow as a whole until an attempt completes both files |
+| CI (format, analyse, test, coverage; recovery job) | 42317321015 | **success** (00:17–00:33) | 2,742 passed, 5 skipped; coverage 93.0 %; recovery job (kill + heavy) passed. Same result on `695fab0`, run 42310421837 |
+| Android build | 42317323974 | **success** (00:17–00:44) | same quality gates, 2,742 passed; debug + release (R8) APKs; signature and metadata verified in-log. Same result on `695fab0`, run 42310425424 |
+| iOS build | 42317326764 | **success** (00:17–00:19) | unsigned simulator build. Same result on `695fab0`, run 42310429036 |
+| Integration tests (Android emulator) | 42317315355 | **success** (00:17–00:36) | emulator booted; **8 of 8 passed**: weight/targets/food logging; owner actions workspace reachable and a status change survives a restart; CSV and backup export; recipe snapshot; barcode; full training session with rest timer, PR and history; real on-device database open, migrate and persist; v8 timing smoke harness (stand-in). On `695fab0` the same job (run 42310432671) lost three attempts to runner shutdown signals during the Gradle build after attempt 2 had passed all 7 `app_test.dart` tests; freeing the runner's NDK directory (`aa59021`) removed the pressure and the job completed |
 
-Local full suite on the candidate tree (`0cbdf13` app content; `669d1e7`, `d50f724` and `695fab0` change only the integration test file, the workflow and docs): **2,742 passed, 5 skipped**, coverage 93.0 % of hand-written lines (gate rc2 below). Skipped tests are the five tag-skipped suites (kill, heavy, trial), explained below; none was disabled or weakened. Baseline for comparison: 2,361 passed / 4 skipped at `ded976b` (parallel branch) and 2,662 / 5 at the first merge.
+Local full suite on the candidate tree (`0cbdf13` app content; `669d1e7`, `d50f724`, `695fab0` and `aa59021` change only the integration test file, the workflow and docs): **2,742 passed, 5 skipped**, coverage 93.0 % of hand-written lines (gate rc2 below). Skipped tests are the five tag-skipped suites (kill, heavy, trial), explained below; none was disabled or weakened. Baseline for comparison: 2,361 passed / 4 skipped at `ded976b` (parallel branch) and 2,662 / 5 at the first merge.
 
-Infrastructure exceptions: the hosted emulator failed to start on three earlier runs for lack of disk space (root cause and fix below); after the fix it boots in about 65 s. The first attempt of the release-candidate emulator run was killed by a runner shutdown signal before any test ran; the failed job was re-run on the same commit.
+Infrastructure exceptions, all resolved with evidence: the hosted emulator failed to start on three earlier runs for lack of disk space (root cause and fix in the ledger); three attempts of the emulator run on `695fab0` ended in runner shutdown signals during the Gradle build while the image's NDK directory was kept; with that directory removed the job completes in 19 minutes. No exception remains against the final commit.
 
 ## E. Independent review
 Three independent reviews ran overnight, each by a separate agent with no part in the implementation, each followed by a re-check of the corrections by the same reviewer:
@@ -74,7 +74,7 @@ Programme (105 full / 97 core): **73.4 % full, 79.5 % core** (77.11 points); wit
 ## G. Owner Actions & Delivery Blockers (same list as in the app: Settings > Delivery)
 | Id | WP | Priority | Required action | Recommendation | Consequence of delay | Evidence |
 |---|---|---|---|---|---|---|
-| — | Programme | High | **Fast-forward `main` to `d50f724`** (`git fetch origin && git checkout main && git merge --ff-only d50f724 && git push`): this publishes the rolling `debug-latest` APK automatically | Do it after reading section D; it is a pure fast-forward of reviewed, CI-verified work | Testers keep the older rolling build; the WP 8 session's constraint was respected overnight | ledger, section D |
+| — | Programme | High | **Fast-forward `main` to `aa59021`** (`git fetch origin && git checkout main && git merge --ff-only aa59021 && git push`): this publishes the rolling `debug-latest` APK automatically | Do it after reading section D; it is a pure fast-forward of reviewed, CI-verified work | Testers keep the older rolling build; the WP 8 session's constraint was respected overnight | ledger, section D |
 | OB-WP8-04 | WP 8 | High | Choose B-15 option (a), (b) or (c) | (b) per the WP 8 session | WS3/3b-7 and the v8 switch-over wait | WP8.md campaign section; D04 §7 |
 | OB-WP17-01 | WP 17 | High | Approve the 9.00 allocation | Approve | every WP 17 figure stays provisional | WP17.md |
 | OB-WP8-01 / 02 | WP 8 | High (open, not yet ready) | Android and iPhone timing runs once the decision baseline and v7to8 harness land | wait for the WP 8 session's go, then run | 3b-9 stays at harness credit | docs/device-timing.md |
@@ -89,13 +89,15 @@ Programme (105 full / 97 core): **73.4 % full, 79.5 % core** (77.11 points); wit
 - **Untested device behaviour:** no physical Android or iPhone run overnight; the v8 migration timing on devices (3b-9) is outstanding; the workspace at 2x text on a real phone keyboard is covered only by the emulator smoke test and widget tests.
 - **Deferred scope:** S4d rest-timer survival; S3b-ii; WP 17 S5/S6 (v9); D-06 UX change; WP 8 3b decision baseline, WS3 and B-15 (owner decision); merge-on-restore of blocker statuses.
 - **External dependencies:** Apple signing for device builds; store signing configuration (WP 14); owner devices.
+- **Release engineering (new, WP 14):** CI debug builds are signed with a keystore generated on each runner, so successive builds have different certificates and cannot be installed over each other without an uninstall (data loss on the test phone unless backed up). A stable test-signing keystore held as a repository secret, or the rolling release's build being the only one testers install, would remove this; it needs an owner-provided secret, so it is listed in section I rather than fixed overnight.
 
 ## I. Recommended next actions (in order)
-1. Fast-forward `main` to `d50f724` and let the rolling release publish; install `RepForge-debug-arm64-v8a.apk` on the test phone; open Settings > Delivery.
+1. Fast-forward `main` to `aa59021` and let the rolling release publish; back up the test phone's RepForge data, uninstall the previous build (different debug certificate), install `RepForge-debug-arm64-v8a.apk`; open Settings > Delivery.
 2. Decide OB-WP8-04 (B-15) in the WP 8 session so WS3 and the decision baseline can be pushed, reviewed and integrated.
 3. Approve OB-WP17-01 and decide OB-PROG-01; then record WP 15 and WP 17 acceptances or conditions in the app and D04 §7.
 4. Run the device timing campaigns when the WP 8 session reports the harness and baseline as landed.
 5. Review the WP 11 plan and the WP 8 3c/3d preparation documents and decide their open questions.
+6. Decide whether to provide a stable test-signing keystore as a repository secret (WP 14), so CI builds install over each other.
 
 ---
 
