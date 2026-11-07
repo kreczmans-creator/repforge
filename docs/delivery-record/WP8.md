@@ -999,3 +999,15 @@ Stage 3d: 0.00 of 1.50 (preparation only). WP 8 earned stays **9.66 (53.7 %)** a
 **Programme roll-up (unchanged by this work).** Full 77.11 / 105 = 73.4 %; core 77.11 / 97 = 79.5 % (snapshot `docs/governance/programme-progress-2026-11-07.md`, 2026-11-07).
 
 **Blockers and dependencies.** D-3c-3 (bundling) for visibility in the app; a named editor for content approval; independent review of this branch before push; stage 3b gate (OB-WP8-04) for any reconciler loading of release 3.
+
+### Exercise knowledge system — independent review fixes (2026-11-07)
+
+**Review outcome.** Not ready to push: four High (H-1 push-up bottom hands behind the shoulders; H-2 Romanian deadlift bottom looked like a deadlift; H-3 assisted-machine exit backwards; H-4 seated leg curl mechanism reversed), six Medium (M-1 spec header contradicted section 12; M-2 drafts would be published by bundling; M-3 pull-up top; M-4 dumbbell curl grip; M-5 assisted pull-up breathing and tempo; M-6 approval revision rule and R-18 columns), six Low. All fixed on this branch except L-3, which is recorded as editor notes in section 5 of `docs/catalogue/content-completeness-2026-11-07.md`. A re-check by the reviewer is outstanding.
+
+**Key change (M-2, KS-D9).** The app shows only editor-approved guidance by default. Drafts are withheld (`KnowledgeAwaitingReview`) unless the single build switch `REPFORGE_SHOW_DRAFT_GUIDANCE` (default off) is set. All 89 exercises are drafts, so a default build shows no guidance text even once the catalogue is bundled.
+
+**Branch.** Rebased onto `origin/claude/campaign-2026-11-07` at `0df5d66`. Thirteen commits above it: `a198d3a`, `60f56dd`, `d41b493`, `8347f75`, `c167cfc`, `266d192`, `631d586` (first delivery, rebased), `93ff13a`, `9d35256`, `b140ccd`, `da5a078`, `d9a9ed8` (review fixes) and this record commit, which is the branch head. No 3b commit, no v8, migration, schema, seed or `pubspec.yaml` change.
+
+**Evidence at `d9a9ed8`.** Format exit 0; `flutter analyze --fatal-infos` exit 0; full suite with coverage at concurrency 2: 3292 passed, 5 skipped, exit 0; coverage gate 93.6 % (exit 0); catalogue gate 2 releases, 0 errors, 209 warnings (exit 0); completeness report regenerated and recomputed by its test.
+
+**Effort points.** Unchanged: allocation 18.00, earned 9.66 (53.7 %), remaining 8.34, no credit claimed for this work; confidence low (stage mapping) and medium (code). Not accepted.
