@@ -51,7 +51,7 @@ final class DataQualityThresholds {
 enum DataQualityCriterionId {
   dataDays('Days of data'),
   loggedDays('Days with food logged'),
-  energyProvenance('Energy verified or user-entered'),
+  verifiedEnergyShare('Energy verified or user-entered'),
   weightFrequency('Weigh-in days per week');
 
   DataQualityCriterionId(this.label);
@@ -175,7 +175,7 @@ final class DataQualityReport {
     final CriterionResult energy;
     if (totalKcal <= 0) {
       energy = CriterionResult(
-        id: DataQualityCriterionId.energyProvenance,
+        id: DataQualityCriterionId.verifiedEnergyShare,
         required: thresholds.minVerifiedEnergyShare,
         passed: false,
         reason:
@@ -186,7 +186,7 @@ final class DataQualityReport {
     } else {
       final share = strongKcal / totalKcal;
       energy = CriterionResult(
-        id: DataQualityCriterionId.energyProvenance,
+        id: DataQualityCriterionId.verifiedEnergyShare,
         observed: share,
         required: thresholds.minVerifiedEnergyShare,
         passed: share + 1e-12 >= thresholds.minVerifiedEnergyShare,

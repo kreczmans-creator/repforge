@@ -86,4 +86,16 @@ void main() {
     }
     expect(offenders, isEmpty);
   });
+
+  test('the data-quality check has no provider and no screen (OQ-15)', () {
+    final users = [
+      for (final f in Directory('lib').listSync(recursive: true))
+        if (f is File &&
+            f.path.endsWith('.dart') &&
+            !f.path.replaceAll(r'\', '/').startsWith('lib/domain/analytics/') &&
+            RegExp('DataQuality').hasMatch(f.readAsStringSync()))
+          f.path,
+    ];
+    expect(users, isEmpty);
+  });
 }

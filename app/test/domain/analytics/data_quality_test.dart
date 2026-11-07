@@ -65,7 +65,7 @@ void main() {
       expect(r.criteria.every((c) => c.passed), isTrue);
       expect(r.of(DataQualityCriterionId.dataDays).observed, 28);
       expect(r.of(DataQualityCriterionId.loggedDays).observed, 1);
-      expect(r.of(DataQualityCriterionId.energyProvenance).observed, 1);
+      expect(r.of(DataQualityCriterionId.verifiedEnergyShare).observed, 1);
       expect(r.of(DataQualityCriterionId.weightFrequency).observed, 3);
       expect(r.asOf, _asOf);
     });
@@ -135,9 +135,12 @@ void main() {
       ];
       // 27 days x 2000 verified = 54000; weak 6000 gives exactly 90 %.
       final pass = _eval(mix(6000), _weights());
-      expect(pass.of(DataQualityCriterionId.energyProvenance).passed, isTrue);
+      expect(
+        pass.of(DataQualityCriterionId.verifiedEnergyShare).passed,
+        isTrue,
+      );
       final fail = _eval(mix(7000), _weights());
-      final c = fail.of(DataQualityCriterionId.energyProvenance);
+      final c = fail.of(DataQualityCriterionId.verifiedEnergyShare);
       expect(c.passed, isFalse);
       expect(c.observed, closeTo(54000 / 61000, 1e-12));
       expect(c.reason, contains('89 % of logged energy is verified'));
@@ -149,18 +152,21 @@ void main() {
         _food(provenance: DataProvenance.userEntered),
         _weights(),
       );
-      expect(user.of(DataQualityCriterionId.energyProvenance).observed, 1);
+      expect(user.of(DataQualityCriterionId.verifiedEnergyShare).observed, 1);
       final crowd = _eval(
         _food(provenance: DataProvenance.crowdsourced),
         _weights(),
       );
-      expect(crowd.of(DataQualityCriterionId.energyProvenance).observed, 0);
-      expect(crowd.of(DataQualityCriterionId.energyProvenance).passed, isFalse);
+      expect(crowd.of(DataQualityCriterionId.verifiedEnergyShare).observed, 0);
+      expect(
+        crowd.of(DataQualityCriterionId.verifiedEnergyShare).passed,
+        isFalse,
+      );
     });
 
     test('energy provenance: no energy logged cannot be measured', () {
       final r = _eval(const [], _weights());
-      final c = r.of(DataQualityCriterionId.energyProvenance);
+      final c = r.of(DataQualityCriterionId.verifiedEnergyShare);
       expect(c.observed, isNull);
       expect(c.passed, isFalse);
       expect(c.reason, contains('No energy was logged'));
