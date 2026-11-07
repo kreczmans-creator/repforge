@@ -155,4 +155,41 @@ void main() {
     expect(find.text('n/a · no target'), findsNothing);
     await unmount(tester);
   });
+  testWidgets('day total shows the weakest provenance of the day (NUT-019)', (
+    tester,
+  ) async {
+    const n = NutrientAmounts(kcal: 100, proteinG: 5, carbsG: 5, fatG: 1);
+    await log(_entry('a', n).copyWith(provenance: DataProvenance.verified));
+    await log(_entry('b', n));
+    await pump(tester);
+    final total = find.byKey(const Key('day-total-provenance'));
+    expect(
+      find.descendant(of: total, matching: find.text('Your entry')),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('a day with an estimated entry shows the estimate badge', (
+    tester,
+  ) async {
+    const n = NutrientAmounts(kcal: 100, proteinG: 5, carbsG: 5, fatG: 1);
+    await log(_entry('a', n).copyWith(provenance: DataProvenance.verified));
+    await log(_entry('b', n).copyWith(provenance: DataProvenance.estimated));
+    await pump(tester);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('day-total-provenance')),
+        matching: find.text('Estimate'),
+      ),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('an empty day shows no day-total provenance', (tester) async {
+    await pump(tester);
+    expect(find.byKey(const Key('day-total-provenance')), findsNothing);
+    await unmount(tester);
+  });
 }

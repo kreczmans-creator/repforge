@@ -31,6 +31,7 @@ Goal _goal(
 
 void main() {
   _replaceActiveTests();
+  _historyTests();
   group('DriftGoalRepository (in-memory)', () {
     late AppDatabase db;
     late DriftGoalRepository repo;
@@ -266,6 +267,74 @@ void _replaceActiveTests() {
       );
       final all = await db.select(db.goals).get();
       expect(all.where((r) => r.id == 'c1'), isEmpty);
+    });
+  });
+}
+
+void _historyTests() {
+  group('DriftGoalRepository.history', () {
+    late AppDatabase db;
+    late DriftGoalRepository repo;
+
+    setUp(() {
+      db = AppDatabase.inMemory();
+      repo = DriftGoalRepository(db, clock: _clock);
+    });
+    tearDown(() => db.close());
+
+    test('returns inactive rows too, newest start first', () async {
+      await repo.upsert(
+        _goal('old', GoalKind.calories, 2400, start: DateTime.utc(2026)),
+      );
+      await repo.replaceActive(
+        GoalKind.calories,
+        _goal(
+          'new',
+          GoalKind.calories,
+          2600,
+          start: DateTime.utc(2026, 11, 10),
+        ),
+      );
+      expect((await repo.history()).map((g) => g.id), ['new', 'old']);
+      expect((await repo.history()).map((g) => g.active), [true, false]);
+      expect((await repo.active()).map((g) => g.id), ['new']);
+    });
+
+    test('excludes soft-deleted goals and rows with an unknown kind', () async {
+      await repo.upsert(_goal('a', GoalKind.calories, 2400));
+      await repo.upsert(_goal('gone', GoalKind.protein, 150));
+      await repo.delete('gone');
+      await db
+          .into(db.goals)
+          .insert(
+            GoalsCompanion.insert(
+              id: 'bad',
+              kind: 'moonshot',
+              target: 1,
+              startDate: _t,
+              createdAt: _t,
+              updatedAt: _t,
+            ),
+          );
+      expect((await repo.history()).map((g) => g.id), ['a']);
+    });
+
+    test('watchHistory emits the same list and follows changes', () async {
+      await repo.upsert(_goal('a', GoalKind.calories, 2400));
+      final stream = repo.watchHistory();
+      expect((await stream.first).map((g) => g.id), ['a']);
+      await repo.replaceActive(
+        GoalKind.calories,
+        _goal('b', GoalKind.calories, 2500, start: DateTime.utc(2026, 11, 2)),
+      );
+      expect((await repo.watchHistory().first).map((g) => g.id), ['b', 'a']);
+    });
+
+    test('history does not change stored rows', () async {
+      await repo.upsert(_goal('a', GoalKind.calories, 2400));
+      final before = await db.select(db.goals).get();
+      await repo.history();
+      expect(await db.select(db.goals).get(), before);
     });
   });
 }

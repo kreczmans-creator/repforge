@@ -64,6 +64,29 @@ void main() {
               ),
             );
 
+    test(
+      'readingsBetween is half-open, oldest first, bounded by site',
+      () async {
+        await repo.insert(_kg('a', 80, d2));
+        await repo.insert(_kg('b', 81, d1));
+        await repo.insert(_kg('c', 82, d3));
+        await repo.insert(_cm('w', MeasurementSite.waist, 85, d2));
+        await repo.insert(_kg('gone', 90, d2));
+        await repo.delete('gone');
+        await insertRaw('bad', 'weight', 5000, d2);
+
+        final all = await repo.readingsBetween(d1, d3);
+        expect(all.map((m) => m.id), ['b', 'a', 'w']);
+        final weights = await repo.readingsBetween(
+          d1,
+          d3.add(const Duration(seconds: 1)),
+          site: MeasurementSite.weight,
+        );
+        expect(weights.map((m) => m.id), ['b', 'a', 'c']);
+        expect(await repo.readingsBetween(d3, d3), isEmpty);
+      },
+    );
+
     test('inserts and reads a weight and a cm site', () async {
       await repo.insert(_kg('w', 80.5, d1, note: 'fasted'));
       await repo.insert(_cm('c', MeasurementSite.waist, 85.5, d1));

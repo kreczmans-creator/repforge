@@ -9,6 +9,16 @@ abstract interface class MeasurementRepository {
   Stream<List<Measurement>> watchAll({int? limit});
   Future<Measurement?> latest(MeasurementSite site);
 
+  /// Readable, not-deleted readings recorded in `[from, to)`, oldest first,
+  /// optionally of one [site] only. A bounded read for the analytics
+  /// (WP 11): it loads only the period's rows. Unreadable rows are left out
+  /// as everywhere else.
+  Future<List<Measurement>> readingsBetween(
+    DateTime from,
+    DateTime to, {
+    MeasurementSite? site,
+  });
+
   /// A visible (not deleted), readable measurement by id, or null.
   Future<Measurement?> byId(String id);
 

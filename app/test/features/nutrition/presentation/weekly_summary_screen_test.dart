@@ -229,4 +229,64 @@ void main() {
     expect(find.text('not logged'), findsNWidgets(5));
     await unmount(tester);
   });
+  testWidgets('shows the weakest provenance of the week (NUT-019)', (
+    tester,
+  ) async {
+    final log = container.read(foodLogRepositoryProvider);
+    await log.insert(
+      _entry(
+        'a',
+        '2026-11-01',
+        1800,
+        120,
+      ).copyWith(provenance: DataProvenance.verified),
+    );
+    await log.insert(
+      _entry(
+        'b',
+        '2026-10-30',
+        2000,
+        120,
+      ).copyWith(provenance: DataProvenance.estimated),
+    );
+    await pump(tester);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('week-total-provenance')),
+        matching: find.text('Estimate'),
+      ),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('a week of verified entries shows the verified badge', (
+    tester,
+  ) async {
+    await container
+        .read(foodLogRepositoryProvider)
+        .insert(
+          _entry(
+            'a',
+            '2026-11-01',
+            1800,
+            120,
+          ).copyWith(provenance: DataProvenance.verified),
+        );
+    await pump(tester);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('week-total-provenance')),
+        matching: find.text('Verified'),
+      ),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('an empty week shows no provenance', (tester) async {
+    await pump(tester);
+    expect(find.byKey(const Key('week-total-provenance')), findsNothing);
+    await unmount(tester);
+  });
 }

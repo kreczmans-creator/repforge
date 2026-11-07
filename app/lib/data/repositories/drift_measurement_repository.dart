@@ -48,6 +48,30 @@ final class DriftMeasurementRepository implements MeasurementRepository {
   }
 
   @override
+  Future<List<Measurement>> readingsBetween(
+    DateTime from,
+    DateTime to, {
+    MeasurementSite? site,
+  }) async {
+    final rows =
+        await (_db.select(_db.measurements)
+              ..where((t) {
+                final base =
+                    t.deletedAt.isNull() &
+                    t.recordedAt.isBiggerOrEqualValue(from.toUtc()) &
+                    t.recordedAt.isSmallerThanValue(to.toUtc());
+                return site == null ? base : base & t.site.equals(site.name);
+              })
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.recordedAt),
+                (t) => OrderingTerm.asc(t.createdAt),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return toEntities(rows);
+  }
+
+  @override
   Future<Measurement?> byId(String id) async {
     final rows = await (_visible()..where((t) => t.id.equals(id))).get();
     return toEntities(rows).firstOrNull;

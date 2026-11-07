@@ -423,6 +423,106 @@ void main() {
     expect(find.text('Owner Actions & Delivery Blockers'), findsOneWidget);
     await unmount(tester);
   });
+  group('implied energy (GOL-002)', () {
+    Future<void> type(WidgetTester tester, Map<String, String> values) async {
+      for (final e in values.entries) {
+        await tester.enterText(find.byKey(Key('target-${e.key}')), e.value);
+      }
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> open(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(600, 3600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_harness(db));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shows protein x4 + carbs x4 + fat x9', (tester) async {
+      await open(tester);
+      expect(find.byKey(const Key('implied-energy')), findsNothing);
+      await type(tester, {'protein': '150', 'carbs': '250', 'fat': '70'});
+      expect(find.text('Implied energy: 2230 kcal'), findsOneWidget);
+      // No calorie target: no warning.
+      expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('no warning at exactly 10 %, warning above it', (tester) async {
+      await open(tester);
+      // 2200 kcal implied against 2000: exactly +10 %.
+      await type(tester, {
+        'calories': '2000',
+        'protein': '150',
+        'carbs': '400',
+        'fat': '0',
+      });
+      expect(find.text('Implied energy: 2200 kcal'), findsOneWidget);
+      expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
+      // One more gram of fat: 2209 kcal, above 10 %.
+      await type(tester, {'fat': '1'});
+      expect(find.byKey(const Key('implied-energy-warning')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('no warning at exactly -10 %, warning below it', (
+      tester,
+    ) async {
+      await open(tester);
+      await type(tester, {
+        'calories': '2000',
+        'protein': '150',
+        'carbs': '300',
+        'fat': '0',
+      });
+      expect(find.text('Implied energy: 1800 kcal'), findsOneWidget);
+      expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
+      await type(tester, {'protein': '149'});
+      expect(find.byKey(const Key('implied-energy-warning')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('with a macro not set the line names it and does not warn', (
+      tester,
+    ) async {
+      await open(tester);
+      await type(tester, {
+        'calories': '2000',
+        'protein': '300',
+        'carbs': '300',
+      });
+      expect(
+        find.text(
+          'Implied energy from the set targets (fat not set): 2400 kcal',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
+      await type(tester, {'carbs': ''});
+      expect(find.textContaining('(carbs and fat not set)'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('the warning never blocks saving', (tester) async {
+      await open(tester);
+      await type(tester, {
+        'calories': '2000',
+        'protein': '300',
+        'carbs': '300',
+        'fat': '0',
+      });
+      expect(find.byKey(const Key('implied-energy-warning')), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('save-targets')));
+      await tester.tap(find.byKey(const Key('save-targets')));
+      await tester.pumpAndSettle();
+      expect(find.text('Targets saved'), findsOneWidget);
+      final goals = await DriftGoalRepositoryProbe(db).active();
+      expect(goals[GoalKind.calories], 2000);
+      expect(goals[GoalKind.protein], 300);
+      await unmount(tester);
+    });
+  });
 }
 
 /// Reads active nutrition goals straight from the table for assertions.

@@ -5,6 +5,7 @@ import 'package:repforge/app/app.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
+import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/delivery/application/blocker_providers.dart';
 
@@ -43,7 +44,8 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-goals')));
     await tester.pumpAndSettle();
     expect(find.text('Goals'), findsWidgets);
-    expect(find.text('NOT YET AVAILABLE'), findsOneWidget);
+    expect(find.byKey(const Key('goals-empty')), findsOneWidget);
+    expect(find.text('NOT YET AVAILABLE'), findsNothing);
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('kcal-tile')), findsOneWidget);
@@ -146,6 +148,47 @@ void main() {
             databaseProvider.overrideWithValue(db),
             ownerBlockerRegisterProvider.overrideWithValue(testRegister),
           ],
+          child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(entry.value)), findsOneWidget, reason: entry.key);
+      await unmount(tester);
+    }
+  });
+  testWidgets('goals routes resolve (WP 11)', (tester) async {
+    expect(RfRoutes.goals, '/goals');
+    expect(RfRoutes.goalsEdit(GoalKind.bodyWeight), '/goals/edit/bodyWeight');
+    expect(
+      RfRoutes.goalsEdit(GoalKind.measurement, MeasurementSite.waist),
+      '/goals/edit/measurement?site=waist',
+    );
+    expect(RfRoutes.goalsHistory, '/goals/history');
+    expect(RfRoutes.goalsWeekly, '/goals/weekly');
+    expect(RfRoutes.goalsCompare, '/goals/compare');
+    expect(RfRoutes.goalsTraining, '/goals/training');
+    expect(RfRoutes.goalsExercise('e1'), '/goals/training/exercise/e1');
+    expect(RfRoutes.goalsRecomposition, '/goals/recomposition');
+
+    final expected = <String, String>{
+      RfRoutes.goals: 'goals-empty',
+      RfRoutes.goalsEdit(GoalKind.bodyWeight): 'goal-save',
+      RfRoutes.goalsEdit(GoalKind.measurement, MeasurementSite.waist):
+          'goal-site-choice',
+      RfRoutes.goalsEdit(GoalKind.sessionsPerWeek): 'goal-save',
+      '/goals/edit/calories': 'goal-unknown',
+      RfRoutes.goalsHistory: 'target-history-empty',
+      RfRoutes.goalsWeekly: 'weekly-nutrition',
+      RfRoutes.goalsCompare: 'compare-table',
+      RfRoutes.goalsTraining: 'training-empty',
+      RfRoutes.goalsExercise('missing'): 'exercise-progress-empty',
+      RfRoutes.goalsRecomposition: 'recomposition-points-weight',
+    };
+    for (final entry in expected.entries) {
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [databaseProvider.overrideWithValue(db)],
           child: RepForgeApp(router: createRouter(initialLocation: entry.key)),
         ),
       );

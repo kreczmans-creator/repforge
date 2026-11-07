@@ -4,6 +4,7 @@ import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/db/drift_transactor.dart';
 import 'package:repforge/data/db/open_database.dart';
 import 'package:repforge/data/external/open_food_facts_client.dart';
+import 'package:repforge/data/repositories/analytics_revision.dart';
 import 'package:repforge/data/repositories/drift_backup_repository.dart';
 import 'package:repforge/data/repositories/drift_exercise_repository.dart';
 import 'package:repforge/data/repositories/drift_food_log_repository.dart';
@@ -58,6 +59,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   ref.onDispose(db.close);
   return db;
 });
+
+/// Emits once for every write to a table the analytics read (sets, sessions,
+/// food, measurements, goals, settings). Kept here so the analytics
+/// application code never imports `lib/data`.
+final analyticsTableUpdatesProvider = Provider<Stream<void>>(
+  (ref) => analyticsTableUpdates(ref.watch(databaseProvider)),
+);
 
 final clockProvider = Provider<Clock>((_) => const SystemClock());
 

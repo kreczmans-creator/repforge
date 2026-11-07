@@ -29,6 +29,26 @@ final class DriftGoalRepository implements GoalRepository {
     return [for (final r in rows) ?toEntity(r)];
   }
 
+  SimpleSelectStatement<$GoalsTable, GoalRow> _allNewestFirst() =>
+      _db.select(_db.goals)
+        ..where((t) => t.deletedAt.isNull())
+        ..orderBy([
+          (t) => OrderingTerm.desc(t.startDate),
+          (t) => OrderingTerm.desc(t.createdAt),
+          (t) => OrderingTerm.desc(t.id),
+        ]);
+
+  @override
+  Future<List<Goal>> history() async {
+    final rows = await _allNewestFirst().get();
+    return [for (final r in rows) ?toEntity(r)];
+  }
+
+  @override
+  Stream<List<Goal>> watchHistory() => _allNewestFirst().watch().map(
+    (rows) => [for (final r in rows) ?toEntity(r)],
+  );
+
   @override
   Future<void> replaceActive(
     GoalKind kind,

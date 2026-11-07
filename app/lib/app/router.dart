@@ -2,8 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/domain/core/calendar_date.dart';
+import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
+import 'package:repforge/features/analytics/presentation/exercise_progress_screen.dart';
+import 'package:repforge/features/analytics/presentation/goal_editor_screen.dart';
+import 'package:repforge/features/analytics/presentation/goals_home_screen.dart';
+import 'package:repforge/features/analytics/presentation/period_comparison_screen.dart';
+import 'package:repforge/features/analytics/presentation/recomposition_screen.dart';
+import 'package:repforge/features/analytics/presentation/target_history_screen.dart';
+import 'package:repforge/features/analytics/presentation/training_analytics_screen.dart';
+import 'package:repforge/features/analytics/presentation/weekly_summary_screen.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blocker_detail_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blockers_screen.dart';
@@ -25,7 +34,6 @@ import 'package:repforge/features/recipes/presentation/recipe_editor_screen.dart
 import 'package:repforge/features/recipes/presentation/recipe_list_screen.dart';
 import 'package:repforge/features/settings/presentation/backup_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
-import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_detail_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_editor_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_library_screen.dart';
@@ -120,6 +128,31 @@ abstract final class RfRoutes {
       site == null ? '/track/compare' : '/track/compare?site=${site.name}';
   static const goals = '/goals';
 
+  /// Goal editor for [kind] (body weight, measurement or sessions per week;
+  /// GOL-003..005), with the body [site] of a measurement goal.
+  static String goalsEdit(GoalKind kind, [MeasurementSite? site]) =>
+      site == null
+      ? '/goals/edit/${kind.name}'
+      : '/goals/edit/${kind.name}?site=${site.name}';
+
+  /// Target history (GOL-006).
+  static const goalsHistory = '/goals/history';
+
+  /// Weekly summary (GOL-007).
+  static const goalsWeekly = '/goals/weekly';
+
+  /// Period comparison (GOL-009).
+  static const goalsCompare = '/goals/compare';
+
+  /// Training analytics (TRN-027).
+  static const goalsTraining = '/goals/training';
+
+  /// Progress of the exercise [id] (TRN-028).
+  static String goalsExercise(String id) => '/goals/training/exercise/$id';
+
+  /// Recomposition view (GOL-010).
+  static const goalsRecomposition = '/goals/recomposition';
+
   static const settings = '/settings';
 
   /// Backup and restore (DAT-004, BCM-009(2)).
@@ -135,12 +168,10 @@ abstract final class RfRoutes {
   static const gallery = '/gallery';
 }
 
-// TODO(placeholder): The Goals branch shows a labelled RfNotYetAvailable
-// screen until WP 11 delivers it (standards §10).
 /// Application router: brand app bar, five-pillar bottom navigation
 /// (Home · Train · Fuel · Track · Goals, per the brand mock-up) with one
 /// branch per tab. Train hosts the exercise library, Fuel nutrition, Track
-/// body-weight logging; Goals is a labelled placeholder until WP 11.
+/// body-weight logging; Goals hosts targets, progress and summaries.
 final _rootKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
@@ -398,12 +429,58 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
           routes: [
             GoRoute(
               path: RfRoutes.goals,
-              builder: (context, state) => const PillarPlaceholderScreen(
-                title: 'Goals',
-                caption: 'Targets and weekly summaries',
-                feature: 'Calorie, macro, weight and training goals',
-                workPackage: 'WP 11',
-              ),
+              builder: (context, state) => const GoalsHomeScreen(),
+              routes: [
+                GoRoute(
+                  path: 'edit/:kind',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) {
+                    final kind = _editableGoalKind(
+                      state.pathParameters['kind'],
+                    );
+                    return kind == null
+                        ? const _UnknownGoalScreen()
+                        : GoalEditorScreen(
+                            kind: kind,
+                            site: _siteNamed(state.uri.queryParameters['site']),
+                          );
+                  },
+                ),
+                GoRoute(
+                  path: 'history',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const TargetHistoryScreen(),
+                ),
+                GoRoute(
+                  path: 'weekly',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const WeeklyReportScreen(),
+                ),
+                GoRoute(
+                  path: 'compare',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const PeriodComparisonScreen(),
+                ),
+                GoRoute(
+                  path: 'recomposition',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const RecompositionScreen(),
+                ),
+                GoRoute(
+                  path: 'training',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const TrainingAnalyticsScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'exercise/:id',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => ExerciseProgressScreen(
+                        exerciseId: state.pathParameters['id']!,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -439,8 +516,30 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
   ],
 );
 
+/// The goal kinds the goal editor handles; the daily nutrition targets stay
+/// in Settings.
+GoalKind? _editableGoalKind(String? name) => const [
+  GoalKind.bodyWeight,
+  GoalKind.measurement,
+  GoalKind.sessionsPerWeek,
+].where((k) => k.name == name).firstOrNull;
+
 MeasurementSite? _siteNamed(String? name) =>
     MeasurementSite.values.where((s) => s.name == name).firstOrNull;
+
+/// Shown for `/goals/edit/<unknown>`.
+class _UnknownGoalScreen extends StatelessWidget {
+  const _UnknownGoalScreen();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Goal')),
+    body: const Padding(
+      padding: EdgeInsets.all(RfSpace.gutter),
+      child: Text('Unknown goal type.', key: Key('goal-unknown')),
+    ),
+  );
+}
 
 /// Shown for `/track/site/<unknown>`.
 class _UnknownMeasurementScreen extends StatelessWidget {

@@ -122,4 +122,51 @@ void main() {
     await tester.pumpWidget(_wrap(RfTrendChart(series: mixed, unit: 'kg')));
     expect(tester.takeException(), isNull);
   });
+  testWidgets('an explicit date range is announced and widened, not clipped', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _wrap(
+        RfTrendChart(
+          series: series,
+          unit: 'cm',
+          xFrom: DateTime(2026, 10, 15),
+          xTo: DateTime(2026, 11, 30),
+        ),
+      ),
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('date axis Oct 15, 2026 to Nov 30, 2026')),
+      findsOneWidget,
+    );
+    // The summary still names the data's own first and last date.
+    expect(find.bySemanticsLabel(RegExp('2 values|3 values')), findsOneWidget);
+
+    // A point outside the range widens the axis instead of being cut off.
+    await tester.pumpWidget(
+      _wrap(
+        RfTrendChart(
+          series: series,
+          unit: 'cm',
+          xFrom: DateTime(2026, 11, 2),
+          xTo: DateTime(2026, 11, 3),
+        ),
+      ),
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('date axis Nov 1, 2026 to Nov 3, 2026')),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
+  testWidgets('without an explicit range no date axis is announced', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(_wrap(RfTrendChart(series: series, unit: 'cm')));
+    expect(find.bySemanticsLabel(RegExp('date axis')), findsNothing);
+    handle.dispose();
+  });
 }

@@ -218,6 +218,41 @@ void main() {
     expect(find.text('83.2'), findsOneWidget);
   });
 
+  testWidgets('goals: sessions goal, weekly summary, goal survives a restart '
+      '(in-memory db)', (tester) async {
+    final db = AppDatabase.inMemory();
+    addTearDown(
+      () => db.close().timeout(const Duration(seconds: 10), onTimeout: () {}),
+    );
+    await pumpApp(tester, db: db);
+
+    await tester.tap(find.byKey(const Key('nav-goals')));
+    await pumpUntil(tester, find.byKey(const Key('goals-empty')));
+
+    await tester.tap(find.byKey(const Key('goal-set-sessionsPerWeek')));
+    await pumpUntil(tester, find.byKey(const Key('goal-target-field')));
+    await tester.enterText(find.byKey(const Key('goal-target-field')), '3');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('goal-save')));
+    await pumpUntil(tester, find.text('0 of 3 sessions'));
+    expect(find.text('0 of 3 sessions'), findsOneWidget);
+    await pumpUntilGone(tester, find.text('Goal saved'));
+
+    await scrollTo(tester, find.byKey(const Key('goals-open-weekly')));
+    await tester.tap(find.byKey(const Key('goals-open-weekly')));
+    await pumpUntil(tester, find.byKey(const Key('weekly-nutrition')));
+    expect(find.byKey(const Key('weekly-nutrition')), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // The goal is stored: a restart on the same database still shows it.
+    await restart(tester, db: db);
+    await tester.tap(find.byKey(const Key('nav-goals')));
+    await pumpUntil(tester, find.text('0 of 3 sessions'));
+    expect(find.text('0 of 3 sessions'), findsOneWidget);
+  });
+
   testWidgets('owner actions workspace is reachable from Settings and a '
       'status change survives a restart (in-memory db)', (tester) async {
     final db = AppDatabase.inMemory();

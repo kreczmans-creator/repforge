@@ -77,6 +77,42 @@ Result<double> validateTarget(GoalKind kind, double value) {
   return Ok(value);
 }
 
+/// Energy implied by macro targets (GOL-002): protein and carbohydrate 4 kcal
+/// per gram, fat 9 kcal per gram. A macro without a target is not counted as
+/// zero; it is named in [missing] and the figure is then partial.
+class ImpliedEnergy {
+  const ImpliedEnergy({required this.kcal, required this.missing});
+
+  /// Energy of the macros that are set.
+  final double kcal;
+
+  /// Names of the macros with no target (`protein`, `carbs`, `fat`).
+  final List<String> missing;
+
+  /// Whether protein, carbohydrate and fat are all set.
+  bool get isComplete => missing.isEmpty;
+
+  /// Whether no macro is set at all.
+  bool get isEmpty => missing.length == 3;
+}
+
+/// The energy implied by the set macro targets.
+ImpliedEnergy impliedEnergy({double? proteinG, double? carbsG, double? fatG}) =>
+    ImpliedEnergy(
+      kcal: (proteinG ?? 0) * 4 + (carbsG ?? 0) * 4 + (fatG ?? 0) * 9,
+      missing: [
+        if (proteinG == null) 'protein',
+        if (carbsG == null) 'carbs',
+        if (fatG == null) 'fat',
+      ],
+    );
+
+/// Whether [impliedKcal] differs from [targetKcal] by more than 10 % of the
+/// target (GOL-002). Exactly 10 % does not count. False without a positive
+/// target.
+bool differsByMoreThanTenPercent(double impliedKcal, double targetKcal) =>
+    targetKcal > 0 && (impliedKcal - targetKcal).abs() / targetKcal > 0.10;
+
 /// Today's intake against targets (dashboard, NUT-020). [totals] carries the
 /// known sums plus how many entries lacked each nutrient.
 @freezed

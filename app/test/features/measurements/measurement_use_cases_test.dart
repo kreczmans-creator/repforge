@@ -701,6 +701,12 @@ final class _DeleteAfterRead implements MeasurementRepository {
   @override
   Future<Measurement?> latest(MeasurementSite site) => inner.latest(site);
   @override
+  Future<List<Measurement>> readingsBetween(
+    DateTime from,
+    DateTime to, {
+    MeasurementSite? site,
+  }) => inner.readingsBetween(from, to, site: site);
+  @override
   Future<int> update(Measurement m) => inner.update(m);
   @override
   Stream<List<Measurement>> watchAll({int? limit}) =>
@@ -726,6 +732,12 @@ final class _Throwing implements MeasurementRepository {
   Future<void> insertAll(List<Measurement> items) => throw const _Boom();
   @override
   Future<Measurement?> latest(MeasurementSite site) => throw const _Boom();
+  @override
+  Future<List<Measurement>> readingsBetween(
+    DateTime from,
+    DateTime to, {
+    MeasurementSite? site,
+  }) => throw const _Boom();
   @override
   Future<int> update(Measurement m) => throw const _Boom();
   @override
