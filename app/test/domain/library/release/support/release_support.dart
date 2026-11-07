@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:repforge/domain/library/release/reconciliation_planner.dart';
 import 'package:repforge/domain/library/release/release_format.dart';
 import 'package:repforge/domain/library/release/release_validator.dart';
 
@@ -55,4 +56,67 @@ Map<String, Object?> subsetRelease(Iterable<String> ids, {int? release}) {
   ];
   if (release != null) map['release'] = release;
   return map;
+}
+
+/// A validated release made of [ids] from the shipped release, with the given
+/// revisions (default 1), release number and retirements.
+ValidatedRelease validatedSubset(
+  Iterable<String> ids, {
+  Map<String, int> revisions = const {},
+  int release = 2,
+  List<Map<String, Object?>> retirements = const [],
+  void Function(Map<String, Object?> release)? edit,
+}) {
+  final map = subsetRelease(ids, release: release);
+  for (final e in exercisesOf(map)) {
+    final r = revisions[e['id']];
+    if (r != null) e['revision'] = r;
+  }
+  map['retirements'] = retirements;
+  edit?.call(map);
+  final v = validateReleaseBytes(bytes: bytesOf(map), reference: approvedSet());
+  if (!v.isValid) {
+    throw StateError('Test release is invalid: ${v.errors}');
+  }
+  return v.release!;
+}
+
+/// Simulates applying [plan] to [snapshot] (test double of the future
+/// reconciler; it is not production code and writes no database).
+CatalogueStateSnapshot applyPlan(
+  CatalogueStateSnapshot snapshot,
+  ReconciliationPlan plan,
+) {
+  final entries = {for (final e in snapshot.exercises) e.id: e};
+  for (final i in plan.inserts) {
+    entries[i.id] = ExerciseStateEntry.system(
+      i.id,
+      revision: i.exercise.revision,
+      providerId: plan.provider.id,
+    );
+  }
+  for (final u in plan.updates) {
+    entries[u.id] = ExerciseStateEntry.system(
+      u.id,
+      revision: u.toRevision,
+      providerId: plan.provider.id,
+    );
+  }
+  for (final r in plan.retirements) {
+    final old = entries[r.id]!;
+    entries[r.id] = ExerciseStateEntry.system(
+      r.id,
+      revision: old.revision,
+      providerId: old.providerId,
+      retired: true,
+    );
+  }
+  return CatalogueStateSnapshot(
+    exercises: entries.values,
+    equipmentDefaultRoles: snapshot.equipmentDefaultRoles,
+    latestAppliedRelease: {
+      ...snapshot.latestAppliedRelease,
+      if (plan.recordsRelease) plan.provider.id: plan.release.number,
+    },
+  );
 }

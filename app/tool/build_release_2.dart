@@ -156,7 +156,8 @@ void main(List<String> args) {
     }
     return;
   }
-  file.createSync(recursive: true);
-  file.writeAsStringSync(text);
+  file
+    ..createSync(recursive: true)
+    ..writeAsStringSync(text);
   print('build_release_2: wrote $releaseAssetPath');
 }

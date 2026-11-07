@@ -51,7 +51,7 @@ void main() {
     expect(isReleaseContentHash(releaseContentHash(const [1])), isTrue);
     expect(isReleaseContentHash('ABC'), isFalse);
     expect(isReleaseContentHash('${'a' * 63}G'), isFalse);
-    expect(isReleaseContentHash('${'A' * 64}'), isFalse);
+    expect(isReleaseContentHash('A' * 64), isFalse);
     expect(isReleaseContentHash('sha256:${'a' * 64}'), isFalse);
   });
 

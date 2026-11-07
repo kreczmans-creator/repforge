@@ -117,6 +117,7 @@ The release content hash is the **SHA-256 of the exact bytes of the bundled file
 | RF-008 | A reference file's hash differs from the supplied file, or the file was not supplied. (A missing or malformed section in the release is RF-002.) |
 | RF-009 | Provider mismatch between the release and a reference file. |
 | RF-010 | The content hash differs from the expected hash supplied by the caller. |
+| RF-011 | An approved reference file is not valid UTF-8 JSON or does not parse as its reference type. |
 
 ## 9. Reconciliation (planner rules)
 
@@ -135,6 +136,8 @@ The reconciliation planner is a pure function. It takes a validated release and 
 | Release provider differs from the snapshot provider of that id | Refused. |
 | Equipment item whose default role differs from the snapshot | Refused (R-20, default-role immutability). |
 | Release number lower than the latest applied of the provider | Refused. |
+
+Refusal codes: RP-001 id owned by a user or imported exercise or custom copy; RP-002 id owned by another provider; RP-003 lower revision; RP-004 retired id in the release; RP-005 known id omitted without a retirement (IC-110); RP-006 retirement of a non-system id; RP-007 default role changed (R-20); RP-008 older release number; RP-009 relationship ending on a non-system exercise; RP-010 id both listed and retired; RP-011 stored system exercise without a revision.
 
 Any refusal refuses the plan: it then holds no operation (all or nothing). The plan never contains an operation on user and imported exercises, custom copies, user state, user relationships, plans, sessions or history. The plan has no field for `source`, so "source is never updated" (R-26) holds by construction and is tested. For information only, the plan lists the custom copies whose source exercise is updated; this writes nothing and does not decide how the "source updated" marker is stored (R-25 stays open).
 
