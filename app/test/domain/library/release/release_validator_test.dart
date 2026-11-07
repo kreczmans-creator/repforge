@@ -237,7 +237,7 @@ void main() {
         'lib-back-squat',
         'lib-front-squat',
       ], release: 3);
-      exercisesOf(map)[0]['revision'] = 2;
+      exercisesOf(map)[0]['revision'] = 3;
       final first = validate(map).release!;
       final map2 = subsetRelease([
         'lib-back-squat',
@@ -269,7 +269,7 @@ void main() {
       ], release: 3);
       exercisesOf(map)[0]
         ..['difficulty'] = 'advanced'
-        ..['revision'] = 2;
+        ..['revision'] = 3;
       expect(next(map).errors, isEmpty);
     });
 
@@ -291,5 +291,18 @@ void main() {
     expect(base.report!.tranches, isEmpty);
     expect(complete.report!.tranches, {'5.1': 'complete'});
     expect(complete.errors.length, greaterThanOrEqualTo(base.errors.length));
+  });
+
+  test('an unknown tranche id is refused (RF-012)', () {
+    final v = validate(release2Map()..['tranches'] = {'9.9': 'planned'});
+    expect(_codes(v), contains('RF-012'));
+    expect(v.isValid, isFalse);
+  });
+
+  test('the content hash is always the hash of the parsed bytes', () {
+    final bytes = release2Bytes();
+    final v = validateReleaseBytes(bytes: bytes, reference: reference);
+    expect(v.contentHash, releaseContentHash(bytes));
+    expect(v.release!.contentHash, releaseContentHash(bytes));
   });
 }

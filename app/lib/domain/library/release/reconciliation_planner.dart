@@ -54,10 +54,15 @@ final class CatalogueStateSnapshot {
     Iterable<ExerciseStateEntry> exercises = const [],
     Map<EquipmentItemId, EquipmentDefaultRole> equipmentDefaultRoles = const {},
     Map<ProviderId, int> latestAppliedRelease = const {},
+    Map<ReleaseId, String> appliedContentHashes = const {},
   }) : equipmentDefaultRoles = Map.unmodifiable(equipmentDefaultRoles),
-       latestAppliedRelease = Map.unmodifiable(latestAppliedRelease) {
+       latestAppliedRelease = Map.unmodifiable(latestAppliedRelease),
+       appliedContentHashes = Map.unmodifiable(appliedContentHashes) {
     for (final e in exercises) {
-      _byId.putIfAbsent(e.id, () => e);
+      if (_byId.containsKey(e.id)) {
+        throw ArgumentError.value(e.id.value, 'exercises', 'duplicate id');
+      }
+      _byId[e.id] = e;
     }
   }
 
@@ -71,6 +76,11 @@ final class CatalogueStateSnapshot {
 
   /// The highest release number applied per provider.
   final Map<ProviderId, int> latestAppliedRelease;
+
+  /// The content hash (SHA-256, lowercase hex) recorded when a release was
+  /// applied. A release number that is already applied is a no-op only when
+  /// its hash equals the recorded one.
+  final Map<ReleaseId, String> appliedContentHashes;
 
   Iterable<ExerciseStateEntry> get exercises => _byId.values;
 
@@ -281,6 +291,29 @@ ReconciliationPlan planReconciliation({
             'latest applied release $applied.',
       ),
     );
+  }
+
+  // The same release number must be the same file.
+  if (applied != null && doc.release.number <= applied) {
+    final recorded = snapshot.appliedContentHashes[doc.release];
+    if (recorded != null && recorded != release.contentHash) {
+      refusals.add(
+        _refuse(
+          'RP-012',
+          'Release ${doc.release} was applied with content hash $recorded; '
+              'this file hashes to ${release.contentHash}. A release is '
+              'immutable; ship a new release number.',
+        ),
+      );
+    } else if (recorded == null && doc.release.number == applied) {
+      refusals.add(
+        _refuse(
+          'RP-013',
+          'Release ${doc.release} is recorded as applied without a content '
+              'hash, so this file cannot be shown to be the same release.',
+        ),
+      );
+    }
   }
 
   // R-20: a default role is immutable.

@@ -22,6 +22,7 @@ import 'package:repforge/domain/library/finding.dart';
 import 'package:repforge/domain/library/integrity_report.dart';
 import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/release/release_format.dart';
+import 'package:repforge/domain/library/release/release_one_baseline.dart';
 import 'package:repforge/domain/library/release/release_parser.dart';
 import 'package:repforge/domain/library/release/release_validator.dart';
 
@@ -225,11 +226,13 @@ final RegExp _releaseName = RegExp(r'^releases/([^/]+)-release-(\d+)\.json$');
 /// [docsReference] (bytes keyed by file name, optional) is the approved
 /// `docs/catalogue/reference/` folder: when given, every asset copy must be
 /// byte-identical to it. [acceptedGapsText] is the text of the accepted-gaps
-/// file, or null when it does not exist (an error).
+/// file, or null when it does not exist (an error). [legacySeedText] is the
+/// seed file (release 1) that release 2 is compared with.
 GateResult runCatalogueGate({
   required Map<String, List<int>> assets,
   required String? acceptedGapsText,
   Map<String, List<int>>? docsReference,
+  String? legacySeedText,
 }) {
   final gateFindings = <Finding>[];
 
@@ -370,12 +373,32 @@ GateResult runCatalogueGate({
       );
       continue;
     }
-    final previous = lastByProvider[doc.provider.id];
-    final validation = validateRelease(
-      document: doc,
-      contentHash: p.result.contentHash!,
+    final earlier = lastByProvider[doc.provider.id];
+    var previous = earlier == null ? null : previousCatalogueOf(earlier);
+    // Release 1 of `repforge` is the seed as a migrated device holds it.
+    if (previous == null &&
+        doc.provider.id == ProviderId.repforge &&
+        doc.release.number > 1) {
+      final seed = legacySeedText;
+      if (seed == null) {
+        fileFindings.add(
+          _gate(
+            'GATE-006',
+            'The seed file (release 1) is needed to check ${p.file} against '
+                'the migrated catalogue (IC-104, IC-105, IC-110).',
+            subjectId: p.file,
+          ),
+        );
+      } else {
+        final baseline = releaseOneBaseline(seed);
+        previous = baseline.previous;
+        fileFindings.addAll(baseline.findings);
+      }
+    }
+    final validation = validateReleaseBytes(
+      bytes: assets[p.file]!,
       reference: set,
-      previous: previous == null ? null : previousCatalogueOf(previous),
+      previous: previous,
       retiredExerciseLedger: retiredByProvider[doc.provider.id] ?? const {},
       acceptedGaps: acceptedGaps,
       options: const IntegrityOptions(includeCoverageFindings: true),
@@ -428,11 +451,24 @@ Map<String, List<int>> _readTree(String root) {
   };
 }
 
+const String _noGaps = '{"schema": "repforge.acceptedGaps/1", "accepted": []}';
+
 void main(List<String> args) {
+  try {
+    _run(args);
+  } on FileSystemException catch (e) {
+    print('catalogue gate: I/O problem: ${e.message} ${e.path ?? ''}');
+    exitCode = 2;
+  }
+}
+
+void _run(List<String> args) {
   var out = 'build/catalogue_gate';
   var catalogue = 'assets/catalogue';
   var docs = '../docs/catalogue/reference';
   var acceptedGapsPath = '../docs/catalogue/accepted-gaps.json';
+  var seedPath = 'assets/seed/exercise_library.json';
+  var skipDocs = false;
   for (var i = 0; i < args.length; i++) {
     final hasValue = i + 1 < args.length;
     switch (args[i]) {
@@ -444,6 +480,10 @@ void main(List<String> args) {
         docs = args[++i];
       case '--accepted-gaps' when hasValue:
         acceptedGapsPath = args[++i];
+      case '--seed' when hasValue:
+        seedPath = args[++i];
+      case '--skip-docs':
+        skipDocs = true;
       default:
         print('catalogue gate: unknown or incomplete argument ${args[i]}');
         exitCode = 2;
@@ -455,24 +495,29 @@ void main(List<String> args) {
     exitCode = 2;
     return;
   }
-  final docsFiles = Directory(docs).existsSync()
-      ? {
+  final gapsFile = File(acceptedGapsPath);
+  if (!skipDocs && (!Directory(docs).existsSync() || !gapsFile.existsSync())) {
+    print(
+      'catalogue gate: $docs or $acceptedGapsPath not found; pass --skip-docs '
+      'to run without the docs equality check and the accepted-gaps file',
+    );
+    exitCode = 2;
+    return;
+  }
+  final docsFiles = skipDocs
+      ? null
+      : {
           for (final e in _readTree(docs).entries)
             if (e.key.endsWith('.json')) e.key: e.value,
-        }
-      : null;
-  if (docsFiles == null) {
-    print(
-      'catalogue gate: $docs not found; the docs equality check is skipped',
-    );
-  }
-  final gapsFile = File(acceptedGapsPath);
+        };
+  final seedFile = File(seedPath);
   final result = runCatalogueGate(
     assets: _readTree(catalogue),
     acceptedGapsText: gapsFile.existsSync()
         ? gapsFile.readAsStringSync()
-        : null,
+        : (skipDocs ? _noGaps : null),
     docsReference: docsFiles,
+    legacySeedText: seedFile.existsSync() ? seedFile.readAsStringSync() : null,
   );
 
   final dir = Directory(out)..createSync(recursive: true);

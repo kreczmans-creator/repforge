@@ -8,6 +8,7 @@ import '../../tool/catalogue_gate.dart';
 import '../domain/library/release/support/release_support.dart';
 
 const String _catalogue = 'assets/catalogue';
+const String _seedPath = 'assets/seed/exercise_library.json';
 const String _gapsPath = '../docs/catalogue/accepted-gaps.json';
 
 Map<String, List<int>> _assets() => {
@@ -28,7 +29,9 @@ GateResult _run({
   String? gaps,
   Map<String, List<int>>? docs,
   bool noGaps = false,
+  bool noSeed = false,
 }) => runCatalogueGate(
+  legacySeedText: noSeed ? null : File(_seedPath).readAsStringSync(),
   assets: assets ?? _assets(),
   acceptedGapsText: noGaps ? null : (gaps ?? _gaps()),
   docsReference: docs ?? _docs(),
@@ -270,6 +273,55 @@ void main() {
     });
   });
 
+  group('release 2 against the migrated release 1 (seed through the 3a '
+      'mapping)', () {
+    test('a changed exercise left at revision 1 is refused (IC-105)', () {
+      final map = release2Map();
+      exercisesOf(map)[0]['revision'] = 1;
+      final r = _run(assets: _withRelease('repforge-release-2.json', map));
+      expect(r.passed, isFalse);
+      expect(r.releases.single.findings.map((f) => f.code), contains('IC-105'));
+    });
+
+    test('a seed exercise missing from release 2 without a retirement is '
+        'refused (IC-110)', () {
+      final map = release2Map();
+      exercisesOf(map).removeLast();
+      final r = _run(assets: _withRelease('repforge-release-2.json', map));
+      expect(r.passed, isFalse);
+      expect(r.releases.single.findings.map((f) => f.code), contains('IC-110'));
+    });
+
+    test('retiring it instead passes', () {
+      final map = release2Map();
+      final last = exercisesOf(map).removeLast();
+      map['retirements'] = [
+        {'id': last['id'], 'reason': 'Merged.'},
+      ];
+      final r = _run(assets: _withRelease('repforge-release-2.json', map));
+      expect(r.passed, isTrue, reason: r.toMarkdown());
+    });
+
+    test('without the seed, release 2 cannot be checked (GATE-006)', () {
+      final r = _run(noSeed: true);
+      expect(r.passed, isFalse);
+      expect(
+        r.releases.single.findings.map((f) => f.code),
+        contains('GATE-006'),
+      );
+    });
+
+    test('an unusable seed is a finding (RF-013)', () {
+      final r = runCatalogueGate(
+        assets: _assets(),
+        acceptedGapsText: _gaps(),
+        legacySeedText: 'nope',
+      );
+      expect(r.passed, isFalse);
+      expect(r.releases.single.findings.map((f) => f.code), contains('RF-013'));
+    });
+  });
+
   group('several releases of one provider', () {
     test('the next release is checked against the previous one', () {
       final next = release2Map()..['release'] = 3;
@@ -337,6 +389,59 @@ void main() {
         jsonDecode(File('${out.path}/catalogue-gate.json').readAsStringSync())!
             as Map<String, Object?>;
     expect(json['passed'], isTrue);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  Future<ProcessResult?> gate(List<String> args) async {
+    try {
+      return await Process.run('dart', [
+        'run',
+        'tool/catalogue_gate.dart',
+        ...args,
+      ]);
+    } on ProcessException {
+      markTestSkipped('dart is not on the PATH');
+      return null;
+    }
+  }
+
+  test('missing docs folder or accepted-gaps file is exit 2 unless '
+      '--skip-docs is passed', () async {
+    final out = Directory.systemTemp.createTempSync('catalogue_gate_');
+    addTearDown(() => out.deleteSync(recursive: true));
+    final noDocs = await gate([
+      '--out',
+      out.path,
+      '--docs',
+      '${out.path}/nope',
+    ]);
+    if (noDocs == null) return;
+    expect(noDocs.exitCode, 2, reason: '${noDocs.stdout}');
+    final noGaps = await gate([
+      '--out',
+      out.path,
+      '--accepted-gaps',
+      '${out.path}/nope.json',
+    ]);
+    expect(noGaps!.exitCode, 2);
+    final skipped = await gate([
+      '--out',
+      out.path,
+      '--docs',
+      '${out.path}/nope',
+      '--accepted-gaps',
+      '${out.path}/nope.json',
+      '--skip-docs',
+    ]);
+    expect(skipped!.exitCode, 0, reason: '${skipped.stdout}${skipped.stderr}');
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('an I/O problem is exit 2', () async {
+    final dir = Directory.systemTemp.createTempSync('catalogue_gate_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/a-file')..writeAsStringSync('x');
+    final result = await gate(['--out', '${file.path}/sub']);
+    if (result == null) return;
+    expect(result.exitCode, 2, reason: '${result.stdout}${result.stderr}');
   }, timeout: const Timeout(Duration(minutes: 3)));
 
   test('the command fails on an unknown argument', () async {

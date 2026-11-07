@@ -18,6 +18,13 @@ import 'package:repforge/domain/library/release/release_hash.dart';
 /// not the clock.
 const String release2Date = '2026-11-07';
 
+/// Revision of every exercise in release 2. A migrated v7 device holds the
+/// 89 seed exercises as system/repforge revision 1 with no patterns,
+/// mechanics, laterality, difficulty, attributes or role overrides, so every
+/// system-owned field set here differs from the migrated form; the reconciler
+/// updates an exercise only on a higher revision (ADR-0009 decision 4).
+const int release2Revision = 2;
+
 /// Where the inputs and the output live, relative to `app/`.
 const String mappingPath = '../docs/catalogue/mapping-existing.json';
 const String releaseAssetPath =
@@ -86,13 +93,20 @@ Map<String, Object?> _exercise(
   final roles = (e['equipmentRoles'] as Map<String, Object?>?) ?? const {};
   final flags = ((e['flags'] as List<Object?>?) ?? const [])
       .cast<Map<String, Object?>>();
-  final roleNote = flags.isEmpty
-      ? 'Role differs from the default.'
-      : flags.first['text']! as String;
+  final roleFlags = [
+    for (final f in flags)
+      if (f['code'] == 'E') f['text']! as String,
+  ];
+  if (roles.isNotEmpty && roleFlags.isEmpty) {
+    throw StateError(
+      '${e['id']} has equipmentRoles but no E flag to take the role note from.',
+    );
+  }
+  final roleNote = roleFlags.isEmpty ? '' : roleFlags.first;
   final attributes = (e['attributes'] as Map<String, Object?>?) ?? const {};
   return {
     'id': e['id'],
-    'revision': 1,
+    'revision': release2Revision,
     'names': {
       'en-GB': {'name': e['name'], 'aliases': aliases},
     },

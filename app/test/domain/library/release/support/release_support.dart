@@ -69,8 +69,8 @@ ValidatedRelease validatedSubset(
 }) {
   final map = subsetRelease(ids, release: release);
   for (final e in exercisesOf(map)) {
-    final r = revisions[e['id']];
-    if (r != null) e['revision'] = r;
+    // Unit tests of the planner start from revision 1 unless told otherwise.
+    e['revision'] = revisions[e['id']] ?? 1;
   }
   map['retirements'] = retirements;
   edit?.call(map);
@@ -117,6 +117,10 @@ CatalogueStateSnapshot applyPlan(
     latestAppliedRelease: {
       ...snapshot.latestAppliedRelease,
       if (plan.recordsRelease) plan.provider.id: plan.release.number,
+    },
+    appliedContentHashes: {
+      ...snapshot.appliedContentHashes,
+      if (plan.recordsRelease) plan.release: plan.contentHash,
     },
   );
 }

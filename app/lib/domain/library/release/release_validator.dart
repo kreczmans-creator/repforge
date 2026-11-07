@@ -141,7 +141,7 @@ final class ApprovedReferenceSet {
 }
 
 /// A release that passed validation: the only input the planner accepts. It
-/// can be created by [validateRelease] and nowhere else.
+/// can be created by [validateReleaseBytes] and nowhere else.
 @immutable
 final class ValidatedRelease {
   const ValidatedRelease._({
@@ -205,7 +205,7 @@ ReleaseValidation validateReleaseBytes({
       contentHash: parsed.contentHash,
     );
   }
-  return validateRelease(
+  return _validateParsed(
     document: document,
     contentHash: parsed.contentHash!,
     reference: reference,
@@ -219,8 +219,10 @@ ReleaseValidation validateReleaseBytes({
 
 /// Validates a parsed release against the approved reference data, reusing
 /// the 3a integrity checks. All or nothing: the result carries every finding
-/// and a [ValidatedRelease] only when no finding is an error.
-ReleaseValidation validateRelease({
+/// and a [ValidatedRelease] only when no finding is an error. Private: the
+/// public entry takes the bytes, so the content hash is always the hash of
+/// the bytes that were parsed (R-10).
+ReleaseValidation _validateParsed({
   required ReleaseDocument document,
   required String contentHash,
   required ApprovedReferenceSet reference,
@@ -249,6 +251,22 @@ ReleaseValidation validateRelease({
           'The release declares ${declared.sha256} for ${name.wire} but the '
               'approved file hashes to ${actual ?? 'nothing (not supplied)'}.',
           field: 'reference.${name.wire}',
+        ),
+      );
+    }
+  }
+  final tranches = {
+    for (final g in reference.coverage.groups) g.tranche,
+    for (final c in reference.coverage.sets) c.tranche,
+  };
+  for (final t in document.tranches.keys) {
+    if (!tranches.contains(t)) {
+      findings.add(
+        _rf(
+          'RF-012',
+          'Unknown tranche id $t; the coverage specification knows '
+              '${(tranches.toList()..sort()).join(', ')}.',
+          field: 'tranches.$t',
         ),
       );
     }

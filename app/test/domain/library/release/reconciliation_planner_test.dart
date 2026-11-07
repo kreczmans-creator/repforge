@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/domain/library/library_enums.dart';
 import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/release/reconciliation_planner.dart';
+import 'package:repforge/domain/library/release/release_validator.dart';
 
 import 'support/release_support.dart';
 
@@ -29,6 +30,19 @@ CatalogueStateSnapshot _snap(
   latestAppliedRelease: applied,
   equipmentDefaultRoles: roles,
 );
+
+/// A snapshot row the planner must refuse.
+ExerciseStateEntry _defect(Random rnd, String id, int releaseRevision) =>
+    switch (rnd.nextInt(4)) {
+      0 => ExerciseStateEntry(id: _id(id), source: ExerciseSource.user),
+      1 => ExerciseStateEntry(id: _id(id), source: ExerciseSource.imported),
+      2 => ExerciseStateEntry.system(
+        _id(id),
+        revision: releaseRevision,
+        retired: true,
+      ),
+      _ => ExerciseStateEntry.system(_id(id), revision: releaseRevision + 1),
+    };
 
 void main() {
   group('inserts, updates, no-ops', () {
@@ -502,6 +516,98 @@ void main() {
     });
   });
 
+  group('release 2 against a migrated device', () {
+    test('a snapshot of the 89 migrated rows at revision 1 plus release 2 '
+        'gives 89 updates, not 89 no-ops', () {
+      final release = validateReleaseBytes(
+        bytes: release2Bytes(),
+        reference: approvedSet(),
+      ).release!;
+      final snapshot = _snap(
+        [
+          for (final e in release.document.exercises)
+            ExerciseStateEntry.system(e.id, revision: 1),
+        ],
+        // Release 1 was recorded by the migration (R-30), without counts.
+        applied: {ProviderId.repforge: 1},
+      );
+      final plan = planReconciliation(release: release, snapshot: snapshot);
+      expect(plan.canApply, isTrue);
+      expect(plan.updates, hasLength(89));
+      expect(plan.noOps, isEmpty);
+      expect(plan.inserts, isEmpty);
+      expect(plan.recordsRelease, isTrue);
+      expect(plan.updates.every((u) => u.fromRevision == 1), isTrue);
+      expect(plan.updates.every((u) => u.toRevision == 2), isTrue);
+      // And a second run is then a no-op.
+      final again = planReconciliation(
+        release: release,
+        snapshot: applyPlan(snapshot, plan),
+      );
+      expect(again.writesNothing, isTrue);
+      expect(again.noOps, hasLength(89));
+    });
+  });
+
+  group('the same release number must be the same file', () {
+    final release = validatedSubset(_ids);
+    final other = validatedSubset(
+      _ids,
+      edit: (m) => (m['provider']! as Map<String, Object?>)['name'] = 'Other',
+    );
+
+    test('a different hash for an applied number is refused (RP-012)', () {
+      expect(other.contentHash, isNot(release.contentHash));
+      final applied = applyPlan(
+        CatalogueStateSnapshot.empty,
+        planReconciliation(
+          release: release,
+          snapshot: CatalogueStateSnapshot.empty,
+        ),
+      );
+      final plan = planReconciliation(release: other, snapshot: applied);
+      expect(_refusalCodes(plan), ['RP-012']);
+      expect(plan.writtenExerciseIds, isEmpty);
+    });
+
+    test('equal hashes are a no-op; an applied number without a recorded '
+        'hash cannot be shown to be the same (RP-013)', () {
+      final applied = applyPlan(
+        CatalogueStateSnapshot.empty,
+        planReconciliation(
+          release: release,
+          snapshot: CatalogueStateSnapshot.empty,
+        ),
+      );
+      expect(
+        planReconciliation(release: release, snapshot: applied).writesNothing,
+        isTrue,
+      );
+      final unknownHash = _snap(
+        applied.exercises,
+        applied: {ProviderId.repforge: 2},
+      );
+      expect(
+        _refusalCodes(
+          planReconciliation(release: release, snapshot: unknownHash),
+        ),
+        ['RP-013'],
+      );
+    });
+  });
+
+  test('a snapshot with a duplicate id is rejected', () {
+    expect(
+      () => CatalogueStateSnapshot(
+        exercises: const [
+          ExerciseStateEntry.system(ExerciseId('a'), revision: 1),
+          ExerciseStateEntry(id: ExerciseId('a'), source: ExerciseSource.user),
+        ],
+      ),
+      throwsArgumentError,
+    );
+  });
+
   group('invariants over many snapshots', () {
     test('a plan writes only new or system exercises of the provider, '
         'never anything else (ADR-0009 decision 4, R-26)', () {
@@ -514,37 +620,54 @@ void main() {
         ],
       );
       final pool = [..._ids, 'lib-old-1', 'lib-old-2', 'user-1', 'user-2'];
+      var applicable = 0;
       for (var seed = 0; seed < 300; seed++) {
         final rnd = Random(seed);
         final entries = <ExerciseStateEntry>[];
+        // Biased towards snapshots a real device could hold: most draws are
+        // absent or a valid system row; about one in ten is a defect.
         for (final id in pool) {
-          switch (rnd.nextInt(5)) {
-            case 0:
-              break;
-            case 1:
-              entries.add(
-                ExerciseStateEntry(
-                  id: _id(id),
-                  source: ExerciseSource.user,
-                  copiedFromId: rnd.nextBool() ? _id(_ids.first) : null,
-                ),
-              );
-            case 2:
-              entries.add(
-                ExerciseStateEntry(
-                  id: _id(id),
-                  source: ExerciseSource.imported,
-                ),
-              );
-            default:
-              entries.add(
-                ExerciseStateEntry.system(
-                  _id(id),
-                  revision: 1 + rnd.nextInt(4),
-                  retired: rnd.nextInt(6) == 0,
-                ),
-              );
+          final roll = rnd.nextInt(10);
+          final releaseRevision = switch (id) {
+            'lib-back-squat' => 2,
+            'lib-deadlift' => 3,
+            _ => 1,
+          };
+          ExerciseStateEntry? entry;
+          if (_ids.contains(id)) {
+            entry = switch (roll) {
+              < 3 => null,
+              < 9 => ExerciseStateEntry.system(
+                _id(id),
+                revision: 1 + rnd.nextInt(releaseRevision),
+              ),
+              _ => _defect(rnd, id, releaseRevision),
+            };
+          } else if (id == 'lib-old-1') {
+            entry = switch (roll) {
+              < 4 => null,
+              < 7 => ExerciseStateEntry.system(_id(id), revision: 1),
+              7 => ExerciseStateEntry.system(
+                _id(id),
+                revision: 1,
+                retired: true,
+              ),
+              _ => _defect(rnd, id, 1),
+            };
+          } else if (id == 'lib-old-2') {
+            entry = roll < 9
+                ? null
+                : ExerciseStateEntry.system(_id(id), revision: 1);
+          } else {
+            entry = roll < 7
+                ? null
+                : ExerciseStateEntry(
+                    id: _id(id),
+                    source: ExerciseSource.user,
+                    copiedFromId: rnd.nextBool() ? _id(_ids.first) : null,
+                  );
           }
+          if (entry != null) entries.add(entry);
         }
         final snapshot = _snap(entries, applied: {ProviderId.repforge: 3});
         final plan = planReconciliation(release: release, snapshot: snapshot);
@@ -577,6 +700,7 @@ void main() {
           expect(plan.noOps, isEmpty);
           expect(plan.relationships, isEmpty);
         } else {
+          applicable++;
           // Idempotence: after applying, the same release plans no write.
           final again = planReconciliation(
             release: release,
@@ -593,6 +717,13 @@ void main() {
         );
         expect(twice.writtenExerciseIds, plan.writtenExerciseIds);
       }
+      expect(
+        applicable,
+        greaterThanOrEqualTo(100),
+        reason:
+            'the generator must produce mostly valid snapshots, or the '
+            'idempotence assertion proves little',
+      );
     });
   });
 }

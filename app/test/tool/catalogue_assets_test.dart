@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// D-3c-3 recommendation: the approved reference JSON under
-/// `docs/catalogue/reference/` is bundled byte for byte under
-/// `app/assets/catalogue/reference/`. A drift between the two fails CI.
+/// `docs/catalogue/reference/` is kept byte for byte under
+/// `app/assets/catalogue/reference/` (a data artefact; bundling into the app waits for D-3c-3). A drift between the two fails CI.
 const String docsDir = '../docs/catalogue/reference';
 const String assetDir = 'assets/catalogue/reference';
 
@@ -46,10 +46,4 @@ void main() {
       expect(bundled, approved);
     });
   }
-
-  test('pubspec.yaml registers the catalogue asset folders', () {
-    final pubspec = File('pubspec.yaml').readAsStringSync();
-    expect(pubspec, contains('- assets/catalogue/reference/'));
-    expect(pubspec, contains('- assets/catalogue/releases/'));
-  });
 }

@@ -37,7 +37,7 @@ void main() {
       for (final e in doc.exercises) {
         expect(e.source, ExerciseSource.system);
         expect(e.providerId, ProviderId.repforge);
-        expect(e.revision, 1);
+        expect(e.revision, 2);
         expect(e.createdAt, doc.releasedOn);
         expect(e.updatedAt, doc.releasedOn);
       }
@@ -121,7 +121,7 @@ void main() {
       expect(symmetric.from.value, 'lib-back-squat');
       expect(doc.content, hasLength(3));
       expect(doc.content.first.ordinal, 0);
-      expect(doc.content.first.revision, 1);
+      expect(doc.content.first.revision, 2);
       expect(doc.content.first.providerId, ProviderId.repforge);
       expect(doc.media.single.exerciseId.value, 'lib-back-squat');
       expect(doc.retirements.map((x) => x.id.value), [
@@ -169,7 +169,7 @@ void main() {
         containsAll([
           'formatVersion',
           'provider',
-          r'$.release',
+          'release',
           'releasedOn',
           'reference',
           'exercises',
@@ -462,5 +462,79 @@ void main() {
         }
       },
     );
+
+    test('enum values outside the vocabulary carry the 3a codes (IC-202, '
+        'IC-203, IC-308) and all problems are reported together', () {
+      final map = _one();
+      _ex(map)
+        ..['loggingType'] = 'weights'
+        ..['category'] = 'arms'
+        ..['mechanics'] = 'both'
+        ..['laterality'] = 'left'
+        ..['difficulty'] = 'expert'
+        ..['targets'] = [
+          {'node': 'quadriceps', 'role': 'main'},
+        ];
+      final r = _parse(map);
+      expect(r.document, isNull);
+      expect(_codes(r), [
+        'IC-202',
+        'IC-203',
+        'IC-308',
+        'IC-308',
+        'IC-308',
+        'IC-308',
+      ]);
+      expect(r.findings.every((f) => f.subjectId == 'lib-back-squat'), isTrue);
+    });
+
+    test('formatVersion must be the integer 2', () {
+      expect(
+        _codes(
+          parseReleaseText(
+            jsonEncode(_one())
+                .replaceFirst('"formatVersion":2', '"formatVersion":2.0'),
+          ),
+        ),
+        ['RF-003'],
+      );
+    });
+
+    test('an empty release, duplicate retirements, a role note without a '
+        'role, unknown reference paths', () {
+      var map = _one()..['exercises'] = <Object?>[];
+      expect(_parse(map).findings.map((f) => f.field), ['exercises']);
+
+      map = _one()
+        ..['retirements'] = [
+          {'id': 'lib-x', 'reason': 'a'},
+          {'id': 'lib-x', 'reason': 'b'},
+        ];
+      expect(_codes(_parse(map)), ['RF-007']);
+
+      map = _one();
+      _ex(map)['equipment'] = [
+        {'item': 'barbell', 'roleNote': 'note'},
+      ];
+      expect(_parse(map).findings.map((f) => f.field), [
+        'exercises[0].equipment[0].roleNote',
+      ]);
+
+      for (final bad in ['../x.json', '/etc/x', 'a//b', r'a\b', '.', '']) {
+        map = _one();
+        ((map['reference']! as Map<String, Object?>)['ledger']!
+                as Map<String, Object?>)['path'] =
+            bad;
+        expect(_parse(map).document, isNull, reason: bad);
+      }
+    });
+
+    test('exercise problems are reported even when the provider is '
+        'malformed', () {
+      final map = _one()..['provider'] = 5;
+      _ex(map)['category'] = 'x';
+      final r = _parse(map);
+      expect(_codes(r), containsAll(['RF-002', 'IC-203']));
+    });
   });
 }

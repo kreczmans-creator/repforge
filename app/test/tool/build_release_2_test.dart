@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/domain/library/release/release_hash.dart';
+import 'package:repforge/domain/library/release/release_one_baseline.dart';
 import 'package:repforge/domain/library/release/release_parser.dart';
 import 'package:repforge/domain/library/release/release_validator.dart';
 
@@ -44,7 +45,7 @@ void main() {
     expect(fromAssets, File(releaseAssetPath).readAsStringSync());
   });
 
-  test('all 89 ids of the mapping are kept, in mapping order, revision 1', () {
+  test('all 89 ids of the mapping are kept, in mapping order, revision 2', () {
     final ids = [
       for (final e in (mapping['exercises']! as List<Object?>))
         (e! as Map<String, Object?>)['id']! as String,
@@ -52,7 +53,46 @@ void main() {
     expect(ids, hasLength(89));
     final doc = parseReleaseBytes(release2Bytes()).document!;
     expect([for (final e in doc.exercises) e.id.value], ids);
-    expect(doc.exercises.every((e) => e.revision == 1), isTrue);
+    expect(doc.exercises.every((e) => e.revision == release2Revision), isTrue);
+    expect(release2Revision, 2);
+  });
+
+  test('every exercise differs from its migrated form, so revision 2 is '
+      'owed for all 89 (the migration stores revision 1)', () {
+    final baseline = releaseOneBaseline(
+      File('assets/seed/exercise_library.json').readAsStringSync(),
+    );
+    expect(baseline.findings, isEmpty);
+    final migrated = {for (final e in baseline.previous!.exercises) e.id: e};
+    expect(migrated, hasLength(89));
+    expect(migrated.values.every((e) => e.revision == 1), isTrue);
+    final doc = parseReleaseBytes(release2Bytes()).document!;
+    for (final e in doc.exercises) {
+      final old = migrated[e.id]!;
+      expect(e.revision, greaterThan(old.revision!), reason: e.id.value);
+      // The system-owned content really differs (patterns at least).
+      expect(old.patterns, isEmpty);
+      expect(e.patterns, isNotEmpty);
+    }
+  });
+
+  test('a role note is taken from the E flag, and its absence fails', () {
+    final broken = {
+      ...mapping,
+      'exercises': [
+        for (final e in (mapping['exercises']! as List<Object?>))
+          if ((e! as Map<String, Object?>)['id'] == 'lib-inverted-row')
+            {...(e as Map<String, Object?>), 'flags': <Object?>[]}
+          else
+            e,
+      ],
+    };
+    expect(
+      () => buildRelease2(broken, {
+        for (final s in referenceSections) s.file: 'a' * 64,
+      }),
+      throwsStateError,
+    );
   });
 
   test('the ids equal those of the release-1 seed file', () {

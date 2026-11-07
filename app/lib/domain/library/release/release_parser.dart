@@ -94,6 +94,9 @@ ReleaseParseResult parseReleaseJson(Object? json) {
 }
 
 final RegExp _hex64 = RegExp(r'^[0-9a-f]{64}$');
+final RegExp _plainPath = RegExp(
+  r'^(?!\.{1,2}(/|$))[A-Za-z0-9_-][A-Za-z0-9._-]*(/(?!\.{1,2}(/|$))[A-Za-z0-9_-][A-Za-z0-9._-]*)*$',
+);
 final RegExp _date = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 const Set<String> _trancheStatuses = {'planned', 'inProgress', 'complete'};
 
@@ -106,13 +109,28 @@ class _ReleaseParser {
   List<Finding> findings() => [
     for (final e in r.errors.entries)
       _rf(
-        e.key == 'formatVersion' ? 'RF-003' : 'RF-002',
+        _codeFor(e.key, e.value),
         '${e.key}: ${e.value}',
         field: e.key,
         subjectId: _subject(e.key),
       ),
     ..._extra,
   ];
+
+  /// An unknown enum value in a release file is the raw-file form of IC-202,
+  /// IC-203 and IC-308 (the 3a carry-over); everything else is a shape
+  /// problem.
+  String _codeFor(String path, String message) {
+    if (path == 'formatVersion') return 'RF-003';
+    if (!message.startsWith('Expected one of')) return 'RF-002';
+    if (path.endsWith('.loggingType')) return 'IC-202';
+    if (path.endsWith('.category')) return 'IC-203';
+    if (RegExp(r'\.(mechanics|laterality|difficulty|role|kind)$')
+        .hasMatch(path)) {
+      return 'IC-308';
+    }
+    return 'RF-002';
+  }
 
   String? _subject(String path) {
     final m = RegExp(r'^exercises\[(\d+)\]').firstMatch(path);
@@ -149,16 +167,18 @@ class _ReleaseParser {
       'exercises',
       'retirements',
     }, r'$');
-    if (root['formatVersion'] != releaseFormatVersion2) {
+    final version = root['formatVersion'];
+    if (version is! int || version != releaseFormatVersion2) {
       r.fail(
         'formatVersion',
         'Expected format version $releaseFormatVersion2.',
       );
     }
     final provider = _provider(root['provider']);
-    final number = r.integer(root, 'release', r'$');
-    if (number != null && number < 1) {
-      r.fail(r'$.release', 'Expected a release number of at least 1.');
+    final rawNumber = root['release'];
+    final number = rawNumber is int && rawNumber >= 1 ? rawNumber : null;
+    if (number == null) {
+      r.fail('release', 'Expected an integer release number of at least 1.');
     }
     final releasedOn = _releasedOn(root['releasedOn']);
     final reference = _reference(root['reference']);
@@ -169,7 +189,7 @@ class _ReleaseParser {
     final content = <ContentSection>[];
     final media = <MediaReference>[];
     final rawExercises = r.list(root['exercises'], 'exercises');
-    if (rawExercises != null && provider != null) {
+    if (rawExercises != null) {
       for (var i = 0; i < rawExercises.length; i++) {
         final raw = rawExercises[i];
         _exerciseIds.add(
@@ -180,7 +200,7 @@ class _ReleaseParser {
         _exercise(
           raw,
           'exercises[$i]',
-          provider.id,
+          provider?.id ?? const ProviderId('?'),
           stamp,
           exercises,
           relationships,
@@ -190,6 +210,11 @@ class _ReleaseParser {
       }
     }
     final retirements = _retirements(root['retirements']);
+    if (rawExercises != null &&
+        rawExercises.isEmpty &&
+        (retirements?.isEmpty ?? false)) {
+      r.fail('exercises', 'A release lists an exercise or a retirement.');
+    }
     if (provider == null ||
         number == null ||
         releasedOn == null ||
@@ -265,6 +290,10 @@ class _ReleaseParser {
       _closed(section, {'path', 'sha256'}, path);
       final file = r.string(section, 'path', path);
       final hash = r.string(section, 'sha256', path);
+      if (file != null && !_plainPath.hasMatch(file)) {
+        r.fail('$path.path', 'Expected a plain relative path.');
+        continue;
+      }
       if (hash != null && !_hex64.hasMatch(hash)) {
         r.fail('$path.sha256', 'Expected 64 lowercase hexadecimal characters.');
         continue;
@@ -299,6 +328,7 @@ class _ReleaseParser {
     final raw = r.list(value, 'retirements');
     if (raw == null) return null;
     final out = <Retirement>[];
+    final seenRetired = <String>{};
     for (var i = 0; i < raw.length; i++) {
       final path = 'retirements[$i]';
       final m = r.map(raw[i], path);
@@ -308,6 +338,17 @@ class _ReleaseParser {
       final reason = r.string(m, 'reason', path);
       final by = r.optionalString(m, 'replacedBy', path);
       if (id == null || reason == null) continue;
+      if (!seenRetired.add(id)) {
+        _extra.add(
+          _rf(
+            'RF-007',
+            '$path: $id is retired more than once.',
+            field: path,
+            subjectId: id,
+          ),
+        );
+        continue;
+      }
       out.add(
         Retirement(
           ExerciseId(id),
@@ -519,6 +560,10 @@ class _ReleaseParser {
       final role = _optionalEnum(EquipmentRole.values, m, 'role', ep);
       final note = r.optionalString(m, 'roleNote', ep);
       if (m['role'] != null && role == null) ok = false;
+      if (m['role'] == null && m['roleNote'] != null) {
+        r.fail('$ep.roleNote', 'A role note needs a role.');
+        ok = false;
+      }
       if (item == null) {
         ok = false;
         continue;

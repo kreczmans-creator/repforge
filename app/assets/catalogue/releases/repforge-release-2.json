@@ -34,7 +34,7 @@
   "exercises": [
     {
       "id": "lib-back-squat",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell back squat",
@@ -86,7 +86,7 @@
     },
     {
       "id": "lib-front-squat",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell front squat",
@@ -133,7 +133,7 @@
     },
     {
       "id": "lib-goblet-squat",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Goblet squat",
@@ -177,7 +177,7 @@
     },
     {
       "id": "lib-hack-squat",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Hack squat",
@@ -217,7 +217,7 @@
     },
     {
       "id": "lib-leg-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Leg press",
@@ -261,7 +261,7 @@
     },
     {
       "id": "lib-leg-extension",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Leg extension",
@@ -297,7 +297,7 @@
     },
     {
       "id": "lib-leg-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Seated leg curl",
@@ -341,7 +341,7 @@
     },
     {
       "id": "lib-lying-leg-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Lying leg curl",
@@ -384,7 +384,7 @@
     },
     {
       "id": "lib-romanian-deadlift",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Romanian deadlift",
@@ -433,7 +433,7 @@
     },
     {
       "id": "lib-dumbbell-rdl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell Romanian deadlift",
@@ -481,7 +481,7 @@
     },
     {
       "id": "lib-deadlift",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Conventional deadlift",
@@ -541,7 +541,7 @@
     },
     {
       "id": "lib-sumo-deadlift",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Sumo deadlift",
@@ -597,7 +597,7 @@
     },
     {
       "id": "lib-trap-bar-deadlift",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Trap bar deadlift",
@@ -650,7 +650,7 @@
     },
     {
       "id": "lib-hip-thrust",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell hip thrust",
@@ -700,7 +700,7 @@
     },
     {
       "id": "lib-glute-bridge",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Glute bridge",
@@ -739,7 +739,7 @@
     },
     {
       "id": "lib-walking-lunge",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell walking lunge",
@@ -787,7 +787,7 @@
     },
     {
       "id": "lib-bodyweight-lunge",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Bodyweight lunge",
@@ -828,7 +828,7 @@
     },
     {
       "id": "lib-bulgarian-split-squat",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Bulgarian split squat",
@@ -875,7 +875,7 @@
     },
     {
       "id": "lib-step-up",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell step-up",
@@ -918,7 +918,7 @@
     },
     {
       "id": "lib-bodyweight-squat",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Bodyweight squat",
@@ -954,7 +954,7 @@
     },
     {
       "id": "lib-standing-calf-raise",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Standing calf raise",
@@ -997,7 +997,7 @@
     },
     {
       "id": "lib-hip-abduction",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Machine hip abduction",
@@ -1037,7 +1037,7 @@
     },
     {
       "id": "lib-hip-adduction",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Machine hip adduction",
@@ -1073,7 +1073,7 @@
     },
     {
       "id": "lib-bench-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell bench press",
@@ -1127,7 +1127,7 @@
     },
     {
       "id": "lib-db-bench-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell bench press",
@@ -1177,7 +1177,7 @@
     },
     {
       "id": "lib-incline-bench-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Incline barbell bench press",
@@ -1230,7 +1230,7 @@
     },
     {
       "id": "lib-incline-db-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Incline dumbbell press",
@@ -1280,7 +1280,7 @@
     },
     {
       "id": "lib-machine-chest-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Machine chest press",
@@ -1327,7 +1327,7 @@
     },
     {
       "id": "lib-cable-fly",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Cable chest fly",
@@ -1368,7 +1368,7 @@
     },
     {
       "id": "lib-db-fly",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell chest fly",
@@ -1411,7 +1411,7 @@
     },
     {
       "id": "lib-push-up",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Push-up",
@@ -1456,7 +1456,7 @@
     },
     {
       "id": "lib-overhead-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell overhead press",
@@ -1506,7 +1506,7 @@
     },
     {
       "id": "lib-db-shoulder-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell shoulder press",
@@ -1553,7 +1553,7 @@
     },
     {
       "id": "lib-lateral-raise",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell lateral raise",
@@ -1594,7 +1594,7 @@
     },
     {
       "id": "lib-triceps-pushdown",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Triceps pushdown",
@@ -1634,7 +1634,7 @@
     },
     {
       "id": "lib-skull-crusher",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "EZ bar skull crusher",
@@ -1677,7 +1677,7 @@
     },
     {
       "id": "lib-overhead-triceps-extension",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Overhead triceps extension",
@@ -1717,7 +1717,7 @@
     },
     {
       "id": "lib-dips",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dips",
@@ -1762,7 +1762,7 @@
     },
     {
       "id": "lib-assisted-dip",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Assisted dip (machine)",
@@ -1807,7 +1807,7 @@
     },
     {
       "id": "lib-pull-up",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Pull-up",
@@ -1858,7 +1858,7 @@
     },
     {
       "id": "lib-chin-up",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Chin-up",
@@ -1905,7 +1905,7 @@
     },
     {
       "id": "lib-assisted-pull-up",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Assisted pull-up (machine)",
@@ -1950,7 +1950,7 @@
     },
     {
       "id": "lib-band-assisted-pull-up",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Band-assisted pull-up",
@@ -1997,7 +1997,7 @@
     },
     {
       "id": "lib-lat-pulldown",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Lat pulldown",
@@ -2045,7 +2045,7 @@
     },
     {
       "id": "lib-seated-cable-row",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Seated cable row",
@@ -2093,7 +2093,7 @@
     },
     {
       "id": "lib-barbell-row",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell bent-over row",
@@ -2146,7 +2146,7 @@
     },
     {
       "id": "lib-db-row",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "One-arm dumbbell row",
@@ -2198,7 +2198,7 @@
     },
     {
       "id": "lib-chest-supported-row",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Chest-supported machine row",
@@ -2246,7 +2246,7 @@
     },
     {
       "id": "lib-inverted-row",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Inverted row",
@@ -2300,7 +2300,7 @@
     },
     {
       "id": "lib-face-pull",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Face pull",
@@ -2341,7 +2341,7 @@
     },
     {
       "id": "lib-rear-delt-fly",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Reverse pec deck",
@@ -2382,7 +2382,7 @@
     },
     {
       "id": "lib-shrug",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell shrug",
@@ -2422,7 +2422,7 @@
     },
     {
       "id": "lib-barbell-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell biceps curl",
@@ -2466,7 +2466,7 @@
     },
     {
       "id": "lib-db-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell biceps curl",
@@ -2511,7 +2511,7 @@
     },
     {
       "id": "lib-hammer-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Hammer curl",
@@ -2555,7 +2555,7 @@
     },
     {
       "id": "lib-preacher-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "EZ bar preacher curl",
@@ -2597,7 +2597,7 @@
     },
     {
       "id": "lib-cable-curl",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Cable biceps curl",
@@ -2641,7 +2641,7 @@
     },
     {
       "id": "lib-plank",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Plank",
@@ -2682,7 +2682,7 @@
     },
     {
       "id": "lib-side-plank",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Side plank",
@@ -2722,7 +2722,7 @@
     },
     {
       "id": "lib-weighted-plank",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Weighted plank",
@@ -2762,7 +2762,7 @@
     },
     {
       "id": "lib-dead-hang",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dead hang",
@@ -2807,7 +2807,7 @@
     },
     {
       "id": "lib-wall-sit",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Wall sit",
@@ -2847,7 +2847,7 @@
     },
     {
       "id": "lib-hanging-leg-raise",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Hanging leg raise",
@@ -2896,7 +2896,7 @@
     },
     {
       "id": "lib-cable-crunch",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Cable crunch",
@@ -2936,7 +2936,7 @@
     },
     {
       "id": "lib-crunch",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Crunch",
@@ -2972,7 +2972,7 @@
     },
     {
       "id": "lib-pallof-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Pallof press",
@@ -3016,7 +3016,7 @@
     },
     {
       "id": "lib-ab-wheel",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Ab wheel rollout",
@@ -3060,7 +3060,7 @@
     },
     {
       "id": "lib-farmers-carry",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Farmer's carry",
@@ -3108,7 +3108,7 @@
     },
     {
       "id": "lib-sled-push",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Sled push",
@@ -3156,7 +3156,7 @@
     },
     {
       "id": "lib-kettlebell-swing",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Kettlebell swing",
@@ -3204,7 +3204,7 @@
     },
     {
       "id": "lib-clean-and-press",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Dumbbell clean and press",
@@ -3257,7 +3257,7 @@
     },
     {
       "id": "lib-burpee",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Burpee",
@@ -3289,7 +3289,7 @@
     },
     {
       "id": "lib-thruster",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Barbell thruster",
@@ -3338,7 +3338,7 @@
     },
     {
       "id": "lib-treadmill-run",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Treadmill run",
@@ -3383,7 +3383,7 @@
     },
     {
       "id": "lib-incline-walk",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Incline treadmill walk",
@@ -3427,7 +3427,7 @@
     },
     {
       "id": "lib-stationary-bike",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Exercise bike",
@@ -3472,7 +3472,7 @@
     },
     {
       "id": "lib-rowing-machine",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Rowing machine",
@@ -3518,7 +3518,7 @@
     },
     {
       "id": "lib-cross-trainer",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Cross-trainer",
@@ -3555,7 +3555,7 @@
     },
     {
       "id": "lib-skipping",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Skipping",
@@ -3592,7 +3592,7 @@
     },
     {
       "id": "lib-run-400m",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "400 m run",
@@ -3637,7 +3637,7 @@
     },
     {
       "id": "lib-outdoor-run",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Outdoor run",
@@ -3678,7 +3678,7 @@
     },
     {
       "id": "lib-hip-flexor-stretch",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Hip flexor stretch",
@@ -3718,7 +3718,7 @@
     },
     {
       "id": "lib-hamstring-stretch",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Hamstring stretch",
@@ -3754,7 +3754,7 @@
     },
     {
       "id": "lib-childs-pose",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Child's pose",
@@ -3790,7 +3790,7 @@
     },
     {
       "id": "lib-cat-cow",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Cat-cow",
@@ -3830,7 +3830,7 @@
     },
     {
       "id": "lib-thoracic-extension",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Thoracic spine extension",
@@ -3866,7 +3866,7 @@
     },
     {
       "id": "lib-worlds-greatest-stretch",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "World's greatest stretch",
@@ -3910,7 +3910,7 @@
     },
     {
       "id": "lib-doorway-chest-stretch",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Doorway chest stretch",
@@ -3946,7 +3946,7 @@
     },
     {
       "id": "lib-pigeon-pose",
-      "revision": 1,
+      "revision": 2,
       "names": {
         "en-GB": {
           "name": "Pigeon pose",
