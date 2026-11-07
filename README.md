@@ -11,6 +11,14 @@ Cross-platform (Android and iOS) fitness, nutrition and body-composition app for
 
 All assets and checksums: [debug-latest release](https://github.com/kreczmans-creator/repforge/releases/tag/debug-latest). It is rebuilt automatically from every push to the active branch (`.github/workflows/debug-release.yml`). These are debug builds for testing only; Android will warn about an unknown source. No iOS test build is distributed yet (simulator builds only; device builds need Apple signing).
 
+### Test-build certificate
+
+CI debug builds (`android.yml` and the rolling `debug-release.yml`) restore the Android debug keystore from the GitHub Actions cache (key `repforge-debug-keystore-v1`) and create it only when the cache misses, so successive test builds carry one certificate and install over each other. If the cache entry is evicted a new certificate is generated and the tester must uninstall once (back up data first). No keystore is ever committed (`docs/engineering-standards.md` section 9); the debug identity signs test builds only.
+
+## Releases
+
+A release is a tag `vX.Y.Z` pushed to the repository, which runs `.github/workflows/release.yml` (or a manual run naming an existing tag). The workflow runs the quality gates and refuses the tag unless `app/pubspec.yaml` has version `X.Y.Z` and `CHANGELOG.md` has a `## [X.Y.Z]` heading; that section becomes the GitHub Release notes. It builds a signed Android APK and app bundle and requires the repository secrets `ANDROID_KEYSTORE` (base64), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD` and `ANDROID_KEY_ALIAS`; if any is missing the job fails and nothing is published (unsigned and debug-signed builds are never released). iOS is a simulator build only until Apple signing is configured. Changelog rule: every user-visible change adds a line under `[Unreleased]` in `CHANGELOG.md`; the releasing commit moves them under the new version heading and bumps the pubspec version. No tag has been cut yet (the pubspec version is 0.4.0+1). Status and owner actions: `docs/delivery-record/WP14.md`.
+
 ## Project outline
 
 | Area | Status | Where |
@@ -28,7 +36,7 @@ All assets and checksums: [debug-latest release](https://github.com/kreczmans-cr
 | `app/` | The Flutter application (source of truth). |
 | `docs/` | Architecture decisions, work-package deliverables, engineering standards, delivery records. |
 | `legacy/android/` | Read-only Kotlin prototype. |
-| `.github/workflows/` | CI: quality gates, Android debug APK, iOS simulator build, emulator integration tests, rolling debug release. |
+| `.github/workflows/` | CI: quality gates, Android debug APK, iOS simulator build, emulator integration tests, rolling debug release, tagged release (`release.yml`). |
 
 ## Build and test
 
