@@ -6,6 +6,7 @@ import 'package:repforge/domain/units/entry_unit.dart';
 import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
+import 'package:repforge/features/nutrition/presentation/food_source_line.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 import 'package:repforge/features/settings/application/meal_label_providers.dart';
@@ -212,6 +213,8 @@ class _PortionSheetState extends ConsumerState<_PortionSheet> {
                 ProvenanceBadge(food.profile.provenance),
               ],
             ),
+            const SizedBox(height: RfSpace.s1),
+            FoodSourceLine(food),
             const SizedBox(height: RfSpace.s4),
             if (food.servings.isNotEmpty) ...[
               Text('PORTION', style: context.rfText.kicker),
