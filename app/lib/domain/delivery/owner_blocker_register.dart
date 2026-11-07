@@ -441,7 +441,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'git revert -m 1 fea71c8).',
     recommendation:
         'The record states the facts and the revert command and takes no '
-        'position; the choice is the owner.',
+        "position; the choice is the owner's.",
     consequences:
         'Confirming keeps the stream and its 0.58 implemented points as a '
         'sensitivity; reversing removes the code from the campaign branch '
@@ -464,7 +464,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP8-10',
     workPackage: BlockerWorkPackage.wp8,
     stage: '3c',
-    reference: 'Preparation §3.11; §4.9, §5.7 (2026-11-07)',
+    reference: 'Preparation §3.11; §4.9, §5.7, §6.7 (2026-11-07)',
     title:
         'Approve the stage 3c sub-breakdown (2.00 points, preparation '
         '§3.11)',
@@ -498,7 +498,8 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     evidence: [
       BlockerEvidence(
         'Proposed breakdowns',
-        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.11, §4.9, §5.7',
+        reference:
+            'docs/wp8-stage-3c-3d-5-6-preparation.md §3.11, §4.9, §5.7, §6.7',
       ),
       BlockerEvidence(
         'Sensitivity table (0.58 implemented, 0.17 reviewed)',
