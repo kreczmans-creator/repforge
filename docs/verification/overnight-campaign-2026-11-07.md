@@ -38,3 +38,5 @@ The WP 8 stage 3b session reported a new owner brief ("Train workspace redesign 
 The earlier runs on `71eb55c` were cancelled by the `c153b60` push (iOS had passed).
 
 **Defect logged (pre-existing, WP 5):** the Fuel screen overflows at 360 px with 2× text scale in rows from `4fc449f` (`fuel_screen.dart` lines ~67 and ~365; `rf_section_header.dart:19`), found by the WP 11 UI review. Not fixed in this campaign; listed in section I of the report.
+
+**02:00 UTC — further relay from the WP 8 session (unverified):** the owner's update, recorded in D04 on that session's branch (`d4a73fb`), confirms `claude/campaign-2026-11-07` as the base for the exercise-knowledge work (ancestry from `aa59021`, no 3b code, stage 3c format canonical and to be extended); the Train dashboard and chip fix come to this session as a reviewed handover (choice (b)); the exercise-knowledge branch will be `claude/exercise-knowledge-2026-11-07`, pushed after independent review and never merged directly into the release candidate; final integration by this session; 3b isolated; merge to main only with the owner's approval. No branch or SHA had been sent at the time of writing.
