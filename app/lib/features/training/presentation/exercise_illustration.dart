@@ -20,7 +20,7 @@ abstract final class FigureProportions {
   static const double shin = 21;
   static const double foot = 8;
   static const double torso = 26;
-  static const double neck = 4;
+  static const double neck = 6;
   static const double headRadius = 5.5;
   static const double upperArm = 15;
   static const double forearm = 14;
@@ -137,8 +137,8 @@ const Map<String, FigurePose> exerciseIllustrations = {
     head: 52,
     nearLeg: LimbAngles(357, 243),
     farLeg: LimbAngles(357, 243),
-    nearArm: LimbAngles(195, 50),
-    farArm: LimbAngles(195, 50),
+    nearArm: LimbAngles(237.62, 77.49),
+    farArm: LimbAngles(237.62, 77.49),
     floor: true,
     props: [
       IllustrationProp.plate(Offset(51.07, 44.35), 10.7),
@@ -151,8 +151,8 @@ const Map<String, FigurePose> exerciseIllustrations = {
     head: 90,
     nearLeg: LimbAngles(272, 268),
     farLeg: LimbAngles(272, 268),
-    nearArm: LimbAngles(240, 70),
-    farArm: LimbAngles(240, 70),
+    nearArm: LimbAngles(237.62, 77.49),
+    farArm: LimbAngles(237.62, 77.49),
     floor: true,
     props: [
       IllustrationProp.plate(Offset(47.47, 72.97), 10.7),
@@ -233,11 +233,11 @@ const Map<String, FigurePose> exerciseIllustrations = {
     props: [IllustrationProp.plate(Offset(53.01, 11.49), 10.7)],
   ),
   'glute-bridge/finish': FigurePose(
-    hip: Offset(48, 17.19),
-    torso: 206,
+    hip: Offset(48, 15.39),
+    torso: 201.64,
     head: 180,
-    nearLeg: LimbAngles(18, 272),
-    farLeg: LimbAngles(18, 272),
+    nearLeg: LimbAngles(22.91, 273.8),
+    farLeg: LimbAngles(22.91, 273.8),
     nearArm: LimbAngles(340, 0),
     farArm: LimbAngles(340, 0),
     floor: true,
@@ -263,15 +263,15 @@ const Map<String, FigurePose> exerciseIllustrations = {
     floor: true,
   ),
   'pull-up/finish': FigurePose(
-    hip: Offset(55, 60.49),
-    torso: 92,
+    hip: Offset(58.17, 54.69),
+    torso: 97,
     head: 92,
     nearLeg: LimbAngles(273, 268, 330),
     farLeg: LimbAngles(273, 268, 330),
-    nearArm: LimbAngles(252, 80),
-    farArm: LimbAngles(252, 80),
+    nearArm: LimbAngles(332.09, 116.54),
+    farArm: LimbAngles(332.09, 116.54),
     floor: false,
-    props: [IllustrationProp.fixedBar(Offset(33.89, 86), Offset(69.89, 86))],
+    props: [IllustrationProp.fixedBar(Offset(44, 86), Offset(80, 86))],
   ),
   'pull-up/start': FigurePose(
     hip: Offset(55, 31.08),
@@ -285,13 +285,13 @@ const Map<String, FigurePose> exerciseIllustrations = {
     props: [IllustrationProp.fixedBar(Offset(38.81, 86), Offset(74.81, 86))],
   ),
   'push-up/finish': FigurePose(
-    hip: Offset(55, 9.75),
-    torso: 1.9,
-    head: 1.9,
-    nearLeg: LimbAngles(181.9, 181.9, 285),
-    farLeg: LimbAngles(181.9, 181.9, 285),
-    nearArm: LimbAngles(161, 270),
-    farArm: LimbAngles(161, 270),
+    hip: Offset(55.11, 11.63),
+    torso: 5.24,
+    head: 5.24,
+    nearLeg: LimbAngles(185.24, 185.24, 285),
+    farLeg: LimbAngles(185.24, 185.24, 285),
+    nearArm: LimbAngles(194.83, 321.79),
+    farArm: LimbAngles(194.83, 321.79),
     floor: true,
   ),
   'push-up/start': FigurePose(
@@ -305,15 +305,15 @@ const Map<String, FigurePose> exerciseIllustrations = {
     floor: true,
   ),
   'romanian-deadlift/finish': FigurePose(
-    hip: Offset(32.86, 36.35),
-    torso: 31.6,
-    head: 31.6,
-    nearLeg: LimbAngles(325.2, 262),
-    farLeg: LimbAngles(325.2, 262),
-    nearArm: LimbAngles(270, 270),
-    farArm: LimbAngles(270, 270),
+    hip: Offset(33.42, 42.45),
+    torso: 12,
+    head: 12,
+    nearLeg: LimbAngles(302, 278),
+    farLeg: LimbAngles(302, 278),
+    nearArm: LimbAngles(256, 256),
+    farArm: LimbAngles(256, 256),
     floor: true,
-    props: [IllustrationProp.plate(Offset(55, 20.97), 10.7)],
+    props: [IllustrationProp.plate(Offset(51.84, 19.72), 10.7)],
   ),
   'romanian-deadlift/start': FigurePose(
     hip: Offset(47.55, 45.87),
