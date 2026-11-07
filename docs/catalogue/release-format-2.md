@@ -86,7 +86,7 @@ Each element of `exercises`:
 
 Rules:
 - Source is always `system` and provider is the release provider. A release cannot describe a user or imported exercise. Source is never updated (R-26): there is no key that could carry it.
-- An enum value outside its vocabulary is reported with the 3a code, not a shape code: `loggingType` IC-202, `category` IC-203, and `mechanics`, `laterality`, `difficulty`, target `role`, equipment `role` and relationship `kind` IC-308. All problems of the file are reported together; the catalogue checks that need a typed document run once the file parses.
+- An enum value outside its vocabulary is reported with the 3a code, not a shape code: `loggingType` IC-202, `category` IC-203, and `mechanics`, `laterality`, `difficulty`, target `role`, equipment `role` and relationship `kind` IC-308. All parse-level problems of the file are reported together; the catalogue checks that need a typed document run once the file parses.
 - Mechanics, laterality and difficulty are optional for the parser. Whether they are required for the exercise is an integrity rule (IC-2xx), so the full list of problems is reported together.
 - Content items take the `revision` of their exercise and the release provider.
 - All other rules are the 3a integrity checks (`quality-and-duplicates.md`), run by the validator over the whole release.

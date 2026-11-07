@@ -9,7 +9,7 @@
       "code": "IC-311",
       "exerciseId": "lib-kettlebell-swing",
       "reason": "Category fullBody with a lower-body compound pattern family; accepted as the pattern guide says.",
-      "acceptedBy": "owner (approved document quality-and-duplicates.md §6)",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
       "acceptedOn": "2026-11-05",
       "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-311",
       "untilRelease": null
@@ -20,7 +20,7 @@
       "code": "IC-311",
       "exerciseId": "lib-thruster",
       "reason": "Category fullBody with a lower-body compound pattern family; accepted as the pattern guide says.",
-      "acceptedBy": "owner (approved document quality-and-duplicates.md §6)",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
       "acceptedOn": "2026-11-05",
       "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-311",
       "untilRelease": null
@@ -34,7 +34,7 @@
         "lib-hip-adduction"
       ],
       "reason": "Machine hip abduction and machine hip adduction are distinct exercises.",
-      "acceptedBy": "owner (approved document quality-and-duplicates.md §6)",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
       "acceptedOn": "2026-11-05",
       "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-508",
       "untilRelease": null
@@ -48,7 +48,7 @@
         "lib-pull-up"
       ],
       "reason": "Push-up and pull-up are distinct exercises.",
-      "acceptedBy": "owner (approved document quality-and-duplicates.md §6)",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md (2026-11-05); per-entry confirmation pending",
       "acceptedOn": "2026-11-05",
       "reference": "docs/catalogue/quality-and-duplicates.md section 6, IC-508",
       "untilRelease": null
@@ -62,7 +62,7 @@
       ],
       "decision": "distinct",
       "reason": "Different machines and load paths.",
-      "acceptedBy": "owner (approved document quality-and-duplicates.md §6)",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md §6.1 (2026-11-05); per-entry confirmation pending",
       "acceptedOn": "2026-11-05",
       "reference": "docs/catalogue/quality-and-duplicates.md section 6.1, IC-602",
       "untilRelease": null
@@ -76,7 +76,7 @@
       ],
       "decision": "distinct",
       "reason": "Rear-foot-elevated split squat versus step; the support items are ignored, so the equipment terms match.",
-      "acceptedBy": "owner (approved document quality-and-duplicates.md §6)",
+      "acceptedBy": "owner, by approval of quality-and-duplicates.md §6.1 (2026-11-05); per-entry confirmation pending",
       "acceptedOn": "2026-11-05",
       "reference": "docs/catalogue/quality-and-duplicates.md section 6.1, IC-602",
       "untilRelease": null
