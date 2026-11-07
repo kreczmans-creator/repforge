@@ -79,6 +79,17 @@ jobs:
       # it. A committed keystore is forbidden by the engineering standards
       # (section 9); the debug identity (public password "android") signs test
       # builds only, never a release.
+      # AGP resolves the debug keystore through ANDROID_USER_HOME (falling back
+      # to the deprecated ANDROID_SDK_HOME and then the user home). The first
+      # CI run of the signer check (run 42329685501) proved that on the hosted
+      # runner AGP signed with a keystore other than ~/.android/debug.keystore,
+      # so the location is pinned explicitly to the one keytool writes.
+      - name: Pin the Android user home for Gradle
+        run: |
+          mkdir -p "$HOME/.android"
+          echo "ANDROID_USER_HOME=$HOME/.android" >> "$GITHUB_ENV"
+          env | grep -i '^ANDROID' || true
+
       - name: Restore stable debug keystore (cache)
         id: debug-keystore
         uses: actions/cache/restore@v4

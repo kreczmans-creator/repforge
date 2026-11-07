@@ -72,6 +72,17 @@ jobs:
       # match the rolling release. A committed keystore is forbidden by the
       # engineering standards (section 9); the debug identity (public password
       # "android") signs test builds only.
+      # AGP resolves the debug keystore through ANDROID_USER_HOME (falling back
+      # to the deprecated ANDROID_SDK_HOME and then the user home). The first
+      # CI run of the signer check (run 42329685501) proved that on the hosted
+      # runner AGP signed with a keystore other than ~/.android/debug.keystore,
+      # so the location is pinned explicitly to the one keytool writes.
+      - name: Pin the Android user home for Gradle
+        run: |
+          mkdir -p "$HOME/.android"
+          echo "ANDROID_USER_HOME=$HOME/.android" >> "$GITHUB_ENV"
+          env | grep -i '^ANDROID' || true
+
       - name: Restore stable debug keystore (cache, read-only)
         id: debug-keystore
         uses: actions/cache/restore@v4
@@ -93,6 +104,12 @@ jobs:
 
       - name: Build debug APK
         run: flutter build apk --debug
+
+      - name: Keystore locations after the build (diagnostic)
+        if: always()
+        run: |
+          echo "ANDROID_USER_HOME=$ANDROID_USER_HOME"
+          find "$HOME" /tmp -name 'debug.keystore' -print 2>/dev/null || true
 
       # Release builds run R8 (code and resource shrinking) by default, which
       # the debug build does not exercise. Debug signing is configured for the
