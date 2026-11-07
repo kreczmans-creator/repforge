@@ -290,7 +290,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Options:**
 - [ ] Confirm the allocation as recorded in `516fac4` and `d4a73fb` (evidence confirmed; the two D04 entries are to be carried onto the integration branch's D04).
-- [ ] Confirm with corrections (state them; e.g. the "accepted WP 15/WP 17" wording).
+- [x] Confirm with corrections (state them; e.g. the "accepted WP 15/WP 17" wording).
 - [ ] Reject the allocation (state the replacement).
 - [ ] Defer.
 
@@ -298,11 +298,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** Until confirmed here, the exercise-knowledge branch (`ffd6d14`) and the Train dashboard series stay un-integrated and Decision 2A-10 cannot proceed; the D04 entries remain on the WP 8 branch only.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option B: the allocation recorded in D04 entries `516fac4` and `d4a73fb` is confirmed, with two corrections to be applied when the entries are carried onto the integration branch's D04: (1) "accepted WP 15/WP 17 work" reads "WP 15/WP 17 decisions recorded; acceptance governed by the acceptance records"; (2) "no WP 8 3b code" reads "the earlier isolated v8 work is present; no new campaign-2 stage 3b implementation".  
+**Owner's rationale:** The allocation matches what the integration session acknowledged; the two wordings must agree with the delivery and acceptance records.  
+**Conditions / follow-up:** Carry both entries, corrected, onto `docs/wp0/D04-product-requirements-baseline.md` §7 on the integration branch.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved with corrections
 
 #### Decision 2A-9 — OB-WP8-04 and its relationship to the later stage 3b implementation
 
@@ -337,7 +337,7 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 **Context and rationale (recorded position):** D04 entry `d4a73fb` (WP 8 branch) says the WP 8 session "prepares its locally started work as a reviewed commit series for handover, if the other session does not implement it" and grants push permission only for the exercise-knowledge branch; it does not name a branch for the Train series. No branch, commit or review record for the series exists in the repository; the WP 8 session reported at 03:33 UTC that the series is reviewed, its re-check pending, and that it waits for the owner's permission to push. Depends on Decision 2A-8. Status: **REQUIRES OWNER CONFIRMATION**.
 
 **Options:**
-- [ ] Permit the push to a dedicated branch; integration only after an independent review by the integration session, an ancestry check against the integration branch, and four green workflows on the merged commit; not part of this release candidate.
+- [x] Permit the push to a dedicated branch; integration only after an independent review by the integration session, an ancestry check against the integration branch, and four green workflows on the merged commit; not part of this release candidate.
 - [ ] Permit the push and include it in this release (re-opens Part 3 sections 2 and 5 and Part 4 baseline C).
 - [ ] Refuse for now; keep it for the next campaign.
 - [ ] Defer.
@@ -346,11 +346,11 @@ Source branch for all 2A engineering facts: `ccr-9fda2c32-wr163b` at `f3a12a4` (
 
 **Consequences:** Including it in this release invalidates the current release-candidate evidence (new `app/` tree) and requires re-testing; excluding it leaves the Train landing screen as at `aa59021`.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: the WP 8 session may push the Train dashboard and filter-chip series to a separate dedicated branch. Integration only after an independent review by the integration session, an ancestry check against the integration branch, and four green workflows on the merged commit. Excluded from the current release candidate.  
+**Owner's rationale:** Keeps the current candidate's evidence valid; the series joins the next candidate.  
+**Conditions / follow-up:** The WP 8 session names the branch and head SHA in its handover (commit list, changed files, tests, review findings, outstanding work).  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2A-11 — Acceptance of the physical-device migration timing results (3b-9)
 
@@ -802,8 +802,9 @@ Pre-checks: `git merge-base --is-ancestor aa59021 origin/claude/campaign-2026-11
 
 **Context:** The relayed rule was "The other session should acknowledge the same allocation before proceeding." The integration session acknowledged the allocation to the WP 8 session as unverified data and recorded it in the report for the owner to confirm; it did not acknowledge it to the owner directly because it had no channel to do so before this document.
 
-**Options:** `[ ] Acknowledgement accepted as given  [ ] Owner requires a different acknowledgement: …  [ ] n/a (allocation not confirmed in 2A-8)`  
-**Date:** `[YYYY-MM-DD]`  **Status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Options:** `[x] Acknowledgement accepted as given  [ ] Owner requires a different acknowledgement: …  [ ] n/a (allocation not confirmed in 2A-8)`  
+**Owner's decision:** Option A: the integration session's acknowledgement (choice (b), handover for independent review and integration, no duplicate implementation) is accepted as given. The owner also authorised the integration session to notify the WP 8 session of the decisions recorded in this document (2026-11-07).  
+**Date:** 2026-11-07  **Status:** Approved
 
 ### 2E — Other open owner decisions found in the register and records
 
@@ -4036,7 +4037,7 @@ These are documented in the records; none is dispositioned by the owner yet.
 | DFR-006 | WP 15 stage 3 custom-food serving-definition entry units | Decision 2B-2 | Excluded from WP 15 (2B-2, option b); may be allocated to a future package | 2026-11-07 |
 | DFR-007 | WP 8 stages 3c-2..3c-4 (reference-data loader, reconciler transaction, relationship/content/media tables), 3d, 5, 6 | WP 8 record; OB-WP8-05..11 | `[x] Deferred  [ ] n/a` — the 3c schema decisions (OB-WP8-05, -06) are deferred to stage 3b acceptance; assets wait for the 3c-2 loader (OB-WP8-07) | 2026-11-07 |
 | DFR-008 | WP 14: signed release via `release.yml`, beta pipeline, store listings, crash reporting (owner accounts and decisions) | OB-WP14-01..05 | `[x] Deferred  [ ] Required for this release` — signing secrets outstanding; tag after Part 3 testing; listings and beta accounts deferred; no crash reporting in v1 | 2026-11-07 |
-| DFR-009 | Train dashboard redesign, filter-chip correction, exercise knowledge system (relayed brief; `ffd6d14` not integrated) | Decisions 2A-8, 2A-10 | see 2A | — |
+| DFR-009 | Train dashboard redesign, filter-chip correction, exercise knowledge system (`ffd6d14` not integrated) | Decisions 2A-8, 2A-10 | Allocation confirmed with corrections (2A-8); Train series to a separate branch, integrated only after independent review, ancestry check and four green workflows; excluded from this candidate (2A-10) | 2026-11-07 |
 | DFR-010 | No UI found in the candidate for: editing or deleting a custom food (NUT-008); copying a diary entry to another date (NUT-012(2)); scheduled backup (DAT-008); delete-all-data (DAT-012); CSV export beyond measurements (DAT-006). Found while tracing tests (Part 3, Appendix A). **REQUIRES OWNER CONFIRMATION** whether each is approved scope for this release. | D04 ids as listed; Part 3 Appendix A | `[ ] Confirm deferred  [ ] Required for this release: …  [ ] Not in approved scope` | `[ ]` |
 | `[add rows]` | | | | |
 
