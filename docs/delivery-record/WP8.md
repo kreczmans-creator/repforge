@@ -1053,10 +1053,10 @@ Contract and register: `docs/backup-format-3.md`.
 | 5e37008 | 3b-7 final-review fixes | success (42325487166) | success (42325487258) | success (42325487217) | **failed** (42325487221): runner infrastructure |
 | 38bdf6d | 3b-9 harness | success (42328595266, recovery job included) | success (42328595243) | success (42328595288) | cancelled (42328595285) |
 | 2ba5881 | Emulator job fix (WP 14, from aa59021): free runner disk, explicit partition size, 900 s boot wait | not triggered (path filters) | not triggered (path filters) | not triggered (path filters) | **success** (42328627783) |
+| ac14711 | Review C fix round (batched inserts, single-decode restore, records) | **success** (42338771180; quality and recovery jobs) | **success** (42338771148; release APK R8 check success) | **success** (42338771158) | **success** (42338771135) |
 
 - **Root cause of both emulator failures:** "FATAL: Not enough space to create userdata partition", then "Timeout waiting for emulator to boot". This is runner disk space, not a test failure; 2ba5881 fixes it.
-- No single 3b commit has all four workflows green yet: CI, Android and iOS last ran green on 38bdf6d, and the emulator on 2ba5881.
-- The Review C fix round below is uncommitted; no CI has run on it.
+- *Superseded 2026-11-07 05:07 UTC:* **ac14711 has all four workflows green** (row above), including the recovery job (real process kills, large profile) and the release APK R8 check. It is the first stage 3b commit with all four green. Earlier: CI, Android and iOS last ran green on 38bdf6d, and the emulator on 2ba5881.
 
 ### 3b-10 — Review C and fix round (2026-11-07, working tree over 2ba5881, uncommitted)
 Review C ran on 2ba5881. Findings: M-1, M-2, M-3, L-1 to L-7 (the R-1, R-2 and H-1 record items are this record update). Production is unchanged: `AppDatabase` schema 7; v8 not connected; frozen fixtures and manifests untouched; formats 1/2 goldens untouched; no domain rule invented.
