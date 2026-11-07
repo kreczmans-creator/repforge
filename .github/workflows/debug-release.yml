@@ -66,20 +66,22 @@ jobs:
       # Stable test certificate (WP 14). A hosted runner has no debug keystore,
       # so Gradle generates a new one on every run and two CI builds then carry
       # different certificates; Android refuses to install one over the other
-      # (an uninstall, and the data loss it brings, is needed). This step keeps
-      # ONE standard Android debug identity across runs by restoring
-      # ~/.android/debug.keystore from the Actions cache under a fixed key and
-      # creating it with keytool only on a cache miss. If GitHub evicts the
-      # cache entry (unused for 7 days, or cache over quota) a new keystore is
-      # generated and testers must uninstall once; bump the key suffix only to
-      # force that on purpose. The keystore is never committed: the engineering
-      # standards (section 9) forbid committing keystores, and a debug identity
-      # with the public password "android" signs test builds only, never a
-      # release. The certificate SHA-256 appears in the "Verify APK signatures
-      # and metadata" step (apksigner --print-certs).
+      # (an uninstall, and the data loss it brings, is needed). This workflow
+      # is the ONLY writer of the shared keystore (its concurrency group has
+      # cancel-in-progress false, so runs are serial): it restores
+      # ~/.android/debug.keystore under the fixed key repforge-debug-keystore-v1
+      # and, on a miss, creates it with keytool and saves it to the cache
+      # IMMEDIATELY, before the build (a post-step save would only happen if
+      # the whole job succeeded). android.yml only restores. If GitHub evicts
+      # the entry (unused for 7 days, or cache over quota) a new keystore is
+      # created and testers must uninstall once. The cache is scoped to the
+      # branch that wrote it and the default branch; only runs on those see
+      # it. A committed keystore is forbidden by the engineering standards
+      # (section 9); the debug identity (public password "android") signs test
+      # builds only, never a release.
       - name: Restore stable debug keystore (cache)
         id: debug-keystore
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ~/.android/debug.keystore
           key: repforge-debug-keystore-v1
@@ -94,7 +96,14 @@ jobs:
             -alias androiddebugkey \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
-          echo "Generated a new debug keystore (cache miss); the cache saves it at the end of the job."
+          echo "Generated a new debug keystore (cache miss)."
+
+      - name: Save debug keystore to the cache now
+        if: steps.debug-keystore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: repforge-debug-keystore-v1
 
       - name: Build per-ABI and universal debug APKs
         working-directory: app
@@ -120,6 +129,25 @@ jobs:
             echo "== $apk"
             "$tools/apksigner" verify --print-certs "$apk"
             "$tools/aapt2" dump badging "$apk" | grep -E "^package:|^application-label:|sdkVersion|targetSdkVersion"
+          done
+
+      # In-run proof that AGP signed with the cached keystore: the certificate
+      # SHA-256 of every published APK must equal the one keytool reads from
+      # ~/.android/debug.keystore. A mismatch fails the run, so even the first
+      # run shows the stable-certificate mechanism works.
+      - name: Signer matches the debug keystore
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          expected="$(keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | awk '/SHA256:/{print $2; exit}' | tr -d ':' | tr 'A-F' 'a-f')"
+          test -n "$expected" || { echo "::error::Could not read the keystore certificate."; exit 1; }
+          echo "Keystore certificate SHA-256: $expected"
+          for apk in dist/*.apk; do
+            actual="$("$tools/apksigner" verify --print-certs "$apk" | awk '/certificate SHA-256 digest/{print $NF; exit}')"
+            echo "$apk signer SHA-256: $actual"
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::$apk is not signed with ~/.android/debug.keystore."
+              exit 1
+            fi
           done
 
       - name: Write release notes
