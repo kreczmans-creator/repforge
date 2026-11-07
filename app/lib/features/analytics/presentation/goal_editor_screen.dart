@@ -203,7 +203,7 @@ class _GoalEditorScreenState extends ConsumerState<GoalEditorScreen> {
             title: _title,
             caption: switch (widget.kind) {
               GoalKind.sessionsPerWeek =>
-                'Completed workouts in a week, 0 to 14',
+                'Completed workouts in a week, 1 to 14',
               GoalKind.measurement => 'A body measurement and its target',
               _ => 'Target weight, measured against the weight trend',
             },

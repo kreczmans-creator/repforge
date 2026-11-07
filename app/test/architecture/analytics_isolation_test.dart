@@ -103,11 +103,15 @@ void main() {
   });
 
   test('the data-quality check has no provider and no screen (OQ-15)', () {
+    // The Owner Actions register cites the check's class names in the
+    // evidence text of OB-WP11-02; it is a data record and reads nothing.
+    const register = 'lib/domain/delivery/owner_blocker_register.dart';
     final users = [
       for (final f in Directory('lib').listSync(recursive: true))
         if (f is File &&
             f.path.endsWith('.dart') &&
             !f.path.replaceAll(r'\', '/').startsWith('lib/domain/analytics/') &&
+            f.path.replaceAll(r'\', '/') != register &&
             RegExp('DataQuality').hasMatch(f.readAsStringSync()))
           f.path,
     ];

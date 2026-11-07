@@ -211,9 +211,12 @@ String _kg(double loadKg) => loadKg > 0
     ? '${formatNumber(loadKg, maxDecimals: 0)} kg'
     : notEnoughDataText;
 
+/// "1 session" or "N sessions".
+String sessionsText(int n) => '$n ${n == 1 ? 'session' : 'sessions'}';
+
 String _weekLine(WeekTraining w) {
   final parts = [
-    '${w.sessionsCompleted} sessions',
+    sessionsText(w.sessionsCompleted),
     '${w.workingSets} sets',
     metricText(w.totalVolumeKg, decimals: 0, unit: 'kg'),
     if (w.volume.reps > 0) '${w.volume.reps} reps',

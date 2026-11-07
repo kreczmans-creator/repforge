@@ -84,13 +84,13 @@ void main() {
           .widget<Text>(
             find.descendant(
               of: find.byKey(const Key('training-week-0')),
-              matching: find.textContaining('sessions'),
+              matching: find.textContaining('session'),
             ),
           )
           .data,
-      '1 sessions · 2 sets · 720 kg',
+      '1 session · 2 sets · 720 kg',
     );
-    expect(find.text('1 sessions · 1 sets · 350 kg'), findsOneWidget);
+    expect(find.text('1 session · 1 sets · 350 kg'), findsOneWidget);
     // A week without a session says so, not 0 kg.
     expect(find.text('0 sessions · 0 sets · not enough data'), findsWidgets);
 
@@ -118,7 +118,7 @@ void main() {
     });
     await pumpAnalytics(tester, c, location: RfRoutes.goalsTraining);
     expect(
-      find.text('1 sessions · 3 sets · 0 kg · 12 reps · 60 s · 500 m'),
+      find.text('1 session · 3 sets · 0 kg · 12 reps · 60 s · 500 m'),
       findsOneWidget,
     );
     await unmount(tester);
