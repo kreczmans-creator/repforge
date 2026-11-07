@@ -8,7 +8,9 @@
 
 ## 1. One file per provider and release
 
-A release is one UTF-8 JSON file, bundled as an app asset, named `<provider>-release-<n>.json`. It holds provider metadata, references to the approved reference files, the exercises of the release and the retirements. It is validated whole and applied whole (all or nothing). Applying the same file again changes nothing.
+**Bundling.** The release and reference files are data artefacts in the repository. They are validated in CI by `tool/catalogue_gate.dart` and a byte-equality test against `docs/catalogue/reference/`. They are not registered as Flutter assets: bundling them into the app binary waits for D-3c-3.
+
+A release is one UTF-8 JSON file, kept as a data artefact under `app/assets/catalogue/releases/`, named `<provider>-release-<n>.json`. It holds provider metadata, references to the approved reference files, the exercises of the release and the retirements. It is validated whole and applied whole (all or nothing). Applying the same file again changes nothing.
 
 Release 1 of provider `repforge` is the existing seed (`app/assets/seed/exercise_library.json`, format 1 of the seed importer) and is not a format-2 file. Release 2 is the first format-2 file.
 
@@ -16,13 +18,13 @@ Release 1 of provider `repforge` is the existing seed (`app/assets/seed/exercise
 
 | Key | Type | Required | Meaning |
 |---|---|---|---|
-| `formatVersion` | integer | yes | Must be `2`. Any other value is refused (RF-003). |
+| `formatVersion` | integer | yes | Must be the integer `2` (`2.0` is refused). Any other value is refused (RF-003). |
 | `provider` | object | yes | Provider metadata (section 3). |
 | `release` | integer >= 1 | yes | Release number of this provider. |
-| `releasedOn` | string `YYYY-MM-DD` | yes | Release date. The only time value in the file. It is the creation and update time of every row the release writes (R-21 recommendation: release-derived times, so that loading is byte-identical on every device and run). No clock is read. |
+| `releasedOn` | string `YYYY-MM-DD` | yes | Release date, carried in the file. Whether it becomes the creation and update time of reference rows is pending D-3c-2 (R-21); the domain model stamps the exercises of a parsed release with it. No clock is read. |
 | `reference` | object | yes | The reference sections (section 4). |
 | `tranches` | object | no | Tranche status for the coverage checks: `{ "5.1": "inProgress" }`. Values `planned`, `inProgress`, `complete` (`quality-and-duplicates.md` section 5, rule 4). Absent = none declared. |
-| `exercises` | array | yes | The exercises of the release (section 5). May be empty only in a release that retires everything it lists. |
+| `exercises` | array | yes | The exercises of the release (section 5). May be empty only when `retirements` is not. |
 | `retirements` | array | yes | Retirements (section 6). `[]` when none. |
 
 Unknown keys are refused at every level (RF-006). A change of the format is a new `formatVersion`.
@@ -37,7 +39,7 @@ Unknown keys are refused at every level (RF-006). A change of the format is a ne
 | `attribution` | string | yes | Exact attribution text; the empty string when none is required. |
 | `url` | string or null | no | Source or licence URL. |
 
-These are the fields of the existing `ContentProvider` record (ADR-0009 decision 2). The wider registry fields of `provenance-and-licensing.md` section 2 (`kind`, `licenceUrl`, `sourceVersion` and so on) are not part of format 2; a dataset provider that needs them needs a later specification revision. The licence is always recorded.
+Whether provider attribution is the empty string or NULL, and whether and how the provider row is written (the v8 bootstrap holds attribution NULL), are open (D-3c-1, D-3c-2); the file only carries the string. These are the fields of the existing `ContentProvider` record (ADR-0009 decision 2). The wider registry fields of `provenance-and-licensing.md` section 2 (`kind`, `licenceUrl`, `sourceVersion` and so on) are not part of format 2; a dataset provider that needs them needs a later specification revision. The licence is always recorded.
 
 ## 4. Reference sections
 
@@ -54,6 +56,8 @@ These are the fields of the existing `ContentProvider` record (ADR-0009 decision
 ```
 
 All five sections are required. `path` is relative to the folder that holds the release's `reference` folder. `sha256` is the SHA-256 of the exact bytes of that file, lowercase hex. The validator refuses the release when the hash of the supplied reference bytes differs (RF-008), when a section is missing, or when the reference file's provider differs from the release provider (RF-009).
+
+Reference data is bound to a release by path and hash, and transitively through the hash of the release file itself: changing a reference file changes its hash, which changes the release file, which changes the release hash. The reference-data release and version fields (L9, R-13) are not part of format 2 and stay open with D-3c-2. `path` is a plain relative path (no `..`, no leading slash, no backslash, no empty segment).
 
 The reference data is validated by the 3a checks (IC-801 to IC-811) as part of every release validation. Loading the reference lists into tables is a separate deliverable (3c-2) and is not part of this specification.
 
@@ -76,12 +80,13 @@ Each element of `exercises`:
 | `difficulty` | string or null | no | `beginner`, `intermediate` or `advanced`. |
 | `attributes` | object | no | Attribute name to controlled value (seven attributes, `coverage-matrix.md` section 3). |
 | `provenance` | object | no | `authoredBy`, `reviewedBy`, `sourceRef` (each string or null; IC-212). |
-| `relationships` | array | no | `{ "kind": "variationOf" or "progressionOf" or "alternativeTo" or "unilateralCounterpartOf", "to": exercise id }`; the exercise is the "from" end. `regressionOf` is derived, never written (R-16 recommendation recorded; the choice itself is D-3c-2). |
+| `relationships` | array | no | `{ "kind": "variationOf" or "progressionOf" or "alternativeTo" or "unilateralCounterpartOf", "to": exercise id }`; the exercise is the "from" end. `regressionOf` is derived and is never written: ADR-0008 decision 5 and IC-308 name four stored kinds, and the editorial guide stores `progressionOf` only (`docs/catalogue/README.md` F19). A written `regressionOf` is refused. (The R-16 choice itself is D-3c-2.) |
 | `content` | object | no | Locale to section kind to array of item strings (`setup`, `execution`, `breathing`, `commonMistakes`). Absent or `{}` means no instructions yet. |
 | `media` | array | no | `{ "id", "kind", "locator", "licence", "attribution" }`. Data references only. |
 
 Rules:
 - Source is always `system` and provider is the release provider. A release cannot describe a user or imported exercise. Source is never updated (R-26): there is no key that could carry it.
+- An enum value outside its vocabulary is reported with the 3a code, not a shape code: `loggingType` IC-202, `category` IC-203, and `mechanics`, `laterality`, `difficulty`, target `role`, equipment `role` and relationship `kind` IC-308. All problems of the file are reported together; the catalogue checks that need a typed document run once the file parses.
 - Mechanics, laterality and difficulty are optional for the parser. Whether they are required for the exercise is an integrity rule (IC-2xx), so the full list of problems is reported together.
 - Content items take the `revision` of their exercise and the release provider.
 - All other rules are the 3a integrity checks (`quality-and-duplicates.md`), run by the validator over the whole release.
@@ -102,7 +107,7 @@ The release content hash is the **SHA-256 of the exact bytes of the bundled file
 
 ## 8. Validation (all or nothing)
 
-1. The bytes decode as UTF-8 and parse as JSON; every malformed input becomes a finding, never an exception (RF-001 to RF-006).
+1. Validation takes the bytes: the content hash is always the hash of the bytes that were parsed. The bytes decode as UTF-8 and parse as JSON; every malformed input becomes a finding, never an exception (RF-001 to RF-006).
 2. The reference sections match the supplied approved reference bytes (RF-008, RF-009).
 3. The whole release is checked by `runIntegrityChecks` (identity, completeness, references, relationship graph, names, near-duplicates, content, reference data, coverage), reusing the approved reference data.
 4. A release is valid when no finding is an error. The result carries the full list of findings in both cases. Warnings and infos do not fail the release (`quality-and-duplicates.md` section 5, rule 2).
@@ -113,15 +118,17 @@ The release content hash is the **SHA-256 of the exact bytes of the bundled file
 | RF-002 | A value is missing, of the wrong type or not an allowed value (the finding names the path). |
 | RF-003 | `formatVersion` is not 2. |
 | RF-006 | Unknown key. |
-| RF-007 | Duplicate relationship declaration. |
+| RF-007 | Duplicate relationship declaration, or an id retired twice. |
 | RF-008 | A reference file's hash differs from the supplied file, or the file was not supplied. (A missing or malformed section in the release is RF-002.) |
+| RF-012 | A tranche id the coverage specification does not know. |
+| RF-013 | The seed file cannot be read as release 1 (gate only). |
 | RF-009 | Provider mismatch between the release and a reference file. |
 | RF-010 | The content hash differs from the expected hash supplied by the caller. |
 | RF-011 | An approved reference file is not valid UTF-8 JSON or does not parse as its reference type. |
 
 ## 9. Reconciliation (planner rules)
 
-The reconciliation planner is a pure function. It takes a validated release and an immutable snapshot of the current catalogue state (ids, source, provider, revision, retired flag, copied-from id, default roles of the known equipment items, latest applied release per provider) and returns a plan. It reads no database and writes nothing.
+The reconciliation planner is a pure function. It takes a validated release and an immutable snapshot of the current catalogue state (ids, source, provider, revision, retired flag, copied-from id, default roles of the known equipment items, latest applied release per provider and the content hash recorded for each applied release) and returns a plan. It reads no database and writes nothing.
 
 | Situation | Plan |
 |---|---|
@@ -136,8 +143,9 @@ The reconciliation planner is a pure function. It takes a validated release and 
 | Release provider differs from the snapshot provider of that id | Refused. |
 | Equipment item whose default role differs from the snapshot | Refused (R-20, default-role immutability). |
 | Release number lower than the latest applied of the provider | Refused. |
+| Same release number as one already applied, with a different content hash | Refused (RP-012). With no recorded hash for that number (equal to the latest applied) the file cannot be shown to be the same release: refused (RP-013). Equal hashes plan a no-op. |
 
-Refusal codes: RP-001 id owned by a user or imported exercise or custom copy; RP-002 id owned by another provider; RP-003 lower revision; RP-004 retired id in the release; RP-005 known id omitted without a retirement (IC-110); RP-006 retirement of a non-system id; RP-007 default role changed (R-20); RP-008 older release number; RP-009 relationship ending on a non-system exercise; RP-010 id both listed and retired; RP-011 stored system exercise without a revision.
+Refusal codes: RP-001 id owned by a user or imported exercise or custom copy; RP-002 id owned by another provider; RP-003 lower revision; RP-004 retired id in the release; RP-005 known id omitted without a retirement (IC-110); RP-006 retirement of a non-system id; RP-007 default role changed (R-20); RP-008 older release number; RP-009 relationship ending on a non-system exercise; RP-010 id both listed and retired; RP-011 stored system exercise without a revision; RP-012 same release number, different content hash; RP-013 applied release number without a recorded hash.
 
 Any refusal refuses the plan: it then holds no operation (all or nothing). The plan never contains an operation on user and imported exercises, custom copies, user state, user relationships, plans, sessions or history. The plan has no field for `source`, so "source is never updated" (R-26) holds by construction and is tested. For information only, the plan lists the custom copies whose source exercise is updated; this writes nothing and does not decide how the "source updated" marker is stored (R-25 stays open).
 
@@ -169,7 +177,7 @@ A shortened valid document (reference hashes are those of the approved files; tw
   "exercises": [
     {
       "id": "lib-back-squat",
-      "revision": 1,
+      "revision": 2,
       "names": { "en-GB": { "name": "Barbell back squat", "aliases": ["Back squat", "Squat"] } },
       "loggingType": "weighted",
       "category": "legs",
@@ -188,7 +196,7 @@ A shortened valid document (reference hashes are those of the approved files; tw
     },
     {
       "id": "lib-inverted-row",
-      "revision": 1,
+      "revision": 2,
       "names": { "en-GB": { "name": "Inverted row", "aliases": ["Bodyweight row", "Australian pull-up"] } },
       "loggingType": "bodyweight",
       "category": "pull",
@@ -214,4 +222,4 @@ A shortened valid document (reference hashes are those of the approved files; tw
 
 ## 11. Release 2 of provider `repforge`
 
-`app/assets/catalogue/releases/repforge-release-2.json` holds the 89 seed exercises with the approved release-2 classifications of `docs/catalogue/mapping-existing.json`: all 89 ids kept, revision 1, targets, patterns, equipment with roles, mechanics, laterality, difficulty, attributes and cleaned aliases. Instructions are not written (WP 8 stage 5): no `content` key is present. The file is generated by `app/tool/build_release_2.dart` and a test regenerates it and compares bytes, so it cannot drift from the mapping file.
+`app/assets/catalogue/releases/repforge-release-2.json` holds the 89 seed exercises with the approved release-2 classifications of `docs/catalogue/mapping-existing.json`: all 89 ids kept, revision 2, targets, patterns, equipment with roles, mechanics, laterality, difficulty, attributes and cleaned aliases. **Why revision 2.** A device migrated from v7 holds the 89 seed exercises as `system`, provider `repforge`, revision 1, with no patterns, mechanics, laterality, difficulty, attributes or role overrides (`legacy_v8_mapping.dart`). The reconciler updates an exercise only on a higher revision, so release 2 ships revision 2 for every exercise whose system-owned fields differ from that migrated form, which is all 89; at revision 1 the planner would plan 89 no-ops and record release 2 as applied without any classification reaching the device. The gate checks release 2 against that migrated form (the seed through the 3a mapping) with IC-104, IC-105 and IC-110. Instructions are not written (WP 8 stage 5): no `content` key is present. The file is generated by `app/tool/build_release_2.dart` and a test regenerates it and compares bytes, so it cannot drift from the mapping file.
