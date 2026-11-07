@@ -94,4 +94,13 @@ void main() {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     expect(pubspec, isNot(contains('assets/catalogue')));
   });
+
+  test('a failing catalogue build (for example in the background isolate) '
+      'is unavailable, not a crash', () async {
+    final source = BundledExerciseKnowledgeSource(
+      readBytes: readFromRepository,
+      build: (_) async => throw StateError('isolate failed'),
+    );
+    expect(await source.lookup('lib-deadlift'), isA<KnowledgeUnavailable>());
+  });
 }

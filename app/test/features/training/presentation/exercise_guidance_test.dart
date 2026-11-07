@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/repositories/drift_exercise_repository.dart';
 import 'package:repforge/data/repositories/drift_settings_repository.dart';
 import 'package:repforge/domain/core/clock.dart';
+import 'package:repforge/domain/exercise_knowledge/exercise_knowledge.dart';
 import 'package:repforge/domain/exercise_knowledge/exercise_knowledge_source.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/training/application/exercise_knowledge_providers.dart';
@@ -59,6 +61,7 @@ void main() {
     WidgetTester tester,
     String id, {
     ExerciseKnowledgeSource? source,
+    bool showDrafts = true,
     Size size = const Size(390, 16000),
   }) async {
     tester.view.physicalSize = size;
@@ -73,6 +76,7 @@ void main() {
           exerciseKnowledgeSourceProvider.overrideWithValue(
             source ?? repositorySource(),
           ),
+          showDraftExerciseGuidanceProvider.overrideWithValue(showDrafts),
         ],
         child: RepForgeApp(
           router: createRouter(initialLocation: RfRoutes.trainExercise(id)),
@@ -117,6 +121,32 @@ void main() {
     expect(find.byKey(const Key('safety-disclaimer')), findsOneWidget);
     // History stays below the guidance.
     expect(find.byKey(const Key('history-empty')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('by default (switch off) drafts are not shown: the screen '
+      'says the guidance awaits editorial review (KS-D9)', (tester) async {
+    expect(showDraftExerciseGuidance, isFalse, reason: 'off by default');
+    await open(tester, 'lib-deadlift', showDrafts: false);
+    expect(find.byKey(const Key('guidance-awaiting-review')), findsOneWidget);
+    for (final s in _sections) {
+      expect(find.byKey(Key('guidance-$s')), findsNothing, reason: s);
+    }
+    expect(find.textContaining('A barbell lift from the floor'), findsNothing);
+    expect(find.byKey(const Key('field-primary')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('editor-approved guidance is shown with the switch off, '
+      'without the draft note', (tester) async {
+    await open(
+      tester,
+      'lib-deadlift',
+      showDrafts: false,
+      source: _ApprovedSource(repositorySource()),
+    );
+    expect(find.byKey(const Key('guidance-execution')), findsOneWidget);
+    expect(find.byKey(const Key('guidance-draft-note')), findsNothing);
     await unmount(tester);
   });
 
@@ -346,6 +376,111 @@ void main() {
       expect(lowest, inInclusiveRange(-0.5, 3.5), reason: key);
     }
   });
+
+  group('illustration pose invariants (review L-4)', () {
+    Offset at(String key, String joint) =>
+        exerciseIllustrations[key]!.joints[joint];
+
+    double angleAt(Offset vertex, Offset a, Offset b) {
+      final u = a - vertex;
+      final v = b - vertex;
+      final cos = (u.dx * v.dx + u.dy * v.dy) / (u.distance * v.distance);
+      return math.acos(cos.clamp(-1.0, 1.0)) * 180 / math.pi;
+    }
+
+    double elbowAngle(String key) => angleAt(
+      at(key, 'nearElbow'),
+      at(key, 'shoulder'),
+      at(key, 'nearWrist'),
+    );
+
+    /// 0 for a straight knee.
+    double kneeFlexion(String key) =>
+        180 -
+        angleAt(at(key, 'nearKnee'), at(key, 'hip'), at(key, 'nearAnkle'));
+
+    test('push-up: the hands stay where they were placed', () {
+      final top = at('push-up/start', 'nearWrist');
+      final bottom = at('push-up/finish', 'nearWrist');
+      expect((top.dx - bottom.dx).abs(), lessThan(1.5));
+      expect(top.dy, closeTo(bottom.dy, 0.5));
+      expect(bottom.dy, lessThan(2.5), reason: 'hands on the floor');
+      expect(
+        (at('push-up/finish', 'shoulder').dx - bottom.dx).abs(),
+        lessThan(5),
+        reason: 'hands under the chest, not behind it',
+      );
+    });
+
+    test('Romanian deadlift: soft knees, hips back, bar below the knee', () {
+      const key = 'romanian-deadlift/finish';
+      expect(kneeFlexion(key), inInclusiveRange(10, 25));
+      final ankle = at(key, 'nearAnkle');
+      expect(at(key, 'hip').dx, lessThan(ankle.dx - 8), reason: 'hips back');
+      expect(at(key, 'nearWrist').dy, lessThan(at(key, 'nearKnee').dy));
+      expect((at(key, 'nearWrist').dx - ankle.dx).abs(), lessThan(6));
+      expect(exerciseIllustrations[key]!.torso, lessThan(25));
+    });
+
+    test('pull-up top: elbows deeply bent, chin above the bar', () {
+      const key = 'pull-up/finish';
+      expect(elbowAngle(key), inInclusiveRange(30, 50));
+      final bar = exerciseIllustrations[key]!.props.single.a.dy;
+      final chin = at(key, 'head').dy - FigureProportions.headRadius;
+      expect(chin, greaterThan(bar));
+      expect(at(key, 'nearWrist').dy, closeTo(bar, 0.5));
+    });
+
+    test('no bent arm folds closer than 15 degrees', () {
+      for (final key in exerciseIllustrations.keys) {
+        expect(elbowAngle(key), greaterThan(15), reason: key);
+      }
+    });
+
+    test('back squat: the hands hold the bar', () {
+      for (final key in ['back-squat/start', 'back-squat/finish']) {
+        final bar = exerciseIllustrations[key]!.props.firstWhere(
+          (p) => p.kind == IllustrationPropKind.bar,
+        );
+        final wrist = at(key, 'nearWrist');
+        expect(wrist.dy, closeTo(bar.a.dy, 0.5), reason: key);
+        expect(
+          wrist.dx,
+          inInclusiveRange(bar.a.dx - 0.5, bar.b.dx + 0.5),
+          reason: key,
+        );
+      }
+    });
+  });
+}
+
+/// Presents every record as approved by a named editor.
+class _ApprovedSource implements ExerciseKnowledgeSource {
+  _ApprovedSource(this.inner);
+  final ExerciseKnowledgeSource inner;
+
+  @override
+  Future<KnowledgeLookup> lookup(String exerciseId) async {
+    final r = await inner.lookup(exerciseId);
+    if (r is! KnowledgeFound) return r;
+    final k = r.knowledge;
+    return KnowledgeFound(
+      ExerciseKnowledge(
+        exercise: k.exercise,
+        content: k.content,
+        media: k.media,
+        links: k.links,
+        labels: k.labels,
+        contentProvenance: ContentProvenance(
+          authoredBy: k.contentProvenance!.authoredBy,
+          status: ContentStatus.editorApproved,
+          draftedOn: k.contentProvenance!.draftedOn,
+          editor: 'Test Editor',
+          approvedOn: DateTime.utc(2026, 11, 8),
+        ),
+      ),
+    );
+  }
 }
 
 class _ThrowingSource implements ExerciseKnowledgeSource {

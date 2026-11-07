@@ -58,6 +58,21 @@ class ExerciseGuidance extends ConsumerWidget {
           exercise: exercise,
           overviewDetails: overviewDetails,
         ),
+        KnowledgeAwaitingReview() => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            overviewDetails,
+            const SizedBox(height: RfSpace.s3),
+            const RfEmptyState(
+              key: Key('guidance-awaiting-review'),
+              icon: Icons.rate_review_outlined,
+              message:
+                  'Guidance for this exercise is written and waiting for '
+                  'review by a RepForge editor. It will appear here once '
+                  'approved.',
+            ),
+          ],
+        ),
         KnowledgeUnavailable() => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -579,8 +594,19 @@ class _MediaTile extends StatelessWidget {
         children: [
           AspectRatio(aspectRatio: 4 / 3, child: picture),
           const SizedBox(height: RfSpace.s1),
-          Text(_purposeLabel(media.purpose), style: context.rfText.kicker),
-          Text(media.caption, style: context.rfText.caption),
+          // The picture's label already reads purpose and caption.
+          ExcludeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _purposeLabel(media.purpose),
+                  style: context.rfText.kicker,
+                ),
+                Text(media.caption, style: context.rfText.caption),
+              ],
+            ),
+          ),
         ],
       ),
     );

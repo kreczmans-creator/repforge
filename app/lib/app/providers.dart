@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/data/catalogue/bundled_exercise_knowledge_source.dart';
@@ -219,6 +220,8 @@ final recipeRepositoryProvider = Provider<RecipeRepository>(
 final exerciseKnowledgeSourceProvider = Provider<ExerciseKnowledgeSource>(
   (_) => BundledExerciseKnowledgeSource(
     readBytes: (key) async => (await rootBundle.load(key)).buffer.asUint8List(),
+    // Parsing, checking and hashing the release runs off the UI thread.
+    build: (bundle) => compute(loadKnowledgeCatalogue, bundle),
   ),
 );
 

@@ -308,4 +308,35 @@ void main() {
       expect(labels.supportEquipment, containsAll(['bench', 'squatRack']));
     });
   });
+
+  group('publication policy (owner editorial rule; KS-D9)', () {
+    final catalogue = shippedCatalogue();
+
+    test('a draft is withheld unless drafts are switched on', () {
+      final found = KnowledgeFound(catalogue['lib-deadlift']!);
+      expect(
+        applyPublicationPolicy(found, showDrafts: false),
+        isA<KnowledgeAwaitingReview>(),
+      );
+      expect(applyPublicationPolicy(found, showDrafts: true), same(found));
+    });
+
+    test('editor-approved content is always shown', () {
+      final map = _subset(['lib-plank']);
+      (_ex(map, 'lib-plank')['contentProvenance']! as Map<String, Object?>)
+        ..['status'] = 'editorApproved'
+        ..['editor'] = 'A. Editor'
+        ..['approvedOn'] = '2026-11-08';
+      final k = KnowledgeCatalogue.fromRelease(_doc(map))['lib-plank']!;
+      final found = KnowledgeFound(k);
+      expect(applyPublicationPolicy(found, showDrafts: false), same(found));
+    });
+
+    test('other results pass through unchanged', () {
+      const none = KnowledgeNotAuthored();
+      const off = KnowledgeUnavailable('x');
+      expect(applyPublicationPolicy(none, showDrafts: false), same(none));
+      expect(applyPublicationPolicy(off, showDrafts: false), same(off));
+    });
+  });
 }

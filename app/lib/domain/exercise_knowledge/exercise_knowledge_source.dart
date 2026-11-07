@@ -32,11 +32,37 @@ final class KnowledgeNotAuthored extends KnowledgeLookup {
   const KnowledgeNotAuthored();
 }
 
+/// The catalogue holds guidance for the exercise, but no named editor has
+/// approved it and drafts are not shown (owner decision KS-D9 pending; see
+/// [applyPublicationPolicy]).
+final class KnowledgeAwaitingReview extends KnowledgeLookup {
+  const KnowledgeAwaitingReview(this.knowledge);
+
+  /// The draft, kept for the screen's classification only; its text and
+  /// media are not shown.
+  final ExerciseKnowledge knowledge;
+}
+
 /// The catalogue could not be read (not bundled in this build, or invalid).
 /// Nothing is invented; the screen degrades to its basic details.
 final class KnowledgeUnavailable extends KnowledgeLookup {
   const KnowledgeUnavailable(this.reason);
   final String reason;
+}
+
+/// Publication rule (owner editorial rule, D04 section 7; KS-D9): only
+/// editor-approved guidance is shown. Drafts are shown only when
+/// [showDrafts] is true, which is off by default.
+KnowledgeLookup applyPublicationPolicy(
+  KnowledgeLookup lookup, {
+  required bool showDrafts,
+}) {
+  if (lookup case KnowledgeFound(:final knowledge)
+      when !showDrafts &&
+          knowledge.contentProvenance?.status != ContentStatus.editorApproved) {
+    return KnowledgeAwaitingReview(knowledge);
+  }
+  return lookup;
 }
 
 /// Domain port: read-only, offline access to exercise knowledge by stable

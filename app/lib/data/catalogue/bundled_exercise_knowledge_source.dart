@@ -6,6 +6,16 @@ import 'package:repforge/domain/exercise_knowledge/exercise_knowledge_source.dar
 /// is not bundled.
 typedef ReadBundledBytes = Future<List<int>> Function(String key);
 
+/// Parses, checks and hashes a bundle. Production runs it off the UI thread
+/// (Flutter `compute`); the default runs it in place.
+typedef BuildKnowledgeCatalogue = Future<Result<KnowledgeCatalogue>> Function(
+  KnowledgeBundle bundle,
+);
+
+Future<Result<KnowledgeCatalogue>> _buildInPlace(
+  KnowledgeBundle bundle,
+) async => loadKnowledgeCatalogue(bundle);
+
 /// Data adapter for [ExerciseKnowledgeSource]: reads the canonical catalogue
 /// release (format 2) and the approved reference files from the app bundle,
 /// once, and answers lookups from memory. Read-only and offline: it never
@@ -16,7 +26,10 @@ typedef ReadBundledBytes = Future<List<int>> Function(String key);
 /// assets are registered in `pubspec.yaml`, [readBytes] throws and every
 /// lookup returns [KnowledgeUnavailable]; the screen degrades gracefully.
 final class BundledExerciseKnowledgeSource implements ExerciseKnowledgeSource {
-  BundledExerciseKnowledgeSource({required this.readBytes});
+  BundledExerciseKnowledgeSource({
+    required this.readBytes,
+    this.build = _buildInPlace,
+  });
 
   /// The release the app reads (the latest `repforge` release).
   static const String releaseAsset =
@@ -31,6 +44,7 @@ final class BundledExerciseKnowledgeSource implements ExerciseKnowledgeSource {
   };
 
   final ReadBundledBytes readBytes;
+  final BuildKnowledgeCatalogue build;
   Future<Result<KnowledgeCatalogue>>? _catalogue;
 
   /// The loaded catalogue (loaded once; a failure is kept, not retried, so a
@@ -56,9 +70,15 @@ final class BundledExerciseKnowledgeSource implements ExerciseKnowledgeSource {
         // Labels fall back to ids; the instructions still work.
       }
     }
-    return loadKnowledgeCatalogue(
-      KnowledgeBundle(release: release, reference: reference),
-    );
+    try {
+      return await build(
+        KnowledgeBundle(release: release, reference: reference),
+      );
+    } on Object {
+      return const Err(
+        UnavailableError('The exercise catalogue could not be prepared.'),
+      );
+    }
   }
 
   @override
