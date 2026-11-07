@@ -1,9 +1,9 @@
 # RepForge — Application Test and Acceptance Pack
 
-**Document status:** `[ ] Draft  [ ] In execution  [ ] Completed`  
+**Document status:** `[ ] Draft  [x] In execution  [ ] Completed`  
 **Application:** RepForge (Flutter), version `0.4.0+1` (`app/pubspec.yaml`)  
 **Prepared:** 2026-11-07 from the repository records named in Part 10  
-**Product Owner:** `[name]`  
+**Product Owner:** kreczmans-creator (repository owner)  
 **Record location:** `docs/testing/REPFORGE-APPLICATION-ACCEPTANCE.md`
 
 This document is the formal acceptance instrument for the RepForge application release. The Product Owner works through it, enters decisions and test outcomes, attaches evidence references, and saves the completed file in the repository. Nothing in it is pre-decided: every decision field is blank, every test outcome is unset, and every gate is open until the owner records otherwise.
@@ -532,7 +532,7 @@ Baseline labels as in Part 4 and 2B (Baseline B = `ded976b`; Baseline C = `28b67
 **Context and rationale (recorded position):** D-1 created WP 17 on 2026-11-06 and authorised S3 and S4 implementation before an allocation could be proposed. Proposal `b6510cd`: 9.00, sized relative to WP 7 (8) and WP 9 (9). Stage table (Baseline B record, exact): S3a 0.60; S3b-i 0.40; S3b-ii 0.20; S3c 0.40; S4a 0.50; S4b 0.60; S4c 0.50; S4d 0.30; S5 0.80; S6a 1.60; S6b 1.40; S6c 0.70; independent review 0.50; register/acceptance 0.50 = 9.00. Implementation credit so far: 3.00 (S3a, S3b-i, S3c, S4a, S4b, S4c). If approved, the programme denominator becomes 114 full / 106 core (snapshot figures: 80.66 / 114 = 70.8 %, 80.66 / 106 = 76.1 % in `programme-progress-2026-11-07b.md`; campaign 1 showed 70.3 % / 75.6 % on a different total earned — Part 9).
 
 **Options:**
-- [ ] Approve 9.00 with the stage table as recorded.
+- [x] Approve 9.00 with the stage table as recorded.
 - [ ] Approve a different total (state the figure and which rows change).
 - [ ] Reject the allocation (WP 17 earns nothing until a new proposal).
 - [ ] Defer.
@@ -541,11 +541,11 @@ Baseline labels as in Part 4 and 2B (Baseline B = `ded976b`; Baseline C = `28b67
 
 **Consequences:** Until approved, every WP 17 percentage is provisional and the roll-up must show both denominators; approval makes the 3.00 implementation credit countable.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: the WP 17 allocation is 9.00 points with the stage table as recorded (S3a 0.60, S3b-i 0.40, S3b-ii 0.20, S3c 0.40, S4a 0.50, S4b 0.60, S4c 0.50, S4d 0.30, S5 0.80, S6a 1.60, S6b 1.40, S6c 0.70, independent review 0.50, register/acceptance 0.50).  
+**Owner's rationale:** Sized against WP 7 (8) and WP 9 (9) and already split by stage with evidence lines.  
+**Conditions / follow-up:** Record the approval in D04 §7 and the governance standard §2; the programme denominator becomes 114 full / 106 core; the 3.00 implementation credit now counts.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2C-2 — S3b-ii scope (NUT-014 remainder)
 
@@ -676,16 +676,16 @@ Revision 1.4 of `docs/nutrition-calculation-spec.md` was proposed by WP 15 stage
 
 **Options:**
 - [ ] Checked: allowance and spending limit are adequate (record the figures); resolve OB-PROG-02 in the workspace.
-- [ ] Checked: limit reached or near; raised (record the change).
+- [x] Checked: limit reached or near; raised (record the change).
 - [ ] Not checked yet.
 
 **Recommendation:** none.
 
 **Consequences:** An unchecked allowance risks a repeat during the next overnight campaign.
 
-**Owner's decision:** `[enter]`  **Finding / figures:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Checked. The account's Actions spending limit was hit because the repository was private; the owner made the repository public, so hosted-runner minutes no longer count against the limit.  **Finding / figures:** spending limit reached (private-repository minutes); resolved by making the repository public, 2026-11-07.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2D-2 — Outstanding register decisions from the campaign-2 report, section H
 
@@ -730,7 +730,7 @@ Pre-checks: `git merge-base --is-ancestor aa59021 origin/claude/campaign-2026-11
 **Context and rationale (recorded position):** Campaign 2 created `claude/campaign-2026-11-07` from `aa59021` and integrated WP 14, WP 8 3c (pure domain), WP 11 and the register there; `claude/busy-hypatia-rhl3hu` is preserved at `391fe1b` (docs after `aa59021`) and will not move. D04 on the WP 8 branch (`516fac4`) first named `claude/busy-hypatia-rhl3hu` / `aa59021` as the integration baseline for the Train/knowledge work, then (`d4a73fb`) withdrew that base in favour of `claude/campaign-2026-11-07` as the exercise-knowledge baseline. Neither entry is on the integration branch. Status: **REQUIRES OWNER CONFIRMATION** for the integration line as a whole.
 
 **Options:**
-- [ ] `claude/campaign-2026-11-07` is the authoritative integration branch (release candidate = its head carrying the campaign-2 report).
+- [x] `claude/campaign-2026-11-07` is the authoritative integration branch (release candidate = its head carrying the campaign-2 report).
 - [ ] `claude/busy-hypatia-rhl3hu` at `aa59021` remains the release candidate; campaign-2 work is held (state why).
 - [ ] Another branch (name it).
 
@@ -738,9 +738,9 @@ Pre-checks: `git merge-base --is-ancestor aa59021 origin/claude/campaign-2026-11
 
 **Consequences:** Every acceptance in this document is recorded against the branch named here; Part 8 must name the same branch.
 
-**Owner's decision:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: `claude/campaign-2026-11-07` is the authoritative integration branch (head `ff7c68f` at the time of the decision; the `app/` tree is that of `b27ec18`).  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2D-5 — OB-PROG-01: whether agent reviews satisfy "independent review" for acceptance
 
@@ -752,7 +752,7 @@ Pre-checks: `git merge-base --is-ancestor aa59021 origin/claude/campaign-2026-11
 
 **Options:**
 - [ ] Agent reviews suffice for all active packages.
-- [ ] Agent reviews suffice except for WP 8 stage 3b (human reviewer required there).
+- [x] Agent reviews suffice except for WP 8 stage 3b (human reviewer required there).
 - [ ] A named human reviewer must sign off everywhere (name: `[enter]`).
 - [ ] Defer.
 
@@ -760,10 +760,10 @@ Pre-checks: `git merge-base --is-ancestor aa59021 origin/claude/campaign-2026-11
 
 **Consequences:** Determines whether the 20 % review credit lines (WP 15 0.10; WP 17 0.50 for S3/S4/S6; WP 8 3b-7 0.12; WP 8 3c 0.17 sensitivity; WP 11 review lines) can be earned once recorded.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option B: separate-agent reviews with recorded dispositions satisfy the "independent review" acceptance criterion for every active package except WP 8 stage 3b, which needs a named human reviewer before acceptance.  
+**Owner's rationale:** Stage 3b changes the migration and user data; the other packages have two-round agent reviews with recorded dispositions.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2D-6 — Acceptance of the campaign-2 work packages discovered during repository inspection (WP 11, WP 14, WP 8 stage 3c pure domain, register)
 
@@ -786,8 +786,8 @@ Pre-checks: `git merge-base --is-ancestor aa59021 origin/claude/campaign-2026-11
 |---|---|---|---|---|
 | WP 14 (OB-WP14-09) | `[ ] Accept delivered rows  [ ] Accept with conditions  [ ] Reject  [ ] Defer` | `[enter]` | `[ ]` | `[Proposed/…]` |
 | WP 8 3c merge (OB-WP8-09) | `[ ] Confirm the merge  [ ] Reverse (`git revert -m 1 fea71c8`)  [ ] Defer` | `[enter]` | `[ ]` | `[Proposed/…]` |
-| WP 8 3c sub-breakdown (OB-WP8-10) | `[ ] Approve 2.00 split per preparation §3.11  [ ] Reject  [ ] Defer` | `[enter]` | `[ ]` | `[Proposed/…]` |
-| WP 11 start and breakdown (OB-WP11-01) | `[ ] Approve 7.0 and the stage table; define bands for B, D1, F, G1  [ ] Approve with changes  [ ] Reject  [ ] Defer` | TRN-027/TRN-028 scope: `[enter]` | `[ ]` | `[Proposed/…]` |
+| WP 8 3c sub-breakdown (OB-WP8-10) | `[x] Approve 2.00 split per preparation §3.11  [ ] Reject  [ ] Defer` | Approved: 3c-1 0.40, 3c-2 0.45, 3c-3 0.50, 3c-4 0.30, 3c-5 0.15, 3c-6 0.20. The reviewed 3c stream may now record 0.58 implemented + 0.17 reviewed (sensitivity in the snapshot becomes earned once the WP 8 record is updated). | 2026-11-07 | Approved |
+| WP 11 start and breakdown (OB-WP11-01) | `[x] Approve 7.0 and the stage table; define bands for B, D1, F, G1  [ ] Approve with changes  [ ] Reject  [ ] Defer` | TRN-027/TRN-028 scope: both stay in WP 11; TRN-028 (estimated 1RM) is built last and is the first item to descope if points run short. Partial-credit bands for B, D1, F and G1: a stage's implementation credit is the share of its listed deliverables delivered (reviewed), per the plan §9 deliverable lists. WP 11 is authorised to start (retroactively covering the campaign-2 work). | 2026-11-07 | Approved |
 | WP 11 delivered stages (acceptance) | `[ ] Accept A, B, C, D1, E, F (non-muscle), G1 computation as implemented and reviewed  [ ] Accept with conditions  [ ] Reject  [ ] Defer` | `[enter]` | `[ ]` | `[Proposed/…]` |
 
 **Recommendation:** none recorded for acceptance; the register recommends approving the allocations (OB-WP8-10, OB-WP11-01).
@@ -851,9 +851,9 @@ These are genuine owner items with register entries that the sections above do n
 | OB-WP8-07 | D-3c-3: bundle the release and reference JSON as app assets | Medium | here | `[ ] bundle now  [ ] not until 3c-2  [ ] defer` | `[ ]` |
 | OB-WP8-08 | D-3c-5: label kinds for the R-27 CHECK (register recommends anatomy, pattern, equipment, attribute value) | Low | here | `[ ] approve  [ ] change: …  [ ] defer` | `[ ]` |
 | OB-WP8-09 | D-3c-6: confirm or reverse the merge of the pure-domain 3c stream `fea71c8` | Medium | 2D-6 | `[ref]` | `[ ]` |
-| OB-WP8-10 | Approve the stage 3c sub-breakdown (2.00) | Medium | 2D-6 | `[ref]` | `[ ]` |
+| OB-WP8-10 | Approve the stage 3c sub-breakdown (2.00) | Medium | 2D-6 | Approved (2D-6) | 2026-11-07 |
 | OB-WP8-11 | Confirm each `accepted-gaps.json` entry (6) as an owner decision | Low | here | `[ ] confirm all six  [ ] change: …  [ ] defer` | `[ ]` |
-| OB-WP11-01 | WP 11 start, 7.0 breakdown, TRN-027/028 scope | Medium | 2D-6 | `[ref]` | `[ ]` |
+| OB-WP11-01 | WP 11 start, 7.0 breakdown, TRN-027/028 scope | Medium | 2D-6 | Approved (2D-6) | 2026-11-07 |
 | OB-WP11-02 | GOL-012 thresholds (OQ-15): 28 days; food logged 80 % of days; 90 % of energy verified or user-entered; weight on 3 days/week; plus accepted energy provenances and weakest-7-day-block rule | Medium | here | `[ ] sign the proposed thresholds and rules  [ ] change: …  [ ] defer` — register recommends the proposed figures with a Settings status line | `[ ]` |
 | OB-WP11-03 | Confirm or reverse WP 11 plan decisions 2–9, 11, 12 taken under delegated authority (3(a) adds a read-only method to closed WP 4; 11(a) adds the NUT-019 badge to closed WP 5 screens) | Medium | here | `[ ] confirm all  [ ] reverse: …  [ ] defer` | `[ ]` |
 | OB-WP12-01 | Accounts, backup and sync backend (ADR-0012 options A/B/C; OQ-08 sign-in; TD-21, DAT-008 authorisations) | Low | here | `[ ] option A  [ ] B  [ ] C  [ ] defer` — ADR recommendation as recorded there | `[ ]` |
@@ -872,13 +872,13 @@ These are genuine owner items with register entries that the sections above do n
 | OB-WP15-03 | Imperial entry (OQ-02) | Medium | 2E-2 | `[ref]` | `[ ]` |
 | OB-WP15-04 | Milligram entry | Low | 2E-3 | `[ref]` | `[ ]` |
 | OB-WP15-05 | WP 15 acceptance | Medium | 2B-3 | `[ref]` | `[ ]` |
-| OB-WP17-01 | 9.00 allocation | High | 2C-1 | `[ref]` | `[ ]` |
+| OB-WP17-01 | 9.00 allocation | High | 2C-1 | Approved (2C-1) | 2026-11-07 |
 | OB-WP17-02 | S3b-ii | Low | 2C-2 | `[ref]` | `[ ]` |
 | OB-WP17-03 | S4d | Low | 2C-3 | `[ref]` | `[ ]` |
 | OB-WP17-04..08 | D-3..D-7 | Low/Medium | 2C-4 | `[ref]` | `[ ]` |
 | OB-WP17-09 | S3/S4 acceptance | Medium | 2C-7 | `[ref]` | `[ ]` |
-| OB-PROG-01 | Agent reviews as acceptance | Medium | 2D-5 | `[ref]` | `[ ]` |
-| OB-PROG-02 | Actions allowance | High | 2D-1 | `[ref]` | `[ ]` |
+| OB-PROG-01 | Agent reviews as acceptance | Medium | 2D-5 | Approved, option B (2D-5) | 2026-11-07 |
+| OB-PROG-02 | Actions allowance | High | 2D-1 | Resolved: spending limit; repository made public (2D-1) | 2026-11-07 |
 
 ## Part 3 — Application testing programme
 
