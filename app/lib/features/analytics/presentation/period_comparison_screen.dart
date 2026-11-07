@@ -28,7 +28,13 @@ class _PeriodComparisonScreenState
   @override
   Widget build(BuildContext context) {
     final later = periodFromSettings(ref, _kind);
-    final earlier = later.previous;
+    final earlier = ref.watch(
+      currentPeriodProvider(
+        _kind == AnalyticsPeriodKind.month
+            ? PeriodChoice.lastMonth
+            : PeriodChoice.lastWeek,
+      ),
+    );
     final comparison = ref.watch(
       periodComparisonProvider((later: later, earlier: earlier)),
     );
@@ -145,6 +151,23 @@ class _Table extends StatelessWidget {
             ],
           ),
           const SizedBox(height: RfSpace.s2),
+          if (comparison.partialNote != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: RfSpace.s1),
+              child: Text(
+                comparison.partialNote!,
+                key: const Key('compare-partial-note'),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: RfSpace.s1),
+            child: Text(
+              PeriodComparison.weightBasisNote,
+              key: const Key('compare-weight-note'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
           for (final m in comparison.measures)
             Text(
               '${m.measure.label}: ${m.measure.unit}',

@@ -16,6 +16,9 @@ void main() {
   setUp(() => db = AppDatabase.inMemory());
   tearDown(() => db.close());
 
+  String? textOf(WidgetTester t, String key) =>
+      t.widget<Text>(find.byKey(Key(key))).data;
+
   List<String> texts(WidgetTester t, String measure) => [
     for (final part in ['measure', 'earlier', 'later', 'difference'])
       t.widget<Text>(find.byKey(Key('compare-$measure-$part'))).data!,
@@ -101,6 +104,22 @@ void main() {
       contains('November 2026'),
     );
     expect(texts(tester, 'energy'), ['Energy', '2000', '2200', '+200']);
+    await unmount(tester);
+  });
+
+  testWidgets('states a period still in progress and the weight basis', (
+    tester,
+  ) async {
+    final c = analyticsContainer(db);
+    await pumpAnalytics(tester, c, location: RfRoutes.goalsCompare);
+    expect(
+      textOf(tester, 'compare-partial-note'),
+      'Week of 2026-11-02 so far: 6 of 7 days',
+    );
+    expect(
+      textOf(tester, 'compare-weight-note'),
+      PeriodComparison.weightBasisNote,
+    );
     await unmount(tester);
   });
 

@@ -79,10 +79,13 @@ void main() {
           of: find.byKey(Key(section)),
           matching: find.text('not enough data'),
         ),
-        findsOneWidget,
+        findsWidgets,
         reason: section,
       );
     }
+    // Nothing logged is "0 of 6 days" (a known count), the averages are not
+    // enough data.
+    expect(find.text('0 of 6'), findsOneWidget);
     expect(find.text('0'), findsNothing);
     expect(
       _text(tester, 'weekly-period-label').data,
@@ -121,7 +124,7 @@ void main() {
     });
     await pumpAnalytics(tester, c, location: RfRoutes.goalsWeekly);
 
-    expect(find.text('2 of 7'), findsOneWidget);
+    expect(find.text('2 of 6'), findsOneWidget);
     expect(find.text('2100 kcal'), findsOneWidget);
     expect(find.text('160 g'), findsOneWidget);
     expect(

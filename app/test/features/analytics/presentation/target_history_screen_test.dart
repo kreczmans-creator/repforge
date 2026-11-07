@@ -78,6 +78,17 @@ void main() {
           2200,
           active: false,
           start: DateTime(2026, 10),
+          updated: DateTime(2026, 11, 5),
+        ),
+      );
+      // Set and replaced on the same day: it applied on no day.
+      await goals.upsert(
+        goalOf(
+          GoalKind.fibre,
+          25,
+          active: false,
+          start: DateTime(2026, 11, 2),
+          updated: DateTime(2026, 11, 2),
         ),
       );
       await goals.upsert(
@@ -103,7 +114,11 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('target-period-0')), findsOneWidget);
-    expect(find.byKey(const Key('target-period-3')), findsOneWidget);
+    expect(find.byKey(const Key('target-period-4')), findsOneWidget);
+    expect(
+      find.text('Set on 2026-11-02, replaced the same day (applied on no day)'),
+      findsOneWidget,
+    );
     expect(find.text('2200 kcal'), findsOneWidget);
     expect(find.text('From 2026-10-01 to 2026-11-04'), findsOneWidget);
     expect(find.text('2000 kcal'), findsOneWidget);

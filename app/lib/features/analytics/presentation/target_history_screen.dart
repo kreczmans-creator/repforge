@@ -100,8 +100,12 @@ class _List extends StatelessWidget {
                 style: context.rfText.dataM,
               ),
               Text(
-                'From ${p.effectiveFrom.iso} to '
-                '${p.effectiveTo?.iso ?? 'current'}',
+                p.replacedSameDay
+                    ? 'Set on ${p.effectiveFrom.iso}, replaced the same day '
+                          '(applied on no day)'
+                    : 'From ${p.effectiveFrom.iso} to '
+                          '${p.effectiveTo?.iso ?? 'current'}',
+                key: Key('target-period-text-$i'),
                 style: context.rfText.caption,
               ),
             ],

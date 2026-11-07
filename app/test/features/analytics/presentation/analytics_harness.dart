@@ -82,6 +82,7 @@ Goal goalOf(
   MeasurementSite? site,
   DateTime? start,
   DateTime? end,
+  DateTime? updated,
   bool active = true,
   String? id,
 }) {
@@ -95,7 +96,7 @@ Goal goalOf(
     endDate: end?.toUtc(),
     active: active,
     createdAt: at,
-    updatedAt: at,
+    updatedAt: (updated ?? start ?? DateTime(2026, 10, 1)).toUtc(),
   );
 }
 
