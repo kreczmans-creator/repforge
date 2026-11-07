@@ -40,7 +40,7 @@ final class SaveGoal {
             g.kind == kind && (kind != GoalKind.measurement || g.site == site),
       );
       return Ok(match.isEmpty ? null : match.last);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(StorageError('Could not read the goal.', cause: e));
     }
   }
@@ -120,7 +120,7 @@ final class SaveGoal {
     );
     try {
       await repository.replaceActive(kind, goal, site: goalSite);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(StorageError('Could not save the goal.', cause: e));
     }
     return Ok(goal);
@@ -144,7 +144,7 @@ final class SaveGoal {
       );
       await repository.replaceActive(kind, null, site: goalSite);
       return Ok(had);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(StorageError('Could not clear the goal.', cause: e));
     }
   }

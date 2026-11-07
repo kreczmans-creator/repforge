@@ -7,7 +7,9 @@ import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
+import 'package:repforge/features/analytics/presentation/goal_editor_screen.dart';
 import 'package:repforge/features/analytics/presentation/goals_home_screen.dart';
+import 'package:repforge/features/analytics/presentation/target_history_screen.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blocker_detail_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blockers_screen.dart';
@@ -425,6 +427,28 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
             GoRoute(
               path: RfRoutes.goals,
               builder: (context, state) => const GoalsHomeScreen(),
+              routes: [
+                GoRoute(
+                  path: 'edit/:kind',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) {
+                    final kind = _editableGoalKind(
+                      state.pathParameters['kind'],
+                    );
+                    return kind == null
+                        ? const _UnknownGoalScreen()
+                        : GoalEditorScreen(
+                            kind: kind,
+                            site: _siteNamed(state.uri.queryParameters['site']),
+                          );
+                  },
+                ),
+                GoRoute(
+                  path: 'history',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const TargetHistoryScreen(),
+                ),
+              ],
             ),
           ],
         ),
@@ -460,8 +484,30 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
   ],
 );
 
+/// The goal kinds the goal editor handles; the daily nutrition targets stay
+/// in Settings.
+GoalKind? _editableGoalKind(String? name) => const [
+  GoalKind.bodyWeight,
+  GoalKind.measurement,
+  GoalKind.sessionsPerWeek,
+].where((k) => k.name == name).firstOrNull;
+
 MeasurementSite? _siteNamed(String? name) =>
     MeasurementSite.values.where((s) => s.name == name).firstOrNull;
+
+/// Shown for `/goals/edit/<unknown>`.
+class _UnknownGoalScreen extends StatelessWidget {
+  const _UnknownGoalScreen();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Goal')),
+    body: const Padding(
+      padding: EdgeInsets.all(RfSpace.gutter),
+      child: Text('Unknown goal type.', key: Key('goal-unknown')),
+    ),
+  );
+}
 
 /// Shown for `/track/site/<unknown>`.
 class _UnknownMeasurementScreen extends StatelessWidget {
