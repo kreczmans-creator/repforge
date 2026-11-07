@@ -96,7 +96,7 @@ Goal goalOf(
     endDate: end?.toUtc(),
     active: active,
     createdAt: at,
-    updatedAt: (updated ?? start ?? DateTime(2026, 10, 1)).toUtc(),
+    updatedAt: (updated ?? start ?? DateTime(2026, 10)).toUtc(),
   );
 }
 
