@@ -19,7 +19,7 @@ void main() {
   );
 
   test('the analytics domain exists and is scanned', () {
-    expect(files.length, greaterThan(2));
+    expect(files.length, greaterThan(8));
   });
 
   test('imports are limited to dart core libraries, meta and the domain', () {
