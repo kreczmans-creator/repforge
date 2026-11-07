@@ -929,19 +929,19 @@ Use a physical Android phone for sections 1 to 12 and 14 to 18 unless a test say
 
 ### 1. Installation and startup
 
-Android debug build from the rolling `debug-latest` release (README). Release (signed) installation is section 18; iOS is section 13.
+Android debug build of the **release candidate**: the CI artifact `repforge-android-debug-apk` of Android run 42331651263 (`b27ec18`; APK SHA-256 `e8768f7d086dc3502dc6e07f9507d31a7772014a95a62b04a18606375fb39ad9`, 201,630,832 bytes; artifact id 13558228357, retained until 2026-12-07). The rolling `debug-latest` release is built from `main` and does **not** contain the campaign-2 code; do not test it as the candidate. Release (signed) installation is section 18; iOS is section 13.
 
 #### Tests
 
 ##### T-01-01 — Download the Android test build and verify its checksum
 - **Objective:** Confirm the published test APK is the file that CI built.
-- **Traces to:** GEN-001, GEN-010 · WP 1, WP 14 · README / `debug-latest` release
-- **Preconditions:** Android phone; a computer or the phone's browser; network on.
+- **Traces to:** GEN-001, GEN-010 · WP 1, WP 14 · Android run 42331651263, artifact 13558228357
+- **Preconditions:** Android phone; a computer (for the checksum) or the phone's browser; GitHub login (artifacts need it); network on.
 - **Steps:**
-  1. Open the `debug-latest` release linked in README.md.
-  2. Download `RepForge-debug-arm64-v8a.apk` (or `RepForge-debug-universal.apk` if unsure of the ABI) and the `SHA256SUMS` asset.
-  3. Compute the SHA-256 of the downloaded APK and compare it with the line in `SHA256SUMS`.
-- **Expected result:** Both files download; the computed SHA-256 equals the published value. The release page states that these are debug builds for testing.
+  1. Open https://github.com/kreczmans-creator/repforge/actions/runs/42331651263/artifacts/13558228357 and download `repforge-android-debug-apk.zip`; unzip to get `app-debug.apk`.
+  2. Compute the SHA-256 of `app-debug.apk` (`sha256sum app-debug.apk` on a computer, or a checksum app on the phone) and compare it with `e8768f7d086dc3502dc6e07f9507d31a7772014a95a62b04a18606375fb39ad9`.
+  3. Note the run's "Verify APK signatures and metadata" output: package `com.tempest.repforge`, versionName 0.4.0, versionCode 1, signer certificate SHA-256 `3642b662…`.
+- **Expected result:** The file downloads and its SHA-256 equals the published value. If the checksum cannot be computed on the available equipment, record NOT TESTED and note the file size (201,630,832 bytes) instead; do not record PASS on size alone.
 - **Actual result:** `[enter]`
 - **Outcome:** [ ] PASS  [ ] FAIL  [ ] BLOCKED  [ ] NOT TESTED
 - **Evidence reference:** `[screenshot / log / run id]`
