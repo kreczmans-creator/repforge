@@ -11,6 +11,7 @@ import 'package:repforge/features/analytics/presentation/exercise_progress_scree
 import 'package:repforge/features/analytics/presentation/goal_editor_screen.dart';
 import 'package:repforge/features/analytics/presentation/goals_home_screen.dart';
 import 'package:repforge/features/analytics/presentation/period_comparison_screen.dart';
+import 'package:repforge/features/analytics/presentation/recomposition_screen.dart';
 import 'package:repforge/features/analytics/presentation/target_history_screen.dart';
 import 'package:repforge/features/analytics/presentation/training_analytics_screen.dart';
 import 'package:repforge/features/analytics/presentation/weekly_summary_screen.dart';
@@ -461,6 +462,11 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                   path: 'compare',
                   parentNavigatorKey: _rootKey,
                   builder: (context, state) => const PeriodComparisonScreen(),
+                ),
+                GoRoute(
+                  path: 'recomposition',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const RecompositionScreen(),
                 ),
                 GoRoute(
                   path: 'training',
