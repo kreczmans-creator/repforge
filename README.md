@@ -11,6 +11,14 @@ Cross-platform (Android and iOS) fitness, nutrition and body-composition app for
 
 All assets and checksums: [debug-latest release](https://github.com/kreczmans-creator/repforge/releases/tag/debug-latest). It is rebuilt automatically from every push to the active branch (`.github/workflows/debug-release.yml`). These are debug builds for testing only; Android will warn about an unknown source. No iOS test build is distributed yet (simulator builds only; device builds need Apple signing).
 
+### Test-build certificate
+
+The rolling `debug-release.yml` is the only workflow that creates the Android debug keystore (cache key `repforge-debug-keystore-v1`, saved when missing); it and `android.yml` restore it, so successive test builds carry one certificate and install over each other, and each run checks the APK's signer against the keystore. If the cache entry is evicted a new certificate is generated and the tester must uninstall once (back up data first). Caveat: Actions caches are scoped to the branch that wrote them plus the default branch (and a pull request's base branch), so builds on other branches may use a different certificate; `android.yml` falls back to a throwaway keystore when it finds no cache. No keystore is ever committed (`docs/engineering-standards.md` section 9); the debug identity signs test builds only.
+
+## Releases
+
+A release is a tag `vX.Y.Z` pushed to the repository, which runs `.github/workflows/release.yml` (or a manual run naming an existing tag). The workflow runs the quality gates and refuses the tag unless `app/pubspec.yaml` has version `X.Y.Z` and `CHANGELOG.md` has a `## [X.Y.Z]` heading; that section becomes the GitHub Release notes. It builds a signed Android APK and app bundle and requires the secrets of the `release` GitHub environment (a required reviewer there is the approval step): `ANDROID_KEYSTORE` (base64), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD` and `ANDROID_KEY_ALIAS`; if any is missing the job fails and nothing is published (unsigned and debug-signed builds are never released). iOS is a simulator build only until Apple signing is configured. Changelog rule: every user-visible change adds a line under `[Unreleased]` in `CHANGELOG.md`; the releasing commit moves them under the new version heading and bumps the pubspec version name and the build number (`+N`, the Android versionCode, which Google Play requires to increase). No tag has been cut yet (the pubspec version is 0.4.0+1). Status and owner actions: `docs/delivery-record/WP14.md`.
+
 ## Project outline
 
 | Area | Status | Where |
@@ -28,7 +36,7 @@ All assets and checksums: [debug-latest release](https://github.com/kreczmans-cr
 | `app/` | The Flutter application (source of truth). |
 | `docs/` | Architecture decisions, work-package deliverables, engineering standards, delivery records. |
 | `legacy/android/` | Read-only Kotlin prototype. |
-| `.github/workflows/` | CI: quality gates, Android debug APK, iOS simulator build, emulator integration tests, rolling debug release. |
+| `.github/workflows/` | CI: quality gates, Android debug APK, iOS simulator build, emulator integration tests, rolling debug release, tagged release (`release.yml`). |
 
 ## Build and test
 

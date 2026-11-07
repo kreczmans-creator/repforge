@@ -1,0 +1,361 @@
+name: Release
+
+# WP 14 release workflow (docs/wp0/D07-ci-cd-strategy.md, section 2).
+#
+# A tag `vX.Y.Z` (or a manual run naming an existing tag) verifies the tagged
+# commit, builds SIGNED Android artefacts and publishes them as a GitHub
+# Release whose notes are the matching CHANGELOG.md section.
+#
+# Hard rules:
+#   - The release is published only when the four signing secrets exist
+#     (ANDROID_KEYSTORE, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD,
+#     ANDROID_KEY_ALIAS). Missing secrets FAIL the android job; this workflow
+#     never publishes an unsigned or debug-signed artefact as a release.
+#   - The tag, app/pubspec.yaml's version and a `## [X.Y.Z]` heading in
+#     CHANGELOG.md must agree, or the verify job fails.
+#   - No keystore is committed (engineering standards, section 9). The
+#     keystore arrives base64-encoded in a secret, is decoded to a temporary
+#     file outside the repository and is deleted at the end of the job.
+#     Secrets are only passed through `env:` and are never echoed.
+#   - iOS is a simulator build only: device and App Store signing need an
+#     Apple Developer Program account and are an owner decision (WP 14).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, for example v0.5.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.47.9"
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  verify:
+    name: Verify (gates, version, changelog)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Flutter version (must match .fvmrc)
+        run: |
+          flutter --version
+          test "$(flutter --version | head -1 | awk '{print $2}')" = "$FLUTTER_VERSION"
+
+      - name: Resolve dependencies (pinned)
+        run: flutter pub get --enforce-lockfile
+
+      # Same generated-code check as ci.yml (see the comments there).
+      - name: Verify generated code is current
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          historical="$(mktemp -d)"
+          cp drift_schemas/drift_schema_v[1-7].json "$historical"/
+          dart run drift_dev schema steps "$historical" lib/data/db/migration/schema_versions.g.dart
+          rm -rf "$historical"
+          dump="$(mktemp -d)"
+          dart run drift_dev schema dump lib/data/db/v8/app_database_v8.dart "$dump"/
+          cmp "$dump"/drift_schema_v8.json drift_schemas/drift_schema_v8.json
+          rm -rf "$dump"
+          v8steps="$(mktemp -d)"
+          cp drift_schemas/drift_schema_v7.json drift_schemas/drift_schema_v8.json "$v8steps"/
+          dart run drift_dev schema steps "$v8steps" lib/data/db/migration/schema_v8_shapes.g.dart
+          rm -rf "$v8steps"
+          git diff --exit-code -- lib
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Unit and widget tests
+        run: flutter test --coverage --reporter expanded
+
+      - name: Coverage gate (80 % of hand-written code)
+        run: dart run tool/coverage_gate.dart coverage/lcov.info --min 80
+
+      # The tag (without the leading v), the pubspec version name (before the
+      # build number) and a CHANGELOG.md heading `## [X.Y.Z]` must agree. The
+      # heading's section becomes the release notes.
+      - name: Tag, version and changelog agree
+        working-directory: .
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+
+          def fail(msg):
+              print(f"::error::{msg}")
+              sys.exit(1)
+
+          tag = os.environ["TAG"]
+          m = re.fullmatch(r"v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)", tag)
+          if not m:
+              fail(f"Tag '{tag}' is not of the form vX.Y.Z (optionally -prerelease).")
+          version = m.group(1)
+
+          pub = re.search(r"^version:\s*([^\s+#]+)(?:\+(\d+))?\s*$",
+                          open("app/pubspec.yaml", encoding="utf-8").read(), re.M)
+          if not pub:
+              fail("app/pubspec.yaml has no 'version:' line.")
+          if pub.group(1) != version:
+              fail(f"Tag {tag} says {version} but app/pubspec.yaml says "
+                       f"{pub.group(1)}. Bump the version in the release commit.")
+
+          lines = open("CHANGELOG.md", encoding="utf-8").read().splitlines()
+          head = re.compile(r"^## \[" + re.escape(version) + r"\](?:\s+-\s+.*)?\s*$")
+          start = next((i for i, l in enumerate(lines) if head.match(l)), None)
+          if start is None:
+              fail(f"CHANGELOG.md has no '## [{version}]' heading. "
+                       "Move the Unreleased entries under it before tagging.")
+          end = next((i for i in range(start + 1, len(lines))
+                      if lines[i].startswith("## ")), len(lines))
+          body = "\n".join(lines[start + 1:end]).strip()
+          if not body:
+              fail(f"The CHANGELOG.md section for {version} is empty.")
+          open("release-notes.md", "w", encoding="utf-8").write(body + "\n")
+          print(f"Tag {tag}, pubspec {pub.group(1)}+{pub.group(2)}, "
+                f"changelog section of {len(body.splitlines())} lines: consistent.")
+          PY
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: Signed Android artefacts and GitHub Release
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # The `release` environment is where D07 section 2.4 puts the signing
+    # secrets and the required reviewer: that reviewer's approval is the only
+    # manual step between a tag and a published release.
+    environment: release
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      # `secrets` cannot be tested in an `if:`, so they are copied into the
+      # environment of this one step. Only the NAMES of missing secrets are
+      # printed, never a value. Any missing secret fails the job here, before
+      # anything is built, so nothing unsigned can reach a release.
+      - name: Require all signing secrets
+        working-directory: .
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          missing=""
+          for name in ANDROID_KEYSTORE ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD ANDROID_KEY_ALIAS; do
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Release signing secrets missing::Missing repository/environment secrets:${missing}. Add all four (ANDROID_KEYSTORE as base64 of the upload keystore, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD, ANDROID_KEY_ALIAS) in the 'release' environment. No release is published without them; unsigned and debug-signed builds are never released."
+            exit 1
+          fi
+          echo "All four signing secrets are present (values not shown)."
+
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies (pinned)
+        run: flutter pub get --enforce-lockfile
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # The keystore lives in RUNNER_TEMP, outside the repository checkout.
+      - name: Decode keystore to a temporary file
+        working-directory: .
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+        run: |
+          keystore="$RUNNER_TEMP/repforge-release.jks"
+          printf '%s' "$ANDROID_KEYSTORE" | base64 --decode > "$keystore"
+          chmod 600 "$keystore"
+          test -s "$keystore" || { echo "::error::ANDROID_KEYSTORE did not decode to a keystore."; exit 1; }
+          echo "RF_KEYSTORE_FILE=$keystore" >> "$GITHUB_ENV"
+
+      # The signing values reach app/android/app/build.gradle.kts as Gradle
+      # project properties (ORG_GRADLE_PROJECT_<name> becomes property <name>);
+      # the `release` signing config is created only when all four are set.
+      - name: Build release app bundle (AAB)
+        env:
+          ORG_GRADLE_PROJECT_RF_KEYSTORE_PATH: ${{ env.RF_KEYSTORE_FILE }}
+          ORG_GRADLE_PROJECT_RF_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_RF_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_RF_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build appbundle --release
+
+      - name: Build release APK
+        env:
+          ORG_GRADLE_PROJECT_RF_KEYSTORE_PATH: ${{ env.RF_KEYSTORE_FILE }}
+          ORG_GRADLE_PROJECT_RF_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_RF_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_RF_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build apk --release
+
+      - name: Collect artefacts
+        working-directory: .
+        run: |
+          version="${TAG#v}"
+          mkdir -p dist
+          cp "app/build/app/outputs/flutter-apk/app-release.apk" "dist/RepForge-${version}.apk"
+          cp "app/build/app/outputs/bundle/release/app-release.aab" "dist/RepForge-${version}.aab"
+          ls -l dist
+
+      # apksigner proves the APK carries a valid signature and prints the
+      # signer certificate; the build fails if that certificate is the Android
+      # debug identity (the signing fallback in build.gradle.kts), which would
+      # mean the release signing config was not applied. The AAB is a signed
+      # jar, checked with jarsigner.
+      - name: Verify signatures and metadata
+        working-directory: .
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          apk="dist/RepForge-${TAG#v}.apk"
+          aab="dist/RepForge-${TAG#v}.aab"
+          certs="$("$tools/apksigner" verify --verbose --print-certs "$apk")"
+          echo "$certs"
+          if echo "$certs" | grep -q "CN=Android Debug"; then
+            echo "::error::The APK is signed with the Android debug certificate; refusing to release."
+            exit 1
+          fi
+          "$tools/aapt2" dump badging "$apk" | grep -E "^package:|^application-label:|sdkVersion|targetSdkVersion"
+          jarsigner -verify -verbose -certs "$aab" > "$RUNNER_TEMP/aab-verify.txt" 2>&1 || true
+          grep -E "jar verified|jar is unsigned|CN=" "$RUNNER_TEMP/aab-verify.txt" | sort -u | head -20
+          if grep -q "CN=Android Debug" "$RUNNER_TEMP/aab-verify.txt"; then
+            echo "::error::The app bundle is signed with the Android debug certificate; refusing to release."
+            exit 1
+          fi
+          if ! grep -q "jar verified" "$RUNNER_TEMP/aab-verify.txt"; then
+            echo "::error::The app bundle is not verifiably signed; refusing to release."
+            exit 1
+          fi
+
+      - name: Checksums (SHA-256)
+        working-directory: dist
+        run: sha256sum RepForge-* | tee SHA256SUMS.txt
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}/notes
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: repforge-android-release
+          path: dist/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Create GitHub Release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$RUNNER_TEMP/notes/release-notes.md"
+          flags=""
+          case "$TAG" in *-*) flags="--prerelease" ;; esac
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "RepForge $TAG" --notes-file "$notes" $flags
+          else
+            gh release create "$TAG" --verify-tag --title "RepForge $TAG" --notes-file "$notes" $flags
+          fi
+          gh release upload "$TAG" dist/RepForge-*.apk dist/RepForge-*.aab dist/SHA256SUMS.txt --clobber
+          gh release view "$TAG" --json assets --jq '.assets[] | "\(.name) \(.size) bytes"'
+
+      - name: Delete keystore
+        if: always()
+        working-directory: ${{ runner.temp }}
+        run: rm -f "$RUNNER_TEMP/repforge-release.jks"
+
+  ios:
+    name: iOS simulator build (unsigned)
+    needs: verify
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - name: Signing status
+        run: |
+          echo "::notice title=iOS signing not configured::Device and App Store signing is NOT configured (needs an Apple Developer Program account and App Store Connect secrets, an owner decision recorded in docs/delivery-record/WP14.md). Building the simulator app only; no iOS artefact is attached to the GitHub Release."
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies (pinned)
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build for iOS simulator
+        run: flutter build ios --simulator --no-codesign
+
+      - name: Package Runner.app
+        run: |
+          cd build/ios/iphonesimulator && zip -qr ../../Runner-simulator.zip Runner.app
+          ls -l ../../Runner-simulator.zip
+
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: repforge-ios-simulator-app
+          path: app/build/Runner-simulator.zip
+          if-no-files-found: error
+          retention-days: 30
