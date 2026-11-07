@@ -364,6 +364,7 @@ class _Steps extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: RfSpace.s2),
             child: Semantics(
               key: Key('step-${i + 1}'),
+              container: true,
               label: 'Step ${i + 1} of ${items.length}: ${items[i]}',
               excludeSemantics: true,
               child: Row(
