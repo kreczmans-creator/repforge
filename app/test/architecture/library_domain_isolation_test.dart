@@ -120,6 +120,13 @@ void main() {
       'lib/data/repositories/v8/drift_library_repository_v8.dart',
       'lib/data/repositories/v8/drift_migration_report_repository_v8.dart',
       'lib/data/repositories/v8/v8_exercise_read_port.dart',
+      // WP 8 exercise knowledge system (2026-11-07): the pure, read-only
+      // knowledge domain reads the canonical release format through the 3c
+      // parser. It is the only boundary: data and presentation code import
+      // `lib/domain/exercise_knowledge/`, never `lib/domain/library/`.
+      'lib/domain/exercise_knowledge/exercise_knowledge.dart',
+      'lib/domain/exercise_knowledge/exercise_knowledge_source.dart',
+      'lib/domain/exercise_knowledge/knowledge_checks.dart',
     ]);
   });
 
