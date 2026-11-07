@@ -37,12 +37,15 @@ jobs:
       # Available: 7255 MB ... need 7372 MB", run 42305104781; the same
       # symptom on main run 42293964654). Removing tool-chains this job never
       # uses frees space, and the explicit partition size below keeps the
-      # requirement well under what is left. The NDK stays: the app build
-      # needs it, and run 42307776044 spent 11 minutes re-downloading it.
+      # requirement well under what is left. The image's NDK directory is
+      # removed too: the app build installs the NDK version it needs (28.2)
+      # itself in either case, and the three attempts of run 42310432671
+      # that kept the directory all ended in a runner shutdown signal during
+      # the build, while run 42307776044 without it completed.
       - name: Free disk space
         run: |
           df -h / | tail -1
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL" || true
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android/sdk/ndk "$AGENT_TOOLSDIRECTORY/CodeQL" || true
           df -h / | tail -1
 
       - name: Set up JDK 17
