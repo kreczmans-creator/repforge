@@ -220,7 +220,10 @@ final class AnalyticsPeriod {
 
   /// The day boundary the nutrition and training figures of this period
   /// use, stated beside them (plan decision 7b).
-  String get dayRule => dayStartHour == 0
+  String get dayRule => dayRuleFor(dayStartHour);
+
+  /// The label of the day boundary for a day-start setting.
+  static String dayRuleFor(int dayStartHour) => dayStartHour == 0
       ? 'Days run from local midnight'
       : 'Days start at ${dayStartHour.toString().padLeft(2, '0')}:00';
 
