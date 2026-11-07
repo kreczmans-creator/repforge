@@ -1,28 +1,35 @@
 #!/usr/bin/env bash
-# WP 8 3b-9 (3B-ACC-01, WS5): migration timing on a real device.
+# WP 8 3b-9 (3B-ACC-01, WS5): timing of the v7 -> v8 migration on a real
+# device. Runs are not evidence until the owner records and accepts them
+# (docs/device-timing.md).
 #
 # Usage (from app/):
 #   tool/device_timing.sh android [adb-serial]
 #   tool/device_timing.sh ios <device-udid-or-name>
 #
 # What it does:
-#   1. records the device model and OS version (adb getprop / xcrun devicectl)
-#      into build/device_timing/<platform>-<model>-<timestamp>/device.txt;
+#   1. records the device model, hardware and OS version (adb getprop /
+#      xcrun devicectl), the commit and the Flutter version into
+#      build/device_timing/<platform>-<model>-<timestamp>/device.txt;
 #   2. runs integration_test/migration_v8_timing_test.dart in PROFILE mode
 #      (AOT, like a release build; debug-mode timings are not evidence) with
-#      flutter drive and RUN_V8_TIMING=true: the D04 profile (5,000
-#      exercises, 100,000 sets), 3 runs from an identical restored start and
-#      a recovery/retry run, all in a temporary directory on the device;
+#      flutter drive and RUN_V8_TIMING=true: the v7 D04 profile (5,000
+#      exercises, 100,000 sets, 303 without a primary target) built on the
+#      device, the registered v7 -> v8 migration through the app engine,
+#      3 runs from an identical restored start, a recovery/retry run (failure
+#      injected mid-step) and a seed run (bundled seed, R-30), all in a new
+#      directory under the app's cache directory;
 #   3. keeps the driver's report (build/integration_response_data.json) and
-#      the full log, and rebuilds the result JSON from the V8_TIMING_JSON
-#      log lines as a second copy.
+#      the full log, rebuilds the result JSON from the V8_TIMING_JSON log
+#      lines as a second copy, and prints a summary.
 #
 # The harness never opens the app's own database (it asserts this). It does
-# install the app build on the device: use a device where that is fine.
-# Requirements: Flutter 3.47.9 on PATH; Android: adb and USB debugging;
-# iOS: Xcode 15+ (xcrun devicectl), a signing team set up for Runner, and
-# the device unlocked and trusted. Profile mode does not run on emulators or
-# simulators.
+# install the profile build of the app on the device: use a device where
+# that is fine, and back up the app's data first if it holds real data.
+# Requirements: Flutter 3.47.9 on PATH; python3; Android: adb and USB
+# debugging; iOS: Xcode 15+ (xcrun devicectl), a signing team set up for
+# Runner, and the device unlocked and trusted. Profile mode does not run on
+# emulators or simulators. Bash 3.2 (macOS) or later.
 #
 # Optional environment: V8_TIMING_REPS (default 3, minimum 3).
 set -euo pipefail
@@ -32,6 +39,15 @@ device="${2:-}"
 reps="${V8_TIMING_REPS:-3}"
 here="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$here"
+
+case "$reps" in
+  ''|*[!0-9]*) echo "V8_TIMING_REPS must be a number (got '$reps')" >&2; exit 2 ;;
+esac
+if [ "$reps" -lt 3 ]; then
+  echo "V8_TIMING_REPS must be at least 3 (got $reps)" >&2
+  exit 2
+fi
+extra_info=""
 
 case "$platform" in
   android)
@@ -51,6 +67,14 @@ case "$platform" in
     device_model="$manufacturer $model (SoC $soc, $abi, RAM ${ram_kb} kB)"
     device_os="Android $release (API $sdk)"
     flutter_device="${device:-$("${adb_cmd[@]}" get-serialno | tr -d '\r')}"
+    # Conditions at the start (notes field of the results template).
+    battery="$("${adb_cmd[@]}" shell dumpsys battery | tr -d '\r' \
+      | awk -F': ' '/ level:| temperature:| powered:| status:/ {printf "%s=%s ", $1, $2}' \
+      | tr -s ' ')" || battery="not read"
+    free_data="$("${adb_cmd[@]}" shell df -h /data | tr -d '\r' | tail -1)" \
+      || free_data="not read"
+    extra_info="battery at start: $battery
+storage (/data): $free_data"
     ;;
   ios)
     if [[ -z "$device" ]]; then
@@ -80,21 +104,33 @@ PY
     flutter_device="$device"
     ;;
   *)
-    sed -n '2,27p' "$0"
+    sed -n '2,34p' "$0"
     exit 2
     ;;
 esac
 
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 slug="$(echo "$platform-$device_model" | tr -cs 'A-Za-z0-9' '-' | cut -c1-60)"
-out="build/device_timing/$slug-$stamp"
+# Seconds in the stamp plus the PID: two runs never share a folder.
+out="build/device_timing/$slug-$stamp-$$"
 mkdir -p "$out"
+commit="$(git rev-parse HEAD 2>/dev/null)" || commit=""
+[ -n "$commit" ] || commit="unknown"
+if dirty="$(git status --porcelain 2>/dev/null)"; then
+  dirty="$(printf '%s' "$dirty" | grep -c . || true) files"
+else
+  dirty="unknown"
+fi
 {
   echo "platform: $platform"
   echo "device model: $device_model"
   echo "os: $device_os"
   echo "flutter device: $flutter_device"
   echo "started (UTC): $stamp"
+  echo "commit: $commit"
+  echo "uncommitted changes: $dirty"
+  echo "repetitions: $reps"
+  if [ -n "$extra_info" ]; then echo "$extra_info"; fi
   flutter --version
 } | tee "$out/device.txt"
 
@@ -126,8 +162,26 @@ for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
 if total and len(parts) == total:
     data = json.loads("".join(parts[i] for i in range(1, total + 1)))
     json.dump(data, open(sys.argv[2], "w"), indent=2)
-    print(f"result: median {data['medianMs']} ms, worst {data['worstMs']} ms, "
-          f"outcome {data['outcome']}, recovery {data['recovery']['outcome']}")
+    if "runs" not in data:
+        print(f"result: outcome {data.get('outcome')}, error {data.get('error')}")
+        sys.exit(0)
+    ref = data.get("hostReference", {})
+    rec = data["recovery"]
+    seed = data.get("seedRun", {})
+    print(f"migration {data['migration']} (stand-in: {data['standIn']}); "
+          f"evidence: {data['evidence']}")
+    print(f"runs {[r['ms'] for r in data['runs']]} ms: median "
+          f"{data['medianMs']} ms, worst {data['worstMs']} ms; SQLite "
+          f"{data['sqliteVersion']}; size {data['dbBytesBefore']} -> "
+          f"{data['dbBytesAfter']} bytes")
+    print(f"recovery at {rec['injectedAt']}: failed attempt "
+          f"{rec['failedAttemptMs']} ms, retry {rec['retryMs']} ms, "
+          f"{rec['outcome']}; seed run {seed.get('ms')} ms, "
+          f"{seed.get('outcome')}")
+    print(f"start digest {data['profile']['startDigest']} "
+          f"(host match: {ref.get('startMatches')}); end {data['endState']} "
+          f"(host match: {ref.get('endMatches')})")
+    print(f"outcome {data['outcome']}; failures {data.get('failures')}")
 else:
     print(f"V8_TIMING_JSON incomplete: {len(parts)} of {total} chunks")
 PY

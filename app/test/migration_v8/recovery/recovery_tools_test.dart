@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/data/db/migration/repforge_migration.dart';
+import 'package:repforge/data/db/migration/v7_to_v8.dart' show V8MigrationPhase;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../harness_v7_db.dart';
@@ -208,7 +209,7 @@ void main() {
   group('timing harness (smoke profile)', () {
     for (final background in [false, true]) {
       test(
-        '3 runs + recovery/retry, ${background ? 'background' : 'calling '
+        'historical: 3 runs + recovery/retry, ${background ? 'background' : 'calling '
                   'isolate'}: pass, stand-in stated',
         () async {
           await tracked((dir) async {
@@ -222,6 +223,7 @@ void main() {
             expect(result['outcome'], 'pass', reason: '$result');
             expect(result['standIn'], isTrue);
             expect('${result['standInNote']}', contains('STAND-IN'));
+            expect('${result['evidence']}', startsWith('not device evidence'));
             expect(result['runs'], hasLength(3));
             expect(result['medianMs'], isA<double>());
             expect(result['sqliteVersion'], isNotEmpty);
@@ -230,6 +232,113 @@ void main() {
         },
       );
     }
+
+    // The procedure the device harness runs (CI's emulator job runs it on
+    // the smoke profile): the v7 → v8 migration, a failure at a mid-step
+    // phase and a retry, the seed run with the bundled seed.
+    for (final background in [false, true]) {
+      test('v7to8: 3 runs + mid-step recovery/retry + seed run, '
+          '${background ? 'background' : 'calling isolate'}: pass', () async {
+        await tracked((dir) async {
+          final result = await runTimingCampaign(
+            workDir: dir,
+            migration: v7ToV8Migration,
+            spec: const LargeProfileSpec.smoke(),
+            background: background,
+          );
+          expect(result['outcome'], 'pass', reason: '$result');
+          expect(result['failures'], isEmpty);
+          expect(result['standIn'], isFalse);
+          expect(result.containsKey('standInNote'), isFalse);
+          expect('${result['evidence']}', startsWith('not device evidence'));
+          expect(result.containsKey('hostReference'), isFalse);
+          final recovery = result['recovery']! as Map;
+          expect(recovery['outcome'], 'recovered');
+          expect(recovery['injectedAt'], 'v8.${defaultV8RecoveryPhase.name}');
+          expect('${recovery['failure']}', contains('InjectedFailure at'));
+          expect(recovery['versionAfterFailure'], 7);
+          expect(recovery['stateAfterFailureEqualsStart'], isTrue);
+          expect(recovery['ledgerRunIdAfterFailure'], registryRunId);
+          expect(recovery['ledgerLeftAfterRetry'], isFalse);
+          expect((result['seed']! as Map)['matchesPin'], isTrue);
+          final seedRun = result['seedRun']! as Map;
+          expect(seedRun['outcome'], startsWith('release 1 recorded'));
+          expect(seedRun['seedReads'], 1);
+          final migrated = (result['records']! as Map)['migrated']! as Map;
+          expect(migrated['exercises'], 60);
+          expect(migrated['sets'], 600);
+          expect((migrated['report']! as Map)['reconciled'], isTrue);
+          expect(
+            (migrated['blockedExercisesByReason']! as Map)['noPrimaryTarget'],
+            4,
+          );
+          final phases = (result['runs']! as List).first as Map;
+          expect(
+            [for (final p in phases['phases']! as List) (p as Map)['until']],
+            containsAllInOrder(<String>[
+              '7:stepStarted',
+              for (final p in V8MigrationPhase.values) 'v8.${p.name}',
+              '7:workDone',
+              '7:versionWritten',
+              '7:committed',
+              'closed',
+            ]),
+          );
+          expect(dir.listSync().map((e) => e.path), [
+            endsWith('timing_start.sqlite'),
+          ]);
+        });
+      });
+    }
+
+    test('v7to8: runs that read the seed (a start with the seed setting) '
+        'FAIL', () async {
+      await tracked((dir) async {
+        final result = await runTimingCampaign(
+          workDir: dir,
+          migration: v7ToV8Migration,
+          spec: const LargeProfileSpec.smoke(),
+          background: false,
+          seedRun: false,
+          adjustStart: (start) {
+            final raw = sqlite3.open(start.path);
+            try {
+              raw.execute(
+                'INSERT INTO settings (key, value, updated_at) '
+                "VALUES ('seedExercisesVersion', '1', '2025-03-01')",
+              );
+            } finally {
+              raw.close();
+            }
+          },
+        );
+        expect(result['outcome'], 'FAIL');
+        final seed = result['seed']! as Map;
+        expect(seed['readsByNormalRuns'], 3);
+        // The failed attempt stops before the release (mid-step); the
+        // retry reads the seed once.
+        expect(seed['readsByRecoveryRuns'], 1);
+        expect(
+          result['failures'],
+          containsAll(<Matcher>[
+            startsWith('the normal runs read the seed 3 times'),
+            startsWith('the recovery runs read the seed'),
+          ]),
+        );
+        expect((result['recovery']! as Map)['outcome'], 'recovered');
+      });
+    });
+
+    test('a recovery phase needs a migration with v8 phases', () async {
+      await expectLater(
+        runTimingCampaign(
+          workDir: Directory.systemTemp,
+          migration: migration,
+          recoveryPhase: V8MigrationPhase.started,
+        ),
+        throwsArgumentError,
+      );
+    });
 
     test('fewer than 3 repetitions are refused', () async {
       await expectLater(

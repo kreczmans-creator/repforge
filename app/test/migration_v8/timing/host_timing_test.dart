@@ -19,9 +19,12 @@ import 'timing_harness.dart';
 /// harness works and give a relative baseline. Device runs use
 /// `integration_test/migration_v8_timing_test.dart` (`tool/device_timing.sh`).
 ///
-/// Both registered migrations: the historical chain (stand-in, v5 → v7)
-/// and, since 3b-4, the v7 → v8 migration (`v7to8`, from the v7 profile);
-/// the JSON says which is a stand-in. Writes `build/migration_v8_ws5/host_timing.json`.
+/// Both registered migrations: the v7 → v8 migration (`v7to8`, from the v7
+/// D04 profile; the code path the device harness runs: recovery at a mid-step
+/// phase, the seed run, record counts and reconciled report) and the
+/// historical chain (a stand-in, v5 → v7, kept as a second subject of the
+/// harness); the JSON says which is a stand-in and that no host run is
+/// device evidence. Writes `build/migration_v8_ws5/host_timing.json`.
 /// `REPFORGE_TIMING_REPS` sets the repetitions (default 3, minimum 3).
 ///
 /// Tag `heavy`, skipped by default.
@@ -37,7 +40,7 @@ void main() {
     print('HOST_TIMING_REPORT ${f.path}');
   });
 
-  for (final migration in [historicalChain, v7ToV8Migration]) {
+  for (final migration in [v7ToV8Migration, historicalChain]) {
     for (final background in [true, false]) {
       final engine = background
           ? 'app engine (background isolate)'
@@ -67,13 +70,33 @@ void main() {
             'medianMs': result['medianMs'],
             'worstMs': result['worstMs'],
             'runs': [for (final r in result['runs']! as List) (r as Map)['ms']],
-            'recovery': result['recovery'],
+            'phaseMedianMs': result['phaseMedianMs'],
+            'recovery': {
+              for (final k in const [
+                'injectedAt',
+                'failedAttemptMs',
+                'retryMs',
+                'outcome',
+              ])
+                k: (result['recovery']! as Map)[k],
+            },
+            'seedRun': switch (result['seedRun']) {
+              final Map<String, Object?> s => {
+                'ms': s['ms'],
+                'digest': s['digest'],
+                'outcome': s['outcome'],
+              },
+              _ => null,
+            },
+            'endState': result['endState'],
             'standIn': result['standIn'],
           };
           // ignore: avoid_print, the heavy suite reports through the test log
           print('HOST_TIMING ${jsonEncode(summary)}');
           expect(result['outcome'], 'pass', reason: jsonEncode(result));
           expect(result['standIn'], migration.standIn);
+          expect('${result['evidence']}', startsWith('not device evidence'));
+          expect(result['failures'], isEmpty);
           // The pinned host digests: builder and migration are deterministic.
           final ref = result['hostReference']! as Map;
           expect(ref['startMatches'], isTrue, reason: '$ref');
@@ -86,7 +109,45 @@ void main() {
           final runs = result['runs']! as List;
           expect(runs, hasLength(repetitions));
           expect(runs.map((r) => (r as Map)['digest']).toSet(), hasLength(1));
-          expect((result['recovery']! as Map)['outcome'], 'recovered');
+          final recovery = result['recovery']! as Map;
+          expect(recovery['outcome'], 'recovered');
+          final records = result['records']! as Map;
+          if (migration.runsV8Step) {
+            expect(recovery['injectedAt'], 'v8.${defaultV8RecoveryPhase.name}');
+            expect(recovery['ledgerRunIdAfterFailure'], registryRunId);
+            expect(recovery['ledgerLeftAfterRetry'], isFalse);
+            expect(ref['seedRunEndMatches'], isTrue, reason: '$ref');
+            final seed = result['seed']! as Map;
+            expect(seed['matchesPin'], isTrue);
+            expect(seed['readsByNormalRuns'], 0, reason: 'no seed setting');
+            expect(seed['readsByRecoveryRuns'], 0, reason: 'no seed setting');
+            expect(
+              (result['seedRun']! as Map)['outcome'],
+              startsWith('release 1 recorded'),
+            );
+            final migrated = records['migrated']! as Map;
+            expect(migrated['exercises'], 5000);
+            expect(migrated['sets'], 100000);
+            expect((migrated['report']! as Map)['reconciled'], isTrue);
+            // The 303 synthetic no-primary exercises take the blocked-record
+            // path (IC-204).
+            expect(
+              (migrated['blockedExercisesByReason']! as Map)['noPrimaryTarget'],
+              303,
+            );
+            expect(
+              (result['phaseMedianMs']! as Map).keys,
+              containsAll(<String>[
+                '7:stepStarted',
+                'v8.started',
+                'v8.selfChecked',
+                '7:committed',
+                'closed',
+              ]),
+            );
+          } else {
+            expect(recovery['injectedAt'], '6:versionWritten');
+          }
           expect(
             Directory(dir.path).listSync().whereType<File>().map((f) => f.path),
             [endsWith('timing_start.sqlite')],

@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:repforge/data/db/migration/repforge_migration.dart';
+import 'package:repforge/data/db/migration/v7_to_v8.dart'
+    show V8MigrationPhase, V8PhaseProbe;
 import 'package:sqlite3/sqlite3.dart';
 
 import '../harness_v7_db.dart' show strictSchema;
@@ -53,13 +55,32 @@ final class InjectedFailure implements Exception {
   String toString() => 'InjectedFailure at $checkpoint';
 }
 
-/// Whether [error] is an [InjectedFailure]. With the app engine
-/// (`createInBackground`) the probe runs in the calling isolate but drift
-/// reports the migration's error through its isolate channel, which wraps
-/// it (`DriftRemoteException`); its text still names the failure.
+/// The error a phase failure-injection probe ([failAtPhase]) throws: a
+/// failure inside the v7 → v8 step, at one of its internal checkpoints.
+final class InjectedPhaseFailure implements Exception {
+  const InjectedPhaseFailure(this.phase);
+
+  final V8MigrationPhase phase;
+
+  @override
+  String toString() => 'InjectedFailure at v8 phase ${phase.name}';
+}
+
+/// Whether [error] is an [InjectedFailure] or an [InjectedPhaseFailure].
+/// With the app engine (`createInBackground`) the probe runs in the calling
+/// isolate but drift reports the migration's error through its isolate
+/// channel, which wraps it (`DriftRemoteException`); its text still names
+/// the failure.
 bool isInjectedFailure(Object? error) =>
     error is InjectedFailure ||
+    error is InjectedPhaseFailure ||
     (error != null && '$error'.startsWith('InjectedFailure at '));
+
+/// A phase probe that throws [InjectedPhaseFailure] at [phase] of the
+/// v7 → v8 step (inside its transaction, so the whole step rolls back).
+V8PhaseProbe failAtPhase(V8MigrationPhase phase) => (p) async {
+  if (p == phase) throw InjectedPhaseFailure(p);
+};
 
 /// A probe that throws [InjectedFailure] at the [occurrence]-th checkpoint
 /// matching [where] (1-based) and does nothing elsewhere.

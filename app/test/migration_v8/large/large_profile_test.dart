@@ -23,7 +23,8 @@ import 'large_profile.dart';
 ///   invalid TRN-020 values, supplied exercises, loose references.
 /// - Building is deterministic (same seed, same state).
 /// - The v5 variant holds the same rows and migrates through the historical
-///   chain to v7 (the stand-in input of the timing and random kill runs).
+///   chain to v7 (the input of the historical chain's host timing, a
+///   stand-in, and of its random kill runs).
 ///
 /// Tag `heavy`, skipped by default.
 void main() {

@@ -976,3 +976,37 @@ The independent review (DB) found the change not ready: one High and four Low fi
 - **L4 (fixed):** `v8_visibility_parity_test.dart` runs the real v7 `TrainingMappers.exerciseToEntity` over the 13 frozen fixtures, the trial profile (plain and damaged), 32 edge cases and the D04 profile (heavy). On each, the v7 hidden set equals the v8 blocked set: nothing newly visible, nothing newly hidden.
 - **L1 (recorded):** R-30 on restored v7 backups is an explicit 3b acceptance blocker (above).
 - Earned points unchanged (9.66 / 18; 3b 3.16 / 4.50): the fixes are uncommitted and not re-checked.
+
+### 3b-9 device harness on the real v7 → v8 migration (2026-11-07, working tree over 5e37008, uncommitted)
+The device timing harness no longer times the historical stand-in. It builds the v7 D04 profile on the device and runs the registered `v7to8` migration through the app engine. Details, owner commands and the results template: `docs/device-timing.md`. **Device runs stay OUTSTANDING**; no host figure is device evidence.
+- `integration_test/migration_v8_timing_test.dart`: `v7to8`; the seed bytes come from `rootBundle` (`assets/seed/exercise_library.json`) and are passed to the registry's v8 configuration. Nothing in `lib/` changed. The work directory must be inside the cache directory and outside the app support directory; `repforge.sqlite` and its `-journal`, `-wal` and `-shm` files must be unchanged.
+- `timing_harness.dart` (`ws5-timing/2`):
+  - per-phase durations: every chain checkpoint and every v8 phase;
+  - recovery at the mid-step phase `v8.setsClassified`: rolled-back state equal to the start, run id kept in the ledger, retry equal to the normal runs;
+  - a seed run: `seedExercisesVersion` = 1 added to a copy of the start, so release 1 is recorded with the pinned hash (the D04 profile has no seed setting, so its runs never read the seed);
+  - record counts: input and migrated, blocked exercises by reason, report per run reconciled;
+  - SQLite source id and an `evidence` label;
+  - `outcome` is FAIL on any digest mismatch against the host references. The new seed-run reference is `v8 63595160a687407b`.
+- `migration_registry.dart`, `recovery_tools.dart`: phase probe seam, replaceable seed loader with a read counter, `failAtPhase`. The historical chain's description no longer says "until 3b-4 exists"; its timing output still says STAND-IN.
+- `tool/device_timing.sh`:
+  - records the commit, repetitions, and the Android battery and storage state;
+  - validates `V8_TIMING_REPS`;
+  - prints a full summary.
+- **Local evidence (host, not device):**
+  - format exit 0; `flutter analyze --fatal-infos` exit 0; `dart compile kernel test_driver/integration_test.dart` exit 0;
+  - heavy host timing (`flutter test --run-skipped --tags heavy --concurrency=1 test/migration_v8/timing/`): 4 passed in 4 min 27 s. v7to8 app engine: median 8,413 ms, worst 9,320 ms, retry 8,284 ms, seed run 7,687 ms. All digests equal the references;
+  - default suite `test/migration_v8/` and `test/architecture/` at concurrency 1: 573 passed, 5 skipped (64 s);
+  - the device test file, run once on the host's flutter_tester (a temporary copy with a mocked path provider, deleted afterwards): smoke pass; the `rootBundle` seed hashes to the pin.
+- **Review Lows fixed:**
+  - L1: `outcome` is FAIL when the normal or recovery runs read the seed (`seed.readsByNormalRuns`, `seed.readsByRecoveryRuns` must be 0); tested with a start that holds the seed setting.
+  - L2: the stress-profile section states that the seed run adds only the setting (no seed exercises as supplied rows; timing unaffected), and that the first app-engine run's cold start inflates the worst figure.
+  - L3: `device_timing.sh` prints `unknown` when git fails; the output folder gets the PID after the seconds stamp.
+  - Format and analyze exit 0; `test/migration_v8/timing/` and `test/migration_v8/recovery/` (non-heavy, concurrency 1): 35 passed, 1 skipped.
+- **Effort and progress (governance standard):**
+  - Allocated 18.00. Earned unchanged from the last recorded figure, 9.66 (53.7 %). This change is uncommitted and unreviewed and earns nothing. Remaining 8.34.
+  - 3b-9: 0.09 of 0.30. The harness credit of 0.09 is retained pending re-review of the changed harness. The device runs (0.20) are unearned.
+  - Confidence: low–medium. Evidence baseline: 5e37008 plus this working tree, 2026-11-07.
+  - Programme roll-up (unchanged from the last snapshot, 2026-11-06): full 77.11 / 105 = 73.4 %; core 77.11 / 97 = 79.5 %.
+  - Blockers and dependencies: commit and review of this change; physical-device runs on one mid-range Android phone and one supported iPhone (owner); Review C; four green CI workflows.
+  - Scope changes: none.
+  - Acceptance: not accepted; 3b-9 and stage 3b unaccepted.

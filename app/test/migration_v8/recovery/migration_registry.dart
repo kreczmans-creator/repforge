@@ -11,11 +11,14 @@ import '../harness_v7_db.dart';
 
 /// Opens [executor] with a database whose migration strategy runs a
 /// migration up to [targetVersion] (null: the migration's own target),
-/// reporting every checkpoint to [probe].
+/// reporting every checkpoint to [probe] and, for a migration that runs the
+/// v7 → v8 step ([MigrationUnderTest.runsV8Step]), every internal phase of
+/// that step to [phaseProbe] (ignored otherwise).
 typedef OpenMigratingDatabase = GeneratedDatabase Function(
   QueryExecutor executor, {
   MigrationProbe? probe,
   int? targetVersion,
+  V8PhaseProbe? phaseProbe,
 });
 
 /// A migration that the recovery, kill and timing harnesses (WP 8 3b-6,
@@ -33,6 +36,7 @@ final class MigrationUnderTest {
     required this.description,
     required this.standIn,
     required this.open,
+    this.runsV8Step = false,
   });
 
   /// Registry key; the kill child receives it as `--migration`.
@@ -50,9 +54,16 @@ final class MigrationUnderTest {
   /// One line for reports.
   final String description;
 
-  /// True while this migration only stands in for the v7 → v8 migration
-  /// (3b-4 not written yet). Every report says so.
+  /// True when timing this migration only stands in for timing the v7 → v8
+  /// migration: the historical chain. Every timing report says so; its
+  /// figures are never v8 timings or 3b-9 evidence. The device harness
+  /// times [v7ToV8Migration], which is not a stand-in.
   final bool standIn;
+
+  /// True when a complete run executes the v7 → v8 step: its internal
+  /// phases can be observed and failed (`phaseProbe`), it may read the
+  /// bundled seed (R-30) and it writes the v8 report.
+  final bool runsV8Step;
 
   final OpenMigratingDatabase open;
 }
@@ -65,10 +76,10 @@ final historicalChain = MigrationUnderTest(
   targetVersion: 7,
   inputVersion: 5,
   description:
-      'historical chain v1→v7 (RepforgeMigration + HistoricalSteps), '
-      'stand-in until the v7→v8 migration (3b-4) exists',
+      'historical chain v1→v7 (RepforgeMigration + HistoricalSteps); as a '
+      'timing subject only a stand-in, never v7→v8 timing evidence',
   standIn: true,
-  open: (executor, {probe, targetVersion}) => HarnessV7Database(
+  open: (executor, {probe, targetVersion, phaseProbe}) => HarnessV7Database(
     executor,
     probe: probe,
     targetVersion: targetVersion ?? 7,
@@ -84,9 +95,12 @@ final historicalChain = MigrationUnderTest(
 /// device) reaches the same v8 state: the fixed harness clock, the run id
 /// [registryRunId] (`run-1`; the kill child sets `run-<pid>`, so a test can
 /// tell which process's run id survived a kill) and a run ledger next to
-/// the database file ([SidecarRunLedger]). The seed bytes are read from
+/// the database file ([SidecarRunLedger]). The seed bytes come from
+/// [registrySeedLoader]: on the host the file
 /// `assets/seed/exercise_library.json` relative to the working directory
-/// (`app/`); only a database whose seed was applied reads them.
+/// (`app/`); on a device the bundled asset, which the device harness
+/// installs. Only a database whose seed was applied (setting
+/// `seedExercisesVersion` ≥ 1, R-30) reads them.
 final v7ToV8Migration = MigrationUnderTest(
   name: 'v7to8',
   targetVersion: 8,
@@ -95,13 +109,15 @@ final v7ToV8Migration = MigrationUnderTest(
       'v7→v8 migration (3b-4): AppDatabaseV8, RepforgeMigration + '
       'HistoricalSteps + V7ToV8Migration',
   standIn: false,
-  open: (executor, {probe, targetVersion}) =>
+  runsV8Step: true,
+  open: (executor, {probe, targetVersion, phaseProbe}) =>
       targetVersion != null && targetVersion < 8
       ? HarnessV7Database(executor, probe: probe, targetVersion: targetVersion)
       : AppDatabaseV8(
           executor,
           migrationConfig: registryV8Config,
           probe: probe,
+          phaseProbe: phaseProbe,
         ),
 );
 
@@ -113,11 +129,33 @@ final registryV8Config = V8MigrationConfig(
   clock: harnessClock,
   appVersion: '0.8.0-ws5',
   installLabel: 'ws5-registry',
-  loadSeedBytes: () async =>
-      File('assets/seed/exercise_library.json').readAsBytesSync(),
+  loadSeedBytes: () {
+    registrySeedLoads++;
+    return registrySeedLoader();
+  },
   runLedger: SidecarRunLedger(),
   newRunId: () => registryRunId,
 );
+
+/// Path of the bundled seed (pubspec `assets/seed/`), relative to `app/`
+/// and as an asset key.
+const registrySeedAsset = 'assets/seed/exercise_library.json';
+
+/// Reads the exact bundled seed bytes for [registryV8Config]. The default
+/// reads [registrySeedAsset] from the working directory (host tests run in
+/// `app/`). The device harness, which has no such file, replaces it with
+/// the asset bundle (`rootBundle`) before any run; nothing in `lib/`
+/// changes for that.
+Future<List<int>> Function() registrySeedLoader = () async =>
+    File(registrySeedAsset).readAsBytesSync();
+
+/// Where [registrySeedLoader] reads from (reported by the timing harness).
+String registrySeedSource = 'file $registrySeedAsset (working directory)';
+
+/// How many times a migration through [registryV8Config] asked for the seed
+/// bytes (a v7 database without the `seedExercisesVersion` setting never
+/// does).
+int registrySeedLoads = 0;
 
 /// A run ledger per database file: `<database>.v8-run-ledger.json` next to
 /// it (deleted when empty); in memory for an in-memory database.
@@ -159,6 +197,9 @@ MigrationUnderTest migrationUnderTest(String name) =>
 /// Opens [file] with [migration] (which runs it), closes the database and
 /// returns the error, if any.
 ///
+/// [phaseProbe] observes the v7 → v8 step's phases (see
+/// [MigrationUnderTest.runsV8Step]).
+///
 /// [background] opens the file the way the app engine does
 /// (`NativeDatabase.createInBackground`, which drift_flutter's
 /// `createBackgroundConnection` wraps): the database runs in a background
@@ -168,6 +209,7 @@ Future<Object?> runMigration(
   File file,
   MigrationUnderTest migration, {
   MigrationProbe? probe,
+  V8PhaseProbe? phaseProbe,
   int? targetVersion,
   bool background = false,
   bool foreignKeysOnAtSetup = false,
@@ -180,6 +222,7 @@ Future<Object?> runMigration(
     executor,
     probe: probe,
     targetVersion: targetVersion,
+    phaseProbe: phaseProbe,
   );
   try {
     await db.customSelect('SELECT 1').get();

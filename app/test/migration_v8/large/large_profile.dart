@@ -35,10 +35,11 @@ import '../../data/generated_migrations/schema_v7.dart' as v7;
 /// [buildLargeProfile] with `version: 5` writes the SAME generated rows into
 /// the frozen v5 shapes (columns that v5 lacks dropped, `supplied` as
 /// `is_custom`, the rep range as `target_reps`; no v6/v7-only table). That
-/// variant is the input of the stand-in timing and random kill runs: the
-/// historical chain v5 → v7 rebuilds `exercises`, `plan_exercises` and
-/// `session_sets` and backfills the session entries. The v7 variant is the
-/// input the v7 → v8 migration will take.
+/// variant is the input of the historical chain's host timing (a stand-in,
+/// never v8 evidence) and random kill runs: the historical chain v5 → v7
+/// rebuilds `exercises`, `plan_exercises` and `session_sets` and backfills
+/// the session entries. The v7 variant is the input of the v7 → v8
+/// migration (its kill runs and its host and device timing).
 ///
 /// Never written under `fixtures/` (frozen): callers pass a temporary path.
 
@@ -215,7 +216,7 @@ final class LargeProfileFacts {
 }
 
 /// Builds the profile at [path] (deleted first) in the frozen shape of
-/// schema [version] (7, or 5 for the stand-in input).
+/// schema [version] (7, or 5 for the historical chain's input).
 Future<LargeProfileFacts> buildLargeProfile(
   String path, {
   LargeProfileSpec spec = const LargeProfileSpec.d04(),
