@@ -122,6 +122,10 @@ final class _Recording implements GoalRepository {
   @override
   Future<List<Goal>> active() => inner.active();
   @override
+  Future<List<Goal>> history() => inner.history();
+  @override
+  Stream<List<Goal>> watchHistory() => inner.watchHistory();
+  @override
   Future<void> delete(String id) => inner.delete(id);
   @override
   Future<void> replaceActive(

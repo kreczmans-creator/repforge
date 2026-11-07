@@ -35,6 +35,15 @@ abstract class Goal with _$Goal {
 abstract interface class GoalRepository {
   Stream<List<Goal>> watchActive();
   Future<List<Goal>> active();
+
+  /// Every stored goal that is not deleted, inactive rows included, newest
+  /// first (by start date, then creation time). Read-only: it is the input
+  /// of the target history (GOL-006; WP 11 plan decision 3a) and changes no
+  /// stored data.
+  Future<List<Goal>> history();
+
+  /// Live form of [history].
+  Stream<List<Goal>> watchHistory();
   Future<void> upsert(Goal goal);
 
   /// Atomically deactivates every active goal of [kind] (and [site] when the
