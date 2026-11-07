@@ -457,7 +457,7 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Options:**
 - [ ] Confirm 2.20 / 3.00 as earned.
-- [ ] Confirm 2.30 / 3.00 (adds the 0.10 review line because agent reviews suffice; requires Decision 2D-5 = accept).
+- [x] Confirm 2.30 / 3.00 (adds the 0.10 review line because agent reviews suffice; requires Decision 2D-5 = accept).
 - [ ] Set another figure (state the rows changed and why).
 - [ ] Defer.
 
@@ -465,11 +465,11 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Consequences:** The programme roll-up uses the confirmed figure (Part 2D-7 sensitivity table).
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option B: WP 15 earned points are confirmed at 2.30 / 3.00 (76.7 %).  
+**Owner's rationale:** Consistent with Decision 2D-5 (agent reviews satisfy the independent-review criterion). The +0.10 is a governance adjustment releasing the review line, not an additional implementation achievement.  
+**Conditions / follow-up:** Update the WP 15 record's breakdown (independent review 0.10 earned) and the next programme snapshot. The custom-food row (0.25) stays allocated and unearned pending the owner's statement on the total (2B-2).  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2B-2 — Custom-food serving-definition entry units (scope)
 
@@ -481,18 +481,18 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Options:**
 - [ ] **(a)** In scope: add the per-row entry unit on the custom-food screen as WP 15 stage 3 (implementation, tests, review) before WP 15 acceptance.
-- [ ] **(b)** Out of scope for NUT-022: record the exclusion in D04 §7; the 0.25 row is re-dispositioned (state how: earned as "decided" or removed with a total change, which needs a traceable owner decision under the standard).
+- [x] **(b)** Out of scope for NUT-022: record the exclusion in D04 §7; the 0.25 row is re-dispositioned (state how: earned as "decided" or removed with a total change, which needs a traceable owner decision under the standard).
 - [ ] Defer to a later package (name it).
 
 **Recommendation (register OB-WP15-01, delivery agent):** (a), add the per-row unit.
 
 **Consequences:** (a) adds a small stage before acceptance and keeps the allocation at 3.00; (b) closes the discrepancy without code and changes how the 0.25 row is earned; deferral leaves WP 15 at 73.3 % with the row open.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / follow-up:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option (b): the custom-food serving-definition amounts are explicitly excluded from WP 15 and from NUT-022's acceptance text.  
+**Owner's rationale:** Scope discipline over superficial consistency across every screen; D06's WP 15 scope names food logging, portion sheets and recipe ingredients only.  
+**Conditions / follow-up:** Record in D04 §7 and the WP 15 record: (1) explicit exclusion from WP 15; (2) the 0.25 "custom-food serving entry" row is re-dispositioned as excluded: no implementation credit is earned for it in WP 15; (3) the item may be allocated to a future work package. Governance note: the owner has not stated whether the 0.25 leaves the WP 15 total (3.00 → 2.75, earned 2.30 / 2.75 = 83.6 %) or stays as an unearnable row (2.30 / 3.00 = 76.7 %); this document records 3.00 until the owner states the total change as a traceable decision — see 2B-1.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 #### Decision 2B-3 — Acceptance of the WP 15 implementation and its independent review
 
@@ -503,7 +503,7 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 **Context and rationale (recorded position):** Implementation: stage 1 `8f76f5c`, stage 2 `353fcd8`, review fixes `26e9f10`, all on Baseline B and carried into Baseline C. Review (Baseline B record): separate fresh-context agent, verdict ACCEPT WITH CONDITIONS, no High; R15-01 (Medium, over-range amount message) corrected; R15-02..05 (Low) corrected; R15-06 (Low, API-only precision) recorded in spec E45, no code change. Re-check (Baseline C record): all six closed with file:line evidence; 32 tests in the four WP 15 files. CI: at `353fcd8` four workflows green (42273529731, 42273529821, 42273529701, 42273529969); at `ded976b` CI/Android/iOS green, emulator infrastructure-blocked (Baseline B); on the integration branch the emulator suite passed with the merged code (Baseline C). Local: 2,315 passed at `353fcd8`, 2,361 at `ded976b` (4 skipped). D06 acceptance also needs: spec revision 1.4 approved (2E-1), OQ-02 documented (2E-2), mg disposition (2E-3), and the custom-food scope (2B-2). The review's own caveat: "the owner may still require a human reviewer before acceptance" (2D-5).
 
 **Options:**
-- [ ] Accept stages 1–2 on Baseline C (integration branch `28b67b3`), implementation and independent review, subject to the conditions listed below.
+- [x] Accept stages 1–2 on Baseline C (integration branch `28b67b3`), implementation and independent review, subject to the conditions listed below.
 - [ ] Accept on Baseline B (frozen branch `ded976b`) only.
 - [ ] Accept with conditions (state which of 2B-2, 2E-1, 2E-2, 2E-3, human review).
 - [ ] Reject: remediation required (state it).
@@ -513,11 +513,11 @@ The governance baseline row (40 %, 1.20) is the historical estimate and is retai
 
 **Consequences:** Acceptance releases the 0.25 acceptance row (and 0.10 review row if 2D-5 accepts agent reviews); WP 15 closes only when 2B-2 and the 2E decisions are also recorded.
 
-**Owner's decision:** `[enter]`  
-**Owner's rationale:** `[enter]`  
-**Conditions / remaining remediation:** `[enter]`  
-**Decision date:** `[YYYY-MM-DD]`  
-**Resulting status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: WP 15 stages 1 and 2 are accepted with conditions on Baseline C (integration branch, `app/` tree of `28b67b3`), implementation and independent review. The review verdict ACCEPT WITH CONDITIONS stands, with the six findings R15-01..R15-06 closed by the re-check.  
+**Owner's rationale:** Independent review and re-check complete; the acceptance conditions are now recorded decisions.  
+**Conditions / remaining remediation:** Acceptance is conditional on and references: specification revision 1.4 approved (2E-1); metric-only entry for v1 (2E-2); milligram entry hidden (2E-3); custom-food serving-definition amounts excluded from WP 15 (2B-2); earned allocation confirmed at 2.30 / 3.00 (2B-1). Record the acceptance in the WP 15 record and D04 §7; the acceptance row (0.25) is then earned, giving 2.55 / 3.00 with the excluded 0.25 row as the only unearned line.  
+**Decision date:** 2026-11-07  
+**Resulting status:** Approved
 
 ### 2C — WP 17, stages S3 / S4 (Fuel and Train workflow completion)
 
@@ -815,10 +815,11 @@ These are genuine owner items with register entries that the sections above do n
 
 **Context:** 1.4 adds §2.3 (an entry unit converts only to its own basis by exact factor, then the §2.1 0.1 g/ml store step; decimals 4 for kg and l, 1 for g/ml, 0 for mg; per-100 ml foods offer ml and l only; no density, hence no mass↔volume conversion) and examples E42–E49 executed as tests (`test/domain/nutrition_spec_examples_units_test.dart`); E45 carries the R15-06 API-precision note. No approved rule changed. Status on both baselines: **proposed**.
 
-**Options:** `[ ] Approve revision 1.4 as written  [ ] Approve with changes: …  [ ] Reject  [ ] Defer`  
+**Options:** `[x] Approve revision 1.4 as written  [ ] Approve with changes: …  [ ] Reject  [ ] Defer`  
 **Recommendation (register OB-WP15-02):** approve.  
 **Consequences:** Until approved, the implemented entry-unit behaviour is "proposed" and WP 15 cannot be accepted (2B-3); WP 17 D-5 depends on it.  
-**Owner's decision:** `[enter]`  **Rationale:** `[enter]`  **Date:** `[YYYY-MM-DD]`  **Status:** `[Proposed / Approved / Rejected / Deferred / Superseded]`
+**Owner's decision:** Option A: revision 1.4 of `docs/nutrition-calculation-spec.md` is approved as written.  **Rationale:** The executable examples E42–E49 provide regression coverage without changing any approved rule.  **Date:** 2026-11-07  **Status:** Approved  
+**Follow-up:** change the spec header and change-history row from "proposed" to "approved by the owner, 2026-11-07" (documentation change on the integration branch).
 
 #### Decision 2E-2 — OQ-02: imperial entry units (lb, oz, fl oz)
 
@@ -826,17 +827,17 @@ These are genuine owner items with register entries that the sections above do n
 
 **Context:** Imperial display factors exist (1 lb = 0.45359237 kg; 1 oz = 28.349523125 g; imperial fl oz = 28.4130625 ml); entry is metric only. D06 acceptance for WP 15 needs "the chosen imperial units documented".
 
-**Options:** `[ ] Metric entry only for v1; imperial entry recorded as a roadmap item (closes OQ-02 for WP 15)  [ ] Add imperial entry in WP 15 (name units; new stage)  [ ] Defer`  
+**Options:** `[x] Metric entry only for v1; imperial entry recorded as a roadmap item (closes OQ-02 for WP 15)  [ ] Add imperial entry in WP 15 (name units; new stage)  [ ] Defer`  
 **Recommendation (register OB-WP15-03):** metric only for v1.  
-**Owner's decision:** `[enter]`  **Rationale:** `[enter]`  **Date:** `[YYYY-MM-DD]`  **Status:** `[Proposed / …]`
+**Owner's decision:** Option A: metric entry only for v1; imperial display factors stay; imperial entry is a roadmap item. OQ-02 is closed for WP 15.  **Rationale:** Preserves GEN-003 consistency and avoids another implementation stage before acceptance.  **Date:** 2026-11-07  **Status:** Approved
 
 #### Decision 2E-3 — Milligram entry availability
 
 **Reference:** OB-WP15-04; WP 15 record stage 1 ("mg entry is implemented in the domain but not offered by default … Which screens, if any, offer mg is an owner decision"); spec E46 (250 mg → 0.3 g).
 
-**Options:** `[ ] Keep mg hidden (no screen offers it) until a finer store step is approved  [ ] Offer mg on: …  [ ] Defer`  
+**Options:** `[x] Keep mg hidden (no screen offers it) until a finer store step is approved  [ ] Offer mg on: …  [ ] Defer`  
 **Recommendation (register OB-WP15-04):** keep hidden.  
-**Owner's decision:** `[enter]`  **Rationale:** `[enter]`  **Date:** `[YYYY-MM-DD]`  **Status:** `[Proposed / …]`
+**Owner's decision:** Option A: milligram entry stays hidden on every screen until a finer store step is approved.  **Rationale:** Avoids presenting a precision the 0.1 g storage model cannot support.  **Date:** 2026-11-07  **Status:** Approved
 
 #### 2E-4 — Register items decided elsewhere or still open (one line each)
 
@@ -867,11 +868,11 @@ These are genuine owner items with register entries that the sections above do n
 | OB-WP14-07 | Run the device checklist on Android and iPhone | Medium | Part 5.2 | `[ref]` | `[ ]` |
 | OB-WP14-08 | NUT-023 source schema (general form) | Low | here | `[ ] decide: …  [ ] defer` | `[ ]` |
 | OB-WP14-09 | WP 14 acceptance | Medium | 2D-6 | `[ref]` | `[ ]` |
-| OB-WP15-01 | Custom-food serving entry units | Medium | 2B-2 | `[ref]` | `[ ]` |
-| OB-WP15-02 | Spec revision 1.4 | Medium | 2E-1 | `[ref]` | `[ ]` |
-| OB-WP15-03 | Imperial entry (OQ-02) | Medium | 2E-2 | `[ref]` | `[ ]` |
-| OB-WP15-04 | Milligram entry | Low | 2E-3 | `[ref]` | `[ ]` |
-| OB-WP15-05 | WP 15 acceptance | Medium | 2B-3 | `[ref]` | `[ ]` |
+| OB-WP15-01 | Custom-food serving entry units | Medium | 2B-2 | Decided: excluded from WP 15 (2B-2 option b) | 2026-11-07 |
+| OB-WP15-02 | Spec revision 1.4 | Medium | 2E-1 | Approved (2E-1) | 2026-11-07 |
+| OB-WP15-03 | Imperial entry (OQ-02) | Medium | 2E-2 | Decided: metric only for v1 (2E-2) | 2026-11-07 |
+| OB-WP15-04 | Milligram entry | Low | 2E-3 | Decided: hidden (2E-3) | 2026-11-07 |
+| OB-WP15-05 | WP 15 acceptance | Medium | 2B-3 | Accepted with conditions on Baseline C (2B-3) | 2026-11-07 |
 | OB-WP17-01 | 9.00 allocation | High | 2C-1 | Approved (2C-1) | 2026-11-07 |
 | OB-WP17-02 | S3b-ii | Low | 2C-2 | `[ref]` | `[ ]` |
 | OB-WP17-03 | S4d | Low | 2C-3 | `[ref]` | `[ ]` |
@@ -4031,7 +4032,7 @@ These are documented in the records; none is dispositioned by the owner yet.
 | DFR-003 | WP 17 S3b-ii frequent foods, last-used quantity pre-fill, saved meals in recents (NUT-014 remainder; needs a schema change, v9) | Decision 2C-2 | see 2C-2 | — |
 | DFR-004 | WP 17 S4d rest-timer survival across process death | Decision 2C-3 | see 2C-3 | — |
 | DFR-005 | WP 17 S5 catalogue content, S6 recipe tags/images/density, CSV export (OB-WP17-04..08) | Decisions 2C-4 | see 2C-4 | — |
-| DFR-006 | WP 15 stage 3 custom-food serving-definition entry units | Decision 2B-2 | see 2B-2 | — |
+| DFR-006 | WP 15 stage 3 custom-food serving-definition entry units | Decision 2B-2 | Excluded from WP 15 (2B-2, option b); may be allocated to a future package | 2026-11-07 |
 | DFR-007 | WP 8 stages 3c-2..3c-4 (reference-data loader, reconciler transaction, relationship/content/media tables), 3d, 5, 6 | WP 8 record; OB-WP8-05..11 | `[ ] Deferred  [ ] n/a` | `[ ]` |
 | DFR-008 | WP 14: signed release via `release.yml`, beta pipeline, store listings, crash reporting (owner accounts and decisions) | OB-WP14-01..05 | `[ ] Deferred  [ ] Required for this release` | `[ ]` |
 | DFR-009 | Train dashboard redesign, filter-chip correction, exercise knowledge system (relayed brief; `ffd6d14` not integrated) | Decisions 2A-8, 2A-10 | see 2A | — |
