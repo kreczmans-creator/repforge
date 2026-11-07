@@ -213,7 +213,16 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
           'SELECT id FROM migration_runs WHERE id IN (?, ?)',
           [runId, '$runId:integrity'],
         );
-        if (runId.isEmpty || taken.isNotEmpty) {
+        final incoming = {
+          for (final r
+              in plan.reportRows['migration_runs'] ??
+                  const <Map<String, Object?>>[])
+            r['id'],
+        };
+        if (runId.isEmpty ||
+            taken.isNotEmpty ||
+            incoming.contains(runId) ||
+            incoming.contains('$runId:integrity')) {
           throw StateError('The restore run id "$runId" is already in use.');
         }
         return await _write(plan, decision, runId: runId, now: now);
@@ -550,21 +559,42 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
   /// renumbered (a new autoincrement id) with the merged entries'
   /// `quarantine_id` rewritten to it.
   Future<void> _decideQuarantine(RestorePlan plan, _Decision d) async {
-    final device = await _select('SELECT * FROM legacy_quarantine');
+    final device = await _select('SELECT * FROM legacy_quarantine ORDER BY id');
     final byId = {for (final r in device) r['id']! as int: r};
-    final byContent = <String, int>{};
-    for (final r in device) {
-      byContent.putIfAbsent(_quarantineContent(r), () => r['id']! as int);
-    }
+    // Review O5: a device row matches at most one backup row. First the
+    // same id with the same content; then the same content, each device
+    // row claimed once (identical originals are counted, not merged).
+    final claimed = <int>{};
+    final pending = <Map<String, Object?>>[];
     for (final r in plan.legacyQuarantineRows) {
+      final id = r['id'] as int?;
+      final have = id == null ? null : byId[id];
+      if (have != null &&
+          _quarantineContent(have) == _quarantineContent(r) &&
+          claimed.add(id!)) {
+        d.quarantineTarget[r] = id;
+        d.quarantineMap[id] = id;
+      } else {
+        pending.add(r);
+      }
+    }
+    final unclaimed = <String, List<int>>{};
+    for (final r in device) {
+      final id = r['id']! as int;
+      if (claimed.contains(id)) continue;
+      unclaimed.putIfAbsent(_quarantineContent(r), () => []).add(id);
+    }
+    final explicitIds = <int>{};
+    for (final r in pending) {
       // A row without an id (autoincrement, as v7 restore accepts it) can
       // carry no link: it is matched by content or gets a new id.
       final id = r['id'] as int?;
-      final same = byContent[_quarantineContent(r)];
-      if (same != null) {
+      final candidates = unclaimed[_quarantineContent(r)];
+      if (candidates != null && candidates.isNotEmpty) {
+        final same = candidates.removeAt(0);
         d.quarantineTarget[r] = same;
         if (id != null) d.quarantineMap[id] = same;
-      } else if (id == null || byId.containsKey(id)) {
+      } else if (id == null || byId.containsKey(id) || !explicitIds.add(id)) {
         d.quarantineRenumber.add(r);
       } else {
         d.quarantineTarget[r] = id;
@@ -1451,15 +1481,15 @@ String? ic315Problem({
 }
 
 /// The catalogue completeness rules of `validateExercise` that a restore
-/// does not apply (register B-15): the name length (IC-201), the
-/// classifications a system exercise needs before a catalogue tranche
-/// (IC-205 patterns, IC-207 mechanics, IC-208 laterality, IC-209
-/// difficulty, IC-211 aliases) and the recorded author (IC-212 on
-/// `provenance`, which v8 does not store). Release 1 content, migrated from
-/// v7, has none of them, so applying them would refuse every migrated
-/// device's own backup. They stay the catalogue release's checks (3c).
+/// does not apply (register B-15): the classifications a system exercise
+/// needs before a catalogue tranche (IC-205 patterns, IC-207 mechanics,
+/// IC-208 laterality, IC-209 difficulty, IC-211 aliases) and the recorded
+/// author (IC-212 on `provenance`, which v8 does not store). Of IC-201 only
+/// the 60-character limit is exempt (review O2): an empty name rejects.
+/// Release 1 content, migrated from v7, has none of them, so applying them
+/// would refuse every migrated device's own backup. They stay the catalogue
+/// release's checks (3c).
 const Set<String> restoreExemptCompletenessCodes = {
-  'IC-201',
   'IC-205',
   'IC-207',
   'IC-208',
@@ -1468,23 +1498,23 @@ const Set<String> restoreExemptCompletenessCodes = {
 };
 
 /// The domain problems of one exercise a format 3 restore would insert
-/// (review H1). Empty when the exercise may be restored.
+/// (review H1; B-15 accepted conditionally). Empty when it may be restored.
 ///
 /// - Every error-severity finding of `validateExercise` (system or
 ///   user/imported rules, as the domain splits them) rejects, except the
-///   completeness rules in [restoreExemptCompletenessCodes] and IC-212 on
-///   `provenance`; IC-315 is reported by its own check.
+///   completeness rules in [restoreExemptCompletenessCodes], the IC-201
+///   length limit of a non-empty name and IC-212 on `provenance`; IC-315 is
+///   reported by its own check. IC-101 (system id pattern) rejects (B-15:
+///   the owner's choice on the migration's IC-101 rows is pending).
 /// - A **user** exercise with an unresolved `noPrimaryTarget` block row in
-///   the backup is valid as blocked: its IC-204 is the reason it is blocked
-///   (D04 2026-11-06, per-exercise blocking). No other finding is excused,
-///   and `system` and `imported` exercises are never excused (D04: new or
-///   imported system exercises still need a primary target). The
-///   equipment block reasons excuse nothing: their unknown or invalid
-///   values were never linked.
-/// - A **user** exercise whose stored `type`, `category` or `aliases_json`
-///   is not a domain identifier (a v7 value kept by the migration; WS4
-///   review L9, OPEN) is restored as stored; any other exercise that cannot
-///   be read in the domain is refused.
+///   the backup is valid as blocked: its IC-204 is excused, nothing else.
+///   `system` and `imported` exercises are never excused.
+/// - Unreadable data (decision of 2026-11-06): an exercise whose stored
+///   `type`, `category` or `aliases_json` is not a domain value is valid
+///   only while blocked for it (an unresolved `invalidClassification` or
+///   `invalidAliases` row), so a restore never makes hidden information
+///   newly visible; its other rules are still checked, with a placeholder
+///   for the unreadable value (review O4).
 List<String> restoreDomainProblems(
   ExerciseAggregate x,
   ExerciseRuleContext ctx,
@@ -1496,26 +1526,32 @@ List<String> restoreDomainProblems(
       return ['$where: $c ${jsonEncode(v)} is not a date-time'];
     }
   }
-  final e = catalogueExerciseOf(x);
-  if (e == null) {
-    if (x.source == 'user') return const [];
-    const why =
-        'its type, category or aliases are not domain values (only a user '
-        'exercise is kept as stored)';
-    return ['$where: $why'];
+  final active = {
+    for (final b in x.blocks)
+      if (b['resolved_at'] == null) b['reason'],
+  };
+  final unblocked = [
+    for (final reason in unreadableBlockReasons(x))
+      if (!active.contains(reason.name)) reason.name,
+  ];
+  if (unblocked.isNotEmpty) {
+    final problem =
+        '$where: its type, category or aliases are not domain values and it '
+        'has no unresolved ${unblocked.join(' or ')} block row (restoring '
+        'it would make hidden information visible)';
+    return [problem];
   }
+  final e = catalogueExerciseOf(x, placeholders: true);
+  if (e == null) return ['$where: it cannot be read in the domain'];
+  final named = (x.row['name']! as String).trim().isNotEmpty;
   final blockedNoPrimary =
-      x.source == 'user' &&
-      x.blocks.any(
-        (b) =>
-            b['reason'] == BlockReason.noPrimaryTarget.name &&
-            b['resolved_at'] == null,
-      );
+      x.source == 'user' && active.contains(BlockReason.noPrimaryTarget.name);
   return [
     for (final f in validateExercise(e, ctx))
       if (f.severity == Severity.error &&
           f.code != 'IC-315' &&
           !restoreExemptCompletenessCodes.contains(f.code) &&
+          !(f.code == 'IC-201' && named) &&
           !(f.code == 'IC-212' && f.field == 'provenance') &&
           !(f.code == 'IC-204' && blockedNoPrimary))
         '$where: ${f.message} (${f.code})',

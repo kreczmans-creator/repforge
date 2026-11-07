@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -538,27 +539,117 @@ void main() {
       }, allOf(contains('lib-new-thing'), contains('IC-204')));
     });
 
-    test('H1: a type that is not a domain value is kept only on a user '
-        'exercise (WS4 L9); an unreadable date is refused', () async {
+    Map<String, Object?> blockRow(String id, String reason) => {
+      'exercise_id': id,
+      'reason': reason,
+      'original_json': '{}',
+      'blocked_at': restoreStamp,
+      'resolved_at': null,
+    };
+
+    test('unreadable data (decision 2026-11-06): an unreadable type, '
+        'category or aliases restores only while blocked for it, for every '
+        'source; an unreadable date is refused', () async {
+      for (final source in ['user', 'imported', 'system']) {
+        await rejects((env) {
+          for (final e in rowsOf(env, 'exercises')) {
+            if (e['id'] == 'ex-rich') {
+              e['type'] = 'stretching';
+              e['source'] = source;
+              if (source == 'system') {
+                e['id'] = 'ex-rich';
+                e['provider_id'] = 'repforge';
+                e['revision'] = 1;
+              }
+            }
+          }
+          return jsonEncode(env);
+        }, contains('invalidClassification block row'));
+      }
       await accepts((env) {
         for (final e in rowsOf(env, 'exercises')) {
           if (e['id'] == 'ex-rich') e['type'] = 'stretching';
         }
+        addRow(
+          env,
+          'exercise_blocks',
+          blockRow('ex-rich', 'invalidClassification'),
+        );
         return jsonEncode(env);
       });
       await rejects((env) {
         for (final e in rowsOf(env, 'exercises')) {
-          if (e['id'] == 'ex-rich') e['source'] = 'imported';
-          if (e['id'] == 'ex-rich') e['type'] = 'stretching';
+          if (e['id'] == 'ex-rich') e['aliases_json'] = 'not json';
         }
+        addRow(
+          env,
+          'exercise_blocks',
+          blockRow('ex-rich', 'invalidClassification'),
+        );
         return jsonEncode(env);
-      }, contains('not domain values'));
+      }, contains('invalidAliases block row'));
+      await accepts((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['aliases_json'] = 'not json';
+        }
+        addRow(env, 'exercise_blocks', blockRow('ex-rich', 'invalidAliases'));
+        return jsonEncode(env);
+      });
       await rejects((env) {
         for (final e in rowsOf(env, 'exercises')) {
           if (e['id'] == 'ex-rich') e['created_at'] = 'yesterday';
         }
         return jsonEncode(env);
       }, contains('is not a date-time'));
+    });
+
+    test('O4: a blocked unreadable exercise is still checked by the '
+        'structural rules', () async {
+      await rejects((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['type'] = 'stretching';
+        }
+        addRow(
+          env,
+          'exercise_blocks',
+          blockRow('ex-rich', 'invalidClassification'),
+        );
+        for (final t in rowsOf(env, 'exercise_targets')) {
+          if (t['exercise_id'] == 'ex-rich' && t['role'] == 'secondary') {
+            t['ordinal'] = 7;
+          }
+        }
+        return jsonEncode(env);
+      }, allOf(contains('ex-rich'), contains('IC-309')));
+    });
+
+    test('O2: only the 60-character limit of IC-201 is exempt; an empty '
+        'name rejects', () async {
+      await rejects((env) {
+        for (final e in rowsOf(env, 'exercises')) {
+          if (e['id'] == 'ex-rich') e['name'] = '   ';
+        }
+        return jsonEncode(env);
+      }, allOf(contains('ex-rich'), contains('IC-201')));
+    });
+
+    test('B-15 (pending the owner): a format 3 system exercise with an id '
+        'outside the lib- pattern is rejected (IC-101)', () async {
+      await rejects((env) {
+        final copy = Map<String, Object?>.of(
+          rowsOf(env, 'exercises').firstWhere((e) => e['id'] == 'lib-deadlift'),
+        )..['id'] = 'ex-system-thing';
+        addRow(env, 'exercises', copy);
+        for (final t in rowsOf(env, 'exercise_targets').toList()) {
+          if (t['exercise_id'] == 'lib-deadlift') {
+            addRow(env, 'exercise_targets', {
+              ...t,
+              'exercise_id': 'ex-system-thing',
+            });
+          }
+        }
+        return jsonEncode(env);
+      }, allOf(contains('ex-system-thing'), contains('IC-101')));
     });
 
     test(
@@ -1548,6 +1639,225 @@ void main() {
     );
   });
 
+  group('decision baseline 2026-11-06 (B-07, unreadable data, O1, O5)', () {
+    Future<(V8File, Result<BackupSummary>)> restoreFresh(
+      Directory dir,
+      String json, {
+      Future<List<int>> Function()? loadSeedBytes,
+    }) async {
+      final v8 = await V8File.create(dir, 'fresh.sqlite');
+      final result = await v8
+          .repo(config: restoreConfig(loadSeedBytes: loadSeedBytes))
+          .importJson(json);
+      return (v8, result);
+    }
+
+    Map<String, Object?> seedSetting(Map<String, Object?> env) => rowsOf(
+      env,
+      'settings',
+    ).firstWhere((r) => r['key'] == 'seedExercisesVersion');
+
+    test('B-07 match: a v7 backup whose seed was applied records release 1 '
+        'with NULL counts and an explicit applied_at source', () async {
+      final env = decode(readGolden(digest.goldenFormat2Path()));
+      await inBackupTempDir((dir) async {
+        final (v8, result) = await restoreFresh(dir, jsonEncode(env));
+        try {
+          expect(result, isA<Ok<Object?>>());
+          final row = (await v8.rows('SELECT * FROM catalogue_releases'))
+              .single;
+          expect(row, {
+            'provider_id': 'repforge',
+            'release': 1,
+            'applied_at': seedSetting(env)['updated_at'],
+            'applied_at_source': V7ToV8Migration.release1AppliedAtSource,
+            'content_hash_algorithm': 'sha256',
+            'content_hash_encoding': 'hex-lower',
+            'content_hash': V7ToV8Migration.v7SeedSha256,
+            'inserted': null,
+            'updated': null,
+            'retired': null,
+            'app_version': null,
+          });
+          expect(
+            await v8.rows(
+              "SELECT * FROM migration_report_entries WHERE rule = 'R-30'",
+            ),
+            isEmpty,
+          );
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+
+    for (final (name, loader, why)
+        in <(String, Future<List<int>> Function(), String)>[
+          ('another seed', () async => utf8.encode('{"other":1}'), 'hashes to'),
+          (
+            'an unreadable seed',
+            () async => throw StateError('asset missing'),
+            'could not be read',
+          ),
+        ]) {
+      test('B-07 mismatch ($name): no release record; the R-30 warning on '
+          'the setting', () async {
+        await inBackupTempDir((dir) async {
+          final (v8, result) = await restoreFresh(
+            dir,
+            readGolden(digest.goldenFormat2Path()),
+            loadSeedBytes: loader,
+          );
+          try {
+            expect(result, isA<Ok<Object?>>(), reason: '$result');
+            expect(await v8.rows('SELECT * FROM catalogue_releases'), isEmpty);
+            final w = (await v8.rows(
+              "SELECT * FROM migration_report_entries WHERE rule = 'R-30'",
+            )).single;
+            expect(w['source_table'], 'settings');
+            expect(w['record_id'], 'seedExercisesVersion');
+            expect(w['disposition'], 'none');
+            expect(w['category'], 'warningForReview');
+            expect(w['reason'], contains(why));
+          } finally {
+            await v8.close();
+          }
+        });
+      });
+    }
+
+    test('B-07: a device that already records release 1 keeps its record; '
+        'a backup whose seed was not applied records nothing', () async {
+      await inBackupTempDir((dir) async {
+        final v8 = await richV8(await V8File.create(dir));
+        try {
+          final before = await v8.rows(
+            'SELECT * FROM catalogue_releases ORDER BY "release"',
+          );
+          expect(before, hasLength(2));
+          final env = decode(readGolden(digest.goldenFormat2Path()));
+          seedSetting(env)['updated_at'] = '2030-01-01T00:00:00.000Z';
+          expect(
+            await v8.repo().importJson(jsonEncode(env)),
+            isA<Ok<Object?>>(),
+          );
+          expect(
+            await v8.rows(
+              'SELECT * FROM catalogue_releases ORDER BY "release"',
+            ),
+            before,
+          );
+        } finally {
+          await v8.close();
+        }
+      });
+      final env = decode(readGolden(digest.goldenFormat2Path()));
+      seedSetting(env)['value'] = '0';
+      await inBackupTempDir((dir) async {
+        final (v8, result) = await restoreFresh(dir, jsonEncode(env));
+        try {
+          expect(result, isA<Ok<Object?>>());
+          expect(await v8.rows('SELECT * FROM catalogue_releases'), isEmpty);
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+
+    test('unreadable data in a v7 backup: the exercise is blocked for it '
+        'and never newly visible', () async {
+      final env = decode(readGolden(digest.goldenFormat2Path()));
+      for (final e in rowsOf(env, 'exercises')) {
+        if (e['id'] == 'ex-bench') e['category'] = 'Chesty';
+        if (e['id'] == 'ex-squat') e['aliases_json'] = 'not json';
+      }
+      await inBackupTempDir((dir) async {
+        final (v8, result) = await restoreFresh(dir, jsonEncode(env));
+        try {
+          expect(result, isA<Ok<Object?>>(), reason: _why(result));
+          Future<Set<Object?>> reasons(String id) async => {
+            for (final r in await v8.rows(
+              "SELECT reason FROM exercise_blocks WHERE exercise_id = '$id' "
+              'AND resolved_at IS NULL',
+            ))
+              r['reason'],
+          };
+          expect(await reasons('ex-bench'), contains('invalidClassification'));
+          expect(await reasons('ex-squat'), contains('invalidAliases'));
+          // The golden's own unmapped type and category.
+          expect(
+            await reasons('ex-unmapped-enums'),
+            contains('invalidClassification'),
+          );
+          // Stored as they were; a re-export restores elsewhere only with
+          // the block rows (format 3 rule).
+          final again = await V8File.create(dir, 'again.sqlite');
+          try {
+            final r = await again
+                .repo(config: restoreConfig(newRunId: () => 'again-1'))
+                .importJson(await v8.repo().exportJson());
+            expect(r, isA<Ok<Object?>>(), reason: _why(r));
+          } finally {
+            await again.close();
+          }
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+
+    test("O1: an envelope key outside the format's allow-list rejects "
+        'atomically (formats 2 and 3)', () async {
+      await inBackupTempDir((dir) async {
+        final v8 = await richV8(await V8File.create(dir));
+        try {
+          final before = v8.digests();
+          final legacy = decode(readGolden(digest.goldenFormat2Path()))
+            ..['releaseLog'] = <Object?>[];
+          final f3 = decode(await v8.repo().exportJson())..['comment'] = 'x';
+          for (final env in [legacy, f3]) {
+            final error = errorOf(await v8.repo().importJson(jsonEncode(env)));
+            expect(error, isA<ValidationError>());
+            expect(error.message, contains('unknown key'));
+            expect(
+              errorOf(v8.repo().previewJson(jsonEncode(env))).message,
+              error.message,
+            );
+          }
+          expect(v8.digests(), before);
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+
+    test('O5: identical quarantine originals are counted, not merged: a '
+        'device row matches one backup row', () async {
+      await inBackupTempDir((dir) async {
+        final v8 = await richV8(await V8File.create(dir));
+        try {
+          final env = decode(await v8.repo().exportJson());
+          final rows = rowsOf(env, 'legacy_quarantine');
+          final maxId = rows
+              .map((r) => r['id']! as int)
+              .reduce((a, b) => a > b ? a : b);
+          addRow(env, 'legacy_quarantine', {...rows.first, 'id': maxId + 100});
+          final before = await v8.count('legacy_quarantine');
+          final repo = v8.repo();
+          final r = await repo.importJson(jsonEncode(env));
+          expect(r, isA<Ok<Object?>>(), reason: _why(r));
+          expect(await v8.count('legacy_quarantine'), before + 1);
+          // Repeated: the copy now matches its own row.
+          final again = await repo.importJson(jsonEncode(env));
+          expect(again, isA<Ok<Object?>>(), reason: _why(again));
+          expect(await v8.count('legacy_quarantine'), before + 1);
+        } finally {
+          await v8.close();
+        }
+      });
+    });
+  });
+
   group('atomicity and run ids', () {
     for (final phase in RestorePhase.values) {
       test('a failure at ${phase.name} leaves the database unchanged and '
@@ -1655,6 +1965,30 @@ void main() {
       },
     );
 
+    test('a restore run id that the backup itself carries is refused '
+        'before any write', () async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await V8File.create(dir, 'b.sqlite');
+        try {
+          final json = await a.repo().exportJson();
+          final before = b.digests();
+          final result = await b
+              .repo(config: restoreConfig(newRunId: () => 'rich-1'))
+              .importJson(json);
+          expect(errorOf(result), isA<StorageError>());
+          expect(
+            '${(errorOf(result) as StorageError).cause}',
+            contains('rich-1'),
+          );
+          expect(b.digests(), before);
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    });
+
     test('every restore gets a new run id; an id already recorded is '
         'refused before any write; no migration ledger is involved', () async {
       await inBackupTempDir((dir) async {
@@ -1735,6 +2069,12 @@ void main() {
     );
   });
 }
+
+String _why(Result<Object?> r) => switch (r) {
+  Ok() => 'ok',
+  Err(:final error) =>
+    '${error.message} ${error is StorageError ? error.cause : ''}',
+};
 
 void v8NoForeignKeyViolation(V8File f) => f.readOnly((db) {
   expect(digest.foreignKeyViolations(db), isEmpty);

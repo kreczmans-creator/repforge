@@ -1,3 +1,6 @@
+@Tags(['heavy'])
+library;
+
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +17,9 @@ import 'backup_v8_support.dart';
 /// The preview never throws; a restore never throws, never fails inside the
 /// write transaction (every refusal is a phase 1 `ValidationError`), and a
 /// refused restore changes nothing.
+///
+/// Tagged `heavy` (review O7; about 2 minutes): run with
+/// `--run-skipped --tags heavy`; the CI recovery job runs the heavy suites.
 void main() {
   test('malformed v7 backups: preview and restore always return a Result; '
       'every refusal is a ValidationError and changes nothing', () async {

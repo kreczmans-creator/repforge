@@ -46,6 +46,19 @@ const int backupFormatV8 = 3;
 /// Schema version of format 3 files.
 const int backupSchemaV8 = 8;
 
+/// The envelope keys every RepForge exporter has written for formats 1 and
+/// 2 (production `DriftBackupRepository.exportJson`, every era).
+const Set<String> legacyEnvelopeKeys = {
+  'app',
+  'formatVersion',
+  'schemaVersion',
+  'exportedAt',
+  'tables',
+};
+
+/// The keys format 3 adds.
+const Set<String> format3EnvelopeKeys = {'appVersion', 'releaseLog'};
+
 /// A validation failure of phase 1: the whole restore is rejected and
 /// nothing is changed.
 final class RestoreRejected implements Exception {
@@ -268,6 +281,20 @@ RestorePlan _planRestore(String json) {
   final format = env.formatVersion;
   if (format < 1) {
     throw RestoreRejected('This backup has an unknown format ($format).');
+  }
+  // Review O1, B-09: the envelope keys are allow-listed per format.
+  final allowedKeys = {
+    ...legacyEnvelopeKeys,
+    if (format == backupFormatV8) ...format3EnvelopeKeys,
+  };
+  final unknownKeys = [
+    for (final k in decoded.keys)
+      if (!allowedKeys.contains(k)) k,
+  ];
+  if (unknownKeys.isNotEmpty) {
+    throw RestoreRejected('This backup has unknown envelope parts:', [
+      for (final k in unknownKeys) 'unknown key "$k"',
+    ]);
   }
   final schema = decoded['schemaVersion'];
   int? schemaVersion;
@@ -1126,16 +1153,40 @@ List<String>? _stringList(Object? json) {
   }
 }
 
+/// The block reasons the stored row of [x] calls for under the
+/// unreadable-data decision (2026-11-06): `type` or `category` that is not
+/// a domain identifier → [BlockReason.invalidClassification];
+/// `aliases_json` that is not a JSON array of strings →
+/// [BlockReason.invalidAliases].
+Set<BlockReason> unreadableBlockReasons(ExerciseAggregate x) => {
+  if (enumByName(ExerciseType.values, x.row['type']) == null ||
+      enumByName(ExerciseCategory.values, x.row['category']) == null)
+    BlockReason.invalidClassification,
+  if (_stringList(x.row['aliases_json']) == null) BlockReason.invalidAliases,
+};
+
 /// The domain exercise of [x], read as `DriftLibraryRepositoryV8` reads a
 /// stored exercise; null when the stored `type`, `category` or
-/// `aliases_json` is not a domain identifier or a JSON list of strings (v7
-/// hides such an exercise; WS4 review L9, OPEN), or when a stored date or
-/// value cannot be represented in the domain.
-CatalogueExercise? catalogueExerciseOf(ExerciseAggregate x) {
+/// `aliases_json` is not a domain identifier or a JSON list of strings, or
+/// when a stored date or value cannot be represented in the domain.
+///
+/// With [placeholders] an unreadable `type` or `category` reads as the
+/// first identifier and unreadable aliases as none, so the structural rules
+/// can still check a blocked unreadable exercise (review O4); the
+/// placeholder never reaches storage.
+CatalogueExercise? catalogueExerciseOf(
+  ExerciseAggregate x, {
+  bool placeholders = false,
+}) {
   final r = x.row;
-  final type = enumByName(ExerciseType.values, r['type']);
-  final category = enumByName(ExerciseCategory.values, r['category']);
-  final aliases = _stringList(r['aliases_json']);
+  var type = enumByName(ExerciseType.values, r['type']);
+  var category = enumByName(ExerciseCategory.values, r['category']);
+  var aliases = _stringList(r['aliases_json']);
+  if (placeholders) {
+    type ??= ExerciseType.values.first;
+    category ??= ExerciseCategory.values.first;
+    aliases ??= const [];
+  }
   final source = enumByName(ExerciseSource.values, r['source']);
   final created = DateTime.tryParse(r['created_at']! as String);
   final updated = DateTime.tryParse(r['updated_at']! as String);
