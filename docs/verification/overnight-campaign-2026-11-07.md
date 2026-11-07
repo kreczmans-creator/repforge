@@ -47,3 +47,13 @@ All four push-triggered runs on `1259e75` (CI 42327259844, Android 42327259880, 
 **Merged-tree gate (02:3x UTC).** A throwaway merge of `da63585` (`a1a33eb`) ran the full local gate: codegen clean, v8 dump equal, format and analyze clean, coverage 93.6 %, **one failure**: `analytics_isolation_test` "the data-quality check has no provider and no screen" matched the register's OB-WP11-02 evidence text (class names in a string). Fixed by excluding the register file from that scan with a comment (`7853a9b`, together with UI re-check N1 and N5). The final gate runs on the real merge `d5af42c`.
 
 **02:31 UTC — Actions resumed.** The four workflows dispatched on `81b77ff` (CI 42329682815, Android 42329685501, iOS 42329687813, Integration 42329690093) were accepted and started normally after a 28-minute stop (02:03–02:31) whose cause is unknown. OB-PROG-02 stays open for the owner to check the account's Actions usage and spending limit. The `app/` tree of `81b77ff` equals the merged head `d5af42c` (full local gate: 3,220 passed, 5 tag-skipped, coverage 93.6 %), so these runs are the release candidate's evidence; the commits after it are documentation only.
+
+## Four workflows on `81b77ff` (dispatch 02:31 UTC)
+| Workflow | Run | Result |
+|---|---|---|
+| CI | 42329682815 | success (3,220 passed, 5 tag-skipped; catalogue gate; coverage gate) |
+| iOS build | 42329687813 | success |
+| Integration tests (Android emulator) | 42329690093 | success: `app_test.dart` 8 of 8 (incl. the fixed weight-panel wait and the new WP 11 goals smoke test, its first emulator run), `migration_v8_timing_test.dart` 1 of 1 (stand-in chain, smoke profile); 9 passed |
+| Android build | 42329685501 | **failure, by design of the new WP 14 check**: both APKs built (debug 201,630,832 bytes SHA-256 `317e9629…`, release 89,780,681 bytes SHA-256 `b43765e0…`, package `com.tempest.repforge` 0.4.0 (1), targetSdk 36) and verified, but "Signer matches the debug keystore" found the APK signer certificate `40cb63e1…` ≠ the keystore certificate `25faa372…` that keytool wrote to `~/.android/debug.keystore` on the cache-miss path. AGP signed with a keystore in another location. This is the first exercise of the check and it caught the exact failure the WP 14 record said was unproven ("that it gives a stable certificate is unproven until its first CI run"). |
+
+Fix `b27ec18` (workflows only, no app change): export `ANDROID_USER_HOME=$HOME/.android` before the keystore steps in `android.yml` and `debug-release.yml`, plus a diagnostic step listing `debug.keystore` files after the build. Independent review requested; Android re-run on `b27ec18` in progress. The APKs of run 42329685501 are **not** release-candidate artefacts: their signer is not the stable certificate.
