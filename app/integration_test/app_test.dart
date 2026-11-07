@@ -212,6 +212,9 @@ void main() {
     await restart(tester, db: db);
     await pumpUntil(tester, find.text('570 of 2100'));
     expect(find.text('570 of 2100'), findsOneWidget);
+    // The weight panel loads from its own provider, after the nutrition
+    // summary; wait for it rather than assert on the first frame.
+    await pumpUntil(tester, find.text('83.2'));
     expect(find.text('83.2'), findsOneWidget);
   });
 
