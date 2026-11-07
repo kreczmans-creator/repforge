@@ -303,4 +303,17 @@ void main() {
     expect(w.notLoggedDays, 1);
     expect(w.days, hasLength(7));
   });
+
+  test('a period entirely in the future reads "not started"', () {
+    final w = NutritionWeek.build(
+      period: _week,
+      entries: const [],
+      history: TargetHistory.fromGoals(const []),
+      dayStartHour: 0,
+      asOf: CalendarDate(2026, 10, 30),
+    );
+    expect(w.elapsedDays, 0);
+    expect(w.daysLoggedText, 'not started');
+    expect(w.notLoggedDays, 0);
+  });
 }

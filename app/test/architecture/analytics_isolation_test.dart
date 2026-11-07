@@ -113,4 +113,19 @@ void main() {
     ];
     expect(users, isEmpty);
   });
+
+  test('analytics application and screens never import lib/data', () {
+    final offenders = [
+      for (final f in Directory(
+        'lib/features/analytics',
+      ).listSync(recursive: true))
+        if (f is File &&
+            f.path.endsWith('.dart') &&
+            importPattern
+                .allMatches(f.readAsStringSync())
+                .any((m) => m.group(1)!.startsWith('package:repforge/data/')))
+          f.path,
+    ];
+    expect(offenders, isEmpty);
+  });
 }

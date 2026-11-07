@@ -167,12 +167,12 @@ void main() {
     expect(volumes.last, 400);
 
     await repo.updateSet(set(100));
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 700));
     await container.read(weekTrainingProvider(week).future);
     expect(volumes.last, 500);
 
     await repo.deleteSet('set1');
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 700));
     await container.read(weekTrainingProvider(week).future);
     expect(volumes.last, 0);
   });

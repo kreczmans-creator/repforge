@@ -174,7 +174,9 @@ final class NutritionWeek {
 
   /// "5 of 7 days logged" (NUT-016(1)); for a week in progress the days that
   /// have started, for example "3 of 4 days logged".
-  String get daysLoggedText => '$loggedDays of $elapsedDays days logged';
+  String get daysLoggedText => elapsedDays == 0
+      ? 'not started'
+      : '$loggedDays of $elapsedDays days logged';
 
   /// The weakest provenance among all entries of the period (NUT-019);
   /// null when nothing was logged.

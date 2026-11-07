@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
-import 'package:repforge/data/repositories/analytics_revision.dart';
 import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/analytics/body_analytics.dart';
 import 'package:repforge/domain/analytics/goal_progress.dart';
@@ -45,15 +46,26 @@ typedef PeriodPair = ({AnalyticsPeriod later, AnalyticsPeriod earlier});
 /// The chosen period and exercise of the recomposition view, as a family key.
 typedef RecompositionKey = ({AnalyticsPeriod period, String? exerciseId});
 
-/// Counts the writes to any table the analytics read (see
-/// `analyticsTableUpdates`). Every analytics provider watches it, so an edit
+/// Counts the (debounced) writes to any table the analytics read. Every
+/// analytics provider watches it, so an edit
 /// of any row, an old one or a single set included, recomputes the figures.
 class AnalyticsRevision extends Notifier<int> {
+  Timer? _debounce;
+
   @override
   int build() {
-    final sub = analyticsTableUpdates(ref.watch(databaseProvider))
-        .listen((_) => state = state + 1);
-    ref.onDispose(sub.cancel);
+    // Debounced by 300 ms: a burst of writes (a saved session, an import)
+    // recomputes the figures once.
+    final sub = ref.watch(analyticsTableUpdatesProvider).listen((_) {
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        state = state + 1;
+      });
+    });
+    ref.onDispose(() {
+      _debounce?.cancel();
+      unawaited(sub.cancel());
+    });
     return 0;
   }
 }

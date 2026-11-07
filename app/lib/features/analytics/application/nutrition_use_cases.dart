@@ -13,7 +13,7 @@ final class LoadNutritionWeek {
   const LoadNutritionWeek({
     required this.foodLog,
     required this.goals,
-    this.clock = const SystemClock(),
+    required this.clock,
   });
 
   final FoodLogRepository foodLog;

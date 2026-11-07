@@ -69,7 +69,7 @@ final class LoadPeriodComparison {
     required this.nutrition,
     required this.training,
     required this.measurements,
-    this.clock = const SystemClock(),
+    required this.clock,
   });
 
   final LoadNutritionWeek nutrition;

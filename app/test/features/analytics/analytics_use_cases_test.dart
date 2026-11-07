@@ -311,6 +311,53 @@ void main() {
     expect(byKind['spw']!.statement, '2 of 3 sessions');
   });
 
+  test('goal baseline reads before the start, not just after it', () async {
+    await db.delete(db.goals).go();
+    await db.delete(db.measurements).go();
+    // Waist goal 85 started 2 Nov; 90 cm on 31 Oct, 84 cm after the start.
+    await goals.upsert(
+      _goal(
+        'w2',
+        GoalKind.measurement,
+        85,
+        DateTime(2026, 11, 2, 9),
+        site: MeasurementSite.waist,
+      ),
+    );
+    // Weight goal 80 started 2 Nov; weekly weigh-ins, last one 25 Oct (85).
+    await goals.upsert(
+      _goal('bw2', GoalKind.bodyWeight, 80, DateTime(2026, 11, 2, 9)),
+    );
+    await measurements.insertAll([
+      reading(MeasurementSite.waist, 90, 10, 31),
+      reading(MeasurementSite.waist, 84, 11, 4),
+      weightReading(85, 10, 25),
+      weightReading(79.4, 11, 4),
+      weightReading(79.4, 11, 5),
+      weightReading(79.4, 11, 6),
+    ]);
+    final list = _ok(
+      await LoadGoalProgress(
+        goals: goals,
+        measurements: measurements,
+        sessions: sessions,
+        settings: settings,
+        clock: _clock,
+      )(),
+    );
+    final by = {for (final p in list) p.goal.id: p};
+    final waist = by['w2']!;
+    expect(waist.startValue, 90);
+    expect(waist.state, GoalState.passedTarget);
+    expect(waist.direction, GoalDirection.decrease);
+    expect(waist.remaining, 1.0);
+    final weight = by['bw2']!;
+    expect(weight.startValue, 85);
+    expect(weight.state, GoalState.passedTarget);
+    expect(weight.direction, GoalDirection.decrease);
+    expect(weight.remaining, 0.6);
+  });
+
   test('LoadGoalProgress with no goals is an empty list', () async {
     await db.delete(db.goals).go();
     final list = _ok(
@@ -370,6 +417,7 @@ void main() {
         nutrition: nutrition(),
         training: training(),
         measurements: measurements,
+        clock: _clock,
       )(later: thisWeek),
     );
     expect(c.earlier, lastWeek);
@@ -387,6 +435,7 @@ void main() {
           nutrition: nutrition(),
           training: training(),
           measurements: measurements,
+          clock: _clock,
         )(later: thisWeek, earlier: thisWeek.previous.previous.previous),
       );
       for (final m in c.measures) {
