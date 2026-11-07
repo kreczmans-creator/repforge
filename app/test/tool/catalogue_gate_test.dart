@@ -11,10 +11,17 @@ const String _catalogue = 'assets/catalogue';
 const String _seedPath = 'assets/seed/exercise_library.json';
 const String _gapsPath = '../docs/catalogue/accepted-gaps.json';
 
-Map<String, List<int>> _assets() => {
+/// Every file of the shipped catalogue folder.
+Map<String, List<int>> _shippedAssets() => {
   for (final f in Directory(_catalogue).listSync(recursive: true))
     if (f is File) f.path.substring(_catalogue.length + 1): f.readAsBytesSync(),
 };
+
+/// The release 2 baseline the mutation tests below change: the shipped folder
+/// without the later knowledge release (release 3), which has its own tests
+/// (`test/domain/exercise_knowledge/`).
+Map<String, List<int>> _assets() =>
+    _shippedAssets()..remove('releases/repforge-release-3.json');
 
 Map<String, List<int>> _docs() => {
   for (final f in Directory(referenceDir).listSync())
@@ -48,12 +55,21 @@ Map<String, List<int>> _withRelease(
 void main() {
   group('the shipped catalogue', () {
     test('passes with zero errors', () {
-      final r = _run();
+      final r = _run(assets: _shippedAssets());
       expect(r.passed, isTrue);
       expect(r.errors, 0);
       expect(r.gateFindings, isEmpty);
-      expect(r.releases, hasLength(1));
-      final release = r.releases.single;
+      // Release 2 (classifications) and release 3 (exercise knowledge:
+      // instructions, relationships and media; specification revision 2).
+      expect(r.releases, hasLength(2));
+      final knowledge = r.releases.last;
+      expect(knowledge.file, 'releases/repforge-release-3.json');
+      expect(knowledge.release, 3);
+      expect(knowledge.passed, isTrue);
+      expect(knowledge.report!.exerciseCount, 89);
+      expect(knowledge.report!.findingsFor('IC-210'), isEmpty);
+      expect(knowledge.report!.findingsFor('IC-412'), isEmpty);
+      final release = r.releases.first;
       expect(release.file, 'releases/repforge-release-2.json');
       expect(release.provider, 'repforge');
       expect(release.release, 2);
