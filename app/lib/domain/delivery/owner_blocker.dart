@@ -5,6 +5,10 @@ import 'package:meta/meta.dart';
 /// Work packages that can own a delivery blocker.
 enum BlockerWorkPackage {
   wp8('WP 8', 'Exercise library and training architecture'),
+  wp11('WP 11', 'Analytics and progress visualisation'),
+  wp12('WP 12', 'Accounts, backup and sync backend'),
+  wp13('WP 13', 'Health platform integration'),
+  wp14('WP 14', 'Quality assurance and release engineering'),
   wp15('WP 15', 'Nutrition entry units'),
   wp17('WP 17', 'Fuel and Train workflow completion'),
   programme('Programme', 'Cross-package delivery and release');

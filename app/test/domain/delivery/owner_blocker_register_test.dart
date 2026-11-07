@@ -7,11 +7,17 @@ void main() {
     test('ids are unique, follow OB-<WP>-<nn> and match the work package', () {
       final ids = ownerBlockerRegister.map((b) => b.id).toList();
       expect(ids.toSet().length, ids.length, reason: 'duplicate id');
-      final pattern = RegExp(r'^OB-(WP8|WP15|WP17|PROG)-\d{2}$');
+      final pattern = RegExp(
+        r'^OB-(WP8|WP11|WP12|WP13|WP14|WP15|WP17|PROG)-\d{2}$',
+      );
       for (final b in ownerBlockerRegister) {
         expect(pattern.hasMatch(b.id), isTrue, reason: b.id);
         final prefix = switch (b.workPackage) {
           BlockerWorkPackage.wp8 => 'OB-WP8-',
+          BlockerWorkPackage.wp11 => 'OB-WP11-',
+          BlockerWorkPackage.wp12 => 'OB-WP12-',
+          BlockerWorkPackage.wp13 => 'OB-WP13-',
+          BlockerWorkPackage.wp14 => 'OB-WP14-',
           BlockerWorkPackage.wp15 => 'OB-WP15-',
           BlockerWorkPackage.wp17 => 'OB-WP17-',
           BlockerWorkPackage.programme => 'OB-PROG-',
@@ -39,9 +45,13 @@ void main() {
         for (final e in b.evidence) {
           expect(e.label.trim(), isNotEmpty, reason: b.id);
         }
+        // WP 12 and WP 13 have no delivery record yet; their ADR is used.
         expect(
           b.deliveryRecord,
-          startsWith('docs/delivery-record/WP'),
+          anyOf(
+            startsWith('docs/delivery-record/WP'),
+            startsWith('docs/adr/ADR-'),
+          ),
           reason: b.id,
         );
       }
@@ -111,6 +121,14 @@ void main() {
         }
       }
       expect(ownerBlockerRegister.where((b) => b.isOwnerAction), isNotEmpty);
+    });
+
+    test('every work package except programme has at least one entry', () {
+      final wps = ownerBlockerRegister.map((b) => b.workPackage).toSet();
+      for (final wp in BlockerWorkPackage.values) {
+        if (wp == BlockerWorkPackage.programme) continue;
+        expect(wps, contains(wp), reason: wp.label);
+      }
     });
 
     test('the register covers the three active work packages', () {

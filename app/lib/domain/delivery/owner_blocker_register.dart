@@ -1,10 +1,11 @@
 import 'package:repforge/domain/delivery/owner_blocker.dart';
 
 // Canonical register of owner actions and genuine delivery blockers across
-// WP 8, WP 15 and WP 17, reconciled against the delivery records named in
-// each entry during the overnight integration campaign of 2026-11-06/07. Only items
-// that need the owner, a physical device, an external verifier or an
-// outside dependency are listed; work the delivery agents can finish by
+// WP 8, WP 11, WP 12, WP 13, WP 14, WP 15 and WP 17, reconciled against the
+// delivery records named in each entry during the overnight integration
+// campaigns of 2026-11-06/07 and 2026-11-07 (which added WP 11 to WP 14).
+// Only items that need the owner, a physical device, an external verifier or
+// an outside dependency are listed; work the delivery agents can finish by
 // themselves is not. The statuses below are the state recorded in the
 // delivery records; the owner's later changes are stored by
 // `SettingsRepository.saveBlockerState` and never edit this file. A
@@ -232,6 +233,832 @@ const List<OwnerBlocker> ownerBlockerRegister = [
       ),
     ],
     deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP8-05',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c',
+    reference:
+        'D-3c-1; R-13, R-16, R-17, R-18, R-21 (preparation §3.6, 2026-11-07)',
+    title:
+        'D-3c-1: where the deferred R-13/R-16/R-17/R-18/R-21 schema goes '
+        '(amend v8 or add a later step)',
+    description:
+        'The owner deferred R-13, R-16, R-17, R-18 and R-21 to stage 3c on '
+        '2026-11-06 with the wording "they must not enter version 8 now". '
+        'Option (a) amends the v8 definition before v8 is connected; option '
+        '(b) adds a later schema step. (a) re-opens tables_v8.dart, '
+        'drift_schema_v8.json, the generated v8 shapes, from7To8 and backup '
+        'format 3. (b) uses the next free version, which WP 17 S6a also '
+        'wants.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.high,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The meaning of "now" is the owner wording. If it means not during '
+        '3b, (a) is open and re-opens the 3b-2 and 3b-4 evidence; if it '
+        'means not in v8 at all, only (b) is possible. The preparation '
+        'document makes no recommendation ahead of the owner.',
+    actionRequired:
+        'Clarify the wording, then choose (a) amend the v8 definition '
+        'before v8 is connected, or (b) add a later schema step; record it '
+        'in D04 §7.',
+    recommendation:
+        'No recommendation is recorded in the source. It notes that the '
+        'cost of adding a CHECK later (R-27) favours (a), and that WP 17 '
+        'S6a competing for the next version favours settling this before '
+        'v8 is connected. Choosing (a) keeps v9 for WP 17.',
+    consequences:
+        'Until decided, 3c-2 (reference-data loader) and 3c-4 '
+        '(relationships, content, media tables) cannot start. Choosing (b) '
+        'makes 3c and WP 17 S6a compete for v9.',
+    dependencies: [
+      'OB-WP8-04 (stage 3b gate)',
+      'WP 17 S6a schema version claim',
+    ],
+    evidence: [
+      BlockerEvidence(
+        'Decision table',
+        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.6, §3.7',
+      ),
+      BlockerEvidence('Deferred items', reference: 'docs/schema-v8.md §3'),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP8-06',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c',
+    reference: 'D-3c-2; R-13, R-16, R-17, R-18, R-21 (preparation §3.5, §3.6)',
+    title:
+        'D-3c-2: confirm the five register choices, including whether '
+        'releasedOn becomes the reference-row time (R-21)',
+    description:
+        'Each of R-13 (release columns nullable), R-16 (four stored '
+        'relationship kinds, CASCADE), R-17 (length(body) BETWEEN 10 AND '
+        '200), R-18 (NOT NULL, CASCADE) and R-21 (lifecycle columns and '
+        'release-derived times) carries a recorded recommendation awaiting '
+        'confirmation. For R-21 the release file carries releasedOn; '
+        'whether it becomes the creation and update time of reference rows '
+        'is pending this decision.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The register items were owner decisions deferred to 3c; the '
+        'recommendations are not decisions until confirmed.',
+    actionRequired:
+        'Accept or change the recorded choice for each of R-13, R-16, '
+        'R-17, R-18 and R-21 (in particular releasedOn versus device '
+        'timestamps).',
+    recommendation:
+        'The preparation document recommends accepting the recorded '
+        'recommendations. For R-21 the register records lifecycle columns '
+        'with release-derived times, because device timestamps would break '
+        'byte-identical loading.',
+    consequences:
+        'Until confirmed, the domain model still stamps parsed exercises '
+        'with releasedOn but the stored form of R-21 is undecided, and '
+        '3c-2 and 3c-4 cannot be finalised. Device timestamps would break '
+        'byte-identical reference loading.',
+    dependencies: ['OB-WP8-05'],
+    evidence: [
+      BlockerEvidence(
+        'Register table',
+        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.5, §3.6',
+      ),
+      BlockerEvidence(
+        'releasedOn wording',
+        reference: 'docs/catalogue/release-format-2.md (field table)',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP8-07',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c',
+    reference: 'D-3c-3 (preparation §3.6); plan sections 2 and 19',
+    title:
+        'D-3c-3: bundle the release and reference JSON as app assets '
+        '(app/assets/catalogue/)',
+    description:
+        'The app bundles only assets/seed/. Plan sections 2 and 19 say '
+        'stage 3 loads the approved docs/catalogue/reference/ files, but '
+        'the app cannot read docs/. The files are copied to '
+        'app/assets/catalogue/ as validated data; they are not yet listed '
+        'in the pubspec (the entries were removed on review).',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Bundling adds files to the shipped app and a CI byte-equality '
+        'obligation; the campaign did not bundle ahead of the decision.',
+    actionRequired: 'Approve or change how the approved JSON reaches the app.',
+    recommendation:
+        'The source recommends copying the files into app/assets/catalogue/ '
+        'and adding a CI byte-equality check against '
+        'docs/catalogue/reference/.',
+    consequences:
+        'Until approved, the reference-data loader and the release 2 '
+        'loading have no bundled input and nothing is registered in the '
+        'pubspec.',
+    dependencies: ['OB-WP8-05'],
+    evidence: [
+      BlockerEvidence(
+        'Decision table',
+        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.6',
+      ),
+      BlockerEvidence(
+        'Review finding M1 and pubspec removal',
+        reference: 'WP8.md, stage 3c pure-domain stream',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP8-08',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c',
+    reference: 'D-3c-5; R-27 (preparation §3.5, §3.6)',
+    title: 'D-3c-5: approve the label kinds for the R-27 CHECK',
+    description:
+        'R-27 adds a CHECK on reference_labels.kind and locale once the '
+        'label kinds are approved. The register recommendation is four '
+        'kinds: anatomy, pattern, equipment and attribute value.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.low,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The kinds fix a stored vocabulary; the CHECK cannot be written '
+        'before they are approved.',
+    actionRequired: 'Approve or change the list of label kinds.',
+    recommendation:
+        'The source records the register recommendation: anatomy, '
+        'pattern, equipment, attribute value.',
+    consequences:
+        'Until approved, no CHECK list can be written. If v8 is amended '
+        '(OB-WP8-05 option a), the CHECK must be in the v8 definition '
+        'before release; adding it later needs a schema change.',
+    dependencies: ['OB-WP8-05'],
+    evidence: [
+      BlockerEvidence(
+        'Decision table',
+        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.5, §3.6',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP8-09',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c',
+    reference: 'D-3c-6 (preparation §3.6); merge fea71c8 (2026-11-07 campaign)',
+    title:
+        'D-3c-6: confirm or reverse the merge of the pure-domain 3c stream '
+        '(fea71c8)',
+    description:
+        'D-3c-6 recommended allowing pure-domain and specification work '
+        'only, with no merge to the campaign branch before the 3b gate. '
+        'The campaign lead merged the stream (fea71c8) because the mandate '
+        'asked for the work and the merge has no runtime effect: no '
+        'migration, schema, v8 connection, bundled asset or call site.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The merge departed from the recommended wording of D-3c-6, so '
+        'only the owner can confirm it or have it reversed.',
+    actionRequired:
+        'Confirm the merge stays, or reverse it (the record gives '
+        'git revert -m 1 fea71c8).',
+    recommendation:
+        'The record states the facts and the revert command and takes no '
+        'position; the choice is the owner.',
+    consequences:
+        'Confirming keeps the stream and its 0.58 implemented points as a '
+        'sensitivity; reversing removes the code from the campaign branch '
+        'and the work is redone later. Either way stage 3b is untouched.',
+    dependencies: ['OB-WP8-04'],
+    evidence: [
+      BlockerEvidence(
+        'Campaign section',
+        reference:
+            'WP8.md, "Overnight programme acceleration campaign (2026-11-07) '
+            '— stage 3c pure-domain stream"',
+      ),
+      BlockerEvidence(
+        'Decision table',
+        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.6',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  // --------------------------------------------------------------- WP 11
+  OwnerBlocker(
+    id: 'OB-WP11-01',
+    workPackage: BlockerWorkPackage.wp11,
+    stage: 'Start and stage breakdown',
+    reference:
+        'WP 11 plan §10 decision 1, §9 (2026-11-06, reviewed 2026-11-07)',
+    title:
+        'Approve the WP 11 stage breakdown (7.0 points) and settle the '
+        'TRN-027/TRN-028/NUT-019 scope',
+    description:
+        'The plan proposes a stage breakdown summing to 7.00 points '
+        '(A 0.75, B 1.00, C 0.75, D1 1.00, D2 0.50, E 1.00, F 1.00, G1 '
+        '0.50, G2 0.50). NUT-019 is allocated in D06; the TRN-027 screens '
+        'and TRN-028 are only "proposed" in the WP 9 record, so the 7.0 '
+        'baseline may not cover them. Options: (a) approve as written, '
+        'TRN-028 built last and dropped if points run short; (b) order an '
+        'estimate review that may raise the total; (c) remove TRN-028 '
+        'from WP 11.',
+    category: BlockerCategory.scopeApproval,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The plan is a proposal and the stage breakdown and any change to '
+        'scope or total points need a traceable owner decision. The '
+        'campaign mandate authorised work to start; it did not approve the '
+        'breakdown or settle the TRN-027/028 scope question.',
+    actionRequired:
+        'Choose (a), (b) or (c) and approve or change the section 9 '
+        'breakdown; state the choice in D04 section 7.',
+    recommendation:
+        'The plan recommends (a), with D2 and TRN-028 marked as the first '
+        'items to descope.',
+    consequences:
+        'Without approval the WP 11 sub-allocations stay proposed and the '
+        'earned-point reporting cannot rely on them. (b) may raise the '
+        'total and the programme denominators; (c) drops TRN-028 from the '
+        'package.',
+    dependencies: ['WP 8 stage 3d for stage D2 (per-muscle figures)'],
+    evidence: [
+      BlockerEvidence(
+        'Plan, decision 1 and stage table',
+        reference: 'docs/wp11-analytics-plan.md §9, §10',
+      ),
+      BlockerEvidence(
+        'Campaign status of WP 11',
+        reference: 'docs/verification/overnight-campaign-2026-11-07.md',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP11.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP11-02',
+    workPackage: BlockerWorkPackage.wp11,
+    stage: 'G1',
+    reference: 'WP 11 plan §10 decision 10; GOL-012, OQ-15',
+    title:
+        'Sign the GOL-012 data-quality thresholds (OQ-15) and the '
+        'reviewer-raised provenance and regularity choices',
+    description:
+        'Proposed thresholds: 28 days of data, food logged on 80 % of '
+        'days, 90 % of energy verified or user-entered, weight on 3 days '
+        'per week. Result shown (a) in a developer or Settings status '
+        'line, or (b) not shown. The independent reviewer raised two '
+        'further choices: (1) which energy provenances count as "verified '
+        'or user-entered": the pure computation currently excludes '
+        'crowdsourced and counts user-entered, which reverses the '
+        'strength order of nutrition calculation spec §8; (2) whether '
+        'weigh-in regularity is judged by the weakest 7-day block or by an '
+        'average. Note that "days of data" is measured as the span from '
+        'the earliest record.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The plan states the owner must sign the figures; the thresholds '
+        'are proposals. The provenance set and the regularity rule decide '
+        'what a pass means and are product choices, not engineering ones.',
+    actionRequired:
+        'Sign or change each threshold; choose where the result shows; '
+        'choose the counted provenances; choose weakest-block or average '
+        'for weigh-in regularity; confirm the span-from-earliest-record '
+        'measure of days of data.',
+    recommendation:
+        'The plan recommends keeping the proposed thresholds, showing the '
+        'result in a Settings status line and shipping no recommendation '
+        'feature. The source states no recommendation for the two '
+        'reviewer-raised choices.',
+    consequences:
+        'Until signed, stage G1 (0.50 points) keeps the proposed '
+        'thresholds and cannot be accepted, and GOL-011 forbids any '
+        'coaching or recommendations. Different provenance or regularity '
+        'rules change which datasets pass the check.',
+    dependencies: ['OB-WP11-01'],
+    evidence: [
+      BlockerEvidence(
+        'Plan, decision 10 and GOL-012 row',
+        reference: 'docs/wp11-analytics-plan.md §2, §10',
+      ),
+      BlockerEvidence(
+        'Independent review of the WP 11 domain',
+        reference: 'docs/verification/overnight-campaign-2026-11-07.md',
+      ),
+      BlockerEvidence(
+        'Provenance strength order',
+        reference: 'docs/nutrition-calculation-spec.md §8',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP11.md',
+  ),
+  // --------------------------------------------------------------- WP 12
+  OwnerBlocker(
+    id: 'OB-WP12-01',
+    workPackage: BlockerWorkPackage.wp12,
+    stage: 'Decision (before stage 1)',
+    reference: 'OQ-08, OQ-06, DAT-009 to DAT-013, ADR-0012',
+    title:
+        'Decide whether RepForge has accounts and cloud sync, and who '
+        'runs the backend',
+    description:
+        'WP 12 is optional. The owner must choose between no accounts '
+        'with file backup only, an own backend with a RepForge sync '
+        'protocol, or a third-party sync service. The choice sets the '
+        'privacy policy, account deletion, conflict policy, cost and test '
+        'plan.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.low,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'A backend, a privacy policy and a budget are product and legal '
+        'decisions. The delivery agents cannot choose them. D06 lists '
+        '"owner decision" and "privacy policy" as dependencies. Code '
+        'beyond the existing sync columns and backup would be a '
+        'stub with no working implementation.',
+    actionRequired:
+        'Read ADR-0012, choose option A, B or C, and record the choice in '
+        'the ADR Decision section and in D04 section 7 (answering OQ-08).',
+    recommendation:
+        'The ADR proposes option A (no accounts in v1; file backup only), '
+        'with a revisit trigger: a named multi-device need, a stable '
+        'schema after v9, a budget and a legal reviewer.',
+    consequences:
+        'A closes WP 12 as not pursued and keeps GEN-009 true. B or C '
+        'needs a new effort allocation, a legal review, a schema '
+        'migration and a sync test harness before any code. Deferral '
+        'changes nothing in the core programme.',
+    dependencies: [
+      'OQ-06 retention policy',
+      'For B or C, a budget and a legal reviewer',
+      'WP 8 v8 and WP 17 v9 schema acceptance',
+    ],
+    evidence: [
+      BlockerEvidence(
+        'ADR proposal',
+        reference: 'docs/adr/ADR-0012-accounts-backup-and-sync-backend.md',
+      ),
+      BlockerEvidence(
+        'Sync columns',
+        reference: 'app/lib/data/db/tables.dart lines 3 to 9',
+      ),
+      BlockerEvidence(
+        'Backup format 2',
+        reference: 'app/lib/data/repositories/drift_backup_repository.dart',
+      ),
+      BlockerEvidence(
+        'Requirements',
+        reference: 'D04 DAT-009 to DAT-013, GEN-009, OQ-08',
+      ),
+      BlockerEvidence('Roadmap entry', reference: 'D06 "WP 12"'),
+      BlockerEvidence(
+        'Summary',
+        reference: 'docs/verification/wp12-wp13-owner-decisions-2026-11-07.md',
+      ),
+    ],
+    deliveryRecord: 'docs/adr/ADR-0012-accounts-backup-and-sync-backend.md',
+  ),
+  // --------------------------------------------------------------- WP 13
+  OwnerBlocker(
+    id: 'OB-WP13-01',
+    workPackage: BlockerWorkPackage.wp13,
+    stage: 'Decision (before stage 1)',
+    reference: 'OQ-16, PLT-005, PLT-006, ADR-0013',
+    title:
+        'Decide health integration scope and package, and provide devices '
+        'for verification',
+    description:
+        'WP 13 is optional. The owner must decide whether Health Connect '
+        'and HealthKit are read only or also write (OQ-16), approve a '
+        'package or native route after the standards section 4 checks, '
+        'and supply the devices and the Apple Developer account for the '
+        'device matrix.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.low,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Scope and the privacy review are owner decisions. Acceptance '
+        'needs real devices, a signed iOS build and store-policy checks, '
+        'which the delivery agents cannot do (D07 section 3). A port '
+        'without a verified adapter would be a stub with no working '
+        'implementation (standards '
+        'section 10).',
+    actionRequired:
+        'Read ADR-0013, decide the scope for stage 1 and stage 2, approve '
+        'or reject the package route, and say when devices and accounts '
+        'are available. After approval, an agent runs the standards '
+        'section 4 checks and the owner runs the device checklist.',
+    recommendation:
+        'The ADR proposes stage 1 as weight read plus workout summary '
+        'write, and stage 2 as nutrition write after stage 1 passes on '
+        'devices. It prefers the health package if it passes the checks, '
+        'otherwise own platform channels, and starting when devices and '
+        'the Apple membership are ready.',
+    consequences:
+        'Deferral keeps WP 13 at 0 earned points and changes nothing in '
+        'the core programme. Approval adds a dependency or native code, a '
+        'schema migration for imported weight, and native manifest and '
+        'entitlement changes, each recorded in D03.',
+    dependencies: [
+      'Owner devices (Android and iPhone)',
+      'Apple Developer Program membership',
+      'Standards section 4 checks on the chosen package',
+      'Schema sequencing after WP 8 v8 and WP 17 v9',
+    ],
+    evidence: [
+      BlockerEvidence(
+        'ADR proposal',
+        reference: 'docs/adr/ADR-0013-health-platform-integration.md',
+      ),
+      BlockerEvidence(
+        'Adapter rule',
+        reference: 'app/test/architecture/plugin_isolation_test.dart',
+      ),
+      BlockerEvidence('Existing adapters', reference: 'app/lib/data/platform/'),
+      BlockerEvidence(
+        'Requirements',
+        reference: 'D04 PLT-003 to PLT-006, OQ-16',
+      ),
+      BlockerEvidence(
+        'Limits of CI',
+        reference: 'D07 section 3; D03 section 2.5',
+      ),
+      BlockerEvidence('Roadmap entry', reference: 'D06 "WP 13"'),
+      BlockerEvidence(
+        'Summary',
+        reference: 'docs/verification/wp12-wp13-owner-decisions-2026-11-07.md',
+      ),
+    ],
+    deliveryRecord: 'docs/adr/ADR-0013-health-platform-integration.md',
+  ),
+  // --------------------------------------------------------------- WP 14
+  OwnerBlocker(
+    id: 'OB-WP14-01',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Signing',
+    reference: 'WP14.md, Owner actions: Owner action 1',
+    title: 'Store signing secrets and release environment',
+    description:
+        'Generate the Android upload keystore offline and provision the '
+        'release environment: ANDROID_KEYSTORE (base64), '
+        'ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD and '
+        'ANDROID_KEY_ALIAS, with a required reviewer on the release '
+        'environment. Also decide on Play App Signing so the upload key can '
+        'be rotated.',
+    category: BlockerCategory.externalInfrastructure,
+    priority: BlockerPriority.high,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Secrets and keystores are owner-held and must never be committed '
+        '(engineering standards section 9). Until they exist release.yml '
+        'fails at its first android step by design.',
+    actionRequired:
+        'Create the keystore offline, set the four secrets in the '
+        'repository release environment, add a required reviewer, and '
+        'decide on Play App Signing. Deployment rules: if the release '
+        'environment is limited to v* tags, the manual workflow_dispatch '
+        'path from a branch is refused (allow the dispatch branch, or use '
+        'tags only); an environment that does not exist yet is created '
+        'automatically without a reviewer, so create it deliberately '
+        '(review finding L4).',
+    recommendation:
+        'The record states the actions and the deployment-rule caveats and '
+        'gives no recommendation on Play App Signing.',
+    consequences:
+        'Without the secrets the signed-release deliverable (0.20 points) '
+        'stays unearned and the D06 acceptance (a tagged release produces '
+        'signed artefacts) cannot be met.',
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 1',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-02',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'First release',
+    reference: 'WP14.md, Owner actions: Owner action 2',
+    title: 'Decide the first release version and tag it',
+    description:
+        'Decide the first version (0.4.0 as in pubspec, or another), move '
+        'the [Unreleased] changelog entries under a dated version heading, '
+        'bump app/pubspec.yaml in the same commit, and tag vX.Y.Z. The '
+        'build number +N is the Android versionCode and must increase for '
+        'Google Play. A debug-latest tester will reinstall once when moving '
+        'to the signed release (different certificate).',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The version is a product decision and the tag triggers a release; '
+        'the agents invented no version (CHANGELOG.md states no tag has '
+        'been cut).',
+    actionRequired:
+        'Choose the version, make the changelog and pubspec commit (name '
+        'and +N build number), and push the tag; confirm the one-time '
+        'reinstall for debug-latest testers.',
+    recommendation: 'The record gives no recommendation on the version number.',
+    consequences:
+        'No tag means release.yml is never exercised and the verification '
+        'run needed for acceptance cannot happen.',
+    dependencies: ['OB-WP14-01'],
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 2',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-03',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Store listings',
+    reference: 'WP14.md, Owner actions: Owner action 3',
+    title: 'Provide or approve the store listings',
+    description:
+        'Provide or approve names, descriptions, screenshots, privacy '
+        'policy and data-safety and age-rating answers for Google Play and '
+        'the App Store.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Listing content and legal answers (privacy policy, data safety, '
+        'age rating) are the owner own content and statements.',
+    actionRequired:
+        'Supply or approve the listing text, screenshots, privacy policy '
+        'and the data-safety and age-rating answers for both stores.',
+    recommendation: 'The record gives no recommendation.',
+    consequences:
+        'The store listing deliverable (0.15 points) cannot be done and no '
+        'store submission is possible.',
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 3',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-04',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Beta accounts',
+    reference: 'WP14.md, Owner actions: Owner action 4',
+    title: 'Open the beta distribution accounts',
+    description:
+        'Google Play Console (internal testing track) and the Apple '
+        'Developer Program with TestFlight; for iOS signing, the App Store '
+        'Connect API key secrets APP_STORE_CONNECT_KEY_ID, _ISSUER_ID and '
+        '_KEY_P8 per D07 section 2.4.',
+    category: BlockerCategory.externalInfrastructure,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Accounts, memberships and API keys belong to the owner. iOS stays '
+        'simulator-only without an Apple Developer Program membership.',
+    actionRequired:
+        'Create or provide the Play Console and Apple Developer accounts '
+        'and set the App Store Connect key secrets.',
+    recommendation: 'The record gives no recommendation.',
+    consequences:
+        'The beta distribution pipeline (0.20 points) cannot be built or '
+        'exercised; iOS remains simulator-only.',
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 4',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-05',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Crash reporting',
+    reference: 'WP14.md, Owner actions: Owner action 5',
+    title: 'Decide on opt-in crash reporting',
+    description:
+        'Decide whether to add opt-in crash reporting at all, which '
+        'provider, and what data it may send, given the local-first posture '
+        '(ADR-0005).',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.low,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Sending any data off the device is a privacy and product decision '
+        'the agents cannot make.',
+    actionRequired:
+        'Decide whether to add crash reporting; if yes, name the provider '
+        'and the data allowed.',
+    recommendation: 'The record gives no recommendation.',
+    consequences:
+        'If not wanted, the adapter and settings switch (0.10 points) are '
+        'dropped or rescoped; if wanted, they wait for the provider choice.',
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 5',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-06',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Test certificate',
+    reference: 'WP14.md, Owner actions: Owner action 6',
+    title: 'Approve the test-build certificate approach',
+    description:
+        'Confirm the cache-based debug keystore is acceptable, or provide a '
+        'keystore as a repository secret instead; accept that testers '
+        'uninstall once after the first run (back up data), and again if '
+        'the cache entry is evicted.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The choice trades a stable certificate against owner-held secrets '
+        'and tester inconvenience; the first CI run of the cache steps has '
+        'not happened.',
+    actionRequired:
+        'Choose the cache-based debug keystore or provide a keystore '
+        'secret, and accept the one-time uninstall by testers.',
+    recommendation: 'The record gives no recommendation.',
+    consequences:
+        'Until chosen, two CI builds may keep different certificates and '
+        'cannot be installed over each other.',
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 6',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-07',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Device checklist',
+    reference: 'WP14.md, Owner actions: Owner action 7',
+    title: 'Run the release device checklist on Android and iPhone',
+    description:
+        'Run the release device checklist on an Android phone and an iPhone '
+        'when it is written. It also carries the open WP 6 camera items and '
+        'the D05 V-01 airplane-mode check.',
+    category: BlockerCategory.physicalDeviceAction,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Device checks need physical devices (D07 section 3). The checklist '
+        'itself is not yet written.',
+    actionRequired:
+        'When the checklist exists, run it on one Android phone and one '
+        'iPhone and return the results.',
+    recommendation: 'The record gives no recommendation.',
+    consequences:
+        'The device-run deliverable (0.10 points) stays unearned and the WP '
+        '6 camera items stay open.',
+    dependencies: ['Release device checklist written (WP 14 engineering item)'],
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 7',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-08',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'NUT-023 schema',
+    reference: 'WP14.md, Owner actions: Owner action 8',
+    title: 'Decide the NUT-023 source schema',
+    description:
+        'Decide whether a dedicated source_id column (and optionally import '
+        'or refresh date and licence text) is wanted. Until decided, the '
+        'identifier is the barcode column and only Open Food Facts is '
+        'covered.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.low,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'A schema change must be coordinated with WP 8 and WP 17 and is an '
+        'owner decision.',
+    actionRequired:
+        'Choose whether to add the column or columns; record the decision.',
+    recommendation: 'The record gives no recommendation.',
+    consequences:
+        'Until decided NUT-023(1) is only partly met (0.15 of the 0.30 '
+        'NUT-023 allocation is unearned).',
+    dependencies: ['Schema sequencing with WP 8 and WP 17'],
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 8',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP14-09',
+    workPackage: BlockerWorkPackage.wp14,
+    stage: 'Acceptance',
+    reference: 'WP14.md, Owner actions: Owner action 9',
+    title: 'Record the WP 14 acceptance decision',
+    description:
+        'After a tagged release has produced signed artefacts, and the '
+        'review, record the WP 14 acceptance decision.',
+    category: BlockerCategory.ownerAcceptance,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Only the owner can record acceptance; the record may not reach 100 '
+        '% without it.',
+    actionRequired:
+        'Record acceptance (or the changes wanted) once the verification '
+        'run and review are done.',
+    recommendation: 'None: acceptance is the owner decision.',
+    consequences:
+        'WP 14 stays at its earned points and cannot be reported complete.',
+    dependencies: ['OB-WP14-01', 'OB-WP14-02'],
+    evidence: [
+      BlockerEvidence(
+        'Owner actions list',
+        reference: 'docs/delivery-record/WP14.md, "Owner actions" item 9',
+      ),
+      BlockerEvidence(
+        'Progress table and blockers',
+        reference: 'docs/delivery-record/WP14.md, "Effort points and progress"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
   ),
   // --------------------------------------------------------------- WP 15
   OwnerBlocker(
