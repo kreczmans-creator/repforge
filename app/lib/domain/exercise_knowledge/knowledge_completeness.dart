@@ -196,6 +196,7 @@ String renderCompletenessReport(
   required String snapshotDate,
   required String releaseFile,
   required String contentHash,
+  List<String> editorNotes = const [],
 }) {
   final b = StringBuffer()
     ..writeln('# Exercise content completeness — $snapshotDate')
@@ -222,6 +223,10 @@ String renderCompletenessReport(
       '${matrix.drafted} |',
     )
     ..writeln('| Editor-approved | ${matrix.editorApproved} |')
+    ..writeln(
+      '| Shown in the app by default (editor-approved only; drafts behind '
+      'the switch, KS-D9) | ${matrix.editorApproved} |',
+    )
     ..writeln('| Without instruction content | ${matrix.withoutContent} |')
     ..writeln(
       '| All required instruction elements present (drafts) | '
@@ -320,5 +325,20 @@ String renderCompletenessReport(
       '- **Editorial review:** ${matrix.drafted} drafts await a named human '
       'editor; ${matrix.editorApproved} are editor-approved.',
     );
+  if (editorNotes.isNotEmpty) {
+    b
+      ..writeln()
+      ..writeln('## 5. Editor notes')
+      ..writeln()
+      ..writeln(
+        'Points left for the accountable editor (independent review of '
+        '2026-11-07, finding L-3, and known limitations). They are not '
+        'defects of the integrity checks.',
+      )
+      ..writeln();
+    for (final n in editorNotes) {
+      b.writeln('- $n');
+    }
+  }
   return b.toString();
 }
