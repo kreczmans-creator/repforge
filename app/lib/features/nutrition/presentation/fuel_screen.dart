@@ -54,7 +54,14 @@ class FuelScreen extends ConsumerWidget {
           loading: () => const RfLoading(),
           error: (e, _) =>
               const RfErrorState(message: 'Could not load the diary.'),
-          data: (s) => _Totals(summary: s),
+          data: (s) => _Totals(
+            summary: s,
+            provenance: weakestProvenance(
+              (entries.value ?? const <FoodLogEntry>[]).map(
+                (e) => e.provenance,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: RfSpace.s3),
         Row(
@@ -194,9 +201,13 @@ class _DayNavigator extends StatelessWidget {
 }
 
 class _Totals extends StatelessWidget {
-  const _Totals({required this.summary});
+  const _Totals({required this.summary, this.provenance});
 
   final DailySummary summary;
+
+  /// The weakest provenance among the day's entries (NUT-019); null when
+  /// nothing is logged.
+  final DataProvenance? provenance;
 
   @override
   Widget build(BuildContext context) {
@@ -238,6 +249,21 @@ class _Totals extends StatelessWidget {
             ],
           ),
         ),
+        if (provenance != null) ...[
+          const SizedBox(height: RfSpace.s3),
+          Row(
+            key: const Key('day-total-provenance'),
+            children: [
+              Expanded(
+                child: Text(
+                  'Weakest data source today',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              ProvenanceBadge(provenance!),
+            ],
+          ),
+        ],
         const SizedBox(height: RfSpace.s3),
         RfCard(
           child: Column(

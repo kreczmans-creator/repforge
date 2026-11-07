@@ -8,6 +8,7 @@ import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/nutrition/application/nutrition_providers.dart';
 import 'package:repforge/features/nutrition/presentation/nutrient_display.dart';
+import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
 import 'package:repforge/ui/components/rf_section_header.dart';
@@ -24,6 +25,7 @@ class WeeklySummaryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final week = ref.watch(weeklySummaryProvider);
+    final provenance = ref.watch(weeklyProvenanceProvider).value;
     final targets = ref.watch(dailyTargetsProvider).value ?? DailyTargets.none;
     final theme = Theme.of(context);
     return Scaffold(
@@ -100,6 +102,21 @@ class WeeklySummaryScreen extends ConsumerWidget {
                     w.unknownDays(Nutrient.fibreG),
                   ),
                 ),
+                if (provenance != null) ...[
+                  const SizedBox(height: RfSpace.s3),
+                  Row(
+                    key: const Key('week-total-provenance'),
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Weakest data source this week',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                      ProvenanceBadge(provenance),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: RfSpace.s4),
                 const RfSectionHeader(title: 'By day'),
                 RfCard(

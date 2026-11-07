@@ -423,6 +423,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ],
                   ),
+                  ..._impliedEnergy(theme),
                   if (_targetError != null && _targetErrorKind == null) ...[
                     const SizedBox(height: RfSpace.s2),
                     Text(
@@ -709,15 +710,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         unit: unit,
         decimals: 0,
         errorText: _targetErrorKind == kind ? _targetError : null,
-        onChanged: (_) {
-          if (_targetError != null) {
-            setState(() {
-              _targetError = null;
-              _targetErrorKind = null;
-            });
-          }
-        },
+        onChanged: (_) => setState(() {
+          // Rebuild so the implied energy follows the typed values.
+          _targetError = null;
+          _targetErrorKind = null;
+        }),
       );
+
+  double? _typed(GoalKind kind) =>
+      double.tryParse(_controllers[kind]!.text.trim().replaceAll(',', '.'));
+
+  /// GOL-002: energy implied by the typed macro targets (protein and carbs
+  /// 4 kcal/g, fat 9 kcal/g) and, when it differs from the calorie target by
+  /// more than 10 %, a note. Never blocks saving.
+  List<Widget> _impliedEnergy(ThemeData theme) {
+    final protein = _typed(GoalKind.protein);
+    final carbs = _typed(GoalKind.carbs);
+    final fat = _typed(GoalKind.fat);
+    if (protein == null && carbs == null && fat == null) return const [];
+    final implied = (protein ?? 0) * 4 + (carbs ?? 0) * 4 + (fat ?? 0) * 9;
+    final kcal = _typed(GoalKind.calories);
+    final off =
+        kcal != null && kcal > 0 && (implied - kcal).abs() / kcal > 0.10;
+    return [
+      const SizedBox(height: RfSpace.s3),
+      Text(
+        'Implied energy: ${formatNumber(implied, maxDecimals: 0)} kcal',
+        key: const Key('implied-energy'),
+        style: theme.textTheme.bodyMedium,
+      ),
+      if (off)
+        Padding(
+          padding: const EdgeInsets.only(top: RfSpace.s1),
+          child: Text(
+            'The macro targets imply ${formatNumber(implied, maxDecimals: 0)} '
+            'kcal, which differs from the calorie target of '
+            '${formatNumber(kcal, maxDecimals: 0)} kcal by more than 10 %.',
+            key: const Key('implied-energy-warning'),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: context.rf.accentText,
+            ),
+          ),
+        ),
+    ];
+  }
 
   Widget _choice<T>({
     required Key key,

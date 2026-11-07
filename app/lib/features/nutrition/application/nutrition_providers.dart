@@ -88,6 +88,18 @@ final weeklySummaryProvider = FutureProvider<WeeklySummary>((ref) async {
   return WeeklySummary.fromEntries(days: days, entries: entries);
 });
 
+/// The weakest provenance among the entries of the seven days that
+/// [weeklySummaryProvider] covers (NUT-019); null when nothing was logged.
+final weeklyProvenanceProvider = FutureProvider<DataProvenance?>((ref) async {
+  final end = DateTime.parse(ref.watch(selectedDayProvider));
+  final days = lastSevenDays(end);
+  ref.watch(selectedDayEntriesProvider);
+  final entries = await ref
+      .watch(foodLogRepositoryProvider)
+      .forDays(days.first, days.last);
+  return weakestProvenance(entries.map((e) => e.provenance));
+});
+
 final cacheFoodProvider = Provider<CacheFood>(
   (ref) => CacheFood(foods: ref.watch(foodRepositoryProvider)),
 );
