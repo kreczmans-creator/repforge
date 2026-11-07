@@ -643,3 +643,26 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
   - Source commit ancestry is checked before any release-candidate integration.
   - Four CI workflows rerun on the integrated commit.
 - **Handover:** the WP 8 session pushes only to its own clean branch, never merges into the release candidate, and hands over commit SHAs, changed files, tests, review findings and outstanding work.
+
+### 2026-11-07 — Exercise knowledge base branch; Train UX handover contingency (owner; supersedes the base in the entry above)
+- **Base branch:** `claude/campaign-2026-11-07` is the exercise-knowledge baseline. The owner withdraws the earlier strict aa59021 base.
+  - The handover demonstrates ancestry from aa59021 and shows no WP 8 3b commits or migration code.
+  - The stage 3c catalogue release format is canonical. The knowledge system extends it and adds no competing exercise-reference format.
+  - Compatibility with the existing catalogue and offline behaviour stays.
+- **Train dashboard and filter-chip correction:** the WP 8 session prepares its locally started work as a reviewed commit series for handover, if the other session does not implement it.
+  - The other session confirms implementation responsibility, or accepts the handover. It then reviews independently, integrates into its clean campaign branch, and runs regression and emulator tests.
+  - The WP 8 session never merges into the release candidate itself. Started work is not discarded.
+- **Push permission:** the WP 8 session may push independently reviewed exercise-knowledge work to `claude/exercise-knowledge-2026-11-07`, with:
+  - no 3b ancestry or code;
+  - complete test evidence;
+  - the relationship to the 3c format documented;
+  - no direct merge into the release candidate.
+- **Responsibility matrix:**
+
+  | Deliverable | Responsibility |
+  |---|---|
+  | Exercise knowledge architecture, content, imagery and instructions, offline references | WP 8 session |
+  | Train dashboard and filter-chip correction | Other session, or the WP 8 session's reviewed handover |
+  | Final integration | Campaign integration authority |
+  | WP 8 3b | Isolated |
+  | Merge to main | Owner approval required |
