@@ -7,10 +7,12 @@ import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
+import 'package:repforge/features/analytics/presentation/exercise_progress_screen.dart';
 import 'package:repforge/features/analytics/presentation/goal_editor_screen.dart';
 import 'package:repforge/features/analytics/presentation/goals_home_screen.dart';
 import 'package:repforge/features/analytics/presentation/period_comparison_screen.dart';
 import 'package:repforge/features/analytics/presentation/target_history_screen.dart';
+import 'package:repforge/features/analytics/presentation/training_analytics_screen.dart';
 import 'package:repforge/features/analytics/presentation/weekly_summary_screen.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blocker_detail_screen.dart';
@@ -459,6 +461,20 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
                   path: 'compare',
                   parentNavigatorKey: _rootKey,
                   builder: (context, state) => const PeriodComparisonScreen(),
+                ),
+                GoRoute(
+                  path: 'training',
+                  parentNavigatorKey: _rootKey,
+                  builder: (context, state) => const TrainingAnalyticsScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'exercise/:id',
+                      parentNavigatorKey: _rootKey,
+                      builder: (context, state) => ExerciseProgressScreen(
+                        exerciseId: state.pathParameters['id']!,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
