@@ -122,10 +122,13 @@ jobs:
       - name: Resolve dependencies (pinned)
         run: flutter pub get --enforce-lockfile
 
+      # test/data/backup_v8/: the WS3 malformed-backup regression suite
+      # (tag heavy, about 3 minutes; 3b-7 final review F1).
       - name: Kill and heavy suites
         run: >-
           flutter test --run-skipped --tags "kill || heavy"
           --concurrency=1 --reporter expanded test/migration_v8/
+          test/data/backup_v8/
 
       - name: Upload kill, profile and timing reports
         if: always()

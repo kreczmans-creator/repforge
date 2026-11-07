@@ -262,7 +262,8 @@ void main() {
     });
 
     test('other conflicting immutable reference content: a node parent, a '
-        'release hash, a provider of a system exercise', () async {
+        "release hash (a system exercise's source or provider no longer "
+        'rejects: B-01)', () async {
       await rejects((env) {
         for (final r in rowsOf(env, 'anatomy_nodes')) {
           if (r['id'] == 'chest') r['parent_id'] = 'regionBack';
@@ -1357,6 +1358,71 @@ void main() {
       });
     });
 
+    test('O5: an A -> B -> A round trip with a fixed clock reaches the '
+        "content-claim path: B's renumbered copies of A's quarantine rows "
+        "are A's own rows again; only B's rows are added; a repeat adds "
+        'nothing', () async {
+      await inBackupTempDir((dir) async {
+        final a = await richV8(await V8File.create(dir, 'a.sqlite'));
+        final b = await V8File.create(dir, 'b.sqlite');
+        try {
+          expect(
+            await b
+                .repo(config: restoreConfig(newRunId: countingRestoreIds('b')))
+                .importJson(readGolden(digest.goldenFormat1Path(6))),
+            isA<Ok<Object?>>(),
+          );
+          await b.db.customStatement(
+            "UPDATE legacy_quarantine SET reason = reason || ' (device B)'",
+          );
+          final aRows = await a.rows('SELECT * FROM legacy_quarantine');
+          final bOwn = await b.count('legacy_quarantine');
+          // A -> B: B's ids collide, A's rows are renumbered in B.
+          expect(
+            await b
+                .repo(config: restoreConfig(newRunId: countingRestoreIds('b2')))
+                .importJson(await a.repo().exportJson()),
+            isA<Ok<Object?>>(),
+          );
+          final renumbered = await b.rows(
+            'SELECT * FROM legacy_quarantine WHERE reason NOT LIKE '
+            "'% (device B)'",
+          );
+          expect(renumbered, hasLength(aRows.length));
+          expect(
+            renumbered
+                .map((r) => r['id'])
+                .toSet()
+                .intersection(aRows.map((r) => r['id']).toSet()),
+            isEmpty,
+            reason: 'every copy of an A row has a new id in B',
+          );
+          // B -> A: the copies match A's rows by content (claim path).
+          final back = await b.repo().exportJson();
+          final repoA = a.repo(
+            config: restoreConfig(newRunId: countingRestoreIds('a')),
+          );
+          final r1 = await repoA.importJson(back);
+          expect(r1, isA<Ok<Object?>>(), reason: _why(r1));
+          final afterA = await a.rows('SELECT * FROM legacy_quarantine');
+          expect(afterA, hasLength(aRows.length + bOwn));
+          final byId = {for (final r in afterA) r['id']: r};
+          for (final r in aRows) {
+            expect(byId[r['id']], r, reason: 'A row ${r['id']} unchanged');
+          }
+          expect(await checkLinks(a), greaterThan(0));
+          // Repeated B -> A: nothing is added.
+          final r2 = await repoA.importJson(back);
+          expect(r2, isA<Ok<Object?>>(), reason: _why(r2));
+          expect(await a.count('legacy_quarantine'), afterA.length);
+          await checkLinks(a);
+        } finally {
+          await a.close();
+          await b.close();
+        }
+      });
+    });
+
     Future<void> rejectsOnRich(
       String Function(Map<String, Object?> envelope) mutate,
       Matcher message, {
@@ -1486,6 +1552,7 @@ void main() {
               r['provider_id'] = 'other';
               r['name'] = 'Renamed in the backup';
               r['archived'] = 1;
+              r['deleted_at'] = '2030-01-01T00:00:00.000Z';
             }
           }
           final before = (await v8.rows(
@@ -1496,7 +1563,11 @@ void main() {
           final after = (await v8.rows(
             "SELECT * FROM exercises WHERE id = 'lib-deadlift'",
           )).single;
-          expect(after, {...before, 'archived': 1});
+          expect(after, {
+            ...before,
+            'archived': 1,
+            'deleted_at': '2030-01-01T00:00:00.000Z',
+          });
           final fields = {
             for (final w in await v8.rows(
               'SELECT field FROM migration_report_entries WHERE run_id = '
@@ -1979,7 +2050,7 @@ void main() {
           expect(errorOf(result), isA<StorageError>());
           expect(
             '${(errorOf(result) as StorageError).cause}',
-            contains('rich-1'),
+            contains('The restore run id "rich-1" is already in use.'),
           );
           expect(b.digests(), before);
         } finally {
