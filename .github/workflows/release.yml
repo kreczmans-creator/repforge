@@ -267,7 +267,12 @@ jobs:
             exit 1
           fi
           "$tools/aapt2" dump badging "$apk" | grep -E "^package:|^application-label:|sdkVersion|targetSdkVersion"
-          jarsigner -verify -certs "$aab" | tee "$RUNNER_TEMP/aab-verify.txt" | grep -E "jar verified|jar is unsigned" || true
+          jarsigner -verify -verbose -certs "$aab" > "$RUNNER_TEMP/aab-verify.txt" 2>&1 || true
+          grep -E "jar verified|jar is unsigned|CN=" "$RUNNER_TEMP/aab-verify.txt" | sort -u | head -20
+          if grep -q "CN=Android Debug" "$RUNNER_TEMP/aab-verify.txt"; then
+            echo "::error::The app bundle is signed with the Android debug certificate; refusing to release."
+            exit 1
+          fi
           if ! grep -q "jar verified" "$RUNNER_TEMP/aab-verify.txt"; then
             echo "::error::The app bundle is not verifiably signed; refusing to release."
             exit 1
@@ -309,6 +314,7 @@ jobs:
 
       - name: Delete keystore
         if: always()
+        working-directory: ${{ runner.temp }}
         run: rm -f "$RUNNER_TEMP/repforge-release.jks"
 
   ios:

@@ -34,9 +34,10 @@ android {
     // WP 14 release signing. The release workflow (.github/workflows/release.yml)
     // supplies these four values from repository secrets; they are read from
     // Gradle properties (-PRF_...) or the environment. No keystore or password
-    // is ever committed (engineering standards, section 9). When any value is
-    // absent the release build type keeps the debug signing below, so local
-    // builds and the existing workflows behave exactly as before.
+    // is ever committed (engineering standards, section 9). When none of
+    // the four is set the release build type keeps the debug signing below, so local
+    // builds and the existing workflows behave exactly as before. Setting only
+    // some of them is an error.
     fun rfSigning(name: String): String? =
         (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
             ?: System.getenv(name)?.takeIf { it.isNotBlank() }
@@ -45,9 +46,23 @@ android {
     val rfKeystorePassword = rfSigning("RF_KEYSTORE_PASSWORD")
     val rfKeyAlias = rfSigning("RF_KEY_ALIAS")
     val rfKeyPassword = rfSigning("RF_KEY_PASSWORD")
-    val rfReleaseSigned =
-        rfKeystorePath != null && rfKeystorePassword != null &&
-            rfKeyAlias != null && rfKeyPassword != null
+    val rfSigningValues = mapOf(
+        "RF_KEYSTORE_PATH" to rfKeystorePath,
+        "RF_KEYSTORE_PASSWORD" to rfKeystorePassword,
+        "RF_KEY_ALIAS" to rfKeyAlias,
+        "RF_KEY_PASSWORD" to rfKeyPassword,
+    )
+    val rfMissing = rfSigningValues.filterValues { it == null }.keys
+    // None set: silent debug fallback. Some set: a half-configured release
+    // build must fail loudly rather than quietly ship debug-signed.
+    if (rfMissing.isNotEmpty() && rfMissing.size < rfSigningValues.size) {
+        throw GradleException(
+            "Incomplete release signing configuration; missing: " +
+                rfMissing.joinToString(", ") +
+                ". Set all four RF_* values or none.",
+        )
+    }
+    val rfReleaseSigned = rfMissing.isEmpty()
 
     signingConfigs {
         if (rfReleaseSigned) {

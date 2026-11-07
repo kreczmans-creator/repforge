@@ -32,7 +32,7 @@ Verdict: the workflow infrastructure is now adequate for a Gradle build, but it 
 | `integration.yml` | nightly + manual | ubuntu-latest (Android emulator via `reactivecircus/android-emulator-runner`), macos-latest (iOS simulator) | `flutter test integration_test` | screenshots, logs |
 | `debug-release.yml` | push to `main` or the active branch touching `app/**`, manual | ubuntu-latest | build per-ABI and universal debug APKs → move tag `debug-latest` → create/update prerelease → upload assets + SHA256SUMS (added 2026-11-03) | rolling GitHub Release with stable download URLs |
 | `deps.yml` | weekly | ubuntu-latest | `dart pub outdated`, `osv-scanner` | report (not yet added; WP 14) |
-| `release.yml` | tag `v*` | ubuntu + macos | build signed artefacts → create GitHub Release with changelog | APK/AAB/IPA (not yet added; WP 14) |
+| `release.yml` | tag `v*`, manual (existing tag) | ubuntu + macos | verify gates and tag/pubspec/changelog agreement → signed APK and AAB (fails without the four signing secrets) → GitHub Release with the changelog section; macOS job is an iOS simulator build only (added 2026-11-07, WP 14; not yet run) | signed APK + AAB + SHA256SUMS; **no IPA** (Apple signing not configured) |
 
 ### 2.2 Required checks for merge to main
 `format`, `analyze`, `test`, `android-debug`. iOS build required once a macOS runner budget is confirmed (see limitations).
