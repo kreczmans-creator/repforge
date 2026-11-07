@@ -625,6 +625,8 @@ D04 §7 (2026-11-06 entries) holds the owner decisions. Production stays at sche
 | 3b-9 | Device timing | mandatory evidence |
 | 3b-10 | Record, independent review, CI, owner acceptance | — |
 
+*Superseded (2026-11-07): this table is the plan-time status of 2026-11-06 and is kept unchanged. The current status of every sub-stage is the "Stage 3b status" line below and the sub-stage table in "Effort-point progress update (2026-11-07)" at the end of this record.*
+
 ### Process incident: analyzer info committed (ede7808)
 - ede7808 added a doc comment line over 80 characters. The local gate grepped the analyzer output and ignored its exit code, so the commit went through.
 - cb841cb fixed one line but missed a second; the same gap let it through.
@@ -822,7 +824,8 @@ The owner approved all eleven recommendations, with constraints (D04 §7, same d
 ### Register R-12 to R-24: owner decisions (2026-11-06)
 R-12 (mixed foreign keys), R-20 (application enforcement of default roles), R-14, R-15, R-22, R-23 and R-24 are approved as recommended (D04 §7, same date). R-19 was already resolved. R-13, R-16, R-17, R-18 and R-21 are deferred to stage 3c as recorded requirements. TD-44 (D05) records the v6→v7 backfill orphan.
 
-**Stage 3b status (2026-11-06):** 3b-1 accepted as foundation; 3b-3 complete; 3b-2 implemented with the register decisions, Review A re-check fixes applied, awaiting commit; 3b-4 to 3b-10 outstanding. Stage 3b as a whole is not accepted.
+**Stage 3b status (current, 2026-11-07; evidence baseline 2ba5881 plus the uncommitted Review C fix round, re-checked: ready to commit):** 3b-1 accepted as foundation; 3b-3 complete; 3b-2 committed (2ba3997) and reviewed (Review A and two re-checks), owner acceptance outstanding; 3b-4 committed (e57834e) and reviewed (Review B and two re-checks), owner acceptance outstanding; stage 3b decision baseline committed (163ce4a) and reviewed; 3b-5 and 3b-6 evidenced (e57834e `v8_all_paths_test`; WS5 0d912c2 and the v8 kill suite); 3b-7 merged (5e37008), WS3 final review F1–F6 addressed, **WS3 not closed** because the B-15 condition failed (D04 §7, 2026-11-07); 3b-8 committed (b644636..e50a047) and re-checked; 3b-9 harness committed (38bdf6d) and reviewed, physical-device runs outstanding; 3b-10: Review C done; its fix round is in the working tree, uncommitted; the Review C re-check found it ready to commit after four Lows N-1 to N-4, which are fixed. Stage 3b as a whole is **not accepted**. Details and figures: "Effort-point progress update (2026-11-07)" at the end of this record.
+(Superseded status line of 2026-11-06: "3b-1 accepted as foundation; 3b-3 complete; 3b-2 implemented with the register decisions, Review A re-check fixes applied, awaiting commit; 3b-4 to 3b-10 outstanding. Stage 3b as a whole is not accepted.")
 
 
 ## Effort-point reporting requirement (owner direction, 2026-11-06)
@@ -885,6 +888,8 @@ The owner's reconciliation asks for 3b to be refined against its sub-stages with
 | 3b-10 Record, Review C, CI, owner acceptance | 0.30 | 0.00 | Not reached |
 | **3b total** | **4.50** | **3.16** | |
 
+*Superseded as the current status by the table in "Effort-point progress update (2026-11-07)" at the end of this record; the values above are the 2026-11-06 snapshot and are kept unchanged.*
+
 ### WP 8 stage table (other rows unchanged from the owner's reconciliation)
 | Stage / deliverable | Allocated | Earned |
 |---|---:|---:|
@@ -930,7 +935,8 @@ The owner's reconciliation asks for 3b to be refined against its sub-stages with
 ### Stage 3b decision baseline (owner, 2026-11-06)
 The owner approved the 13 open decisions and the 3b effort allocation (D04 §7, "stage 3b decision baseline"). The proposed 3b sub-allocation in the effort update above is now approved without change. Earned credit stays at 3.16 of 4.50 for 3b: approving decisions earns nothing. Implementation of the approved decisions is in progress.
 
-### Decision baseline implementation (2026-11-06, uncommitted on `ccr-9fda2c32-wr163b` over 5f1192e)
+### Decision baseline implementation (2026-11-06; committed 163ce4a on `ccr-9fda2c32-wr163b` over 5f1192e)
+**Commit and review (recorded 2026-11-07):** committed as 163ce4a with the Review DB fixes below; reviewed. CI: the emulator workflow failed on runner infrastructure (run 42313621601; fixed by 2ba5881, see "CI record" at the end of this record). Review DB L1 is corrected below: R-30 on restored v7 backups is implemented (4ea5f77).
 Implements the owner's stage 3b decision baseline (D04 §7, 2026-11-06, "13 decisions approved") in the shared v8 code. Details: `docs/schema-v8.md` section 7 and register; `docs/v8-library-use-cases.md`. Production stays at schema 7 and unconnected; frozen fixtures and manifests are unchanged; the WS3 backup files are not touched (WS3 rebases onto this work).
 - **Unreadable data:** blocked individually, no switch (`LegacyMappingOptions` and `unsupportedOption` removed). New reasons `invalidSecondaryTarget`, `invalidClassification`, `invalidAliases` in both CHECK lists, `BlockReason` and the report contract. Originals quarantined and kept in the row; one `blocked` entry per block row (R-01). Rule codes: IC-204, ADR-0008-Q12, R-02 (approved) and the decision-reference codes `D04-UNREADABLE-SECONDARY`, `-CLASSIFICATION`, `-ALIASES` (register N-13). Blocked exercises are not selectable and are refused for new work; history stays readable.
 - **Correction routes:** `SetTargetsCorrection` also resolves `invalidSecondaryTarget`; new `SetClassificationCorrection` and `SetAliasesCorrection`. Each resolves only its field's reasons. Targets and equipment are refused until an unreadable classification or alias list is corrected (C-8). Alias lists are stored as a WP 9 save stores them, with the list given and the list stored recorded (C-9, after review DB L2); the type follows the WP 9 type rules (C-10, after review DB H1).
@@ -960,11 +966,12 @@ Implements the owner's stage 3b decision baseline (D04 §7, 2026-11-06, "13 deci
   - Programme roll-up (unchanged): full 77.11 / 105 = 73.4 %; core 77.11 / 97 = 79.5 %; snapshot 2026-11-06.
   - Blockers and dependencies: commit, then re-check of this change after review DB (below); WS3 rebase (nullable release counts, `applied_at_source`, new reasons and vocabulary in format 3); B-15 re-check; physical-device timing; Review C; four green CI workflows.
   - **3b acceptance blocker (review DB L1):** "restored v7 backups follow the same rule" (R-30 option b) is **not implemented**. It belongs to WS3's restore path (3b-7), which is outside this change. Stage 3b cannot be accepted until WS3 implements and tests it: release 1 from a restored v7 backup only on the pinned hash, NULL counts, explicit provenance, and an R-30 entry otherwise.
+    - **Correction (2026-11-07):** this blocker is resolved. R-30 on restored v7 backups **is implemented** in WS3 (4ea5f77, `_restoreRelease1`) and tested: pinned-hash match records release 1 with NULL counts and explicit `applied_at_source`; mismatch and unreadable seed create no record and add the R-30 warning; a device that already records release 1 keeps it; restore and migration give the same release log for every golden (`docs/backup-format-3.md` B-07). Since 3b-10 the rule and its warning text are one shared copy (`V7ToV8Migration.release1Row`, `release1Warning`).
   - **Owner question C-10** (`docs/v8-library-use-cases.md`): whether an unreadable type may be set while a plan uses the exercise. Until the owner decides, the correction refuses it (the most conservative option).
   - Scope changes: none.
   - Acceptance: not accepted; stage 3b unaccepted.
 
-#### Review DB fixes (2026-11-06, working tree, uncommitted)
+#### Review DB fixes (2026-11-06; included in 163ce4a)
 The independent review (DB) found the change not ready: one High and four Low findings. Fixes:
 - **H1 (fixed):** `SetClassificationCorrection` now keeps the accepted WP 9 type rules.
   - A set's type must equal its exercise's type (`validateSetForExercise`). A readable type cannot change once sets are recorded or while a plan uses the exercise (`SaveCustomExercise`, with the same messages). History and plans count as in WP 9 (sessions and plans that are not deleted).
@@ -974,10 +981,11 @@ The independent review (DB) found the change not ready: one High and four Low fi
 - **L2 (fixed):** the alias correction stores what a WP 9 save stores: trimmed, empty and duplicate aliases dropped, too long or too many refused. A test compares it with WP 9 `validateExercise`. The entry records the list given (in `reason`) and the list stored (`resulting_value`). C-9 is updated.
 - **L3 (fixed):** the v7to8 deterministic kills also run on a derived v7 copy with unreadable aliases and classification (`kill_test.dart`, `damagedV7Input`). The frozen fixture is unchanged.
 - **L4 (fixed):** `v8_visibility_parity_test.dart` runs the real v7 `TrainingMappers.exerciseToEntity` over the 13 frozen fixtures, the trial profile (plain and damaged), 32 edge cases and the D04 profile (heavy). On each, the v7 hidden set equals the v8 blocked set: nothing newly visible, nothing newly hidden.
-- **L1 (recorded):** R-30 on restored v7 backups is an explicit 3b acceptance blocker (above).
+- **L1 (recorded):** R-30 on restored v7 backups is an explicit 3b acceptance blocker (above). *Resolved by 4ea5f77; see the correction above (2026-11-07).*
 - Earned points unchanged (9.66 / 18; 3b 3.16 / 4.50): the fixes are uncommitted and not re-checked.
 
-### 3b-9 device harness on the real v7 → v8 migration (2026-11-07, working tree over 5e37008, uncommitted)
+### 3b-9 device harness on the real v7 → v8 migration (2026-11-07; committed 38bdf6d over 5e37008)
+**Commit and review (recorded 2026-11-07):** committed as 38bdf6d with the review Lows L1–L3 below fixed; reviewed. CI, Android and iOS workflows green on 38bdf6d. Device runs remain outstanding.
 The device timing harness no longer times the historical stand-in. It builds the v7 D04 profile on the device and runs the registered `v7to8` migration through the app engine. Details, owner commands and the results template: `docs/device-timing.md`. **Device runs stay OUTSTANDING**; no host figure is device evidence.
 - `integration_test/migration_v8_timing_test.dart`: `v7to8`; the seed bytes come from `rootBundle` (`assets/seed/exercise_library.json`) and are passed to the registry's v8 configuration. Nothing in `lib/` changed. The work directory must be inside the cache directory and outside the app support directory; `repforge.sqlite` and its `-journal`, `-wal` and `-shm` files must be unchanged.
 - `timing_harness.dart` (`ws5-timing/2`):
@@ -1010,3 +1018,191 @@ The device timing harness no longer times the historical stand-in. It builds the
   - Blockers and dependencies: commit and review of this change; physical-device runs on one mid-range Android phone and one supported iPhone (owner); Review C; four green CI workflows.
   - Scope changes: none.
   - Acceptance: not accepted; 3b-9 and stage 3b unaccepted.
+
+### 3b-7 — backup format 3 and restore of formats 1–3 (WS3): merge, reviews and closure status (recorded 2026-11-07)
+Contract and register: `docs/backup-format-3.md`.
+- **Merge record:** the WS3 series 00b86bc..5e37008 is on the campaign branch `ccr-9fda2c32-wr163b`; 5e37008 is the last 3b-7 commit.
+  - 00b86bc repository; 72301fe contract tests and mirror evidence; 8f7224b restore onto a device migrated by 3b-4; 5b8060b contract, register and legacy failure injection.
+  - dc5d845 first-review fixes; 099b7b2 owner decisions B-03, B-04, B-08, B-09 and H1.
+  - 4ea5f77 decision baseline: v8 schema mirror, B-01 field ownership, **B-07 / R-30 release 1 on restore**, O8 gate.
+  - d80e23f unreadable data on restore, O1, O2, O4, O5, O7, B-07 and B-15 tests; 63f495c register; 5e37008 final-review fixes.
+- **Reviews:**
+  - First independent review (32739ac..79b01b8): changes requested, H1, M1–M4, L1–L5 (recorded above, "3b-7 review and owner decisions"). Fixed in dc5d845 and 099b7b2.
+  - Re-check: O1–O8. Resolved in 4ea5f77 and d80e23f (`docs/backup-format-3.md` section 10).
+  - **Final WS3 review: F1–F6**, addressed in 5e37008:
+    - F1: the malformed-backup suite runs in the CI recovery job;
+    - F4: B-01 test asserts `deleted_at`; A → B → A round trip reaches the O5 content-claim path; the run-id refusal asserts its text;
+    - F5: stale evidence wording and a test title;
+    - F3, F6: register notes (B-04 versus B-01 for `exercises.source`/`provider_id`; `updated_at` of a device-kept system exercise).
+    - F2 is not itemised in the commit message.
+- **Closure status: WS3 is NOT closed.** The owner's closure criteria (D04 §7, 2026-11-06) require B-15's migration id behaviour to be verified. The re-check verdict is that the B-15 condition **failed** (below). Other closure criteria: the conditional boundary is implemented and tested; B-16 is recorded; the complete regression passes (this round, below).
+- **B-15 verdict: YES — the migration itself introduces the IC-101 problem.** Evidence (Review C probes P1 and P4, re-run 2026-11-07 on 2ba5881; logs in the session scratchpad):
+  - Fixtures v2, v3, v4 and v5 each migrate `ex-bench` (a pre-v6 custom exercise with `is_custom` 0) to a **system** row: `source` system, provider `repforge`, name "Bench Press", id `ex-bench`. The id fails IC-101 (`lib-words-with-hyphens`).
+  - On each migrated device `ex-bench` is **selectable** (`selectionCandidateIds` contains it; no block row).
+  - The migration report has **no entry** on `ex-bench` and no IC-101 entry at all.
+  - Each device's own format 3 export is **rejected on a fresh device**: "This backup conflicts with the data on this device: exercises ex-bench: The id ex-bench must match lib-words-with-hyphens and be at most 48 characters. (IC-101). Nothing was changed."
+  - Fixtures v1, v6 and v7 round-trip.
+  - The same IC-101 rejection stops the WS5 stress profile (`ex-0000`…) on a fresh device (section "3b-10" below).
+  - Recorded in D04 §7 (2026-11-07). Options (a)/(b)/(c) were put to the owner, with recommendation (b). B-15 stays unaccepted; behaviour unchanged.
+- **Other open items on 3b-7:** B-17 (Review C M-3, export of a device with tolerated R-31 damage restores nowhere; OPEN); B-18 (stress-profile file above the 50 MiB picker cap; production switch); B-05, B-06, B-10 to B-13 confirmation requests.
+
+### CI record (stage 3b, recorded 2026-11-07)
+| Commit | Content | CI | Android | iOS | Emulator |
+|---|---|---|---|---|---|
+| 163ce4a | Decision baseline | success (42313621626) | success (42313621751) | success (42313621722) | **failed** (42313621601): runner infrastructure |
+| 5e37008 | 3b-7 final-review fixes | success (42325487166) | success (42325487258) | success (42325487217) | **failed** (42325487221): runner infrastructure |
+| 38bdf6d | 3b-9 harness | success (42328595266, recovery job included) | success (42328595243) | success (42328595288) | cancelled (42328595285) |
+| 2ba5881 | Emulator job fix (WP 14, from aa59021): free runner disk, explicit partition size, 900 s boot wait | not triggered (path filters) | not triggered (path filters) | not triggered (path filters) | **success** (42328627783) |
+
+- **Root cause of both emulator failures:** "FATAL: Not enough space to create userdata partition", then "Timeout waiting for emulator to boot". This is runner disk space, not a test failure; 2ba5881 fixes it.
+- No single 3b commit has all four workflows green yet: CI, Android and iOS last ran green on 38bdf6d, and the emulator on 2ba5881.
+- The Review C fix round below is uncommitted; no CI has run on it.
+
+### 3b-10 — Review C and fix round (2026-11-07, working tree over 2ba5881, uncommitted)
+Review C ran on 2ba5881. Findings: M-1, M-2, M-3, L-1 to L-7 (the R-1, R-2 and H-1 record items are this record update). Production is unchanged: `AppDatabase` schema 7; v8 not connected; frozen fixtures and manifests untouched; formats 1/2 goldens untouched; no domain rule invented.
+
+| Id | Finding | Resolution (this round) |
+|---|---|---|
+| M-1 | Stress-profile format 3 export 84.1 MB pretty-printed; restore decoded twice plus a UTF-8 copy hashed through a growable list: peak RSS about 3.0 GB, 11–17 s; above the 50 MiB picker cap | Decode once (`parseDecodedBackupEnvelope` in the domain envelope parser, same checks and messages; production `parseBackupEnvelope` delegates and is unchanged in behaviour); backup identity hashed in slices by an incremental SHA-256 (`Sha256`, `sha256HexOfUtf8`; same digest, tested); format 3 written compact (`jsonEncode`; contract N-10). Cap limitation registered (`docs/backup-format-3.md` B-18). Measurements below |
+| M-2 | One awaited statement per row across the isolate boundary (`v7_to_v8.dart` provenance, targets, equipment, blocks, `_writeReport`; restore `_insert`) | Multi-row `INSERT … VALUES` with at most 999 host parameters per statement (`V8Sql.insertAll`/`insertMaps`); rows of each table in the same order, so rowids and AUTOINCREMENT ids are unchanged. **All host reference digests unchanged** (below) |
+| M-3 | A migrated device with tolerated pre-existing FK damage (R-31) exports a format 3 file that every restore rejects, itself included | **Registered OPEN** (`docs/backup-format-3.md` B-17): options restore-and-report as R-31, or warn at export; behaviour unchanged |
+| L-1 | Values embedded unbounded in error messages (`backup_restore_plan_v8.dart`) | `describeBackupValue` (at most 80 characters plus the length), unknown key/column names clipped, every shown detail at most 400 characters; also the restore's device-conflict and FK messages |
+| L-2 | Restore switched `PRAGMA foreign_keys` outside an exclusive block; a failure in `finally` threw | Keys off, transaction and keys back inside `_db.exclusively` (as the migration); a failure switching back returns a `Result` |
+| L-3 | Duplicated release-1 rule/R-30 text, `_Sql`/`_select`/`_variable`, FK finding keys, report writer | Shared: `V7ToV8Migration.seedHash`, `release1Row`, `release1Warning`, `writeReportRows`; new `lib/data/db/migration/v8_sql.dart` (`V8Sql`, `ForeignKeyViolation`, `findingKey`). Architecture gates exact: the per-file allow-list adds `v8_sql.dart` for `drift_backup_repository_v8.dart` only; a new gate pins its imports (`dart:convert`, drift) and its two importers |
+| L-4 | Plan §6 step 9 says `seedExercisesVersion` is "then retired"; the code keeps it | Registered `docs/schema-v8.md` R-34: owner decision or defer to 3c; behaviour unchanged |
+| L-5 | `"` not escaped in quoted table names (`v7_to_v8.dart` `_hasReferences`, `_findings`, `_Sql`) | `V8Sql.quote` doubles `"`; every helper and the integrity queries use it |
+| L-6 | History query: per-session filtering, one id list (`drift_library_repository_v8.dart`) | Sessions selected by subquery (no id list, no host-parameter limit), entries and sets grouped by session once; tested over 33,000 sessions |
+| L-7 | R-C9: pre-v6 `is_custom` 0 rows become system exercises with non-catalogue ids; if blocked, no correction route | Registered in `docs/v8-library-use-cases.md` R-C9 (correction of the earlier "none exists" reasoning; tied to the B-15 choice) |
+
+**Host timing, M-2** (`flutter test --run-skipped --tags heavy --concurrency=1 test/migration_v8/timing/`, D04 v7 profile, 3 runs each; host, not device evidence):
+
+| v7to8 | Before (2ba5881) | After |
+|---|---|---|
+| App engine (background isolate): median / runs | 8,496 ms / 9,394, 8,496, 8,102 | **5,038 ms** / 5,746, 5,038, 4,354 |
+| App engine: `exerciseLinksWritten` / `reportWritten` / `exercisesRebuilt` (phase medians) | 2,947 / 1,154 / 902 ms | **140 / 227 / 121 ms** |
+| App engine: recovery retry; seed run | 8,638 ms; 7,889 ms | 4,311 ms; 4,203 ms |
+| Calling isolate: median | 2,881 ms | 2,987 ms (within run-to-run noise; links 314 → 57 ms, report 213 → 121 ms) |
+| End digest; seed-run digest | `v8 7fc53371acfa16d7`; `v8 63595160a687407b` | **unchanged**: `v8 7fc53371acfa16d7`; `v8 63595160a687407b` |
+
+The historical stand-in chain (v5 → v7, code unchanged) varied by run-to-run noise (app engine 20,147 → 23,774 ms; calling isolate 7,712 → 8,043 ms). Its end digest `v7 cb68ca68ae2be071` is unchanged. The largest remaining per-row phase is `setsClassified`: one quarantine insert and one update per invalid set, about 1.8 s on the app engine. It is outside the Review C list and is unchanged here.
+
+**Memory and time, M-1** (stress profile 5,000 exercises / 100,000 sets, migrated; each step in its own `flutter test` process; peak = `ProcessInfo.maxRss`; host):
+
+| Step | Before (2ba5881) | After |
+|---|---|---|
+| Export file | 84,155,164 bytes | 55,739,016 bytes (compact) |
+| Export: time, peak RSS | 2.0 s, 585 MB | 2.3 s, 531 MB |
+| Preview | 17.1 s, 2,949 MB | 4.5 s, 646 MB |
+| Restore onto a fresh device (rejected: IC-101 on the profile's `ex-` ids, the B-15 issue) | 17.2 s, 2,988 MB | 4.5 s, 683 MB |
+| Restore onto the same device (succeeds) | 22.7 s, 2,998 MB | 6.8 s, 685 MB |
+
+The compact file is still above the 50 MiB picker cap (`maxPickedFileBytes` = 52,428,800 bytes, production, unchanged). That limitation is registered as B-18 for the production switch.
+
+**Local evidence of this round** (from `app/`, toolchain as CI; working tree over 2ba5881, uncommitted):
+- `dart format --output=none --set-exit-if-changed .`: exit 0 (483 files, 0 changed).
+- `flutter analyze --fatal-infos`: exit 0, no issues.
+- CI generated-code sequence (`.github/workflows/ci.yml`): exit 0. `build_runner`, historical `schema steps`, the v8 dump `cmp` equal, v8 `schema steps`; every generated file unchanged. CI's final `git diff --exit-code -- lib` differs only by this round's uncommitted hand-written changes.
+- Full default suite with coverage, concurrency 2: **2,780 passed, 7 skipped** (Review C baseline 2,761 passed, 7 skipped; 19 new tests). Coverage gate: **92.9 %** (20,865 of 22,452 hand-written lines; minimum 80 %).
+- Kill and heavy (`flutter test --run-skipped --tags "kill || heavy" --concurrency=1 test/migration_v8/ test/data/backup_v8/`): **221 passed**, exit 0, 19 min 56 s (same count as the Review C baseline run, 221).
+- Both manifests verify: `MANIFEST.sha256` 44/44 OK, `MANIFEST_3b3.sha256` 3/3 OK.
+- New tests:
+  - `test/data/backup_v8/review_c_fixes_test.dart` (8): M-1, L-1, L-2. The L-2 exclusivity test fails when the exclusive block is removed (mutation checked, restored).
+  - `test/migration_v8/v8_sql_test.dart` (5).
+  - `test/domain/library/sha256_hex_test.dart` (4).
+  - `test/data/repositories/v8/history_scale_test.dart` (1).
+  - `test/architecture/migration_isolation_test.dart` (+1 gate).
+- Not evidence of acceptance: uncommitted; no CI on these changes.
+
+**Review C re-check (2026-11-07, working tree): ready to commit.**
+- Re-check evidence:
+  - full suite 2,780 passed, 7 skipped; coverage 92.9 %;
+  - kill and heavy suites 221 passed;
+  - all host reference digests unchanged;
+  - v7to8 app-engine median 4,042 ms (re-checker's run);
+  - stress-profile restore peak RSS 707 MB;
+  - row-level equivalence before and after identical on 10 outputs.
+- **Lows N-1 to N-4, fixed in the working tree:**
+  - N-1: the plan-time 3b sub-stage table is marked superseded.
+  - N-2: this CI record lists every run id and the emulator root cause.
+  - N-3: the export comment now says the pretty-printed file was 1.51 times larger (84.2 MB against 55.7 MB).
+  - N-4: `V8Sql.insertAll` refuses more than 999 columns, which a statement cannot hold, and the empty column list; there is a test for each, and the test title is corrected.
+- N-5: the D04 §7 entry of 2026-11-07 stays. It is labelled as recorded by the WP 8 session, not an owner decision.
+- After the N fixes:
+  - `dart format --set-exit-if-changed` and `flutter analyze --fatal-infos` exit 0;
+  - `test/migration_v8/v8_sql_test.dart` and `test/data/backup_v8/` (default run): 126 passed, 1 skipped (the heavy malformed suite), exit 0.
+- **Held for the owner (not fixable in this round):**
+  - B-15 options (a)/(b)/(c);
+  - B-17 (Review C M-3);
+  - B-18 (picker cap);
+  - R-34 (`seedExercisesVersion`);
+  - R-C9 (route for blocked system exercises);
+  - C-10 and C-11;
+  - F3 (B-04 versus B-01 for `exercises.source`/`provider_id`);
+  - physical-device timing on Android and iOS.
+
+## Effort-point progress update (2026-11-07, evidence baseline 2ba5881)
+
+**Allocated:** 18.00. **Earned:** 10.08. **Completion:** 56.0 %. **Remaining:** 7.92.
+**Estimate confidence:** low–medium. **Evidence baseline / date:** 2ba5881 (committed), 2026-11-07. The Review C fix round in the working tree earns nothing.
+**Acceptance status:** not accepted. Stage 3b not accepted; WS3 (3b-7) not closed; B-15 unaccepted.
+
+**Change from the last recorded figure (9.66 → 10.08, +0.42):** 3b-7 commit credit under the approved 70/20/10 rule (D04 §7, 2026-11-06): 70 % of 0.60 = 0.42 for the merged implementation (00b86bc..5e37008).
+- The 20 % review credit (0.12) is withheld: WS3 is not closed, because the B-15 condition failed.
+- The 10 % acceptance credit (0.06) is withheld.
+- No allocation changed: 3b stays 4.50, WP 8 stays 18.00.
+
+| Sub-stage | Allocated | Earned | Evidence / status |
+|---|---:|---:|---|
+| 3b-1 Frozen historical evidence | 0.50 | 0.50 | 6c05f24; reviewed; accepted as foundation |
+| 3b-2 Schema v8, not connected | 0.50 | 0.45 | 2ba3997; Review A and two re-checks; owner acceptance outstanding |
+| 3b-3 Historical steps v1→v7 | 0.50 | 0.50 | 31f7652; complete (owner) |
+| 3b-4 v7→v8 migration | 0.75 | 0.675 | e57834e; Review B and two re-checks; decision baseline 163ce4a reviewed; owner acceptance outstanding |
+| 3b-5 All paths v1..v7 → v8 | 0.25 | 0.225 | e57834e `v8_all_paths_test`; verified in Review B; owner acceptance outstanding |
+| 3b-6 Real process-kill recovery | 0.40 | 0.36 | WS5 0d912c2, e57834e; kill suite green this round; owner acceptance outstanding |
+| 3b-7 Backup format 3, restore 1–3 | 0.60 | **0.42** | Merged 00b86bc..5e37008 (commit credit). Final review F1–F6 addressed; WS3 not closed (B-15 failed); review and acceptance credit withheld |
+| 3b-8 Domain and use cases | 0.40 | 0.36 | b644636..e50a047; review and re-check passed; owner acceptance outstanding |
+| 3b-9 Device timing (harness 0.10, device runs 0.20) | 0.30 | 0.09 | Harness 38bdf6d, reviewed (0.07 + 0.02); harness acceptance and device runs unearned |
+| 3b-10 Record, Review C, CI, owner acceptance | 0.30 | 0.00 | Review C done; fix round re-checked (ready to commit) but uncommitted, so no credit; four green workflows on one commit outstanding |
+| **3b total** | **4.50** | **3.58** | |
+
+| Stage / deliverable | Allocated | Earned |
+|---|---:|---:|
+| Stage 1 | 2.00 | 2.00 |
+| Stage 2 | 1.50 | 1.50 |
+| Review fixes stages 1–2 | 0.50 | 0.50 |
+| Stage 3a | 2.00 | 2.00 |
+| Stage 3b | 4.50 | 3.58 |
+| Stage 3c | 2.00 | 0.00 |
+| Stage 3d | 1.50 | 0.00 |
+| Stage 4 | 0.50 | 0.50 |
+| Stage 5 | 2.00 | 0.00 |
+| Stage 6 | 1.00 | 0.00 |
+| Combined final review and acceptance | 0.50 | 0.00 |
+| **Total** | **18.00** | **10.08** |
+
+**Programme roll-up** (snapshot 2026-11-07; other WPs unchanged from the 2026-11-06 snapshot, `docs/governance/programme-progress-2026-11-06.md`; WP 8 evidence: this record):
+- Full programme: 77.53 / 105 = **73.8 %**.
+- Core programme (excluding optional WP 12 and WP 13): 77.53 / 97 = **79.9 %**.
+
+**Not yet earnable (and why):**
+- 3b-7 review (0.12) and acceptance (0.06): WS3 is not closed; the B-15 owner decision is pending; B-17 is open.
+- Owner acceptance credit of 3b-2 (0.05), 3b-4 (0.075), 3b-5 (0.025), 3b-6 (0.04) and 3b-8 (0.04): owner acceptance is outstanding.
+- 3b-9: harness acceptance (0.01); physical-device runs (0.20), Android and iOS, not yet run.
+- 3b-10 (0.30): the Review C fix round (re-checked, ready to commit) must be committed; four workflows green on one commit; the record complete; owner acceptance of stage 3b.
+- Stages 3c, 3d, 5, 6 and the combined final review: not started or gated.
+
+**Blockers and dependencies:**
+- Owner decisions:
+  - B-15 options (a)/(b)/(c) (D04 §7, 2026-11-07);
+  - B-17 (Review C M-3);
+  - R-34 (`seedExercisesVersion` retirement, or defer to 3c);
+  - R-C9 route for blocked system exercises (with B-15);
+  - C-10 and C-11;
+  - B-05, B-06, B-10 to B-13 confirmations;
+  - the B-04 versus B-01 note (F3).
+- Commit of this fix round (re-check passed: ready to commit).
+- Four green CI workflows on one 3b commit.
+- Physical-device timing on one Android phone and one iPhone.
+- B-18 (picker cap) for the production switch.
+
+**Scope changes:** none. **Estimate variance:** none recorded against the allocation; the B-15 rework, if the owner picks (a) or (b), falls inside 3b-7 and 3b-4.

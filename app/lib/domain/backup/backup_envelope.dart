@@ -61,10 +61,27 @@ Result<BackupEnvelope> parseBackupEnvelope(
   try {
     decoded = jsonDecode(json);
   } on FormatException {
-    return const Err(
-      ValidationError('Backup is not valid JSON.', field: 'file'),
-    );
+    return const Err(invalidBackupJson);
   }
+  return parseDecodedBackupEnvelope(
+    decoded,
+    supportedFormatVersion: supportedFormatVersion,
+  );
+}
+
+/// The error of a backup text that is not JSON ([parseBackupEnvelope]).
+const ValidationError invalidBackupJson = ValidationError(
+  'Backup is not valid JSON.',
+  field: 'file',
+);
+
+/// [parseBackupEnvelope] for a text the caller has already decoded with
+/// `jsonDecode` (a caller that needs the decoded value decodes once; WP 8
+/// 3b-10, Review C M-1). The same checks and errors.
+Result<BackupEnvelope> parseDecodedBackupEnvelope(
+  Object? decoded, {
+  required int supportedFormatVersion,
+}) {
   if (decoded is! Map<String, Object?> || decoded['app'] != 'repforge') {
     return const Err(
       ValidationError('This file is not a RepForge backup.', field: 'file'),

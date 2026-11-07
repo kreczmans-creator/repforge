@@ -9,6 +9,7 @@ import 'package:repforge/data/db/migration/historical_steps.dart'
     show MigrationStep;
 import 'package:repforge/data/db/migration/schema_v8_shapes.g.dart';
 import 'package:repforge/data/db/migration/schema_versions.g.dart' show Schema7;
+import 'package:repforge/data/db/migration/v8_sql.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/library/integrity_preflight.dart';
 import 'package:repforge/domain/library/legacy_v8_mapping.dart';
@@ -586,7 +587,7 @@ final class V7ToV8Migration {
       if (database.isEmpty) return;
       final pending = await config.runLedger.read(7, 8, database);
       if (pending == null) return;
-      final io = _Sql(db);
+      final io = V8Sql(db);
       if (!await io.tableExists('migration_runs')) return;
       final recorded = await io.select(
         'SELECT 1 FROM migration_runs WHERE id = ?',
@@ -611,7 +612,7 @@ final class V7ToV8Migration {
   /// The canonical path of [db]'s main file (`PRAGMA database_list`);
   /// empty for an in-memory database.
   static Future<String> databasePath(DatabaseConnectionUser db) async {
-    final rows = await _Sql(db).select('PRAGMA database_list');
+    final rows = await V8Sql(db).select('PRAGMA database_list');
     final main = rows.firstWhere((r) => r['name'] == 'main');
     final path = '${main['file'] ?? ''}';
     if (path.isEmpty) return '';
@@ -677,7 +678,7 @@ final class V7ToV8Migration {
   /// The step itself (runs inside `RepforgeMigration`'s transaction).
   Future<void> from7To8(Migrator m, Schema8 s) async {
     final db = m.database;
-    final io = _Sql(db);
+    final io = V8Sql(db);
 
     // Guard: a database whose work is complete writes nothing again.
     if (!await io.columnExists('exercises', 'primary_muscle')) {
@@ -888,12 +889,15 @@ final class V7ToV8Migration {
       'CREATE TEMP TABLE v8_exercise_provenance (id TEXT NOT NULL PRIMARY '
       'KEY, source TEXT NOT NULL, provider_id TEXT, revision INTEGER)',
     );
-    for (final x in mappings) {
-      await io.run(
-        'INSERT INTO temp.v8_exercise_provenance VALUES (?, ?, ?, ?)',
-        [x.id.value, x.source.name, x.providerId?.value, x.revision],
-      );
-    }
+    await io.insertAll(
+      'v8_exercise_provenance',
+      const ['id', 'source', 'provider_id', 'revision'],
+      [
+        for (final x in mappings)
+          [x.id.value, x.source.name, x.providerId?.value, x.revision],
+      ],
+      schema: 'temp',
+    );
     String fromProvenance(String column) =>
         '(SELECT p.$column FROM temp.v8_exercise_provenance p '
         'WHERE p.id = exercises.id)';
@@ -926,7 +930,12 @@ final class V7ToV8Migration {
     await io.run('DROP TABLE temp.v8_exercise_provenance');
     await _phase(V8MigrationPhase.exercisesRebuilt);
 
-    // Targets, equipment and blocks.
+    // Targets, equipment and blocks: the rows of each table in the order
+    // the mapping lists them (exercises by id), several rows per statement
+    // (Review C M-2; rowids as with one statement per row).
+    final targets = <List<Object?>>[];
+    final equipment = <List<Object?>>[];
+    final blocks = <List<Object?>>[];
     for (final x in mappings) {
       final id = x.id.value;
       for (var i = 0; i < x.targets.length; i++) {
@@ -936,29 +945,42 @@ final class V7ToV8Migration {
             '$id: target ordinals are not contiguous (R-11)',
           ]);
         }
-        await io.run(
-          'INSERT INTO exercise_targets (exercise_id, node_id, role, ordinal) '
-          'VALUES (?, ?, ?, ?)',
-          [id, t.node.value, t.role.name, t.ordinal],
-        );
+        targets.add([id, t.node.value, t.role.name, t.ordinal]);
       }
       for (final e in x.equipment) {
-        await io.run(
-          'INSERT INTO exercise_equipment (exercise_id, equipment_id, '
-          'ordinal, role_override, override_note) VALUES (?, ?, ?, NULL, '
-          'NULL)',
-          [id, e.item.value, e.ordinal],
-        );
+        equipment.add([id, e.item.value, e.ordinal, null, null]);
       }
       final original = originals[id]!;
       for (final b in x.blocks) {
-        await io.run(
-          'INSERT INTO exercise_blocks (exercise_id, reason, original_json, '
-          'blocked_at, resolved_at) VALUES (?, ?, ?, ?, NULL)',
-          [id, b.reason.name, blockOriginalJson(b.reason, original), at],
-        );
+        blocks.add([
+          id,
+          b.reason.name,
+          blockOriginalJson(b.reason, original),
+          at,
+          null,
+        ]);
       }
     }
+    await io.insertAll('exercise_targets', const [
+      'exercise_id',
+      'node_id',
+      'role',
+      'ordinal',
+    ], targets);
+    await io.insertAll('exercise_equipment', const [
+      'exercise_id',
+      'equipment_id',
+      'ordinal',
+      'role_override',
+      'override_note',
+    ], equipment);
+    await io.insertAll('exercise_blocks', const [
+      'exercise_id',
+      'reason',
+      'original_json',
+      'blocked_at',
+      'resolved_at',
+    ], blocks);
     await _phase(V8MigrationPhase.exerciseLinksWritten);
 
     // 8. TRN-020 on every set.
@@ -1071,8 +1093,8 @@ final class V7ToV8Migration {
     // 11. Report.
     final report = builder.build();
     final written = {
-      runId: await _writeReport(io, report, quarantineIds, exerciseOf),
-      integrityRunId: await _writeReport(
+      runId: await writeReportRows(io, report, quarantineIds, exerciseOf),
+      integrityRunId: await writeReportRows(
         io,
         integrity.report,
         const {},
@@ -1273,6 +1295,66 @@ final class V7ToV8Migration {
             'run (R-33).',
       );
 
+  /// SHA-256 of the bundled seed's bytes ([loadSeedBytes]), or why they
+  /// could not be read (R-30). Shared with the v8 restore (Review C L-3).
+  static Future<({String? hash, String? loadError})> seedHash(
+    Future<List<int>> Function() loadSeedBytes,
+  ) async {
+    try {
+      return (hash: sha256Hex(await loadSeedBytes()), loadError: null);
+    } on Object catch (e) {
+      return (hash: null, loadError: '$e');
+    }
+  }
+
+  /// The `catalogue_releases` row of release 1 under the R-30 rule (owner
+  /// decision B-07 option b): [appliedAt] is the setting's `updated_at`,
+  /// the counts and `app_version` NULL. Shared with the v8 restore.
+  static Map<String, Object?> release1Row({
+    required Object? appliedAt,
+    required String hash,
+  }) => {
+    'provider_id': BootstrapReferenceV8.providerId,
+    'release': 1,
+    'applied_at': appliedAt,
+    'applied_at_source': release1AppliedAtSource,
+    'content_hash_algorithm': 'sha256',
+    'content_hash_encoding': 'hex-lower',
+    'content_hash': hash,
+    'inserted': null,
+    'updated': null,
+    'retired': null,
+    'app_version': null,
+  };
+
+  /// The R-30 warning on `seedExercisesVersion` (stored [value]) when the
+  /// bundled seed does not hash to [v7SeedSha256] ([hash]) or could not be
+  /// read ([loadError]). Shared, word for word, with the v8 restore.
+  static ReportEvent release1Warning({
+    required Object? value,
+    required String? hash,
+    required String? loadError,
+  }) {
+    final why = hash == null
+        ? 'the bundled seed could not be read ($loadError), so its hash '
+              'is unknown'
+        : 'the bundled seed hashes to $hash, not the v7-era release 1 '
+              'hash $v7SeedSha256';
+    return ReportEvent(
+      table: settingsTable,
+      recordId: seedExercisesVersionKey,
+      field: settingValueField,
+      originalValue: encodeStoredValue(value),
+      resultingValue: encodeStoredValue(value),
+      action: ReportAction.none,
+      rule: MigrationRuleCodes.release1,
+      category: ReportCategory.warningForReview,
+      reason:
+          'The v7 seed was applied, but $why. No release 1 record is '
+          'created (R-30); the setting is kept unchanged.',
+    );
+  }
+
   /// Release 1 of provider `repforge` (plan section 6 step 9; R-10; owner
   /// decision R-30 / B-07 option b, 2026-11-06).
   ///
@@ -1292,7 +1374,7 @@ final class V7ToV8Migration {
   /// Returns null when the setting does not exist (nothing examined).
   Future<({bool warned})?> _recordRelease1(
     GeneratedDatabase db,
-    _Sql io,
+    V8Sql io,
     MigrationReportBuilder builder,
   ) async {
     final rows = await db
@@ -1306,44 +1388,16 @@ final class V7ToV8Migration {
     final applied = value is String ? (int.tryParse(value) ?? 0) : 0;
     ReportEvent? warning;
     if (applied >= 1) {
-      String? hash;
-      String? loadError;
-      try {
-        hash = sha256Hex(await config.loadSeedBytes());
-      } on Object catch (e) {
-        loadError = '$e';
-      }
-      if (hash == v7SeedSha256) {
-        await io.run(
-          'INSERT INTO catalogue_releases (provider_id, "release", applied_at, '
-          'applied_at_source, content_hash_algorithm, content_hash_encoding, '
-          'content_hash, inserted, updated, retired, app_version) VALUES '
-          "(?, 1, ?, ?, 'sha256', 'hex-lower', ?, NULL, NULL, NULL, NULL)",
-          [
-            BootstrapReferenceV8.providerId,
-            rows.single.data['updated_at'],
-            release1AppliedAtSource,
-            hash,
-          ],
-        );
+      final seed = await seedHash(config.loadSeedBytes);
+      if (seed.hash case final hash? when hash == v7SeedSha256) {
+        await io.insertMaps('catalogue_releases', [
+          release1Row(appliedAt: rows.single.data['updated_at'], hash: hash),
+        ]);
       } else {
-        final why = hash == null
-            ? 'the bundled seed could not be read ($loadError), so its hash '
-                  'is unknown'
-            : 'the bundled seed hashes to $hash, not the v7-era release 1 '
-                  'hash $v7SeedSha256';
-        warning = ReportEvent(
-          table: settingsTable,
-          recordId: seedExercisesVersionKey,
-          field: settingValueField,
-          originalValue: encodeStoredValue(value),
-          resultingValue: encodeStoredValue(value),
-          action: ReportAction.none,
-          rule: MigrationRuleCodes.release1,
-          category: ReportCategory.warningForReview,
-          reason:
-              'The v7 seed was applied, but $why. No release 1 record is '
-              'created (R-30); the setting is kept unchanged.',
+        warning = release1Warning(
+          value: value,
+          hash: seed.hash,
+          loadError: seed.loadError,
         );
       }
     }
@@ -1356,14 +1410,19 @@ final class V7ToV8Migration {
     return (warned: warning != null);
   }
 
-  Future<_WrittenReport> _writeReport(
-    _Sql io,
+  /// Writes the entries and counts of [report]: both count dimensions for
+  /// every examined table, zeros included, several rows per statement
+  /// (Review C M-2). Shared with the v8 restore (`DriftBackupRepositoryV8`;
+  /// Review C L-3). Returns what was written, for the self-check.
+  static Future<WrittenReportRows> writeReportRows(
+    V8Sql io,
     MigrationReport report,
     Map<String, int> quarantineIds,
     Map<String, String> exerciseOf,
   ) async {
     final writtenEntries = <String, String>{};
     final writtenCounts = <String, int>{};
+    final entryRows = <List<Object?>>[];
     for (final entry in report.entries) {
       final e = entry.event;
       final values = <Object?>[
@@ -1386,16 +1445,10 @@ final class V7ToV8Migration {
         null,
       ];
       writtenEntries[entry.eventId] = jsonEncode(values);
-      await io.run(
-        'INSERT INTO migration_report_entries (event_id, run_id, '
-        'source_table, record_id, exercise_id, field, position, '
-        'original_value, resulting_value, element, disposition, '
-        'block_reason, rule, reason, category, quarantine_id, '
-        'acknowledged_at) VALUES '
-        '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        values,
-      );
+      entryRows.add(values);
     }
+    await io.insertAll('migration_report_entries', _entryColumns, entryRows);
+    final countRows = <List<Object?>>[];
     for (final c in report.counts.values) {
       final rows = <(String, String, int)>[
         ('category', 'examined', c.examined),
@@ -1411,18 +1464,21 @@ final class V7ToV8Migration {
       ];
       for (final (dimension, code, n) in rows) {
         writtenCounts['${c.table}|$dimension|$code'] = n;
-        await io.run(
-          'INSERT INTO migration_report_counts (run_id, source_table, '
-          'dimension, code, record_count) VALUES (?, ?, ?, ?, ?)',
-          [report.run.runId, c.table, dimension, code, n],
-        );
+        countRows.add([report.run.runId, c.table, dimension, code, n]);
       }
     }
-    return _WrittenReport(writtenEntries, writtenCounts);
+    await io.insertAll('migration_report_counts', const [
+      'run_id',
+      'source_table',
+      'dimension',
+      'code',
+      'record_count',
+    ], countRows);
+    return WrittenReportRows(writtenEntries, writtenCounts);
   }
 
   Future<_IntegrityReport> _integrityReport(
-    _Sql io, {
+    V8Sql io, {
     required String runId,
     required String generatedAt,
     required List<String> scope,
@@ -1471,57 +1527,33 @@ final class V7ToV8Migration {
     return _IntegrityReport(builder.build(), examined, affected, exerciseOf);
   }
 
-  static Future<bool> _hasReferences(_Sql io, String table) async =>
+  static Future<bool> _hasReferences(V8Sql io, String table) async =>
       _looseReferences.any((r) => r.table == table) ||
-      (await io.select('PRAGMA foreign_key_list("$table")')).isNotEmpty;
+      (await io.select('PRAGMA foreign_key_list(${V8Sql.quote(table)})'))
+          .isNotEmpty;
 
   /// Every foreign-key violation and unresolved exercise reference in
   /// [tables], keyed by table, primary key, column, parent and rule.
   Future<Map<String, _Finding>> _findings(
-    _Sql io, {
+    V8Sql io, {
     required List<String> tables,
   }) async {
     final out = <String, _Finding>{};
     void add(_Finding f) => out[f.key] = f;
-    for (final table in tables) {
-      final fks = await io.select('PRAGMA foreign_key_list("$table")');
-      if (fks.isEmpty) continue;
-      final violations = await io.select('PRAGMA foreign_key_check("$table")');
-      if (violations.isEmpty) continue;
-      final pk = await io.primaryKeyColumns(table);
-      final hasExercise = await io.columnExists(table, 'exercise_id');
-      for (final v in violations) {
-        final fkid = v['fkid'];
-        final columns = [
-          for (final f in fks)
-            if (f['id'] == fkid) f['from']! as String,
-        ];
-        final parent = v['parent']! as String;
-        final selected = [
-          ...pk,
-          ...columns,
-          if (hasExercise) 'exercise_id',
-        ].map((c) => '"$c"').join(', ');
-        final row = (await io.select(
-          'SELECT $selected FROM "$table" WHERE rowid = ?',
-          [v['rowid']],
-        )).single;
-        add(
-          _Finding(
-            table: table,
-            recordId: _Sql.keyOf(pk, row),
-            column: columns.join(','),
-            value: columns.length == 1
-                ? row[columns.single]
-                : jsonEncode([for (final c in columns) row[c]]),
-            parent: parent,
-            rule: foreignKeyRule,
-            exerciseId: table == 'exercises'
-                ? _Sql.keyOf(pk, row)
-                : (hasExercise ? row['exercise_id'] as String? : null),
-          ),
-        );
-      }
+    for (final v in await io.foreignKeyViolations(tables)) {
+      add(
+        _Finding(
+          table: v.table,
+          recordId: v.recordId,
+          column: v.columns.join(','),
+          value: v.value,
+          parent: v.parent,
+          rule: foreignKeyRule,
+          exerciseId: v.table == 'exercises'
+              ? v.recordId
+              : (v.hasExercise ? v.row['exercise_id'] as String? : null),
+        ),
+      );
     }
     for (final r in _looseReferences) {
       if (!tables.contains(r.table) ||
@@ -1530,16 +1562,17 @@ final class V7ToV8Migration {
         continue;
       }
       final pk = await io.primaryKeyColumns(r.table);
+      final column = V8Sql.quote(r.column);
       final rows = await io.select(
-        'SELECT ${pk.map((c) => '"$c"').join(', ')}, "${r.column}" AS ref '
-        'FROM "${r.table}" t WHERE t."${r.column}" IS NOT NULL AND NOT '
-        'EXISTS (SELECT 1 FROM exercises e WHERE e.id = t."${r.column}")',
+        'SELECT ${pk.map(V8Sql.quote).join(', ')}, $column AS ref '
+        'FROM ${V8Sql.quote(r.table)} t WHERE t.$column IS NOT NULL AND NOT '
+        'EXISTS (SELECT 1 FROM exercises e WHERE e.id = t.$column)',
       );
       for (final row in rows) {
         add(
           _Finding(
             table: r.table,
-            recordId: _Sql.keyOf(pk, row),
+            recordId: V8Sql.keyOf(pk, row),
             column: r.column,
             value: row['ref'],
             parent: 'exercises',
@@ -1547,7 +1580,7 @@ final class V7ToV8Migration {
             // The exercise the record belongs to: the exercise itself for
             // `copied_from_id`, else the (unresolved) `exercise_id`.
             exerciseId: r.table == 'exercises'
-                ? _Sql.keyOf(pk, row)
+                ? V8Sql.keyOf(pk, row)
                 : switch (row['ref']) {
                     final String ref => ref,
                     _ => null,
@@ -1595,10 +1628,11 @@ const List<String> _entryColumns = [
   'acknowledged_at',
 ];
 
-/// What [V7ToV8Migration] wrote for one run: event id → JSON of the row
-/// values in [_entryColumns] order, and `table|dimension|code` → count.
-final class _WrittenReport {
-  _WrittenReport(this.entries, this.counts);
+/// What [V7ToV8Migration.writeReportRows] wrote for one run: event id →
+/// JSON of the row values in [_entryColumns] order, and
+/// `table|dimension|code` → count.
+final class WrittenReportRows {
+  WrittenReportRows(this.entries, this.counts);
   final Map<String, String> entries;
   final Map<String, int> counts;
 }
@@ -1637,7 +1671,13 @@ final class _Finding {
   final String rule;
   final String? exerciseId;
 
-  String get key => jsonEncode([table, recordId, column, parent, rule]);
+  String get key => findingKey(
+    table: table,
+    recordId: recordId,
+    column: column,
+    parent: parent,
+    rule: rule,
+  );
 
   String describe() =>
       '$table/$recordId.$column = ${encodeStoredValue(value)} does not '
@@ -1657,86 +1697,4 @@ final class _Finding {
         '$parent. The damage existed before the v8 migration; it is '
         'reported, not repaired, and did not block the migration.',
   );
-}
-
-/// Small SQL helpers over a drift connection.
-final class _Sql {
-  _Sql(this.db);
-
-  final DatabaseConnectionUser db;
-
-  Future<void> run(String sql, [List<Object?> args = const []]) =>
-      db.customStatement(sql, args);
-
-  Future<List<Map<String, Object?>>> select(
-    String sql, [
-    List<Object?> args = const [],
-  ]) async => [
-    for (final r
-        in await db
-            .customSelect(sql, variables: [for (final a in args) _variable(a)])
-            .get())
-      r.data,
-  ];
-
-  Future<int> single(String sql, [List<Object?> args = const []]) async =>
-      (await select(sql, args)).single.values.first! as int;
-
-  static Variable<Object> _variable(Object? a) => switch (a) {
-    null => const Variable(null),
-    final String s => Variable.withString(s),
-    final int i => Variable.withInt(i),
-    final double d => Variable.withReal(d),
-    _ => throw ArgumentError.value(a, 'a', 'unsupported variable'),
-  };
-
-  Future<int> count(String table) =>
-      single('SELECT count(*) AS c FROM "$table"');
-
-  Future<bool> entityExists(String type, String name) async => (await select(
-    'SELECT 1 FROM sqlite_master WHERE type = ? AND name = ?',
-    [type, name],
-  )).isNotEmpty;
-
-  Future<bool> tableExists(String name) => entityExists('table', name);
-
-  Future<bool> columnExists(String table, String column) async =>
-      (await select('PRAGMA table_info("$table")'))
-          .any((r) => r['name'] == column);
-
-  Future<List<String>> userTables() async => [
-    for (final r in await select(
-      "SELECT name FROM sqlite_master WHERE type = 'table' "
-      "AND name NOT LIKE 'sqlite_%' ORDER BY name",
-    ))
-      r['name']! as String,
-  ];
-
-  /// Primary-key columns of [table] in key order; `rowid` when it has none.
-  Future<List<String>> primaryKeyColumns(String table) async {
-    final cols = [
-      for (final r in await select('PRAGMA table_info("$table")'))
-        if ((r['pk']! as int) > 0) r,
-    ]..sort((a, b) => (a['pk']! as int).compareTo(b['pk']! as int));
-    return cols.isEmpty
-        ? ['rowid']
-        : [for (final c in cols) c['name']! as String];
-  }
-
-  /// Every record key of [table], sorted.
-  Future<List<String>> primaryKeys(String table) async {
-    final pk = await primaryKeyColumns(table);
-    final cols = pk.map((c) => '"$c"').join(', ');
-    return [
-      for (final r in await select('SELECT $cols FROM "$table" ORDER BY $cols'))
-        keyOf(pk, r),
-    ];
-  }
-
-  /// The record id of [row]: the single key value as text, or the JSON array
-  /// of a composite key.
-  static String keyOf(List<String> pk, Map<String, Object?> row) =>
-      pk.length == 1
-      ? '${row[pk.single]}'
-      : jsonEncode([for (final c in pk) row[c]]);
 }

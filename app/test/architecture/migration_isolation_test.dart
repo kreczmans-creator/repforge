@@ -76,6 +76,7 @@ void main() {
         'historical_steps.dart',
         'repforge_migration.dart',
         'legacy_training_rows_v6.dart',
+        'v8_sql.dart',
       ]),
     );
   });
@@ -138,6 +139,8 @@ void main() {
         '$chain/bootstrap_reference_v8.dart',
         '$chain/historical_steps.dart',
         '$chain/v7_to_v8.dart',
+        // 3b-10 (Review C L-3): the SQL helpers shared with the migration.
+        '$chain/v8_sql.dart',
       },
       'drift_library_repository_v8.dart': {},
       'drift_migration_report_repository_v8.dart': {},
@@ -156,6 +159,30 @@ void main() {
       };
       expect(reaching, allowed[name], reason: name);
     }
+  });
+
+  test('the shared v8 SQL helpers (3b-10, Review C L-3) import only '
+      'dart:convert and drift; only the v7 → v8 step and the v8 backup '
+      'repository import them', () {
+    final helpers = File('$migrationDir/v8_sql.dart');
+    expect(
+      {
+        for (final m in importPattern.allMatches(helpers.readAsStringSync()))
+          m.group(1),
+      },
+      {'dart:convert', 'package:drift/drift.dart'},
+    );
+    final importers = [
+      for (final f in dartFiles('lib'))
+        if (importPattern
+            .allMatches(f.readAsStringSync())
+            .any((m) => asPackageUri(f, m.group(1)!).endsWith('/v8_sql.dart')))
+          normalise(f.path),
+    ]..sort();
+    expect(importers, [
+      '$migrationDir/v7_to_v8.dart',
+      '$v8RepositoryDir/drift_backup_repository_v8.dart',
+    ]);
   });
 
   test('the chain imports no app, feature, UI or repository code', () {

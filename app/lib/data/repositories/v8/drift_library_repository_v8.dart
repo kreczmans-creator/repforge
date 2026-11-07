@@ -148,33 +148,49 @@ final class DriftLibraryRepositoryV8 {
     final sets = await (_db.select(
       _db.sessionSetsV8,
     )..where((t) => t.exerciseId.equals(exerciseId))).get();
-    final sessionIds = {
-      for (final e in entries) e.sessionId,
-      for (final s in sets) s.sessionId,
-    };
-    if (sessionIds.isEmpty) return const [];
+    if (entries.isEmpty && sets.isEmpty) return const [];
+    // Review C L-6: the sessions are selected by subquery, not by a list of
+    // ids (no host-parameter limit however many sessions), and the entries
+    // and sets are grouped by session once.
+    final entrySessions = _db.selectOnly(_db.sessionExercises)
+      ..addColumns([_db.sessionExercises.sessionId])
+      ..where(_db.sessionExercises.exerciseId.equals(exerciseId));
+    final setSessions = _db.selectOnly(_db.sessionSetsV8)
+      ..addColumns([_db.sessionSetsV8.sessionId])
+      ..where(_db.sessionSetsV8.exerciseId.equals(exerciseId));
     final sessions =
         await (_db.select(_db.workoutSessions)
-              ..where((t) => t.id.isIn(sessionIds))
+              ..where(
+                (t) =>
+                    t.id.isInQuery(entrySessions) | t.id.isInQuery(setSessions),
+              )
               ..orderBy([
                 (t) => OrderingTerm.asc(t.startedAt),
                 (t) => OrderingTerm.asc(t.id),
               ]))
             .get();
+    final entriesBySession = _groupBySession(entries, (e) => e.sessionId);
+    final setsBySession = _groupBySession(sets, (s) => s.sessionId);
     return [
       for (final s in sessions)
         ExerciseHistorySessionV8(
           session: s,
-          entries: [
-            for (final e in entries)
-              if (e.sessionId == s.id) e,
-          ]..sort((a, b) => a.position.compareTo(b.position)),
-          sets: [
-            for (final x in sets)
-              if (x.sessionId == s.id) x,
-          ]..sort(_setOrder),
+          entries: [...?entriesBySession[s.id]]
+            ..sort((a, b) => a.position.compareTo(b.position)),
+          sets: [...?setsBySession[s.id]]..sort(_setOrder),
         ),
     ];
+  }
+
+  static Map<String, List<T>> _groupBySession<T>(
+    Iterable<T> rows,
+    String Function(T row) sessionOf,
+  ) {
+    final out = <String, List<T>>{};
+    for (final r in rows) {
+      (out[sessionOf(r)] ??= <T>[]).add(r);
+    }
+    return out;
   }
 
   static int _setOrder(SessionSetV8Row a, SessionSetV8Row b) {

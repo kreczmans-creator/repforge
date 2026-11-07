@@ -666,3 +666,18 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
   | Final integration | Campaign integration authority |
   | WP 8 3b | Isolated |
   | Merge to main | Owner approval required |
+
+### 2026-11-07 — B-15 condition failed (re-check evidence); owner decision pending
+Recorded by the WP 8 session from the re-check evidence. This entry states facts and the question put to the owner; it is **not** an owner decision.
+- **The condition of B-15 (2026-11-06) is not met.** The re-check asked whether the migration itself introduces the IC-101 problem. It does:
+  - Frozen fixtures v2–v5 hold the custom exercise `ex-bench` as a pre-v6 row with `is_custom` 0. The frozen v6 step maps it to supplied, and the v7 → v8 migration stores it as a **system** exercise (`source` system, provider `repforge`) with a non-catalogue id. That id fails IC-101 (catalogue id format).
+  - On the migrated device the row is **selectable** (not blocked) and the migration report has **no entry** for it (no IC-101 entry anywhere in the run).
+  - The same device's format 3 export is **rejected on another device** (IC-101, "Nothing was changed"); fixtures v1, v6 and v7 round-trip.
+  - Evidence: Review C probes P1 and P4, re-run 2026-11-07 on 2ba5881 (`docs/delivery-record/WP8.md`, 3b-7 section).
+- **Consequences:** B-15 stays **unaccepted**. WS3 (3b-7) stays **open**. The implemented boundary is unchanged: format 3 rejects IC-101; formats 1 and 2 keep the migration's blocking.
+- **Options put to the owner:**
+  - **(a)** Block such exercises at migration (a block reason for a non-catalogue system id). They are then not selectable, and they need a correction route (none exists for system exercises today: `docs/v8-library-use-cases.md` R-C9).
+  - **(b)** Keep them as labelled legacy ids. The migration reports one `warningForReview` IC-101 entry per such exercise. A format 3 restore exempts IC-101 **only** when the backup's own report history holds that entry for that exercise.
+  - **(c)** Accept that such devices have no cross-device format 3 restore (record as a limitation).
+- **Recommendation (WP 8 session): (b).** It keeps the user's data usable, makes the migration report complete, and limits the exemption to rows the migration itself recorded.
+- Nothing is implemented for (a), (b) or (c) until the owner decides.

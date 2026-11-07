@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:repforge/data/db/migration/bootstrap_reference_v8.dart';
 import 'package:repforge/data/db/migration/historical_steps.dart';
 import 'package:repforge/data/db/migration/v7_to_v8.dart' show V7ToV8Migration;
+import 'package:repforge/data/db/migration/v8_sql.dart';
 import 'package:repforge/data/db/v8/app_database_v8.dart';
 import 'package:repforge/data/repositories/v8/backup_restore_plan_v8.dart';
 import 'package:repforge/data/repositories/v8/backup_schema_v8.dart';
@@ -15,7 +16,6 @@ import 'package:repforge/domain/library/exercise_rules.dart';
 import 'package:repforge/domain/library/finding.dart';
 import 'package:repforge/domain/library/library_ids.dart';
 import 'package:repforge/domain/library/migration_report.dart';
-import 'package:repforge/domain/library/sha256_hex.dart';
 
 export 'package:repforge/data/repositories/v8/backup_restore_plan_v8.dart'
     show RestoreRejected, backupFormatV8, backupSchemaV8;
@@ -123,13 +123,19 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
         tables[spec.name] = [
           for (final r
               in await _db
-                  .customSelect('SELECT * FROM "${spec.name}" ORDER BY rowid')
+                  .customSelect(
+                    'SELECT * FROM ${V8Sql.quote(spec.name)} ORDER BY rowid',
+                  )
                   .get())
             Map.of(r.data),
         ];
       }
     });
-    return const JsonEncoder.withIndent('  ').convert({
+    // Compact (no indentation; Review C M-1): the contract fixes the content,
+    // not the layout (`docs/backup-format-3.md` section 2, N-10), and the
+    // pretty-printed file was 1.51 times larger (stress profile: 84.2 MB
+    // against 55.7 MB).
+    return jsonEncode({
       'app': 'repforge',
       'formatVersion': backupFormatV8,
       'schemaVersion': _db.schemaVersion,
@@ -192,63 +198,81 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
 
     final runId = config.newRunId();
     final now = config.clock.now().toUtc().toIso8601String();
-    int? keysBefore;
-    Map<String, int> written;
-    try {
-      keysBefore = await _foreignKeys();
-      // Safeguard A: never inside a transaction, and verified.
-      await _db.customStatement('PRAGMA foreign_keys = OFF');
-      if (await _foreignKeys() != 0) {
-        throw StateError('Foreign keys could not be switched off.');
-      }
-      await _phase(RestorePhase.keysOff);
-      // Phase 1b reads the device inside the write transaction (review L3),
-      // so nothing can change between the checks and the writes; a
-      // rejection rolls back a transaction that has written nothing.
-      written = await _db.transaction(() async {
-        await _phase(RestorePhase.transactionStarted);
-        final decision = await _decide(plan);
-        // A new run id per restore (R-07): never one already recorded.
-        final taken = await _select(
-          'SELECT id FROM migration_runs WHERE id IN (?, ?)',
-          [runId, '$runId:integrity'],
-        );
-        final incoming = {
-          for (final r
-              in plan.reportRows['migration_runs'] ??
-                  const <Map<String, Object?>>[])
-            r['id'],
-        };
-        if (runId.isEmpty ||
-            taken.isNotEmpty ||
-            incoming.contains(runId) ||
-            incoming.contains('$runId:integrity')) {
-          throw StateError('The restore run id "$runId" is already in use.');
+    // Review C L-2: the switch of the foreign keys, the transaction and the
+    // switch back run inside one exclusive use of the connection (as the
+    // migration does), so no other statement can run with the keys off.
+    return await _db.exclusively(() async {
+      int? keysBefore;
+      Result<BackupSummary> result;
+      try {
+        keysBefore = await _foreignKeys();
+        // Safeguard A: never inside a transaction, and verified.
+        await _db.customStatement('PRAGMA foreign_keys = OFF');
+        if (await _foreignKeys() != 0) {
+          throw StateError('Foreign keys could not be switched off.');
         }
-        return await _write(plan, decision, runId: runId, now: now);
-      });
-    } on RestoreRejected catch (e) {
-      return Err(e.toError());
-    } on Object catch (e) {
-      return Err(
-        StorageError('Restore failed; nothing was changed.', cause: e),
-      );
-    } finally {
-      if (keysBefore != null) {
-        await _db.customStatement(
-          'PRAGMA foreign_keys = ${keysBefore == 1 ? 'ON' : 'OFF'}',
+        await _phase(RestorePhase.keysOff);
+        // Phase 1b reads the device inside the write transaction (review
+        // L3), so nothing can change between the checks and the writes; a
+        // rejection rolls back a transaction that has written nothing.
+        final written = await _db.transaction(() async {
+          await _phase(RestorePhase.transactionStarted);
+          final decision = await _decide(plan);
+          // A new run id per restore (R-07): never one already recorded.
+          final taken = await _select(
+            'SELECT id FROM migration_runs WHERE id IN (?, ?)',
+            [runId, '$runId:integrity'],
+          );
+          final incoming = {
+            for (final r
+                in plan.reportRows['migration_runs'] ??
+                    const <Map<String, Object?>>[])
+              r['id'],
+          };
+          if (runId.isEmpty ||
+              taken.isNotEmpty ||
+              incoming.contains(runId) ||
+              incoming.contains('$runId:integrity')) {
+            throw StateError('The restore run id "$runId" is already in use.');
+          }
+          return await _write(plan, decision, runId: runId, now: now);
+        });
+        result = Ok(
+          BackupSummary(formatVersion: plan.format, rowCounts: written),
+        );
+      } on RestoreRejected catch (e) {
+        result = Err(e.toError());
+      } on Object catch (e) {
+        result = Err(
+          StorageError('Restore failed; nothing was changed.', cause: e),
         );
       }
-    }
-    if (await _foreignKeys() != keysBefore) {
-      return const Err(
-        StorageError(
-          'The backup was restored, but foreign keys could not be switched '
-          'back on. Restart the app.',
-        ),
-      );
-    }
-    return Ok(BackupSummary(formatVersion: plan.format, rowCounts: written));
+      // Switch the keys back; a failure here is a Result too (Review C L-2).
+      // A failed restore keeps its own error: that one says why it stopped.
+      if (keysBefore != null) {
+        Object? cause;
+        try {
+          await _db.customStatement(
+            'PRAGMA foreign_keys = ${keysBefore == 1 ? 'ON' : 'OFF'}',
+          );
+          if (await _foreignKeys() != keysBefore) {
+            cause = StateError('PRAGMA foreign_keys did not change.');
+          }
+        } on Object catch (e) {
+          cause = e;
+        }
+        if (cause != null && result is Ok) {
+          return Err(
+            StorageError(
+              'The backup was restored, but foreign keys could not be '
+              'switched back on. Restart the app.',
+              cause: cause,
+            ),
+          );
+        }
+      }
+      return result;
+    });
   }
 
   Future<int> _foreignKeys() async =>
@@ -258,24 +282,12 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
               .first!
           as int;
 
+  late final V8Sql _io = V8Sql(_db);
+
   Future<List<Map<String, Object?>>> _select(
     String sql, [
     List<Object?> args = const [],
-  ]) async => [
-    for (final r
-        in await _db
-            .customSelect(sql, variables: [for (final a in args) _variable(a)])
-            .get())
-      r.data,
-  ];
-
-  static Variable<Object> _variable(Object? a) => switch (a) {
-    null => const Variable(null),
-    final String s => Variable.withString(s),
-    final int i => Variable.withInt(i),
-    final double d => Variable.withReal(d),
-    _ => throw ArgumentError.value(a, 'a', 'unsupported value'),
-  };
+  ]) => _io.select(sql, args);
 
   // ---- Phase 1b: device-aware validation, no writes ------------------------
 
@@ -287,7 +299,7 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     final deviceRef = <String, Map<String, Map<String, Object?>>>{};
     for (final spec in schemaV8Tables) {
       if (spec.kind != TableKind.reference) continue;
-      final rows = await _select('SELECT * FROM "${spec.name}"');
+      final rows = await _select('SELECT * FROM ${V8Sql.quote(spec.name)}');
       deviceRef[spec.name] = {for (final r in rows) spec.keyOf(r): r};
     }
     if (plan.isLegacy) {
@@ -328,8 +340,9 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
                 ? ' (a default role never changes: ADR-0008 E Q8, R-20)'
                 : '';
             problems.add(
-              '$table $key: ${c.name} is ${jsonEncode(r[c.name])} in the '
-              'backup and ${jsonEncode(have[c.name])} on this device$why',
+              '$table $key: ${c.name} is ${describeBackupValue(r[c.name])} '
+              'in the backup and ${describeBackupValue(have[c.name])} on this '
+              'device$why',
             );
           } else {
             d.referenceWarnings
@@ -643,8 +656,8 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       for (final c in produced) {
         if (have[c] != r[c]) {
           problems.add(
-            'migration_runs ${r['id']}: $c is ${jsonEncode(r[c])} in the '
-            'backup and ${jsonEncode(have[c])} on this device',
+            'migration_runs ${r['id']}: $c is ${describeBackupValue(r[c])} '
+            'in the backup and ${describeBackupValue(have[c])} on this device',
           );
         }
       }
@@ -735,8 +748,9 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
           final v = r[fk.column];
           if (v != null && !keys.contains(v)) {
             problems.add(
-              '$table ${spec.keyOf(r)}: ${fk.column} ${jsonEncode(v)} has '
-              'no ${fk.parentTable} row in the backup or on this device',
+              '$table ${spec.keyOf(r)}: ${fk.column} '
+              '${describeBackupValue(v)} has no ${fk.parentTable} row in the '
+              'backup or on this device',
             );
           }
         }
@@ -753,17 +767,13 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
 
   // ---- Phase 2: one transaction --------------------------------------------
 
-  Future<void> _insert(String table, Map<String, Object?> row) async {
-    final cols = row.keys.toList();
-    await _db.customStatement(
-      'INSERT INTO "$table" (${cols.map((c) => '"$c"').join(', ')}) '
-      'VALUES (${List.filled(cols.length, '?').join(', ')})',
-      [for (final c in cols) row[c]],
-    );
-  }
+  /// Inserts [rows] into [table] in order, several rows per statement
+  /// (Review C M-2; rowids and autoincrement ids as with one statement per
+  /// row).
+  Future<void> _insert(String table, Iterable<Map<String, Object?>> rows) =>
+      _io.insertMaps(table, rows);
 
-  Future<int> _count(String table) async =>
-      (await _select('SELECT count(*) AS c FROM "$table"')).single['c']! as int;
+  Future<int> _count(String table) => _io.count(table);
 
   Future<Map<String, int>> _write(
     RestorePlan plan,
@@ -799,7 +809,7 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     for (final spec in schemaV8Tables) {
       // legacy_quarantine is kept and merged (register B-03, decided).
       if (spec.kind == TableKind.user && spec.name != 'legacy_quarantine') {
-        await _db.customStatement('DELETE FROM "${spec.name}"');
+        await _db.customStatement('DELETE FROM ${V8Sql.quote(spec.name)}');
       }
     }
     for (final t in exerciseChildTables) {
@@ -816,27 +826,35 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       await BootstrapReferenceV8.insert(_db);
     }
     for (final spec in schemaV8Tables) {
-      for (final r
-          in d.referenceInsert[spec.name] ?? const <Map<String, Object?>>[]) {
-        await _insert(spec.name, r);
-        tally(spec.name);
-      }
+      final rows =
+          d.referenceInsert[spec.name] ?? const <Map<String, Object?>>[];
+      await _insert(spec.name, rows);
+      if (rows.isNotEmpty) tally(spec.name, rows.length);
     }
     await _phase(RestorePhase.referenceInserted);
 
+    // Exercises, then each owned table: the rows of every table in the order
+    // of one insert per row (exercises in backup order, their children in
+    // turn); foreign keys are off, so the order across tables is free.
+    await _insert('exercises', [for (final x in d.exercisesInsert) x.row]);
+    if (d.exercisesInsert.isNotEmpty) {
+      tally('exercises', d.exercisesInsert.length);
+    }
+    final childRows = <String, List<Map<String, Object?>>>{};
     for (final x in d.exercisesInsert) {
-      await _insert('exercises', x.row);
-      tally('exercises');
       for (final MapEntry(key: t, value: rows) in x.children.entries) {
         for (final r in rows) {
-          await _insert(t, {
+          (childRows[t] ??= []).add({
             ...r,
             if (t == 'exercise_blocks' && !r.containsKey('blocked_at'))
               'blocked_at': now,
           });
-          tally(t);
         }
       }
+    }
+    for (final MapEntry(key: t, value: rows) in childRows.entries) {
+      await _insert(t, rows);
+      if (rows.isNotEmpty) tally(t, rows.length);
     }
     for (final MapEntry(key: id, value: fields) in d.userFieldUpdates.entries) {
       final cols = fields.keys.toList();
@@ -849,11 +867,9 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     await _phase(RestorePhase.exercisesInserted);
 
     for (final spec in schemaV8Tables) {
-      for (final r
-          in plan.userRows[spec.name] ?? const <Map<String, Object?>>[]) {
-        await _insert(spec.name, r);
-        tally(spec.name);
-      }
+      final rows = plan.userRows[spec.name] ?? const <Map<String, Object?>>[];
+      await _insert(spec.name, rows);
+      if (rows.isNotEmpty) tally(spec.name, rows.length);
     }
     final release1 = plan.isLegacy ? await _restoreRelease1(plan) : null;
     if (release1?.inserted ?? false) tally('catalogue_releases');
@@ -863,9 +879,9 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     // backup's rows with a free id keep it, a colliding one gets a new id
     // (and the merged entries' links follow it), a row already on the
     // device is not written again; then the restore's new rows.
-    for (final r in d.quarantineExplicit) {
-      await _insert('legacy_quarantine', r);
-      tally('legacy_quarantine');
+    await _insert('legacy_quarantine', d.quarantineExplicit);
+    if (d.quarantineExplicit.isNotEmpty) {
+      tally('legacy_quarantine', d.quarantineExplicit.length);
     }
     for (final r in d.quarantineRenumber) {
       final id = await _db.customInsert(
@@ -931,31 +947,35 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     await _phase(RestorePhase.sessionExercisesBackfilled);
 
     // Report history: merged (R-07, R-08).
-    for (final r in d.runsInsert) {
-      final merged = r['provenance_kind'] == 'device'
-          ? {
-              ...r,
-              'provenance_kind': 'backup',
-              'provenance_source': plan.backupIdentity,
-              'merged_at': now,
-            }
-          : r;
-      await _insert('migration_runs', merged);
-      tally('migration_runs');
+    await _insert('migration_runs', [
+      for (final r in d.runsInsert)
+        if (r['provenance_kind'] == 'device')
+          {
+            ...r,
+            'provenance_kind': 'backup',
+            'provenance_source': plan.backupIdentity,
+            'merged_at': now,
+          }
+        else
+          r,
+    ]);
+    if (d.runsInsert.isNotEmpty) tally('migration_runs', d.runsInsert.length);
+    await _insert('migration_report_counts', d.countsInsert);
+    if (d.countsInsert.isNotEmpty) {
+      tally('migration_report_counts', d.countsInsert.length);
     }
-    for (final r in d.countsInsert) {
-      await _insert('migration_report_counts', r);
-      tally('migration_report_counts');
-    }
-    for (final r in d.entriesInsert) {
-      await _insert('migration_report_entries', {
-        ...r,
-        'quarantine_id': switch (r['quarantine_id']) {
-          final int q => d.quarantineMap[q] ?? (throw StateError('link $q')),
-          _ => null,
+    await _insert('migration_report_entries', [
+      for (final r in d.entriesInsert)
+        {
+          ...r,
+          'quarantine_id': switch (r['quarantine_id']) {
+            final int q => d.quarantineMap[q] ?? (throw StateError('link $q')),
+            _ => null,
+          },
         },
-      });
-      tally('migration_report_entries');
+    ]);
+    if (d.entriesInsert.isNotEmpty) {
+      tally('migration_report_entries', d.entriesInsert.length);
     }
     await _phase(RestorePhase.reportMerged);
 
@@ -1094,70 +1114,34 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       [BootstrapReferenceV8.providerId],
     );
     if (recorded.isNotEmpty) return (warning: null, inserted: false);
-    String? hash;
-    String? loadError;
-    try {
-      hash = sha256Hex(await config.loadSeedBytes());
-    } on Object catch (e) {
-      loadError = '$e';
-    }
-    if (hash == V7ToV8Migration.v7SeedSha256) {
-      await _insert('catalogue_releases', {
-        'provider_id': BootstrapReferenceV8.providerId,
-        'release': 1,
-        'applied_at': setting['updated_at'],
-        'applied_at_source': V7ToV8Migration.release1AppliedAtSource,
-        'content_hash_algorithm': 'sha256',
-        'content_hash_encoding': 'hex-lower',
-        'content_hash': hash,
-        'inserted': null,
-        'updated': null,
-        'retired': null,
-        'app_version': null,
-      });
+    final seed = await V7ToV8Migration.seedHash(config.loadSeedBytes);
+    if (seed.hash case final hash? when hash == V7ToV8Migration.v7SeedSha256) {
+      await _insert('catalogue_releases', [
+        V7ToV8Migration.release1Row(
+          appliedAt: setting['updated_at'],
+          hash: hash,
+        ),
+      ]);
       return (warning: null, inserted: true);
     }
-    // The migration's warning, word for word (`_recordRelease1`).
-    final why = hash == null
-        ? 'the bundled seed could not be read ($loadError), so its hash '
-              'is unknown'
-        : 'the bundled seed hashes to $hash, not the v7-era release 1 '
-              'hash ${V7ToV8Migration.v7SeedSha256}';
+    // The migration's warning, word for word (shared; Review C L-3).
     return (
-      warning: ReportEvent(
-        table: V7ToV8Migration.settingsTable,
-        recordId: V7ToV8Migration.seedExercisesVersionKey,
-        field: V7ToV8Migration.settingValueField,
-        originalValue: encodeStoredValue(value),
-        resultingValue: encodeStoredValue(value),
-        action: ReportAction.none,
-        rule: MigrationRuleCodes.release1,
-        category: ReportCategory.warningForReview,
-        reason:
-            'The v7 seed was applied, but $why. No release 1 record is '
-            'created (R-30); the setting is kept unchanged.',
+      warning: V7ToV8Migration.release1Warning(
+        value: value,
+        hash: seed.hash,
+        loadError: seed.loadError,
       ),
       inserted: false,
     );
   }
 
-  /// Every foreign-key violation, keyed by table, primary key and parent.
-  Future<Set<String>> _foreignKeyFindings() async {
-    final out = <String>{};
-    for (final v in await _select('PRAGMA foreign_key_check')) {
-      final table = v['table']! as String;
-      final spec = schemaV8ByName[table];
-      final key = spec == null
-          ? '${v['rowid']}'
-          : spec.keyOf(
-              (await _select('SELECT * FROM "$table" WHERE rowid = ?', [
-                v['rowid'],
-              ])).single,
-            );
-      out.add(jsonEncode([table, key, v['parent'], v['fkid']]));
-    }
-    return out;
-  }
+  /// Every foreign-key violation in the database, keyed by table, record,
+  /// columns and parent as the migration keys its findings (shared; Review C
+  /// L-3).
+  Future<Set<String>> _foreignKeyFindings() async => {
+    for (final v in await _io.foreignKeyViolations(await _io.userTables()))
+      v.key(V7ToV8Migration.foreignKeyRule),
+  };
 
   Future<({int runs, int entries, int counts})> _writeRestoreReport(
     RestorePlan plan,
@@ -1260,17 +1244,19 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     if (!rec.reconciles) {
       throw StateError('The restore report does not reconcile: $rec');
     }
-    await _insert('migration_runs', {
-      'id': runId,
-      'trigger_kind': 'restore',
-      'from_version': plan.schemaVersion,
-      'to_version': backupSchemaV8,
-      'generated_at': now,
-      'app_version': config.appVersion,
-      'provenance_kind': 'backup',
-      'provenance_source': plan.backupIdentity,
-      'merged_at': now,
-    });
+    await _insert('migration_runs', [
+      {
+        'id': runId,
+        'trigger_kind': 'restore',
+        'from_version': plan.schemaVersion,
+        'to_version': backupSchemaV8,
+        'generated_at': now,
+        'app_version': config.appVersion,
+        'provenance_kind': 'backup',
+        'provenance_source': plan.backupIdentity,
+        'merged_at': now,
+      },
+    ]);
     var written = await _writeReport(report, quarantineIds, exerciseOf);
     var runs = 1;
 
@@ -1282,17 +1268,19 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
       now: now,
     );
     if (integrity != null) {
-      await _insert('migration_runs', {
-        'id': integrity.run.runId,
-        'trigger_kind': 'integrityCheck',
-        'from_version': null,
-        'to_version': null,
-        'generated_at': now,
-        'app_version': config.appVersion,
-        'provenance_kind': 'device',
-        'provenance_source': config.installLabel,
-        'merged_at': null,
-      });
+      await _insert('migration_runs', [
+        {
+          'id': integrity.run.runId,
+          'trigger_kind': 'integrityCheck',
+          'from_version': null,
+          'to_version': null,
+          'generated_at': now,
+          'app_version': config.appVersion,
+          'provenance_kind': 'device',
+          'provenance_source': config.installLabel,
+          'merged_at': null,
+        },
+      ]);
       runs++;
       final w = await _writeReport(integrity, const {}, {
         for (final e in integrity.entries)
@@ -1332,10 +1320,11 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     for (final r in _looseReferences) {
       final spec = schemaV8ByName[r.table]!;
       final pk = spec.primaryKey;
+      final column = V8Sql.quote(r.column);
       final rows = await _select(
-        'SELECT ${pk.map((c) => '"$c"').join(', ')}, "${r.column}" AS ref '
-        'FROM "${r.table}" t WHERE t."${r.column}" IS NOT NULL AND NOT '
-        'EXISTS (SELECT 1 FROM exercises e WHERE e.id = t."${r.column}")',
+        'SELECT ${pk.map(V8Sql.quote).join(', ')}, $column AS ref '
+        'FROM ${V8Sql.quote(r.table)} t WHERE t.$column IS NOT NULL AND NOT '
+        'EXISTS (SELECT 1 FROM exercises e WHERE e.id = t.$column)',
       );
       for (final row in rows) {
         final value = row['ref'];
@@ -1399,63 +1388,21 @@ final class DriftBackupRepositoryV8 implements BackupRepository {
     return report;
   }
 
-  /// Writes the entries and counts of [report] as the migration does: both
-  /// count dimensions for every examined table, zeros included.
+  /// Writes the entries and counts of [report] with the migration's writer
+  /// (shared; Review C L-3): both count dimensions for every examined table,
+  /// zeros included.
   Future<({int entries, int counts})> _writeReport(
     MigrationReport report,
     Map<String, int> quarantineIds,
     Map<String, String> exerciseOf,
   ) async {
-    var entries = 0;
-    var counts = 0;
-    for (final entry in report.entries) {
-      final e = entry.event;
-      await _insert('migration_report_entries', {
-        'event_id': entry.eventId,
-        'run_id': entry.runId,
-        'source_table': e.table,
-        'record_id': e.recordId,
-        'exercise_id': exerciseOf['${e.table}|${e.recordId}'],
-        'field': e.field,
-        'position': e.position,
-        'original_value': e.originalValue,
-        'resulting_value': e.resultingValue ?? encodeStoredValue(null),
-        'element': e.element,
-        'disposition': e.action.name,
-        'block_reason': e.blockReason?.name,
-        'rule': e.rule,
-        'reason': e.reason,
-        'category': e.category.code,
-        'quarantine_id': quarantineIds['${e.table}|${e.recordId}|${e.field}'],
-        'acknowledged_at': null,
-      });
-      entries++;
-    }
-    for (final c in report.counts.values) {
-      final rows = <(String, String, int)>[
-        ('category', 'examined', c.examined),
-        for (final o in ReportCategory.outcomes)
-          ('category', o.code, c.count(o)),
-        (
-          'category',
-          ReportCategory.warningForReview.code,
-          c.recordsWithWarnings,
-        ),
-        for (final a in ReportAction.values)
-          ('disposition', a.name, c.entries(a)),
-      ];
-      for (final (dimension, code, n) in rows) {
-        await _insert('migration_report_counts', {
-          'run_id': report.run.runId,
-          'source_table': c.table,
-          'dimension': dimension,
-          'code': code,
-          'record_count': n,
-        });
-        counts++;
-      }
-    }
-    return (entries: entries, counts: counts);
+    final w = await V7ToV8Migration.writeReportRows(
+      _io,
+      report,
+      quarantineIds,
+      exerciseOf,
+    );
+    return (entries: w.entries.length, counts: w.counts.length);
   }
 }
 
@@ -1523,7 +1470,7 @@ List<String> restoreDomainProblems(
   for (final c in ['created_at', 'updated_at', 'retired_at']) {
     final v = x.row[c];
     if (v is String && DateTime.tryParse(v) == null) {
-      return ['$where: $c ${jsonEncode(v)} is not a date-time'];
+      return ['$where: $c ${describeBackupValue(v)} is not a date-time'];
     }
   }
   final active = {

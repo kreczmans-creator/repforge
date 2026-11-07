@@ -75,7 +75,10 @@ final class RestoreRejected implements Exception {
   String describe() {
     if (details.isEmpty) return '$message Nothing was changed.';
     const shown = 20;
-    final head = details.take(shown).join('; ');
+    final head = details
+        .take(shown)
+        .map((d) => clipForMessage(d, maxDetailChars))
+        .join('; ');
     final more = details.length > shown
         ? ' (and ${details.length - shown} more)'
         : '';
@@ -85,6 +88,27 @@ final class RestoreRejected implements Exception {
   @override
   String toString() => 'RestoreRejected: ${describe()}';
 }
+
+/// The longest detail a [RestoreRejected] shows (Review C L-1: a backup
+/// value or id can be megabytes long).
+const int maxDetailChars = 400;
+
+/// The longest backup value a message shows ([describeBackupValue]).
+const int maxValueChars = 80;
+
+/// [text] when it has at most [max] UTF-16 units, else its first [max]
+/// units (never half a surrogate pair), `…` and the full length.
+String clipForMessage(String text, int max) {
+  if (text.length <= max) return text;
+  var cut = max;
+  final last = text.codeUnitAt(cut - 1);
+  if (last >= 0xd800 && last <= 0xdbff) cut--;
+  return '${text.substring(0, cut)}… (${text.length} characters)';
+}
+
+/// [value] as JSON for a message, clipped to [maxValueChars] (Review C L-1).
+String describeBackupValue(Object? value) =>
+    clipForMessage(jsonEncode(value), maxValueChars);
 
 /// One `legacy_quarantine` row the restore creates (no id: SQLite assigns
 /// it, as production restore and the migration do).
@@ -266,18 +290,25 @@ RestorePlan planRestore(String json) {
 }
 
 RestorePlan _planRestore(String json) {
-  final envelope = parseBackupEnvelope(
-    json,
+  // Decoded once (Review C M-1): the envelope check reads the same value.
+  final Object? value;
+  try {
+    value = jsonDecode(json);
+  } on FormatException {
+    throw RestoreRejected(invalidBackupJson.message);
+  }
+  final envelope = parseDecodedBackupEnvelope(
+    value,
     supportedFormatVersion: backupFormatV8,
   );
   final BackupEnvelope env;
   switch (envelope) {
     case Err(:final error):
       throw RestoreRejected(error.message);
-    case Ok(:final value):
-      env = value;
+    case Ok(value: final parsed):
+      env = parsed;
   }
-  final decoded = jsonDecode(json) as Map<String, Object?>;
+  final decoded = value! as Map<String, Object?>;
   final format = env.formatVersion;
   if (format < 1) {
     throw RestoreRejected('This backup has an unknown format ($format).');
@@ -293,7 +324,8 @@ RestorePlan _planRestore(String json) {
   ];
   if (unknownKeys.isNotEmpty) {
     throw RestoreRejected('This backup has unknown envelope parts:', [
-      for (final k in unknownKeys) 'unknown key "$k"',
+      for (final k in unknownKeys)
+        'unknown key "${clipForMessage(k, maxValueChars)}"',
     ]);
   }
   final schema = decoded['schemaVersion'];
@@ -302,7 +334,7 @@ RestorePlan _planRestore(String json) {
     if (schema != backupSchemaV8) {
       throw RestoreRejected(
         'A format 3 backup must state schema version 8, not '
-        '${jsonEncode(schema)}.',
+        '${describeBackupValue(schema)}.',
       );
     }
     schemaVersion = backupSchemaV8;
@@ -312,12 +344,13 @@ RestorePlan _planRestore(String json) {
     if (schema is! int || schema < minSchema || schema > 7) {
       throw RestoreRejected(
         'A format $format backup cannot state schema version '
-        '${jsonEncode(schema)}.',
+        '${describeBackupValue(schema)}.',
       );
     }
     schemaVersion = schema;
   }
-  final identity = 'sha256:${sha256Hex(utf8.encode(json))}';
+  // Hashed in slices, without a UTF-8 copy of the whole text (M-1).
+  final identity = 'sha256:${sha256HexOfUtf8(json)}';
   return format == backupFormatV8
       ? _Format3Planner(env, decoded, identity).plan()
       : _LegacyPlanner(env, schemaVersion, identity).plan();
@@ -337,7 +370,9 @@ Map<String, Object?> validateRowV8(
   final problems = <String>[];
   for (final key in row.keys) {
     if (spec.column(key) == null) {
-      problems.add('$where: unknown column "$key"');
+      problems.add(
+        '$where: unknown column "${clipForMessage(key, maxValueChars)}"',
+      );
     }
   }
   final out = <String, Object?>{};
@@ -369,7 +404,7 @@ Map<String, Object?> validateRowV8(
     if (!typeOk) {
       problems.add(
         '$where: ${c.name} must be ${c.type.name}, not '
-        '${jsonEncode(v)}',
+        '${describeBackupValue(v)}',
       );
       continue;
     }
@@ -404,8 +439,8 @@ void checkKeysV8(TableSpec spec, Iterable<Map<String, Object?>> rows) {
       if (values.any((v) => v == null)) continue;
       if (!seen.add(jsonEncode(values))) {
         problems.add(
-          '${spec.name}: (${key.join(', ')}) = ${jsonEncode(values)} appears '
-          'twice',
+          '${spec.name}: (${key.join(', ')}) = '
+          '${describeBackupValue(values)} appears twice',
         );
       }
     }
@@ -454,8 +489,8 @@ void checkInternalForeignKeys(
         final v = r[fk.column];
         if (v != null && !parents.contains(v)) {
           problems.add(
-            '$table ${spec.keyOf(r)}: ${fk.column} ${jsonEncode(v)} has no '
-            '${fk.parentTable} row',
+            '$table ${spec.keyOf(r)}: ${fk.column} '
+            '${describeBackupValue(v)} has no ${fk.parentTable} row',
           );
         }
       }
@@ -649,7 +684,7 @@ final class _LegacyPlanner {
       if (v != null && v is! String && v is! num) {
         final problem =
             '$where: $column must be a text, a number or null, not '
-            '${jsonEncode(v)}';
+            '${describeBackupValue(v)}';
         throw RestoreRejected('This backup holds an invalid row:', [problem]);
       }
     }
@@ -682,7 +717,11 @@ final class _LegacyPlanner {
     final v7 = <String, Object?>{};
     final known = {for (final c in v7ExerciseColumns) c.name};
     for (final k in row.keys) {
-      if (!known.contains(k)) problems.add('$where: unknown column "$k"');
+      if (!known.contains(k)) {
+        problems.add(
+          '$where: unknown column "${clipForMessage(k, maxValueChars)}"',
+        );
+      }
     }
     for (final c in v7ExerciseColumns) {
       var v = row.containsKey(c.name)
@@ -693,7 +732,8 @@ final class _LegacyPlanner {
         if (c.notNull) problems.add('$where: ${c.name} is required');
       } else if (c.type == ColumnType.text ? v is! String : v is! int) {
         problems.add(
-          '$where: ${c.name} must be ${c.type.name}, not ${jsonEncode(v)}',
+          '$where: ${c.name} must be ${c.type.name}, not '
+          '${describeBackupValue(v)}',
         );
       }
       v7[c.name] = v;
@@ -709,8 +749,9 @@ final class _LegacyPlanner {
     }
     // The v7 CHECK on `supplied` (0 or 1); the mapping refuses anything else.
     if (v7['supplied'] != 0 && v7['supplied'] != 1) {
+      final supplied = describeBackupValue(v7['supplied']);
       throw RestoreRejected('This backup holds an invalid exercise:', [
-        '$where: supplied must be 0 or 1, not ${jsonEncode(v7['supplied'])}',
+        '$where: supplied must be 0 or 1, not $supplied',
       ]);
     }
     final m = mapLegacyExercise(
