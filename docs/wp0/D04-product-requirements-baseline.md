@@ -628,3 +628,18 @@ Taken under owner decision D3 ("reject invalid or newer-format backups without m
 - **3b effort allocation approved (4.50 points):** 3b-1 0.50, 3b-2 0.50, 3b-3 0.50, 3b-4 0.75, 3b-5 0.25, 3b-6 0.40, 3b-7 0.60, 3b-8 0.40, 3b-9 0.30, 3b-10 0.30. The 70/20/10 rule governs earned credit: 70 % commit, 20 % independent review, 10 % owner acceptance. A commit alone never earns review or acceptance credit. Approving a decision earns no credit.
 - **Not acceptance of 3b.** 3b stays unaccepted until: all approved decisions are implemented; WS3 closes with its re-check passed; B-15 is resolved with evidence; device timing passes on both platforms; Review C passes; four CI workflows pass; the delivery records hold the complete evidence trail.
 - These 13 decisions are not reopened without new contradictory evidence.
+
+### 2026-11-07 — Train workspace redesign and exercise knowledge system: allocation (owner)
+- **Integration baseline:** the clean release candidate (`claude/busy-hypatia-rhl3hu`, clean base aa59021). It holds accepted WP 15/WP 17 work and no WP 8 3b code.
+- **Isolation:** branch `ccr-9fda2c32-wr163b` stays isolated. Nobody merges, cherry-picks or otherwise brings its 3b commits into the release candidate. OB-WP8-04 stays open until the owner decides.
+- **Allocation:**
+  - **Exercise knowledge system:** the WP 8 session, on a separate clean branch without 3b code (content architecture, instructions, media, catalogue population, offline support).
+  - **Train dashboard redesign, filter-chip design-system correction, integration and regression testing:** the other (integration) session, on the release candidate.
+- **Rules:**
+  - The other session acknowledges the allocation before proceeding.
+  - No duplicate implementation.
+  - Independent review of all work.
+  - No merge to main.
+  - Source commit ancestry is checked before any release-candidate integration.
+  - Four CI workflows rerun on the integrated commit.
+- **Handover:** the WP 8 session pushes only to its own clean branch, never merges into the release candidate, and hands over commit SHAs, changed files, tests, review findings and outstanding work.
