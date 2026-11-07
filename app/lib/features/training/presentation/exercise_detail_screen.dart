@@ -11,6 +11,7 @@ import 'package:repforge/domain/units/units.dart';
 import 'package:repforge/features/training/application/exercise_library_providers.dart';
 import 'package:repforge/features/training/application/session_view.dart';
 import 'package:repforge/features/training/application/training_providers.dart';
+import 'package:repforge/features/training/presentation/exercise_guidance.dart';
 import 'package:repforge/features/training/presentation/session_set_widgets.dart';
 import 'package:repforge/features/training/presentation/set_form.dart'
     show setKindLabel;
@@ -24,8 +25,9 @@ import 'package:repforge/ui/components/rf_states.dart';
 import 'package:repforge/ui/error_text.dart';
 import 'package:repforge/ui/tokens.dart';
 
-/// Exercise detail (TRN-008..012, TRN-025): classification, provenance,
-/// history and the edit / archive actions.
+/// Exercise detail (TRN-008..012, TRN-025): guidance sections A to I (WP 8
+/// exercise knowledge system), classification, provenance, history and the
+/// edit / archive actions.
 class ExerciseDetailScreen extends ConsumerStatefulWidget {
   const ExerciseDetailScreen({required this.exerciseId, super.key});
 
@@ -133,34 +135,41 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           const SizedBox(height: RfSpace.s2),
           _ProvenanceNote(exercise: e),
           const SizedBox(height: RfSpace.s3),
-          RfCard(
-            child: Column(
-              children: [
-                _Field('Type', exerciseTypeLabel(e.type), 'type'),
-                _Field(
-                  'Category',
-                  exerciseCategoryLabel(e.category),
-                  'category',
-                ),
-                _Field(
-                  'Primary muscle',
-                  muscleGroupLabel(e.primaryMuscle),
-                  'primary',
-                ),
-                _Field(
-                  'Secondary muscles',
-                  e.secondaryMuscles.isEmpty
-                      ? 'None'
-                      : e.secondaryMuscles.map(muscleGroupLabel).join(', '),
-                  'secondary',
-                ),
-                _Field('Equipment', equipmentSummary(e.equipment), 'equipment'),
-                _Field(
-                  'Also known as',
-                  e.aliases.isEmpty ? 'None' : e.aliases.join(', '),
-                  'aliases',
-                ),
-              ],
+          ExerciseGuidance(
+            exercise: e,
+            overviewDetails: RfCard(
+              child: Column(
+                children: [
+                  _Field('Type', exerciseTypeLabel(e.type), 'type'),
+                  _Field(
+                    'Category',
+                    exerciseCategoryLabel(e.category),
+                    'category',
+                  ),
+                  _Field(
+                    'Primary muscle',
+                    muscleGroupLabel(e.primaryMuscle),
+                    'primary',
+                  ),
+                  _Field(
+                    'Secondary muscles',
+                    e.secondaryMuscles.isEmpty
+                        ? 'None'
+                        : e.secondaryMuscles.map(muscleGroupLabel).join(', '),
+                    'secondary',
+                  ),
+                  _Field(
+                    'Equipment',
+                    equipmentSummary(e.equipment),
+                    'equipment',
+                  ),
+                  _Field(
+                    'Also known as',
+                    e.aliases.isEmpty ? 'None' : e.aliases.join(', '),
+                    'aliases',
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: RfSpace.s3),

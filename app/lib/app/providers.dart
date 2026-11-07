@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:repforge/data/catalogue/bundled_exercise_knowledge_source.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/data/db/drift_transactor.dart';
 import 'package:repforge/data/db/open_database.dart';
@@ -25,6 +27,7 @@ import 'package:repforge/domain/backup/backup.dart';
 import 'package:repforge/domain/core/clock.dart';
 import 'package:repforge/domain/core/ids.dart';
 import 'package:repforge/domain/core/transactor.dart';
+import 'package:repforge/domain/exercise_knowledge/exercise_knowledge_source.dart';
 import 'package:repforge/domain/files/user_file_gateway.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_repository.dart';
@@ -207,6 +210,15 @@ final recipeRepositoryProvider = Provider<RecipeRepository>(
   (ref) => DriftRecipeRepository(
     ref.watch(databaseProvider),
     clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Read-only, offline exercise knowledge (instructions and media) from the
+/// bundled catalogue release (WP 8 exercise knowledge system). Unavailable
+/// until the catalogue assets are bundled (owner decision D-3c-3).
+final exerciseKnowledgeSourceProvider = Provider<ExerciseKnowledgeSource>(
+  (_) => BundledExerciseKnowledgeSource(
+    readBytes: (key) async => (await rootBundle.load(key)).buffer.asUint8List(),
   ),
 );
 
