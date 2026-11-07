@@ -127,6 +127,22 @@ void main() {
       'Top set weight: 2 points',
     );
 
+    // The three stacked charts share one date axis (GOL-010(1)).
+    final handle = tester.ensureSemantics();
+    for (final panel in ['weight', 'waist', 'strength']) {
+      expect(
+        find.descendant(
+          of: find.byKey(Key('recomposition-chart-$panel')),
+          matching: find.bySemanticsLabel(
+            RegExp('date axis Aug 16, 2026 to Nov 7, 2026'),
+          ),
+        ),
+        findsOneWidget,
+        reason: panel,
+      );
+    }
+    handle.dispose();
+
     // Leaving and returning keeps the choice for the session.
     await tester.pageBack();
     await tester.pumpAndSettle();

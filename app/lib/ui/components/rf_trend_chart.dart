@@ -90,6 +90,8 @@ class RfTrendChart extends StatelessWidget {
     this.emptyMessage = 'No data yet.',
     this.showDataTable = false,
     this.tableDecimals,
+    this.xFrom,
+    this.xTo,
   });
 
   final List<RfTrendSeries> series;
@@ -103,6 +105,12 @@ class RfTrendChart extends StatelessWidget {
   /// Fixed number of decimals for values in the data table (for example 1 to
   /// match the history list); null trims trailing zeros like the axis.
   final int? tableDecimals;
+
+  /// Explicit first and last instant of the date axis, so stacked charts can
+  /// share one range. Null uses the first and last point. A point outside the
+  /// range widens it: the chart never clips a value.
+  final DateTime? xFrom;
+  final DateTime? xTo;
 
   @override
   Widget build(BuildContext context) {
@@ -122,14 +130,28 @@ class RfTrendChart extends StatelessWidget {
     final values = all.map((p) => p.value);
     final min = values.reduce(math.min);
     final max = values.reduce(math.max);
-    final first = all.map((p) => p.at).reduce((a, b) => a.isBefore(b) ? a : b);
-    final last = all.map((p) => p.at).reduce((a, b) => a.isAfter(b) ? a : b);
+    final firstPoint = all
+        .map((p) => p.at)
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+    final lastPoint = all
+        .map((p) => p.at)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+    final first = xFrom != null && xFrom!.isBefore(firstPoint)
+        ? xFrom!
+        : firstPoint;
+    final last = xTo != null && xTo!.isAfter(lastPoint) ? xTo! : lastPoint;
     final summary = StringBuffer()
       ..write('Trend chart, ${all.length} values from ')
-      ..write(DateFormat.yMMMd().format(first))
+      ..write(DateFormat.yMMMd().format(firstPoint))
       ..write(' to ')
-      ..write(DateFormat.yMMMd().format(last))
+      ..write(DateFormat.yMMMd().format(lastPoint))
       ..write(', range ${formatNumber(min)} to ${formatNumber(max)} $unit');
+    if (xFrom != null || xTo != null) {
+      summary.write(
+        ', date axis ${DateFormat.yMMMd().format(first)} to '
+        '${DateFormat.yMMMd().format(last)}',
+      );
+    }
     if (series.length > 1) {
       summary.write('. Series: ${series.map((s) => s.label).join(', ')}');
     }

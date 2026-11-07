@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/analytics/metric.dart';
 import 'package:repforge/domain/analytics/weekly_report.dart';
+import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
 import 'package:repforge/features/analytics/presentation/analytics_periods.dart';
 import 'package:repforge/features/analytics/presentation/analytics_widgets.dart';
@@ -80,7 +81,7 @@ class _WeeklyReportScreenState extends ConsumerState<WeeklyReportScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _Nutrition(report: r),
-                _Training(report: r, period: period),
+                _Training(report: r),
                 _Body(report: r),
               ],
             ),
@@ -145,7 +146,11 @@ class _Nutrition extends StatelessWidget {
           FigureRow(
             key: const Key('weekly-days-logged'),
             label: 'Days logged',
-            value: value.daysLoggedText.replaceAll(' days logged', ''),
+            value: switch (value.daysLogged) {
+              MetricValue<int>(:final value, :final basis) =>
+                '$value of ${basis.sampleCount}',
+              NotEnoughData<int>() => notEnoughDataText,
+            },
           ),
           FigureRow.metric(
             key: const Key('weekly-energy'),
@@ -187,16 +192,14 @@ class _Nutrition extends StatelessWidget {
   }
 }
 
-class _Training extends ConsumerWidget {
-  const _Training({required this.report, required this.period});
+class _Training extends StatelessWidget {
+  const _Training({required this.report});
 
   final WeeklyReport report;
-  final AnalyticsPeriod period;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final section = report.training;
-    final sets = ref.watch(weekTrainingProvider(period)).value?.week;
     return _Section(
       cardKey: const Key('weekly-training'),
       title: 'Training',
@@ -217,13 +220,28 @@ class _Training extends ConsumerWidget {
             decimals: 0,
             unit: 'kg',
           ),
-          if (sets != null)
+          FigureRow(
+            key: const Key('weekly-sets'),
+            label: 'Working sets',
+            value: '${value.workingSets}',
+          ),
+          if (value.reps > 0)
             FigureRow(
-              key: const Key('weekly-sets'),
-              label: 'Working sets',
-              value: sets.workingSets == 0
-                  ? notEnoughDataText
-                  : '${sets.workingSets}',
+              key: const Key('weekly-reps'),
+              label: 'Repetitions (bodyweight and assisted sets)',
+              value: '${value.reps}',
+            ),
+          if (value.seconds > 0)
+            FigureRow(
+              key: const Key('weekly-seconds'),
+              label: 'Time (timed and cardio sets)',
+              value: '${value.seconds} s',
+            ),
+          if (value.metres > 0)
+            FigureRow(
+              key: const Key('weekly-metres'),
+              label: 'Distance (distance and cardio sets)',
+              value: '${formatNumber(value.metres, maxDecimals: 0)} m',
             ),
         ] else
           _missing(section),
@@ -246,11 +264,13 @@ class _Body extends StatelessWidget {
       dayRule: report.bodyDayRule,
       children: [
         if (section case MetricValue<BodySummary>(:final value)) ...[
-          FigureRow.metric(
+          FigureRow(
             key: const Key('weekly-weight-change'),
             label: 'Weight trend change over the week',
-            metric: value.weightChangeKg,
-            unit: 'kg',
+            value: value.weightChangeKg.valueOrNull == null
+                ? notEnoughDataText
+                : '${signedNumber(value.weightChangeKg.valueOrNull!)} kg',
+            caption: metricReason(value.weightChangeKg),
           ),
           FigureRow(
             key: const Key('weekly-readings'),

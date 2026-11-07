@@ -10,6 +10,7 @@ import 'package:repforge/domain/core/result.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/domain/nutrition/nutrition.dart';
+import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
 import 'package:repforge/features/nutrition/presentation/provenance_badge.dart';
 
@@ -147,6 +148,46 @@ void main() {
     // The day rule appears once per section.
     expect(find.text('Days run from local midnight'), findsNWidgets(2));
     expect(find.text('Calendar dates (local midnight)'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('reps, seconds and metres are absent when not recorded', (
+    tester,
+  ) async {
+    final c = analyticsContainer(db);
+    await tester.runAsync(() async {
+      await seedWorkout(c, DateTime(2026, 11, 3, 9), [(80, 5)]);
+    });
+    await pumpAnalytics(tester, c, location: RfRoutes.goalsWeekly);
+    expect(find.byKey(const Key('weekly-reps')), findsNothing);
+    expect(find.byKey(const Key('weekly-seconds')), findsNothing);
+    expect(find.byKey(const Key('weekly-metres')), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('bodyweight, timed and distance sets add their figures', (
+    tester,
+  ) async {
+    final c2 = analyticsContainer(db);
+    await tester.runAsync(() async {
+      await seedWorkoutData(c2, DateTime(2026, 11, 3, 9), [
+        const SetData.bodyweight(reps: 12),
+        const SetData.timed(duration: Duration(seconds: 60)),
+        const SetData.distance(metres: 500),
+      ]);
+    });
+    await pumpAnalytics(tester, c2, location: RfRoutes.goalsWeekly);
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('60 s'), findsOneWidget);
+    expect(find.text('500 m'), findsOneWidget);
+    // A bodyweight-only week has a real 0 kg volume, not "not enough data".
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('weekly-volume')),
+        matching: find.text('0 kg'),
+      ),
+      findsOneWidget,
+    );
     await unmount(tester);
   });
 

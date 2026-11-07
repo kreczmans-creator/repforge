@@ -301,6 +301,16 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('a failed read of the current goal is shown', (tester) async {
+    final c = analyticsContainer(
+      db,
+      overrides: [goalRepositoryProvider.overrideWithValue(_ReadFails())],
+    );
+    await pumpAnalytics(tester, c, location: '/goals/edit/sessionsPerWeek');
+    expect(find.byKey(const Key('goal-error')), findsOneWidget);
+    await unmount(tester);
+  });
+
   testWidgets('an unknown goal type is labelled, not a crash', (tester) async {
     final c = analyticsContainer(db);
     await pumpAnalytics(tester, c, location: '/goals/edit/calories');
@@ -335,4 +345,9 @@ final class _SaveFails implements GoalRepository {
       Future.error(StateError('db gone'));
   @override
   Future<void> delete(String id) => Future.error(StateError('db gone'));
+}
+
+final class _ReadFails extends _SaveFails {
+  @override
+  Future<List<Goal>> active() => Future.error(StateError('db gone'));
 }

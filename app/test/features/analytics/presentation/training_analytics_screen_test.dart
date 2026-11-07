@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/data/db/app_database.dart';
 import 'package:repforge/domain/core/result.dart';
+import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
 import 'package:repforge/features/analytics/application/training_use_cases.dart';
 
@@ -100,6 +101,43 @@ void main() {
     await tester.tap(tile);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('exercise-progress-chart')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('a week line adds reps, seconds and metres when present', (
+    tester,
+  ) async {
+    final c = analyticsContainer(db);
+    await tester.runAsync(() async {
+      await seedExercise(c, 'bench', 'Bench Press');
+      await seedWorkoutData(c, DateTime(2026, 11, 3, 9), [
+        const SetData.bodyweight(reps: 12),
+        const SetData.timed(duration: Duration(seconds: 60)),
+        const SetData.distance(metres: 500),
+      ]);
+    });
+    await pumpAnalytics(tester, c, location: RfRoutes.goalsTraining);
+    expect(
+      find.text('1 sessions · 3 sets · 0 kg · 12 reps · 60 s · 500 m'),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('a refresh keeps the body instead of showing the spinner', (
+    tester,
+  ) async {
+    final c = analyticsContainer(db);
+    await tester.runAsync(() async {
+      await seedExercise(c, 'bench', 'Bench Press');
+      await seedWorkout(c, DateTime(2026, 11, 3, 9), [(80, 5)]);
+    });
+    await pumpAnalytics(tester, c, location: RfRoutes.goalsTraining);
+    expect(find.byKey(const Key('training-volume-chart')), findsOneWidget);
+    c.invalidate(weekTrainingTotalsProvider);
+    await tester.pump();
+    expect(find.byKey(const Key('training-volume-chart')), findsOneWidget);
+    await tester.pumpAndSettle();
     await unmount(tester);
   });
 

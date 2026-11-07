@@ -201,12 +201,14 @@ final loadRecompositionSeriesProvider = Provider<LoadRecompositionSeries>(
 /// The target history, including inactive goals (GOL-006(2)).
 final targetHistoryProvider = FutureProvider<TargetHistory>((ref) {
   _refreshOn(ref);
+  ref.watch(todayKeyProvider);
   return _load(ref.watch(loadTargetHistoryProvider)());
 }, retry: _noRetry);
 
 /// Progress of every active goal (GOL-008).
 final goalProgressProvider = FutureProvider<List<GoalProgress>>((ref) {
   _refreshOn(ref);
+  ref.watch(todayKeyProvider);
   return _load(ref.watch(loadGoalProgressProvider)());
 }, retry: _noRetry);
 
@@ -224,6 +226,15 @@ final weekTrainingProvider = FutureProvider.autoDispose
     .family<WeekTrainingView, AnalyticsPeriod>((ref, period) {
       _refreshOn(ref);
       return _load(ref.watch(loadWeekTrainingProvider)(period));
+    }, retry: _noRetry);
+
+/// The training aggregate of a period without names or record events: one
+/// session read per period, cheap enough for a row of weeks.
+// ignore: specify_nonobvious_property_types, the family type is not exported
+final weekTrainingTotalsProvider = FutureProvider.autoDispose
+    .family<WeekTraining, AnalyticsPeriod>((ref, period) {
+      _refreshOn(ref);
+      return _load(ref.watch(loadWeekTrainingProvider).loadWeek(period));
     }, retry: _noRetry);
 
 /// Weight summary of a period.

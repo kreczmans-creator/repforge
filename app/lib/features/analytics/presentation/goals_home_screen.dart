@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:repforge/app/router.dart';
 import 'package:repforge/domain/analytics/goal_progress.dart';
 import 'package:repforge/domain/analytics/metric.dart';
+import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
 import 'package:repforge/domain/units/format.dart';
@@ -26,18 +27,7 @@ class GoalsHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _GoalsHomeScreenState extends ConsumerState<GoalsHomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // The provider watches only the newest rows; re-read on open.
-    ref.invalidate(goalProgressProvider);
-  }
-
-  /// Pushes [route] and re-reads the progress when the user comes back.
-  Future<void> _open(String route) async {
-    await context.push<Object?>(route);
-    if (mounted) ref.invalidate(goalProgressProvider);
-  }
+  Future<void> _open(String route) => context.push<Object?>(route);
 
   @override
   Widget build(BuildContext context) {
@@ -162,9 +152,10 @@ String _title(Goal goal) => switch (goal.kind) {
 
 String _entriesRoute(GoalProgress p) => switch (p.drillDown.kind) {
   DrillDownKind.weightEntries => RfRoutes.trackSite(MeasurementSite.weight),
-  DrillDownKind.measurementEntries => RfRoutes.trackSite(
-    p.drillDown.site ?? MeasurementSite.waist,
-  ),
+  DrillDownKind.measurementEntries =>
+    p.drillDown.site == null
+        ? RfRoutes.track
+        : RfRoutes.trackSite(p.drillDown.site!),
   DrillDownKind.sessions => RfRoutes.trainHistory,
 };
 
@@ -279,10 +270,9 @@ class _GoalCard extends StatelessWidget {
     );
   }
 
+  /// The deadline is stored as a UTC calendar date (see `SaveGoal`).
   static String _day(DateTime d) {
-    final l = d.toLocal();
-    return '${l.year.toString().padLeft(4, '0')}-'
-        '${l.month.toString().padLeft(2, '0')}-'
-        '${l.day.toString().padLeft(2, '0')}';
+    final u = d.toUtc();
+    return CalendarDate(u.year, u.month, u.day).iso;
   }
 }

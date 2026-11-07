@@ -49,6 +49,7 @@ void main() {
     await pumpAnalytics(tester, c, location: RfRoutes.goalsCompare);
     expect(find.byKey(const Key('compare-table')), findsOneWidget);
     for (final m in ['energy', 'protein', 'volume', 'weight']) {
+      expect(find.byKey(Key('compare-$m-reason')), findsOneWidget);
       expect(texts(tester, m), [
         m[0].toUpperCase() + m.substring(1),
         'not available',

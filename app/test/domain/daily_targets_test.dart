@@ -94,4 +94,33 @@ void main() {
       expect(s.intake, NutrientAmounts.zero);
     });
   });
+  group('implied energy (GOL-002)', () {
+    test('protein and carbohydrate 4 kcal/g, fat 9 kcal/g', () {
+      final e = impliedEnergy(proteinG: 150, carbsG: 250, fatG: 70);
+      expect(e.kcal, 150 * 4 + 250 * 4 + 70 * 9);
+      expect(e.isComplete, isTrue);
+      expect(e.missing, isEmpty);
+    });
+
+    test('an unset macro is named, not counted as zero', () {
+      final e = impliedEnergy(proteinG: 100, carbsG: 200);
+      expect(e.kcal, 1200);
+      expect(e.isComplete, isFalse);
+      expect(e.missing, ['fat']);
+      expect(impliedEnergy().isEmpty, isTrue);
+      expect(impliedEnergy(fatG: 0).missing, ['protein', 'carbs']);
+    });
+
+    test('a set zero is complete', () {
+      expect(impliedEnergy(proteinG: 0, carbsG: 0, fatG: 0).isComplete, isTrue);
+    });
+
+    test('differs by more than 10 % of the target, exactly 10 % does not', () {
+      expect(differsByMoreThanTenPercent(2200, 2000), isFalse);
+      expect(differsByMoreThanTenPercent(2200.5, 2000), isTrue);
+      expect(differsByMoreThanTenPercent(1800, 2000), isFalse);
+      expect(differsByMoreThanTenPercent(1799, 2000), isTrue);
+      expect(differsByMoreThanTenPercent(100, 0), isFalse);
+    });
+  });
 }

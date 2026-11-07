@@ -199,6 +199,63 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('a goal whose start equals its target reads from target', (
+    tester,
+  ) async {
+    final c = analyticsContainer(db);
+    await tester.runAsync(() async {
+      await c
+          .read(goalRepositoryProvider)
+          .upsert(
+            goalOf(
+              GoalKind.measurement,
+              84,
+              site: MeasurementSite.waist,
+              start: DateTime(2026, 11, 5),
+            ),
+          );
+      await c.read(measurementRepositoryProvider).insertAll([
+        readingAt(MeasurementSite.waist, 84, DateTime(2026, 11, 5, 8)),
+        readingAt(MeasurementSite.waist, 86, DateTime(2026, 11, 6, 8)),
+      ]);
+    });
+    await pumpAnalytics(tester, c);
+    final card = find.byKey(const Key('goal-card-measurement-waist'));
+    expect(card, findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const Key('goal-statement-measurement-waist')),
+          )
+          .data,
+      contains('from target'),
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('goal-percent-measurement-waist')),
+        matching: find.text('not enough data'),
+      ),
+      findsOneWidget,
+    );
+    await unmount(tester);
+  });
+
+  testWidgets('a measurement goal without a site opens the Track tab', (
+    tester,
+  ) async {
+    final c = analyticsContainer(db);
+    await tester.runAsync(
+      () => c
+          .read(goalRepositoryProvider)
+          .upsert(goalOf(GoalKind.measurement, 80)),
+    );
+    await pumpAnalytics(tester, c);
+    await tester.tap(find.byKey(const Key('goal-entries-measurement-none')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('add-measurements')), findsOneWidget);
+    await unmount(tester);
+  });
+
   for (final light in [false, true]) {
     for (final scale in [1.0, 2.0]) {
       testWidgets('renders at 360 px without exceptions '

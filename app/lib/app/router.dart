@@ -1,12 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
-import 'package:repforge/features/analytics/application/analytics_providers.dart';
 import 'package:repforge/features/analytics/presentation/exercise_progress_screen.dart';
 import 'package:repforge/features/analytics/presentation/goal_editor_screen.dart';
 import 'package:repforge/features/analytics/presentation/goals_home_screen.dart';
@@ -557,16 +555,13 @@ class _UnknownMeasurementScreen extends StatelessWidget {
   );
 }
 
-class _Shell extends ConsumerWidget {
+class _Shell extends StatelessWidget {
   const _Shell({required this.shell});
 
   final StatefulNavigationShell shell;
 
-  /// Index of the Goals branch.
-  static const _goalsIndex = 4;
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final rf = context.rf;
     return Scaffold(
       appBar: AppBar(
@@ -597,12 +592,10 @@ class _Shell extends ConsumerWidget {
         ),
         child: NavigationBar(
           selectedIndex: shell.currentIndex,
-          onDestinationSelected: (index) {
-            // Goal progress watches only the newest rows; opening the tab
-            // re-reads it so edits of older rows show.
-            if (index == _goalsIndex) ref.invalidate(goalProgressProvider);
-            shell.goBranch(index, initialLocation: index == shell.currentIndex);
-          },
+          onDestinationSelected: (index) => shell.goBranch(
+            index,
+            initialLocation: index == shell.currentIndex,
+          ),
           destinations: const [
             NavigationDestination(
               key: Key('nav-home'),

@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/analytics/recomposition.dart';
-import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
 import 'package:repforge/features/analytics/presentation/analytics_widgets.dart';
+import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/features/training/presentation/exercise_picker.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
@@ -46,7 +46,7 @@ class _RecompositionScreenState extends ConsumerState<RecompositionScreen> {
 
   AnalyticsPeriod _period() {
     final settings = ref.watch(settingsProvider).value ?? const AppSettings();
-    final today = CalendarDate.fromInstant(ref.watch(clockProvider).now());
+    final today = calendarDateFromKey(ref.watch(todayKeyProvider));
     return AnalyticsPeriod.custom(
       today.addDays(-(_weeks * 7 - 1)),
       today,
@@ -114,18 +114,21 @@ class _RecompositionScreenState extends ConsumerState<RecompositionScreen> {
             data: (r) => Column(
               children: [
                 _Panel(
+                  period: period,
                   name: 'weight',
                   data: r.weight,
                   emptyMessage: 'No weight trend value in this range.',
                   marker: RfTrendMarker.circle,
                 ),
                 _Panel(
+                  period: period,
                   name: 'waist',
                   data: r.waist,
                   emptyMessage: 'No waist reading in this range.',
                   marker: RfTrendMarker.square,
                 ),
                 _Panel(
+                  period: period,
                   name: 'strength',
                   data: r.strength,
                   emptyMessage: chosen == null
@@ -146,12 +149,14 @@ class _RecompositionScreenState extends ConsumerState<RecompositionScreen> {
 
 class _Panel extends StatelessWidget {
   const _Panel({
+    required this.period,
     required this.name,
     required this.data,
     required this.emptyMessage,
     required this.marker,
   });
 
+  final AnalyticsPeriod period;
   final String name;
   final SeriesData data;
   final String emptyMessage;
@@ -189,6 +194,12 @@ class _Panel extends StatelessWidget {
             ],
             unit: data.unit,
             height: 160,
+            xFrom: DateTime(
+              period.from.year,
+              period.from.month,
+              period.from.day,
+            ),
+            xTo: DateTime(period.to.year, period.to.month, period.to.day),
             showDataTable: true,
             tableDecimals: 1,
             emptyMessage: emptyMessage,

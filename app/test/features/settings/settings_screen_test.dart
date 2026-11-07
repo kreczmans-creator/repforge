@@ -456,6 +456,7 @@ void main() {
         'calories': '2000',
         'protein': '150',
         'carbs': '400',
+        'fat': '0',
       });
       expect(find.text('Implied energy: 2200 kcal'), findsOneWidget);
       expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
@@ -473,11 +474,33 @@ void main() {
         'calories': '2000',
         'protein': '150',
         'carbs': '300',
+        'fat': '0',
       });
       expect(find.text('Implied energy: 1800 kcal'), findsOneWidget);
       expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
       await type(tester, {'protein': '149'});
       expect(find.byKey(const Key('implied-energy-warning')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('with a macro not set the line names it and does not warn', (
+      tester,
+    ) async {
+      await open(tester);
+      await type(tester, {
+        'calories': '2000',
+        'protein': '300',
+        'carbs': '300',
+      });
+      expect(
+        find.text(
+          'Implied energy from the set targets (fat not set): 2400 kcal',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('implied-energy-warning')), findsNothing);
+      await type(tester, {'carbs': ''});
+      expect(find.textContaining('(carbs and fat not set)'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -487,6 +510,7 @@ void main() {
         'calories': '2000',
         'protein': '300',
         'carbs': '300',
+        'fat': '0',
       });
       expect(find.byKey(const Key('implied-energy-warning')), findsOneWidget);
       await tester.ensureVisible(find.byKey(const Key('save-targets')));

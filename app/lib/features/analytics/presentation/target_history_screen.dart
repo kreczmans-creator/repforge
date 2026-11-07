@@ -24,12 +24,6 @@ class TargetHistoryScreen extends ConsumerStatefulWidget {
 
 class _TargetHistoryScreenState extends ConsumerState<TargetHistoryScreen> {
   @override
-  void initState() {
-    super.initState();
-    ref.invalidate(targetHistoryProvider);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final history = ref.watch(targetHistoryProvider);
     return Scaffold(

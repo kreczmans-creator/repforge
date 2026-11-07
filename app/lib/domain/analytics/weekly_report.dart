@@ -41,6 +41,7 @@ final class TrainingSummary {
   const TrainingSummary({
     required this.sessionsCompleted,
     required this.totalVolumeKg,
+    this.workingSets = 0,
     this.reps = 0,
     this.seconds = 0,
     this.metres = 0,
@@ -52,6 +53,9 @@ final class TrainingSummary {
   /// "2 of 3 sessions" progress when a sessions-per-week goal is set.
   final GoalProgress? sessionsGoal;
   final Metric<double> totalVolumeKg;
+
+  /// Completed working and failure sets of the period (warm-ups excluded).
+  final int workingSets;
 
   /// Repetitions of bodyweight and assisted sets (TRN-027(2)).
   final int reps;
@@ -167,6 +171,7 @@ final class WeeklyReport {
           ),
           sessionsGoal: sessionsGoal,
           totalVolumeKg: training.totalVolumeKg,
+          workingSets: training.workingSets,
           reps: training.volume.reps,
           seconds: training.volume.seconds,
           metres: training.volume.metres,

@@ -14,6 +14,7 @@ import 'package:repforge/domain/settings/settings.dart';
 import 'package:repforge/domain/training/training.dart';
 import 'package:repforge/domain/units/kilograms.dart';
 import 'package:repforge/domain/units/units.dart';
+import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 
 import '../../../helpers/seed_session.dart';
 
@@ -33,6 +34,7 @@ ProviderContainer analyticsContainer(
     overrides: [
       databaseProvider.overrideWithValue(db),
       clockProvider.overrideWithValue(FixedClock(now ?? analyticsNow)),
+      minuteTickProvider.overrideWith((ref) => const Stream.empty()),
       ...overrides,
     ],
   );
@@ -170,6 +172,37 @@ Future<void> seedWorkout(
             load: LoadKg.fromStored(sets[i].$1),
             reps: sets[i].$2,
           ),
+          completed: true,
+        ),
+    ],
+  );
+  await seedSession(c.read(workoutSessionRepositoryProvider), session);
+}
+
+/// Like [seedWorkout] with arbitrary set data (bodyweight, timed, distance).
+Future<void> seedWorkoutData(
+  ProviderContainer c,
+  DateTime start,
+  List<SetData> sets, {
+  String exercise = 'bench',
+}) async {
+  final id = 'ws${_seq++}';
+  final session = WorkoutSession(
+    id: id,
+    name: 'Session',
+    startedAt: start.toUtc(),
+    endedAt: start.add(const Duration(hours: 1)).toUtc(),
+    createdAt: start.toUtc(),
+    updatedAt: start.toUtc(),
+    sets: [
+      for (var i = 0; i < sets.length; i++)
+        SessionSet(
+          id: 'st${_seq++}',
+          sessionId: id,
+          exerciseId: exercise,
+          exerciseOrder: 0,
+          setOrder: i,
+          data: sets[i],
           completed: true,
         ),
     ],

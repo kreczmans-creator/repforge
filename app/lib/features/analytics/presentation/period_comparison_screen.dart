@@ -169,6 +169,16 @@ class _Table extends StatelessWidget {
             ),
           ),
           for (final m in comparison.measures)
+            if (m.unavailableReason != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: RfSpace.s1),
+                child: Text(
+                  '${m.measure.label}: ${m.unavailableReason}',
+                  key: Key('compare-${m.measure.name}-reason'),
+                  style: context.rfText.caption,
+                ),
+              ),
+          for (final m in comparison.measures)
             Text(
               '${m.measure.label}: ${m.measure.unit}',
               style: theme.textTheme.bodySmall,

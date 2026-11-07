@@ -159,7 +159,7 @@ class _Body extends StatelessWidget {
           ),
         ),
         const SizedBox(height: RfSpace.s3),
-        const RfSectionHeader(title: 'Records'),
+        const RfSectionHeader(title: 'Records (all time)'),
         if (view.recordEvents.isEmpty)
           const RfEmptyState(
             key: Key('exercise-records-empty'),

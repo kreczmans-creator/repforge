@@ -256,7 +256,7 @@ class _Totals extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Weakest data source today',
+                  'Weakest data source for this day',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),

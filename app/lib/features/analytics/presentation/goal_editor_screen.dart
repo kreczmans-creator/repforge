@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:repforge/app/providers.dart';
 import 'package:repforge/domain/analytics/analytics_period.dart';
 import 'package:repforge/domain/core/calendar_date.dart';
 import 'package:repforge/domain/core/result.dart';
@@ -13,6 +12,7 @@ import 'package:repforge/domain/units/format.dart';
 import 'package:repforge/features/analytics/application/analytics_providers.dart';
 import 'package:repforge/features/analytics/application/goal_providers.dart';
 import 'package:repforge/features/analytics/presentation/goal_labels.dart';
+import 'package:repforge/features/dashboard/application/dashboard_providers.dart';
 import 'package:repforge/ui/components/rf_button.dart';
 import 'package:repforge/ui/components/rf_card.dart';
 import 'package:repforge/ui/components/rf_screen_title.dart';
@@ -72,7 +72,14 @@ class _GoalEditorScreenState extends ConsumerState<GoalEditorScreen> {
       final result = await ref
           .read(saveGoalProvider)
           .current(widget.kind, site: site);
-      if (result case Ok(:final value)) goal = value;
+      switch (result) {
+        case Ok(:final value):
+          goal = value;
+        case Err(:final error):
+          if (mounted && site == _site) {
+            setState(() => _error = userMessageFor(error));
+          }
+      }
     }
     if (!mounted || site != _site) return;
     setState(() {
@@ -85,12 +92,11 @@ class _GoalEditorScreenState extends ConsumerState<GoalEditorScreen> {
     });
   }
 
-  static String _dayOf(DateTime d) => CalendarDate.fromInstant(d).iso;
-
-  void _refreshAnalytics() {
-    ref
-      ..invalidate(goalProgressProvider)
-      ..invalidate(targetHistoryProvider);
+  /// The target date is stored as a UTC date (see `SaveGoal`): the calendar
+  /// day is the UTC date of the stored instant.
+  static String _dayOf(DateTime d) {
+    final u = d.toUtc();
+    return CalendarDate(u.year, u.month, u.day).iso;
   }
 
   Future<void> _save() async {
@@ -110,7 +116,6 @@ class _GoalEditorScreenState extends ConsumerState<GoalEditorScreen> {
     if (!mounted) return;
     switch (result) {
       case Ok():
-        _refreshAnalytics();
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Goal saved')));
         context.pop();
@@ -168,7 +173,6 @@ class _GoalEditorScreenState extends ConsumerState<GoalEditorScreen> {
     if (!mounted) return;
     switch (result) {
       case Ok():
-        _refreshAnalytics();
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Goal cleared')));
         context.pop();
@@ -334,7 +338,7 @@ class _DirectionNote extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final today = CalendarDate.fromInstant(ref.watch(clockProvider).now());
+    final today = calendarDateFromKey(ref.watch(todayKeyProvider));
     final summary = ref.watch(
       weightSummaryProvider(AnalyticsPeriod.custom(today.addDays(-29), today)),
     );

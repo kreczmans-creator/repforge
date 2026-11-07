@@ -78,6 +78,11 @@ final class SaveGoal {
         ValidationError('Enter a whole number.', field: 'target'),
       );
     }
+    if (kind == GoalKind.sessionsPerWeek && parsed < 1) {
+      return const Err(
+        ValidationError('Enter at least 1 session.', field: 'target'),
+      );
+    }
     final double target;
     switch (validateTarget(kind, parsed)) {
       case Ok(:final value):
@@ -104,7 +109,9 @@ final class SaveGoal {
           ValidationError('The date cannot be in the past.', field: 'endDate'),
         );
       }
-      endDate = DateTime(day.year, day.month, day.day).toUtc();
+      // A deadline is a calendar day: stored as that day at UTC midnight and
+      // read back through its UTC fields, so it never shifts with the zone.
+      endDate = DateTime.utc(day.year, day.month, day.day);
     }
 
     final stamp = now.toUtc();

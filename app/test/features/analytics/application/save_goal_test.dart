@@ -88,7 +88,11 @@ void main() {
       'target',
     );
     expect(
-      (await save(kind: GoalKind.sessionsPerWeek, targetText: '0')).isOk,
+      errorField(await save(kind: GoalKind.sessionsPerWeek, targetText: '0')),
+      'target',
+    );
+    expect(
+      (await save(kind: GoalKind.sessionsPerWeek, targetText: '1')).isOk,
       isTrue,
     );
     expect(
@@ -133,6 +137,17 @@ void main() {
       )).isOk,
       isTrue,
     );
+  });
+
+  test('a deadline is stored as a UTC calendar date', () async {
+    final r = await save(
+      kind: GoalKind.bodyWeight,
+      targetText: '80',
+      endDateText: '2026-12-31',
+    );
+    expect((r as Ok<Goal>).value.endDate, DateTime.utc(2026, 12, 31));
+    final stored = (await repo.active()).single.endDate!.toUtc();
+    expect((stored.year, stored.month, stored.day), (2026, 12, 31));
   });
 
   test('daily nutrition kinds are not handled here', () async {
