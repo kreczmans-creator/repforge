@@ -43,7 +43,8 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-goals')));
     await tester.pumpAndSettle();
     expect(find.text('Goals'), findsWidgets);
-    expect(find.text('NOT YET AVAILABLE'), findsOneWidget);
+    expect(find.byKey(const Key('goals-empty')), findsOneWidget);
+    expect(find.text('NOT YET AVAILABLE'), findsNothing);
     await tester.tap(find.byKey(const Key('nav-home')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('kcal-tile')), findsOneWidget);

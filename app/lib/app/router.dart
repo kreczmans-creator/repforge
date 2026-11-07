@@ -1,9 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:repforge/domain/core/calendar_date.dart';
+import 'package:repforge/domain/goals/goals.dart';
 import 'package:repforge/domain/measurements/measurement_period.dart';
 import 'package:repforge/domain/measurements/measurements.dart';
+import 'package:repforge/features/analytics/application/analytics_providers.dart';
+import 'package:repforge/features/analytics/presentation/goals_home_screen.dart';
 import 'package:repforge/features/dashboard/presentation/home_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blocker_detail_screen.dart';
 import 'package:repforge/features/delivery/presentation/owner_blockers_screen.dart';
@@ -25,7 +29,6 @@ import 'package:repforge/features/recipes/presentation/recipe_editor_screen.dart
 import 'package:repforge/features/recipes/presentation/recipe_list_screen.dart';
 import 'package:repforge/features/settings/presentation/backup_screen.dart';
 import 'package:repforge/features/settings/presentation/settings_screen.dart';
-import 'package:repforge/features/shell/pillar_placeholder_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_detail_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_editor_screen.dart';
 import 'package:repforge/features/training/presentation/exercise_library_screen.dart';
@@ -120,6 +123,31 @@ abstract final class RfRoutes {
       site == null ? '/track/compare' : '/track/compare?site=${site.name}';
   static const goals = '/goals';
 
+  /// Goal editor for [kind] (body weight, measurement or sessions per week;
+  /// GOL-003..005), with the body [site] of a measurement goal.
+  static String goalsEdit(GoalKind kind, [MeasurementSite? site]) =>
+      site == null
+      ? '/goals/edit/${kind.name}'
+      : '/goals/edit/${kind.name}?site=${site.name}';
+
+  /// Target history (GOL-006).
+  static const goalsHistory = '/goals/history';
+
+  /// Weekly summary (GOL-007).
+  static const goalsWeekly = '/goals/weekly';
+
+  /// Period comparison (GOL-009).
+  static const goalsCompare = '/goals/compare';
+
+  /// Training analytics (TRN-027).
+  static const goalsTraining = '/goals/training';
+
+  /// Progress of the exercise [id] (TRN-028).
+  static String goalsExercise(String id) => '/goals/training/exercise/$id';
+
+  /// Recomposition view (GOL-010).
+  static const goalsRecomposition = '/goals/recomposition';
+
   static const settings = '/settings';
 
   /// Backup and restore (DAT-004, BCM-009(2)).
@@ -135,12 +163,10 @@ abstract final class RfRoutes {
   static const gallery = '/gallery';
 }
 
-// TODO(placeholder): The Goals branch shows a labelled RfNotYetAvailable
-// screen until WP 11 delivers it (standards §10).
 /// Application router: brand app bar, five-pillar bottom navigation
 /// (Home · Train · Fuel · Track · Goals, per the brand mock-up) with one
 /// branch per tab. Train hosts the exercise library, Fuel nutrition, Track
-/// body-weight logging; Goals is a labelled placeholder until WP 11.
+/// body-weight logging; Goals hosts targets, progress and summaries.
 final _rootKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
@@ -398,12 +424,7 @@ GoRouter createRouter({String initialLocation = RfRoutes.home}) => GoRouter(
           routes: [
             GoRoute(
               path: RfRoutes.goals,
-              builder: (context, state) => const PillarPlaceholderScreen(
-                title: 'Goals',
-                caption: 'Targets and weekly summaries',
-                feature: 'Calorie, macro, weight and training goals',
-                workPackage: 'WP 11',
-              ),
+              builder: (context, state) => const GoalsHomeScreen(),
             ),
           ],
         ),
@@ -456,13 +477,16 @@ class _UnknownMeasurementScreen extends StatelessWidget {
   );
 }
 
-class _Shell extends StatelessWidget {
+class _Shell extends ConsumerWidget {
   const _Shell({required this.shell});
 
   final StatefulNavigationShell shell;
 
+  /// Index of the Goals branch.
+  static const _goalsIndex = 4;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final rf = context.rf;
     return Scaffold(
       appBar: AppBar(
@@ -493,10 +517,12 @@ class _Shell extends StatelessWidget {
         ),
         child: NavigationBar(
           selectedIndex: shell.currentIndex,
-          onDestinationSelected: (index) => shell.goBranch(
-            index,
-            initialLocation: index == shell.currentIndex,
-          ),
+          onDestinationSelected: (index) {
+            // Goal progress watches only the newest rows; opening the tab
+            // re-reads it so edits of older rows show.
+            if (index == _goalsIndex) ref.invalidate(goalProgressProvider);
+            shell.goBranch(index, initialLocation: index == shell.currentIndex);
+          },
           destinations: const [
             NavigationDestination(
               key: Key('nav-home'),
