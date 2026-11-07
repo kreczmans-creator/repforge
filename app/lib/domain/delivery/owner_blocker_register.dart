@@ -1800,4 +1800,61 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     ],
     deliveryRecord: 'docs/delivery-record/WP17.md',
   ),
+  OwnerBlocker(
+    id: 'OB-PROG-02',
+    workPackage: BlockerWorkPackage.programme,
+    stage: 'Release candidate of the 2026-11-07 campaign',
+    reference:
+        'docs/verification/overnight-campaign-2026-11-07.md, "GitHub Actions '
+        'stopped starting jobs (02:03 UTC)"',
+    title: 'GitHub Actions no longer starts jobs for the repository',
+    description:
+        'From 02:03 UTC on 2026-11-07 every workflow run on the campaign '
+        'branch ends in failure within seconds, with no runner assigned, no '
+        'steps and no log: the four push-triggered runs on 1259e75 and a '
+        'test dispatch of ci.yml on 3a44733. Runs that began at 01:43 and '
+        'earlier started normally. The symptom matches an account-level stop '
+        '(the included Actions minutes or the spending limit of the private '
+        'repository exhausted after a night of emulator and macOS runs); '
+        'the GitHub status page could not be reached from the campaign '
+        'environment, so an incident is not ruled out.',
+    category: BlockerCategory.externalInfrastructure,
+    priority: BlockerPriority.high,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Only the account owner can see and change Actions billing and the '
+        'spending limit. Without Actions there is no CI evidence and no '
+        'CI-built APK for the release candidate, and the campaign builds no '
+        'APK locally (no Android SDK in the environment).',
+    actionRequired:
+        'Check Settings, Billing and plans, Actions usage and spending limit '
+        'for the kreczmans-creator account; raise the limit or wait for the '
+        'monthly reset; then re-dispatch the four workflows (ci.yml, '
+        'android.yml, ios.yml, integration.yml) on the campaign release '
+        'candidate commit named in the report and record the run ids.',
+    recommendation:
+        'Keep the release candidate unpublished until the four workflows are '
+        'green on its exact commit; do not take the last green runs on an '
+        'earlier commit as evidence for it.',
+    consequences:
+        'Until Actions runs again the campaign release candidate has no '
+        'CI evidence and no APK; the nightly emulator run and the rolling '
+        'debug release also stop.',
+    evidence: [
+      BlockerEvidence(
+        'Failed runs',
+        reference:
+            'Actions runs 42327259844, 42327259880, 42327259899, '
+            '42327259894 (push, 1259e75); 42327475492 (dispatch, 3a44733)',
+      ),
+      BlockerEvidence(
+        'Last normal starts',
+        reference:
+            'Runs 42325613060 (CI, success) and 42325612956 (iOS, success) '
+            'on c153b60, started 01:43 UTC',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP14.md',
+  ),
 ];
