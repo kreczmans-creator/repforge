@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:repforge/domain/delivery/owner_blocker.dart';
 import 'package:repforge/domain/delivery/owner_blocker_register.dart';
@@ -67,6 +69,16 @@ void main() {
             reason: '${b.id}: an agent may not record owner acceptance',
           );
         }
+      }
+    });
+
+    test('every deliveryRecord path exists in the repository', () {
+      for (final b in ownerBlockerRegister) {
+        expect(
+          File('../${b.deliveryRecord}').existsSync(),
+          isTrue,
+          reason: '${b.id} ${b.deliveryRecord}',
+        );
       }
     });
 

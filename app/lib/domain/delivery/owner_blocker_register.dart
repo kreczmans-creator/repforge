@@ -256,27 +256,28 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     initialStatus: BlockerStatus.awaitingOwner,
     assignee: BlockerAssignee.owner,
     whyBlocked:
-        'The meaning of "now" is the owner wording. If it means not during '
-        '3b, (a) is open and re-opens the 3b-2 and 3b-4 evidence; if it '
-        'means not in v8 at all, only (b) is possible. The preparation '
-        'document makes no recommendation ahead of the owner.',
+        "The meaning of \"now\" in the owner's wording is open. If it means "
+        'not during 3b, (a) is open; if it means not in v8 at all, only '
+        '(b) is possible. The preparation document makes no '
+        'recommendation ahead of the owner. Context: stage 3b gate '
+        '(OB-WP8-04).',
     actionRequired:
         'Clarify the wording, then choose (a) amend the v8 definition '
         'before v8 is connected, or (b) add a later schema step; record it '
         'in D04 §7.',
     recommendation:
-        'No recommendation is recorded in the source. It notes that the '
-        'cost of adding a CHECK later (R-27) favours (a), and that WP 17 '
-        'S6a competing for the next version favours settling this before '
-        'v8 is connected. Choosing (a) keeps v9 for WP 17.',
+        'The source makes no recommendation. Costs: (a) re-opens the v8 '
+        'definition and its 3b evidence but keeps v9 free for WP 17 S6a '
+        'and lets the R-27 CHECK be written before release; (b) leaves v8 '
+        'untouched but uses the next free version, which WP 17 S6a also '
+        'wants, and a CHECK added later needs a schema change.',
     consequences:
         'Until decided, 3c-2 (reference-data loader) and 3c-4 '
-        '(relationships, content, media tables) cannot start. Choosing (b) '
-        'makes 3c and WP 17 S6a compete for v9.',
-    dependencies: [
-      'OB-WP8-04 (stage 3b gate)',
-      'WP 17 S6a schema version claim',
-    ],
+        '(relationships, content, media tables) cannot start. Choosing '
+        '(b) makes 3c and WP 17 S6a compete for v9. Choosing (a) re-opens '
+        'tables_v8.dart, drift_schema_v8.json, the generated v8 shapes, '
+        'from7To8 and backup format 3, and the 3b-2 and 3b-4 evidence.',
+    dependencies: ['WP 17 S6a schema version claim'],
     evidence: [
       BlockerEvidence(
         'Decision table',
@@ -422,10 +423,10 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'D-3c-6: confirm or reverse the merge of the pure-domain 3c stream '
         '(fea71c8)',
     description:
-        'D-3c-6 recommended allowing pure-domain and specification work '
-        'only, with no merge to the campaign branch before the 3b gate. '
-        'The campaign lead merged the stream (fea71c8) because the mandate '
-        'asked for the work and the merge has no runtime effect: no '
+        'The recommendation for D-3c-6 was to allow pure-domain and '
+        'specification work only, with no merge before the 3b gate; the '
+        "campaign lead merged anyway because the owner's mandate asked "
+        'for the work and the merge has no runtime effect (fea71c8): no '
         'migration, schema, v8 connection, bundled asset or call site.',
     category: BlockerCategory.ownerDecision,
     priority: BlockerPriority.medium,
@@ -433,7 +434,8 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     assignee: BlockerAssignee.owner,
     whyBlocked:
         'The merge departed from the recommended wording of D-3c-6, so '
-        'only the owner can confirm it or have it reversed.',
+        'only the owner can confirm it or have it reversed. Context: '
+        'stage 3b gate (OB-WP8-04).',
     actionRequired:
         'Confirm the merge stays, or reverse it (the record gives '
         'git revert -m 1 fea71c8).',
@@ -444,7 +446,6 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'Confirming keeps the stream and its 0.58 implemented points as a '
         'sensitivity; reversing removes the code from the campaign branch '
         'and the work is redone later. Either way stage 3b is untouched.',
-    dependencies: ['OB-WP8-04'],
     evidence: [
       BlockerEvidence(
         'Campaign section',
@@ -459,6 +460,96 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     ],
     deliveryRecord: 'docs/delivery-record/WP8.md',
   ),
+  OwnerBlocker(
+    id: 'OB-WP8-10',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c',
+    reference: 'Preparation §3.11; §4.9, §5.7 (2026-11-07)',
+    title:
+        'Approve the stage 3c sub-breakdown (2.00 points, preparation '
+        '§3.11)',
+    description:
+        'The preparation document proposes a sub-breakdown of the '
+        'approved 2.00-point stage 3c allocation (3c-1 0.40, 3c-2 0.45, '
+        '3c-3 0.50, 3c-4 0.30, 3c-5 0.15, 3c-6 0.20), each line following '
+        'the 70/20/10 split. Sections 4.9, 5.7 and the stage 6 effort '
+        'sections propose breakdowns for 3d, 5 and 6 that need the same '
+        'approval before credit.',
+    category: BlockerCategory.scopeApproval,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Stage-level allocations that sum to an approved total need a '
+        'traceable owner decision. The campaign reports the 3c figures '
+        '(0.58 implemented, 0.17 reviewed) only as a sensitivity, not as '
+        'earned progress.',
+    actionRequired:
+        'Approve or change the 3c sub-breakdown, and the proposed 3d, 5 '
+        'and 6 breakdowns, keeping each stage total unchanged.',
+    recommendation:
+        'The source states no recommendation beyond proposing the table '
+        'for approval.',
+    consequences:
+        'Until approved, the 3c sub-allocations are proposals, WP 8 '
+        'earned stays 9.66 (53.7 %) in the approved table, and the 3c '
+        'credit (0.75 supportable, 37.5 % of the stage) stays a '
+        'sensitivity.',
+    evidence: [
+      BlockerEvidence(
+        'Proposed breakdowns',
+        reference: 'docs/wp8-stage-3c-3d-5-6-preparation.md §3.11, §4.9, §5.7',
+      ),
+      BlockerEvidence(
+        'Sensitivity table (0.58 implemented, 0.17 reviewed)',
+        reference:
+            'WP8.md, "Overnight programme acceleration campaign (2026-11-07) '
+            '— stage 3c pure-domain stream"',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP8-11',
+    workPackage: BlockerWorkPackage.wp8,
+    stage: '3c-6',
+    reference:
+        'docs/catalogue/accepted-gaps.json (2026-11-07); '
+        'quality-and-duplicates.md §6, §6.1',
+    title:
+        'Confirm each accepted-gaps.json entry as an owner decision (6 '
+        'entries; the CI catalogue gate relies on them)',
+    description:
+        'docs/catalogue/accepted-gaps.json holds 6 entries copied from '
+        'quality-and-duplicates.md sections 6 and 6.1, approved with that '
+        'document on 2026-11-05. They were not re-decided; each is marked '
+        '"per-entry confirmation pending". No coverage gap is accepted.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.low,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'Accepting a gap is an owner decision; the file records approval '
+        'of the document, not of each entry.',
+    actionRequired:
+        'Confirm each of the 6 entries as an owner decision, or name the '
+        'ones to remove.',
+    recommendation: 'The source makes no recommendation.',
+    consequences:
+        'Until confirmed, the CI catalogue gate relies on dispositions '
+        'whose per-entry owner confirmation is pending.',
+    evidence: [
+      BlockerEvidence(
+        'Accepted gaps file',
+        reference: 'docs/catalogue/accepted-gaps.json',
+      ),
+      BlockerEvidence(
+        'Source dispositions',
+        reference: 'docs/catalogue/quality-and-duplicates.md §6, §6.1',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP8.md',
+  ),
   // --------------------------------------------------------------- WP 11
   OwnerBlocker(
     id: 'OB-WP11-01',
@@ -468,7 +559,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'WP 11 plan §10 decision 1, §9 (2026-11-06, reviewed 2026-11-07)',
     title:
         'Approve the WP 11 stage breakdown (7.0 points) and settle the '
-        'TRN-027/TRN-028/NUT-019 scope',
+        'TRN-027/TRN-028 scope',
     description:
         'The plan proposes a stage breakdown summing to 7.00 points '
         '(A 0.75, B 1.00, C 0.75, D1 1.00, D2 0.50, E 1.00, F 1.00, G1 '
@@ -523,14 +614,15 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'Proposed thresholds: 28 days of data, food logged on 80 % of '
         'days, 90 % of energy verified or user-entered, weight on 3 days '
         'per week. Result shown (a) in a developer or Settings status '
-        'line, or (b) not shown. The independent reviewer raised two '
-        'further choices: (1) which energy provenances count as "verified '
-        'or user-entered": the pure computation currently excludes '
-        'crowdsourced and counts user-entered, which reverses the '
-        'strength order of nutrition calculation spec §8; (2) whether '
-        'weigh-in regularity is judged by the weakest 7-day block or by an '
-        'average. Note that "days of data" is measured as the span from '
-        'the earliest record.',
+        'line, or (b) not shown. The independent review of the WP 11 '
+        'domain raised two further choices, which the pure computation '
+        'exposes as owner settings: (1) which energy provenances count as '
+        "'verified or user-entered': following the literal D04 GOL-012 "
+        'wording, the computation counts user-entered and excludes '
+        'crowdsourced, although nutrition calculation spec §8 ranks '
+        'crowdsourced above user-entered; (2) weigh-in regularity judged '
+        'on the weakest 7-day block rather than an average per week. '
+        "'Days of data' is measured as the span from the earliest record.",
     category: BlockerCategory.ownerDecision,
     priority: BlockerPriority.medium,
     initialStatus: BlockerStatus.awaitingOwner,
@@ -554,19 +646,77 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'thresholds and cannot be accepted, and GOL-011 forbids any '
         'coaching or recommendations. Different provenance or regularity '
         'rules change which datasets pass the check.',
-    dependencies: ['OB-WP11-01'],
     evidence: [
       BlockerEvidence(
         'Plan, decision 10 and GOL-012 row',
         reference: 'docs/wp11-analytics-plan.md §2, §10',
       ),
       BlockerEvidence(
-        'Independent review of the WP 11 domain',
-        reference: 'docs/verification/overnight-campaign-2026-11-07.md',
+        'GOL-012 computation (campaign/wp11, 55c4b67)',
+        reference:
+            'app/lib/domain/analytics/data_quality.dart: '
+            'DataQualityThresholds, WeightFrequencyRule, '
+            'DataQualityReport.evaluate',
+      ),
+      BlockerEvidence('Requirement', reference: 'D04 GOL-012, OQ-15'),
+      BlockerEvidence(
+        'Record of the choices',
+        reference: 'docs/delivery-record/WP11.md, "Decisions"',
       ),
       BlockerEvidence(
         'Provenance strength order',
         reference: 'docs/nutrition-calculation-spec.md §8',
+      ),
+    ],
+    deliveryRecord: 'docs/delivery-record/WP11.md',
+  ),
+  OwnerBlocker(
+    id: 'OB-WP11-03',
+    workPackage: BlockerWorkPackage.wp11,
+    stage: 'Delegated decisions (plan §10)',
+    reference:
+        'WP 11 plan §10 decisions 2-9, 11, 12; overnight campaign Phase A '
+        '(2026-11-07)',
+    title:
+        'Confirm or reverse the WP 11 plan decisions 2–9, 11 and 12 taken '
+        'under delegated authority',
+    description:
+        'The campaign took these plan decisions under delegated '
+        'authority: 2(a) direction derived at read time, exercise-target '
+        'goals deferred; 3(a) read-only history() on GoalRepository, no '
+        'schema change; 4(a) sequencing; 5(c) no adherence figure; 6(c) '
+        'no estimated 1RM; 7(b) each domain keeps its day rule and labels '
+        'it; 8(a) rate of change from first and last trend point; 9(a) no '
+        'PR rule for assisted or cardio; 11(a) NUT-019 badge on day and '
+        'weekly totals; 12(b) stacked charts on one date axis. Decision '
+        '3(a) adds a read-only method to the closed WP 4 GoalRepository, '
+        'and 11(a) changes the closed WP 5 Fuel screens.',
+    category: BlockerCategory.ownerDecision,
+    priority: BlockerPriority.medium,
+    initialStatus: BlockerStatus.awaitingOwner,
+    assignee: BlockerAssignee.owner,
+    whyBlocked:
+        'The campaign recorded these as engineering decisions, not '
+        'owner-reserved product decisions, but the plan lists them as '
+        'owner decisions, and two touch closed work packages.',
+    actionRequired: 'Confirm each decision, or name the ones to reverse.',
+    recommendation:
+        'The plan recommends the options that were taken (its section '
+        '10); the owner is not bound by that.',
+    consequences:
+        'Confirming keeps the delivered code. Reversing 3(a) or 11(a) '
+        'removes the history() read or the Fuel badge and reopens '
+        'GOL-006(1) and NUT-019 behaviour; other reversals change the '
+        'matching stage design.',
+    evidence: [
+      BlockerEvidence(
+        'Plan decision list',
+        reference: 'docs/wp11-analytics-plan.md §10',
+      ),
+      BlockerEvidence(
+        'Delegated decisions',
+        reference:
+            'docs/verification/overnight-campaign-2026-11-07.md, Phase A',
       ),
     ],
     deliveryRecord: 'docs/delivery-record/WP11.md',
@@ -598,7 +748,12 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'stub with no working implementation.',
     actionRequired:
         'Read ADR-0012, choose option A, B or C, and record the choice in '
-        'the ADR Decision section and in D04 section 7 (answering OQ-08).',
+        'the ADR Decision section and in D04 section 7 (answering OQ-08). '
+        'If B or C, also answer the OQ-08 scope parts: which sign-in '
+        'methods and which data is in scope. Separately, and under any '
+        'option, the owner may authorise the iOS iCloud exclusion hook '
+        '(TD-21) and scheduled local backup (DAT-008); neither needs an '
+        'account.',
     recommendation:
         'The ADR proposes option A (no accounts in v1; file backup only), '
         'with a revisit trigger: a named multi-device need, a stable '
@@ -717,7 +872,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-01',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Signing',
-    reference: 'WP14.md, Owner actions: Owner action 1',
+    reference: 'WP14.md, Owner actions item 1',
     title: 'Store signing secrets and release environment',
     description:
         'Generate the Android upload keystore offline and provision the '
@@ -766,7 +921,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-02',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'First release',
-    reference: 'WP14.md, Owner actions: Owner action 2',
+    reference: 'WP14.md, Owner actions item 2',
     title: 'Decide the first release version and tag it',
     description:
         'Decide the first version (0.4.0 as in pubspec, or another), move '
@@ -808,7 +963,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-03',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Store listings',
-    reference: 'WP14.md, Owner actions: Owner action 3',
+    reference: 'WP14.md, Owner actions item 3',
     title: 'Provide or approve the store listings',
     description:
         'Provide or approve names, descriptions, screenshots, privacy '
@@ -820,7 +975,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     assignee: BlockerAssignee.owner,
     whyBlocked:
         'Listing content and legal answers (privacy policy, data safety, '
-        'age rating) are the owner own content and statements.',
+        "age rating) are the owner's own content and statements.",
     actionRequired:
         'Supply or approve the listing text, screenshots, privacy policy '
         'and the data-safety and age-rating answers for both stores.',
@@ -844,7 +999,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-04',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Beta accounts',
-    reference: 'WP14.md, Owner actions: Owner action 4',
+    reference: 'WP14.md, Owner actions item 4',
     title: 'Open the beta distribution accounts',
     description:
         'Google Play Console (internal testing track) and the Apple '
@@ -881,7 +1036,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-05',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Crash reporting',
-    reference: 'WP14.md, Owner actions: Owner action 5',
+    reference: 'WP14.md, Owner actions item 5',
     title: 'Decide on opt-in crash reporting',
     description:
         'Decide whether to add opt-in crash reporting at all, which '
@@ -917,7 +1072,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-06',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Test certificate',
-    reference: 'WP14.md, Owner actions: Owner action 6',
+    reference: 'WP14.md, Owner actions item 6',
     title: 'Approve the test-build certificate approach',
     description:
         'Confirm the cache-based debug keystore is acceptable, or provide a '
@@ -937,8 +1092,9 @@ const List<OwnerBlocker> ownerBlockerRegister = [
         'secret, and accept the one-time uninstall by testers.',
     recommendation: 'The record gives no recommendation.',
     consequences:
-        'Until chosen, two CI builds may keep different certificates and '
-        'cannot be installed over each other.',
+        'Until confirmed, the cache-based keystore stays in use '
+        'unconfirmed; that it gives a stable certificate is unproven '
+        'until its first CI run (WP14.md, Blockers).',
     evidence: [
       BlockerEvidence(
         'Owner actions list',
@@ -955,7 +1111,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-07',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Device checklist',
-    reference: 'WP14.md, Owner actions: Owner action 7',
+    reference: 'WP14.md, Owner actions item 7',
     title: 'Run the release device checklist on Android and iPhone',
     description:
         'Run the release device checklist on an Android phone and an iPhone '
@@ -992,7 +1148,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-08',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'NUT-023 schema',
-    reference: 'WP14.md, Owner actions: Owner action 8',
+    reference: 'WP14.md, Owner actions item 8',
     title: 'Decide the NUT-023 source schema',
     description:
         'Decide whether a dedicated source_id column (and optionally import '
@@ -1029,7 +1185,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     id: 'OB-WP14-09',
     workPackage: BlockerWorkPackage.wp14,
     stage: 'Acceptance',
-    reference: 'WP14.md, Owner actions: Owner action 9',
+    reference: 'WP14.md, Owner actions item 9',
     title: 'Record the WP 14 acceptance decision',
     description:
         'After a tagged release has produced signed artefacts, and the '
@@ -1044,7 +1200,7 @@ const List<OwnerBlocker> ownerBlockerRegister = [
     actionRequired:
         'Record acceptance (or the changes wanted) once the verification '
         'run and review are done.',
-    recommendation: 'None: acceptance is the owner decision.',
+    recommendation: "None: acceptance is the owner's decision.",
     consequences:
         'WP 14 stays at its earned points and cannot be reported complete.',
     dependencies: ['OB-WP14-01', 'OB-WP14-02'],
