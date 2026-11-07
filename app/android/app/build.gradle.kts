@@ -31,11 +31,44 @@ android {
         versionName = flutter.versionName
     }
 
+    // WP 14 release signing. The release workflow (.github/workflows/release.yml)
+    // supplies these four values from repository secrets; they are read from
+    // Gradle properties (-PRF_...) or the environment. No keystore or password
+    // is ever committed (engineering standards, section 9). When any value is
+    // absent the release build type keeps the debug signing below, so local
+    // builds and the existing workflows behave exactly as before.
+    fun rfSigning(name: String): String? =
+        (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
+            ?: System.getenv(name)?.takeIf { it.isNotBlank() }
+
+    val rfKeystorePath = rfSigning("RF_KEYSTORE_PATH")
+    val rfKeystorePassword = rfSigning("RF_KEYSTORE_PASSWORD")
+    val rfKeyAlias = rfSigning("RF_KEY_ALIAS")
+    val rfKeyPassword = rfSigning("RF_KEY_PASSWORD")
+    val rfReleaseSigned =
+        rfKeystorePath != null && rfKeystorePassword != null &&
+            rfKeyAlias != null && rfKeyPassword != null
+
+    signingConfigs {
+        if (rfReleaseSigned) {
+            create("release") {
+                storeFile = file(rfKeystorePath!!)
+                storePassword = rfKeystorePassword
+                keyAlias = rfKeyAlias
+                keyPassword = rfKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Release signing when all four RF_* values are present; otherwise
+            // the debug keys, so `flutter run --release` and the CI R8 check work.
+            signingConfig = if (rfReleaseSigned) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
