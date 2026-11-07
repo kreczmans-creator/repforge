@@ -27,25 +27,41 @@ const Map<ReleaseReferenceName, String> referenceFiles = {
   ReleaseReferenceName.equipment: 'assets/catalogue/reference/equipment.json',
 };
 
+const String _note1 =
+    'IC-708: 85 instruction items are near-identical across related '
+    'exercises (for example curl and row cues). Keep, vary or merge them; '
+    'the pairs are listed in the catalogue gate report for release 3.';
+const String _note2 =
+    'Illustrations are two-dimensional side views with fixed segment '
+    'lengths. Arms that move sideways in reality (push-up bottom, pull-up '
+    'top, bar grip in the back squat) look shorter and more folded than '
+    'in life; confirm each figure against the steps and captions.';
+const String _note3 =
+    'Tempo lines are qualitative (no counts). Check that each of the 60 '
+    'is meaningful for its exercise and remove any that are not.';
+const String _note4 =
+    'Common mistakes are stored as "Fault. Fix." and shown split at the '
+    'first sentence; keep the fault to one sentence.';
+const String _note5 =
+    'Assisted machines differ: the exit steps for the assisted dip and '
+    'pull-up describe a counterweight machine. Check them against the '
+    'machines in use.';
+const String _note6 =
+    'lib-run-400m and lib-outdoor-run are not linked (owner decision '
+    'KS-D7).';
+const String _note7 =
+    'Muscles on the detail screen come from the stored v7 record; the '
+    'release 2 targets in this report can differ until stage 3d (KS-D8).';
+
 /// Editor notes carried into the report (section 5).
 const List<String> editorNotes = [
-  'IC-708: 85 instruction items are near-identical across related exercises '
-      '(for example curl and row cues). Keep, vary or merge them; the pairs are '
-      'listed in the catalogue gate report for release 3.',
-  'Illustrations are two-dimensional side views with fixed segment lengths. '
-      'Arms that move sideways in reality (push-up bottom, pull-up top, bar '
-      'grip in the back squat) look shorter and more folded than in life; '
-      'confirm each figure against the steps and captions.',
-  'Tempo lines are qualitative (no counts). Check that each of the 60 is '
-      'meaningful for its exercise and remove any that are not.',
-  'Common mistakes are stored as "Fault. Fix." and shown split at the first '
-      'sentence; keep the fault to one sentence.',
-  'Assisted machines differ: the exit steps for the assisted dip and pull-up '
-      'describe a counterweight machine. Check them against the machines in '
-      'use.',
-  'lib-run-400m and lib-outdoor-run are not linked (owner decision KS-D7).',
-  'Muscles on the detail screen come from the stored v7 record; the release '
-      '2 targets in this report can differ until stage 3d (KS-D8).',
+  _note1,
+  _note2,
+  _note3,
+  _note4,
+  _note5,
+  _note6,
+  _note7,
 ];
 
 /// Builds the report text, or the failure message.
