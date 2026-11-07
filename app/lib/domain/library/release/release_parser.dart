@@ -97,7 +97,7 @@ final RegExp _hex64 = RegExp(r'^[0-9a-f]{64}$');
 final RegExp _plainPath = RegExp(
   r'^(?!\.{1,2}(/|$))[A-Za-z0-9_-][A-Za-z0-9._-]*(/(?!\.{1,2}(/|$))[A-Za-z0-9_-][A-Za-z0-9._-]*)*$',
 );
-final RegExp _date = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+final RegExp _datePattern = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 const Set<String> _trancheStatuses = {'planned', 'inProgress', 'complete'};
 
 class _ReleaseParser {
@@ -188,6 +188,7 @@ class _ReleaseParser {
     final relationships = <ExerciseRelationship>[];
     final content = <ContentSection>[];
     final media = <MediaReference>[];
+    final contentProvenance = <ExerciseId, ContentProvenance>{};
     final rawExercises = r.list(root['exercises'], 'exercises');
     if (rawExercises != null) {
       for (var i = 0; i < rawExercises.length; i++) {
@@ -206,6 +207,7 @@ class _ReleaseParser {
           relationships,
           content,
           media,
+          contentProvenance,
         );
       }
     }
@@ -233,6 +235,7 @@ class _ReleaseParser {
       relationships: relationships,
       content: content,
       media: media,
+      contentProvenance: contentProvenance,
       retirements: retirements,
       tranches: tranches,
     );
@@ -263,8 +266,10 @@ class _ReleaseParser {
     );
   }
 
-  DateTime? _releasedOn(Object? value) {
-    final m = value is String ? _date.firstMatch(value) : null;
+  DateTime? _releasedOn(Object? value) => _date(value, 'releasedOn');
+
+  DateTime? _date(Object? value, String path) {
+    final m = value is String ? _datePattern.firstMatch(value) : null;
     if (m != null) {
       final y = int.parse(m.group(1)!);
       final mo = int.parse(m.group(2)!);
@@ -272,7 +277,7 @@ class _ReleaseParser {
       final date = DateTime.utc(y, mo, d);
       if (date.year == y && date.month == mo && date.day == d) return date;
     }
-    r.fail('releasedOn', 'Expected a calendar date as YYYY-MM-DD.');
+    r.fail(path, 'Expected a calendar date as YYYY-MM-DD.');
     return null;
   }
 
@@ -369,6 +374,7 @@ class _ReleaseParser {
     List<ExerciseRelationship> relationships,
     List<ContentSection> content,
     List<MediaReference> media,
+    Map<ExerciseId, ContentProvenance> contentProvenance,
   ) {
     final m = r.map(raw, path);
     if (m == null) return;
@@ -388,6 +394,7 @@ class _ReleaseParser {
       'provenance',
       'relationships',
       'content',
+      'contentProvenance',
       'media',
     }, path);
     final id = r.string(m, 'id', path);
@@ -421,6 +428,7 @@ class _ReleaseParser {
         relationships,
       );
       _content(m['content'], '$path.content', null, 0, content);
+      _contentProvenance(m['contentProvenance'], '$path.contentProvenance');
       _media(m['media'], '$path.media', null, 0, provider, media);
       return;
     }
@@ -460,7 +468,45 @@ class _ReleaseParser {
       content,
       provider,
     );
+    final cp = _contentProvenance(
+      m['contentProvenance'],
+      '$path.contentProvenance',
+    );
+    if (cp != null) contentProvenance[exerciseId] = cp;
     _media(m['media'], '$path.media', exerciseId, revision, provider, media);
+  }
+
+  /// Specification revision 2: provenance of the instruction content.
+  ContentProvenance? _contentProvenance(Object? value, String path) {
+    if (value == null) return null;
+    final m = r.map(value, path);
+    if (m == null) return null;
+    _closed(m, {
+      'authoredBy',
+      'editor',
+      'status',
+      'draftingAssistance',
+      'draftedOn',
+      'approvedOn',
+    }, path);
+    final authoredBy = r.string(m, 'authoredBy', path);
+    final status = r.enumValue(ContentStatus.values, m, 'status', path);
+    final editor = r.optionalString(m, 'editor', path);
+    final assistance = r.optionalString(m, 'draftingAssistance', path);
+    final draftedOn = _date(m['draftedOn'], '$path.draftedOn');
+    final approvedOn = m['approvedOn'] == null
+        ? null
+        : _date(m['approvedOn'], '$path.approvedOn');
+    if (authoredBy == null || status == null || draftedOn == null) return null;
+    if (m['approvedOn'] != null && approvedOn == null) return null;
+    return ContentProvenance(
+      authoredBy: authoredBy,
+      status: status,
+      draftedOn: draftedOn,
+      editor: editor,
+      draftingAssistance: assistance,
+      approvedOn: approvedOn,
+    );
   }
 
   T? _optionalEnum<T extends Enum>(
@@ -718,12 +764,26 @@ class _ReleaseParser {
       final mp = '$path[$i]';
       final m = r.map(raw[i], mp);
       if (m == null) continue;
-      _closed(m, {'id', 'kind', 'locator', 'licence', 'attribution'}, mp);
+      _closed(m, {
+        'id',
+        'kind',
+        'locator',
+        'licence',
+        'attribution',
+        'purpose',
+        'caption',
+        'source',
+        'availability',
+      }, mp);
       final id = r.string(m, 'id', mp);
       final kind = r.string(m, 'kind', mp);
       final locator = r.string(m, 'locator', mp);
       final licence = r.string(m, 'licence', mp);
       final attribution = r.string(m, 'attribution', mp);
+      final purpose = r.optionalString(m, 'purpose', mp);
+      final caption = r.optionalString(m, 'caption', mp);
+      final source = r.optionalString(m, 'source', mp);
+      final availability = r.optionalString(m, 'availability', mp);
       if (owner == null ||
           id == null ||
           kind == null ||
@@ -742,6 +802,11 @@ class _ReleaseParser {
           attribution: attribution,
           providerId: provider,
           revision: revision,
+          ordinal: i,
+          purpose: purpose,
+          caption: caption,
+          source: source,
+          availability: availability,
         ),
       );
     }

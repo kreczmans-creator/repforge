@@ -213,9 +213,11 @@ void main() {
     });
 
     test('an unknown section kind is not in the controlled list (IC-308)', () {
+      // `cues` joined the controlled list with release format 2
+      // specification revision 2; an uncontrolled kind is still refused.
       final rows = [
         ...good('lib-a'),
-        row('lib-a', 'cues', 0, 'Keep the chest tall and proud.'),
+        row('lib-a', 'warmUpDrills', 0, 'Keep the chest tall and proud.'),
       ];
       expect(run(rows).codes, contains('IC-308'));
     });

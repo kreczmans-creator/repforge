@@ -40,7 +40,14 @@ final class ContentSection extends ValueObject {
 }
 
 /// A reference to media (kind, locator, licence, attribution). No binary data
-/// is stored and nothing is displayed in WP 8 stage 3.
+/// is stored in the database (ADR-0008 decision 6).
+///
+/// Release format 2, specification revision 2 adds the knowledge-system media
+/// fields: display [purpose], sequence [ordinal] (position in the exercise's
+/// media list), [caption], [source] (`original` or `licensed`) and
+/// [availability] (`available` or `unavailable`). They are optional so that a
+/// revision 1 reference stays representable; the exercise-knowledge checks
+/// require them for knowledge content.
 @immutable
 final class MediaReference extends ValueObject {
   const MediaReference({
@@ -52,18 +59,37 @@ final class MediaReference extends ValueObject {
     required this.attribution,
     this.providerId = ProviderId.repforge,
     this.revision = 1,
+    this.ordinal = 0,
+    this.purpose,
+    this.caption,
+    this.source,
+    this.availability,
   });
 
   final String id;
   final ExerciseId exerciseId;
 
-  /// Kind as text (`image`, `video`); the list is open, like content kinds.
+  /// Kind as text (`image`, `illustration`, `animation`, `video`); the list is
+  /// open, like content kinds.
   final String kind;
   final String locator;
   final String licence;
   final String attribution;
   final ProviderId providerId;
   final int revision;
+
+  /// Position in the exercise's media list, from 0 (display sequence).
+  final int ordinal;
+
+  /// What the media shows (`start`, `execution`, `finish`, `overview`).
+  final String? purpose;
+  final String? caption;
+
+  /// `original` (RepForge-authored) or `licensed`.
+  final String? source;
+
+  /// `available` or `unavailable` (a recorded gap).
+  final String? availability;
 
   @override
   List<Object?> get props => [
@@ -75,8 +101,53 @@ final class MediaReference extends ValueObject {
     attribution,
     providerId,
     revision,
+    ordinal,
+    purpose,
+    caption,
+    source,
+    availability,
   ];
 }
+
+/// Provenance of an exercise's instruction content (release format 2,
+/// specification revision 2; `provenance-and-licensing.md` section 3 item 7
+/// and section 8). A named human [editor] is the accountable author; AI
+/// drafting assistance is recorded in [draftingAssistance]. Until an editor
+/// approves it, content stays [ContentStatus.draftAwaitingEditor].
+@immutable
+final class ContentProvenance extends ValueObject {
+  const ContentProvenance({
+    required this.authoredBy,
+    required this.status,
+    required this.draftedOn,
+    this.editor,
+    this.draftingAssistance,
+    this.approvedOn,
+  });
+
+  final String authoredBy;
+  final ContentStatus status;
+  final DateTime draftedOn;
+
+  /// The named human editor; null until one is assigned.
+  final String? editor;
+  final String? draftingAssistance;
+  final DateTime? approvedOn;
+
+  @override
+  List<Object?> get props => [
+    authoredBy,
+    status,
+    draftedOn,
+    editor,
+    draftingAssistance,
+    approvedOn,
+  ];
+}
+
+/// Editorial status of instruction content. Nothing is complete or published
+/// until a named human editor approves it (owner rule, D04 section 7).
+enum ContentStatus { draftAwaitingEditor, editorApproved }
 
 /// A content provider (ADR-0009 decision 2): licence and attribution are
 /// always recorded.

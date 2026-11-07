@@ -53,6 +53,7 @@ final class ReleaseDocument extends ValueObject {
     List<ExerciseRelationship> relationships = const [],
     List<ContentSection> content = const [],
     List<MediaReference> media = const [],
+    Map<ExerciseId, ContentProvenance> contentProvenance = const {},
     List<Retirement> retirements = const [],
     Map<String, String> tranches = const {},
   }) : reference = Map.unmodifiable(reference),
@@ -60,6 +61,7 @@ final class ReleaseDocument extends ValueObject {
        relationships = List.unmodifiable(relationships),
        content = List.unmodifiable(content),
        media = List.unmodifiable(media),
+       contentProvenance = Map.unmodifiable(contentProvenance),
        retirements = List.unmodifiable(retirements),
        tranches = Map.unmodifiable(tranches);
 
@@ -71,6 +73,10 @@ final class ReleaseDocument extends ValueObject {
   final List<ExerciseRelationship> relationships;
   final List<ContentSection> content;
   final List<MediaReference> media;
+
+  /// Provenance of the instruction content per exercise (specification
+  /// revision 2); absent for an exercise without content provenance.
+  final Map<ExerciseId, ContentProvenance> contentProvenance;
   final List<Retirement> retirements;
 
   /// Tranche id to `planned`, `inProgress` or `complete`.
@@ -95,6 +101,7 @@ final class ReleaseDocument extends ValueObject {
     relationships,
     content,
     media,
+    contentProvenance,
     [for (final r in retirements) (r.id, r.reason, r.replacedBy)],
     tranches,
   ];

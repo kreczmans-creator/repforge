@@ -97,6 +97,21 @@ abstract final class ContentSectionKinds {
   static const String breathing = 'breathing';
   static const String commonMistakes = 'commonMistakes';
 
+  /// Knowledge-system kinds (release format 2, specification revision 2;
+  /// ADR-0008 decision 6 names "later kinds such as cues or safety"). They are
+  /// optional for the integrity checks (IC-210 still asks for [core] only);
+  /// the exercise-knowledge completeness matrix decides which are required.
+  static const String description = 'description';
+  static const String cues = 'cues';
+  static const String safety = 'safety';
+
+  /// Tempo guidance, only where it is meaningful for the exercise.
+  static const String tempo = 'tempo';
+
+  /// Why each common mistake is undesirable: item n explains item n of
+  /// [commonMistakes] (same count, same order).
+  static const String mistakeEffects = 'mistakeEffects';
+
   /// The four sections every system exercise carries (IC-210), in order.
   static const List<String> core = [
     setup,
@@ -111,6 +126,11 @@ abstract final class ContentSectionKinds {
     execution,
     breathing,
     commonMistakes,
+    description,
+    cues,
+    safety,
+    tempo,
+    mistakeEffects,
   };
 
   /// Allowed item counts per section (IC-702): minimum and maximum.
@@ -119,6 +139,11 @@ abstract final class ContentSectionKinds {
     execution: (3, 6),
     breathing: (1, 2),
     commonMistakes: (2, 4),
+    description: (1, 2),
+    cues: (2, 4),
+    safety: (1, 3),
+    tempo: (1, 1),
+    mistakeEffects: (2, 4),
   };
 
   static bool isControlled(String kind) => controlled.contains(kind);

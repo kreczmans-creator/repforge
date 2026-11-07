@@ -116,7 +116,12 @@ void main() {
         'commonMistakes',
       ]);
       expect(ContentSectionKinds.isControlled('setup'), isTrue);
-      expect(ContentSectionKinds.isControlled('cues'), isFalse);
+      // Release format 2, specification revision 2: knowledge-system kinds
+      // join the controlled list; IC-210 still requires the core four only.
+      expect(ContentSectionKinds.isControlled('cues'), isTrue);
+      expect(ContentSectionKinds.isControlled('safety'), isTrue);
+      expect(ContentSectionKinds.isControlled('videoScript'), isFalse);
+      expect(ContentSectionKinds.itemCounts['mistakeEffects'], (2, 4));
       expect(ContentSectionKinds.itemCounts['execution'], (3, 6));
       expect(canonicalLocale, 'en-GB');
     });

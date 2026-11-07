@@ -1349,7 +1349,10 @@ String _fingerprint(
   final m = media.where((x) => x.exerciseId == e.id).toList()
     ..sort((a, b) => a.id.compareTo(b.id));
   for (final x in m) {
-    b.write('|m:${x.id}:${x.kind}:${x.locator}:${x.licence}:${x.attribution}');
+    b.write(
+      '|m:${x.id}:${x.kind}:${x.locator}:${x.licence}:${x.attribution}'
+      ':${x.ordinal}:${x.purpose}:${x.caption}:${x.source}:${x.availability}',
+    );
   }
   final r =
       relationships
