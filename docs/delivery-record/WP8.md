@@ -979,3 +979,23 @@ The owner approved the 13 open decisions and the 3b effort allocation (D04 §7, 
 Stage 3d: 0.00 of 1.50 (preparation only). WP 8 earned stays **9.66 (53.7 %)** at evidence baseline `e50a047` in the approved table; the 3c figures above (0.75 supportable, 37.5 % of the stage) are a sensitivity until the owner approves the sub-breakdown, and are reported that way in the programme snapshot. Confidence medium for the delivered code, low for the stage. Not accepted.
 
 **Blockers and dependencies.** Stage 3b gate (OB-WP8-04); D-3c-1 (schema location) before 3c-2 and 3c-4; D-3c-2 (R-21 `releasedOn`); D-3c-3 (bundling); D-3c-5; D-3c-6 (confirm or reverse the merge). The WP 8 session's push `163ce4a` (3b decision baseline) was not integrated by the campaign.
+
+## Exercise knowledge system (2026-11-07) — WP 8 session, branch for `claude/exercise-knowledge-2026-11-07`
+
+**Authority.** Owner brief of 2026-11-07 (exercise knowledge system) and D04 section 7 entries of 2026-11-07 (allocation to the WP 8 session; base `claude/campaign-2026-11-07`; the stage 3c release format is canonical and is extended, not duplicated). Base ancestry: `aa59021` is an ancestor; none of the 13 commits of the isolated 3b branch `ccr-9fda2c32-wr163b` beyond the base is included; no v8, migration or schema code changed (production schema v7). `app/assets/seed/exercise_library.json` is unchanged (SHA-256 pinned in a test). `pubspec.yaml` is unchanged (D-3c-3 open).
+
+**Delivered (unreviewed).** Full description: `docs/catalogue/exercise-knowledge-system.md`.
+- Release format 2 **specification revision 2** (additive): content kinds `description`, `cues`, `safety`, `tempo`, `mistakeEffects`; `contentProvenance`; media `purpose`, `caption`, `source`, `availability`, sequence by position (`docs/catalogue/release-format-2.md` section 12). Release 2 unchanged.
+- Release 3 (`app/assets/catalogue/releases/repforge-release-3.json`): the 89 exercises at revision 3 with drafted instruction content for all 89, 62 relationship declarations, 18 original illustration references for 10 exercises. Catalogue gate: 2 releases, 0 errors; release 3 clears IC-210 and the IC-412 worklist; 85 IC-708 warnings for editorial review.
+- Knowledge domain (`app/lib/domain/exercise_knowledge/`), bundled read-only adapter, providers, detail-screen sections A–I, original code-drawn illustrations, labelled placeholder, no-instructions state for custom exercises.
+- Completeness report `docs/catalogue/content-completeness-2026-11-07.md` (generated; a test recomputes it).
+
+**Counts.** Exercises 89; content drafted 89 (`draftAwaitingEditor`); editor-approved 0; all required instruction elements present 89 (drafts); with original illustrations 10; placeholder shown 79; without related catalogue exercises 15.
+
+**Owner decisions requested.** KS-D1 to KS-D8 (`docs/catalogue/exercise-knowledge-system.md` section 9): spec revision 2 versus formatVersion 3; D-3c-3 bundling; relation of release 3 to stage 5 tranches; named editor; renderer/photography dependency; legal review; `lib-run-400m` disposition; muscles shown from v7 until 3d.
+
+**Effort points (allocation 18.00, unchanged).** No sub-allocation exists for the owner brief of 2026-11-07. The work touches three approved stage lines: stage 3c (3c-4 "relationships, content, media", 0.30, proposed), stage 5 ("instructions for every system exercise", within 2.00) and stage 6 ("relationship navigation and instruction display", 0.20 proposed). All three stage gates are open (3b acceptance; stage 3 acceptance and the 5.1 pilot; 3d), the work is not independently reviewed and the content is not editor-approved. **Earned stays 9.66 (53.7 %); remaining 8.34; no credit is claimed.** Sensitivity, for the owner only, if the owner maps this work to those lines and approves the sub-breakdowns: implementation credit (70 %) of 3c-4 content and media data 0.21 and of the stage 6 display line 0.14; stage 5 content credit only after editor approval and tranche acceptance. Estimate confidence: low for the stage mapping, medium for the delivered code. Evidence baseline: this branch, 2026-11-07. Scope change: the owner brief adds media display and illustrations, which plan section 15 item 6 placed outside WP 8 acceptance ("media deferred"); estimate review requested (governance section 6). Acceptance: not accepted.
+
+**Programme roll-up (unchanged by this work).** Full 77.11 / 105 = 73.4 %; core 77.11 / 97 = 79.5 % (snapshot `docs/governance/programme-progress-2026-11-07.md`, 2026-11-07).
+
+**Blockers and dependencies.** D-3c-3 (bundling) for visibility in the app; a named editor for content approval; independent review of this branch before push; stage 3b gate (OB-WP8-04) for any reconciler loading of release 3.
