@@ -50,7 +50,7 @@ final class ImportLegacyRecipes {
   });
 
   /// Version recorded in settings once this seed has been imported.
-  static const seedVersion = 1;
+  static const seedVersion = 2;
 
   final RecipeRepository recipes;
   final SettingsRepository settings;
