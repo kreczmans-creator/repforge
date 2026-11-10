@@ -141,6 +141,29 @@ void main() {
     },
   );
 
+  test('upgrades an existing version 1 install and imports only missing ids', () async {
+    await settings.saveSeedRecipesVersion(1);
+    final existing = Recipe(
+      id: 'starter-a',
+      name: 'Existing burrito',
+      category: 'Lunch',
+      portions: 8,
+      ingredients: const [],
+      ingredientNotes: const ['chicken'],
+      declaredPerPortion: const NutrientAmounts(kcal: 460),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+    await recipes.upsert(existing);
+
+    final r = (await importer()() as Ok<LegacyImportSummary>).value;
+    expect(r.imported, 1);
+    expect(r.alreadyPresent, 1);
+    expect(await settings.readSeedRecipesVersion(), 2);
+    expect((await recipes.byId('starter-a'))!.name, 'Existing burrito');
+    expect((await recipes.byId('starter-b'))!.name, 'Porridge');
+  });
+
   test('a seed deleted by the user is never re-created', () async {
     await importer()();
     await recipes.delete('starter-a');
