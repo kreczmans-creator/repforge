@@ -9,10 +9,10 @@
       "description": "Batch-cooked chicken, rice, black beans, peppers and reduced-fat cheddar in a wholemeal tortilla.",
       "portions": 8,
       "perPortion": {
-        "kcal": 460.0,
-        "proteinG": 43.0,
-        "carbsG": 48.0,
-        "fatG": 11.0
+        "kcal": 460,
+        "proteinG": 43,
+        "carbsG": 48,
+        "fatG": 11
       },
       "ingredientLines": [
         "1 kg chicken breast",
@@ -53,10 +53,10 @@
       "description": "Long-braised shredded beef brisket and pork mince ragù layered with Parmesan béchamel, pasta and mozzarella.",
       "portions": 10,
       "perPortion": {
-        "kcal": 600.0,
-        "proteinG": 44.0,
-        "carbsG": 50.0,
-        "fatG": 25.0
+        "kcal": 600,
+        "proteinG": 44,
+        "carbsG": 50,
+        "fatG": 25
       },
       "ingredientLines": [
         "1–1.2 kg beef brisket",
@@ -104,10 +104,10 @@
       "description": "Korean-inspired beef mince with gochujang, broccoli, edamame and jasmine rice.",
       "portions": 4,
       "perPortion": {
-        "kcal": 520.0,
-        "proteinG": 46.0,
-        "carbsG": 58.0,
-        "fatG": 12.0
+        "kcal": 520,
+        "proteinG": 46,
+        "carbsG": 58,
+        "fatG": 12
       },
       "ingredientLines": [
         "600 g 5% beef mince",
@@ -140,10 +140,10 @@
       "description": "Herby turkey koftas with wholewheat couscous, chopped salad, feta and lemon yoghurt.",
       "portions": 4,
       "perPortion": {
-        "kcal": 520.0,
-        "proteinG": 48.0,
-        "carbsG": 48.0,
-        "fatG": 14.0
+        "kcal": 520,
+        "proteinG": 48,
+        "carbsG": 48,
+        "fatG": 14
       },
       "ingredientLines": [
         "600 g lean turkey mince",
@@ -176,10 +176,10 @@
       "description": "Chicken breast simmered in green curry and light coconut milk with crisp vegetables and jasmine rice.",
       "portions": 4,
       "perPortion": {
-        "kcal": 550.0,
-        "proteinG": 48.0,
-        "carbsG": 62.0,
-        "fatG": 12.0
+        "kcal": 550,
+        "proteinG": 48,
+        "carbsG": 62,
+        "fatG": 12
       },
       "ingredientLines": [
         "700 g chicken breast",
@@ -211,10 +211,10 @@
       "description": "Citrus, cumin and chipotle pulled pork with rice, black beans, corn and fresh salsa.",
       "portions": 4,
       "perPortion": {
-        "kcal": 550.0,
-        "proteinG": 45.0,
-        "carbsG": 60.0,
-        "fatG": 13.0
+        "kcal": 550,
+        "proteinG": 45,
+        "carbsG": 60,
+        "fatG": 13
       },
       "ingredientLines": [
         "700 g lean pork loin or trimmed pork shoulder",
@@ -247,10 +247,10 @@
       "description": "Harissa-spiced chicken with chickpeas, roasted vegetables, pearl couscous and cooling yoghurt.",
       "portions": 4,
       "perPortion": {
-        "kcal": 530.0,
-        "proteinG": 50.0,
-        "carbsG": 55.0,
-        "fatG": 10.0
+        "kcal": 530,
+        "proteinG": 50,
+        "carbsG": 55,
+        "fatG": 10
       },
       "ingredientLines": [
         "700 g chicken breast",
@@ -283,10 +283,10 @@
       "description": "Cajun-seasoned salmon with roasted sweet potato, broccoli and lemon-garlic yoghurt.",
       "portions": 4,
       "perPortion": {
-        "kcal": 550.0,
-        "proteinG": 43.0,
-        "carbsG": 48.0,
-        "fatG": 21.0
+        "kcal": 550,
+        "proteinG": 43,
+        "carbsG": 48,
+        "fatG": 21
       },
       "ingredientLines": [
         "600 g salmon fillets",
@@ -316,10 +316,10 @@
       "description": "Lean chicken meatballs simmered with tomato, spinach and orzo, finished with Parmesan.",
       "portions": 4,
       "perPortion": {
-        "kcal": 540.0,
-        "proteinG": 49.0,
-        "carbsG": 58.0,
-        "fatG": 12.0
+        "kcal": 540,
+        "proteinG": 49,
+        "carbsG": 58,
+        "fatG": 12
       },
       "ingredientLines": [
         "600 g lean chicken mince",
@@ -350,10 +350,10 @@
       "description": "King prawns and udon noodles tossed with edamame, pak choi and a ginger-teriyaki glaze.",
       "portions": 4,
       "perPortion": {
-        "kcal": 490.0,
-        "proteinG": 43.0,
-        "carbsG": 62.0,
-        "fatG": 7.0
+        "kcal": 490,
+        "proteinG": 43,
+        "carbsG": 62,
+        "fatG": 7
       },
       "ingredientLines": [
         "600 g raw king prawns, peeled",
@@ -385,10 +385,10 @@
       "description": "Lean beef, rice, tomato, spinach and oregano baked in peppers with a little feta.",
       "portions": 4,
       "perPortion": {
-        "kcal": 500.0,
-        "proteinG": 44.0,
-        "carbsG": 48.0,
-        "fatG": 14.0
+        "kcal": 500,
+        "proteinG": 44,
+        "carbsG": 48,
+        "fatG": 14
       },
       "ingredientLines": [
         "600 g 5% beef mince",
@@ -419,10 +419,10 @@
       "description": "Yoghurt-marinated chicken in a gently spiced tomato, butter and light-cream sauce with spinach.",
       "portions": 4,
       "perPortion": {
-        "kcal": 550.0,
-        "proteinG": 50.0,
-        "carbsG": 55.0,
-        "fatG": 14.0
+        "kcal": 550,
+        "proteinG": 50,
+        "carbsG": 55,
+        "fatG": 14
       },
       "ingredientLines": [
         "700 g chicken breast",
@@ -454,10 +454,10 @@
       "description": "Freezer-friendly wholemeal breakfast burritos with lean turkey sausage, eggs, egg whites, potato, spinach and cheddar.",
       "portions": 8,
       "perPortion": {
-        "kcal": 430.0,
-        "proteinG": 38.0,
-        "carbsG": 37.0,
-        "fatG": 14.0
+        "kcal": 430,
+        "proteinG": 38,
+        "carbsG": 37,
+        "fatG": 14
       },
       "ingredientLines": [
         "8 wholemeal tortillas",
@@ -490,10 +490,10 @@
       "description": "Creamy high-protein oats with Greek yoghurt, vanilla whey, chia and mixed berries.",
       "portions": 4,
       "perPortion": {
-        "kcal": 400.0,
-        "proteinG": 35.0,
-        "carbsG": 48.0,
-        "fatG": 8.0
+        "kcal": 400,
+        "proteinG": 35,
+        "carbsG": 48,
+        "fatG": 8
       },
       "ingredientLines": [
         "160 g rolled oats",
@@ -522,10 +522,10 @@
       "description": "Chocolate protein oats with peanut butter and banana for a filling make-ahead breakfast.",
       "portions": 4,
       "perPortion": {
-        "kcal": 440.0,
-        "proteinG": 36.0,
-        "carbsG": 53.0,
-        "fatG": 12.0
+        "kcal": 440,
+        "proteinG": 36,
+        "carbsG": 53,
+        "fatG": 12
       },
       "ingredientLines": [
         "160 g rolled oats",
@@ -554,10 +554,10 @@
       "description": "Soft baked oatmeal squares with apple, cinnamon, Greek yoghurt and vanilla protein.",
       "portions": 4,
       "perPortion": {
-        "kcal": 390.0,
-        "proteinG": 32.0,
-        "carbsG": 48.0,
-        "fatG": 8.0
+        "kcal": 390,
+        "proteinG": 32,
+        "carbsG": 48,
+        "fatG": 8
       },
       "ingredientLines": [
         "200 g rolled oats",
@@ -587,10 +587,10 @@
       "description": "Portable baked egg muffins with turkey bacon, spinach, peppers, cottage cheese and cheddar.",
       "portions": 4,
       "perPortion": {
-        "kcal": 330.0,
-        "proteinG": 35.0,
-        "carbsG": 8.0,
-        "fatG": 17.0
+        "kcal": 330,
+        "proteinG": 35,
+        "carbsG": 8,
+        "fatG": 17
       },
       "ingredientLines": [
         "8 eggs",
@@ -620,10 +620,10 @@
       "description": "Fragrant lemongrass chicken with jasmine rice, edamame, crunchy vegetables, mint and coriander.",
       "portions": 4,
       "perPortion": {
-        "kcal": 510.0,
-        "proteinG": 49.0,
-        "carbsG": 55.0,
-        "fatG": 9.0
+        "kcal": 510,
+        "proteinG": 49,
+        "carbsG": 55,
+        "fatG": 9
       },
       "ingredientLines": [
         "700 g chicken breast",
@@ -657,10 +657,10 @@
       "description": "Lemon-oregano pork with roasted potato wedges, Greek salad and homemade tzatziki.",
       "portions": 4,
       "perPortion": {
-        "kcal": 530.0,
-        "proteinG": 47.0,
-        "carbsG": 48.0,
-        "fatG": 16.0
+        "kcal": 530,
+        "proteinG": 47,
+        "carbsG": 48,
+        "fatG": 16
       },
       "ingredientLines": [
         "700 g lean pork loin",
@@ -692,10 +692,10 @@
       "description": "Yoghurt-marinated tandoori salmon with basmati rice, cucumber, tomatoes and mint yoghurt.",
       "portions": 4,
       "perPortion": {
-        "kcal": 550.0,
-        "proteinG": 43.0,
-        "carbsG": 48.0,
-        "fatG": 20.0
+        "kcal": 550,
+        "proteinG": 43,
+        "carbsG": 48,
+        "fatG": 20
       },
       "ingredientLines": [
         "600 g salmon fillets",
@@ -726,10 +726,10 @@
       "description": "Spiced lamb koftas with couscous, roasted vegetables, yoghurt and a small hummus portion.",
       "portions": 4,
       "perPortion": {
-        "kcal": 560.0,
-        "proteinG": 44.0,
-        "carbsG": 48.0,
-        "fatG": 20.0
+        "kcal": 560,
+        "proteinG": 44,
+        "carbsG": 48,
+        "fatG": 20
       },
       "ingredientLines": [
         "600 g lean lamb mince",
@@ -761,10 +761,10 @@
       "description": "Oven-crisp panko chicken with a Japanese-style carrot and onion curry sauce and rice.",
       "portions": 4,
       "perPortion": {
-        "kcal": 560.0,
-        "proteinG": 48.0,
-        "carbsG": 65.0,
-        "fatG": 10.0
+        "kcal": 560,
+        "proteinG": 48,
+        "carbsG": 65,
+        "fatG": 10
       },
       "ingredientLines": [
         "700 g chicken breast",
@@ -789,6 +789,57 @@
       ],
       "legacyFreezerFriendly": false,
       "nutritionNote": "Planning estimate per serving. Actual macros depend on ingredient brands, trimming, cooking yield and portion weights; verify against product labels before treating as exact."
+    },
+    {
+      "id": "starter-cajun-pork-sausage-pasta-001",
+      "name": "Creamy Cajun Pork Sausage Pasta",
+      "category": "Dinner",
+      "description": "Browned skinless pork sausage meat with peppers, onion and penne in a creamy Cajun, smoked paprika and Parmesan sauce.",
+      "portions": 4,
+      "perPortion": {
+        "kcal": 1120,
+        "proteinG": 37,
+        "carbsG": 88,
+        "fatG": 67
+      },
+      "ingredientLines": [
+        "500 g pork sausages, skins removed",
+        "400 g penne pasta (dry)",
+        "300 ml double cream",
+        "200 ml chicken stock",
+        "75 g Parmesan, finely grated",
+        "1 red pepper",
+        "1 yellow pepper",
+        "1 large red onion",
+        "4 garlic cloves, minced",
+        "1 tbsp tomato purée",
+        "2½ tbsp Cajun seasoning",
+        "1½ tsp smoked paprika",
+        "½ tsp dried oregano",
+        "1 tsp Worcestershire sauce",
+        "1 tbsp olive oil",
+        "1 tbsp butter",
+        "Black pepper, to taste",
+        "½ tsp chilli flakes (optional)",
+        "Fresh parsley, to garnish",
+        "Salt, as needed"
+      ],
+      "methodSteps": [
+        "Remove the skins from the sausages and break the pork meat into small 1–2 cm pieces. Dice the peppers and onion, mince the garlic and grate the Parmesan.",
+        "Heat the olive oil in a large deep frying pan over medium-high heat. Add the sausage meat and brown for 6–8 minutes, breaking it into small chunks and turning occasionally until cooked through with golden, caramelised edges.",
+        "Add the butter, diced onion and peppers to the sausage pan. Cook for 5–6 minutes until the vegetables begin to soften.",
+        "While the vegetables cook, bring a large separate saucepan of salted water to the boil for the penne.",
+        "Add the garlic, tomato purée, Cajun seasoning, smoked paprika, oregano, black pepper and optional chilli flakes to the sausage pan. Stir for 60–90 seconds without allowing the garlic to burn.",
+        "Add the Worcestershire sauce and chicken stock. Scrape the bottom of the pan to release the browned sausage and spice residue, then simmer for 2–3 minutes.",
+        "Reduce the frying-pan heat to medium-low and pour in all 300 ml of double cream. Stir and simmer gently for 3–4 minutes; do not boil vigorously.",
+        "Add the penne to the boiling water and cook until just al dente, following the packet timing. This runs concurrently with the cream sauce simmering. Before draining, reserve a mug of the starchy pasta water.",
+        "Turn the sauce to low. Stir in the grated Parmesan until melted. Return the browned sausage and vegetables to a gentle simmer if they have been kept separate; keep the complete sauce warm without boiling.",
+        "Drain the pasta without rinsing and add it directly to the sauce. Toss thoroughly for 1–2 minutes, adding reserved pasta water a little at a time until the sauce is glossy and coats the pasta.",
+        "Taste and adjust the Cajun seasoning, black pepper and salt. Add a small squeeze of lemon if desired, then finish with chopped fresh parsley and extra Parmesan.",
+        "Divide into four portions and serve."
+      ],
+      "legacyFreezerFriendly": false,
+      "nutritionNote": "Estimated per portion using 500 g typical pork sausages, 400 g dry penne, 300 ml double cream and 75 g Parmesan. Approx. 1,120 kcal, 37 g protein, 88 g carbohydrate and 67 g fat per portion. Actual values vary substantially with sausage and cream brands; recalculate from product labels for accurate food logging. Freezing suitability has not been validated."
     }
   ]
 }
