@@ -132,7 +132,7 @@ void main() {
     'runs once: the version is recorded and a second run does nothing',
     () async {
       await importer()();
-      expect(await settings.readSeedRecipesVersion(), 1);
+      expect(await settings.readSeedRecipesVersion(), 2);
       final again = (await importer()() as Ok<LegacyImportSummary>).value;
       expect(again.alreadyDone, isTrue);
       expect(again.imported, 0);
