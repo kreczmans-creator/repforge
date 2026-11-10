@@ -19,10 +19,10 @@ void main() {
     expect(doc['source'] as String, contains('defaultStarterRecipes()'));
   });
 
-  test('contains 22 recipes with unique starter- ids', () {
-    expect(recipes, hasLength(22));
+  test('contains 23 recipes with unique starter- ids', () {
+    expect(recipes, hasLength(23));
     final ids = recipes.map((r) => r['id'] as String).toList();
-    expect(ids.toSet(), hasLength(22));
+    expect(ids.toSet(), hasLength(23));
     for (final id in ids) {
       expect(id, startsWith('starter-'));
     }
